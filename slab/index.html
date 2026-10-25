@@ -23,7 +23,7 @@
 .bubble.pop { animation: pop .25s ease; }
 @keyframes pop { from { transform: scale(.85); } to { transform: scale(1); } }
 @media (prefers-reduced-motion: reduce) { .bubble.pop { animation: none; } }
-@media (max-width: 600px) { .call { position: static; padding: 14px 14px 0; } }
+@media (max-width: 600px) { .scene { display: flex; flex-direction: column; } .call { position: static; order: -1; padding: 14px 14px 0; } }
 .stage { position: absolute; top: 22px; inset-inline-end: 18px; font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
 .pile { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
 .stone { display: grid; place-items: center; gap: 6px; padding: 14px 6px 10px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); cursor: pointer; font: inherit; font-size: 0.78rem; font-family: var(--font-mono); }
