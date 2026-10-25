@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Space Wordle · Mariam's Lab</title>
+<meta name="description" content="A daily five-letter word puzzle about space, satellites and the sky, with a fact for every answer.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/space-wordle/">
+<meta property="og:title" content="Space Wordle · Mariam's Lab"><meta property="og:description" content="A new five-letter space word every day, with a fact for every answer."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sw { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 40px; align-items: start; }
+@media (max-width: 860px) { .sw { grid-template-columns: 1fr; gap: 24px; } }
+.play { display: grid; gap: 22px; justify-items: center; min-width: 0; }
+.grid { display: grid; grid-template-rows: repeat(6, 1fr); gap: 7px; width: min(100%, 340px); }
+.row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px; }
+.row.shake { animation: shake .4s; }
+@keyframes shake { 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
+.tile { aspect-ratio: 1; display: grid; place-items: center; border-radius: 10px; border: 2px solid var(--line); font-family: var(--font-display); font-weight: 800; font-size: clamp(1.4rem, 7vw, 2rem); text-transform: uppercase; color: var(--ink); background: rgba(7, 10, 24, 0.5); }
+.tile.full { border-color: color-mix(in srgb, var(--ink) 45%, transparent); }
+.tile.c, .tile.p, .tile.a { border-color: transparent; }
+.tile.c { background: var(--sat-b); color: #06201C; }
+.tile.p { background: var(--accent); color: #2A1A05; }
+.tile.a { background: rgba(120, 132, 190, 0.22); color: var(--muted); }
+.tile.flip { animation: flip .5s ease both; }
+@keyframes flip { 0% { transform: rotateX(0); } 50% { transform: rotateX(90deg); } 100% { transform: rotateX(0); } }
+@media (prefers-reduced-motion: reduce) { .tile.flip, .row.shake { animation: none; } }
+.kb { display: grid; gap: 7px; width: min(100%, 500px); }
+.kb div { display: flex; gap: 6px; justify-content: center; }
+.kb button { flex: 1; min-width: 0; height: 54px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-family: var(--font-body); font-weight: 600; font-size: 1rem; text-transform: uppercase; cursor: pointer; padding: 0; }
+.kb button.wide { flex: 1.6; font-size: 0.78rem; }
+.kb button.c { background: var(--sat-b); color: #06201C; border-color: transparent; }
+.kb button.p { background: var(--accent); color: #2A1A05; border-color: transparent; }
+.kb button.a { background: transparent; color: color-mix(in srgb, var(--muted) 70%, transparent); }
+.kb button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.side { display: grid; gap: 16px; min-width: 0; }
+.msg { min-height: 1.5em; font-family: var(--font-mono); font-size: 0.9rem; color: var(--accent); text-align: center; }
+.done { display: grid; gap: 12px; padding: 20px; border-radius: 12px; border: 1px solid var(--accent); background: var(--surface); }
+.done h2 { font-size: 1.6rem; font-weight: 800; letter-spacing: 0.06em; }
+.done .acts { display: flex; flex-wrap: wrap; gap: 10px; }
+.dist { display: grid; gap: 5px; font-family: var(--font-mono); font-size: 0.8rem; }
+.dist div { display: grid; grid-template-columns: 14px minmax(0, 1fr); gap: 8px; align-items: center; }
+.dist i { display: block; height: 18px; min-width: 22px; padding-inline: 6px; border-radius: 4px; background: rgba(120, 132, 190, 0.3); font-style: normal; text-align: right; line-height: 18px; color: var(--ink); }
+.dist i.me { background: var(--sat-b); color: #06201C; }
+.legend { display: grid; gap: 8px; color: var(--muted); font-size: 0.95rem; }
+.legend span { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 6px; font-family: var(--font-display); font-weight: 800; margin-inline-end: 8px; vertical-align: middle; }
+.legend span.tile { aspect-ratio: auto; font-size: 0.9rem; border-width: 0; }
+.next { font-family: var(--font-mono); font-size: 0.85rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label" id="num">Game · Daily</span>
+    <h1 style="font-size:var(--step-3)">Space Wordle.</h1>
+    <p>One five-letter word from space, satellites and the sky, every day. Six guesses. A fact when you get it.</p>
+  </div>
+  <div class="sw">
+    <div class="play">
+      <div class="grid" id="grid" aria-label="Guesses"></div>
+      <p class="msg" id="msg" role="status" aria-live="polite"></p>
+      <div class="kb" id="kb" aria-label="Keyboard"></div>
+    </div>
+    <div class="side">
+      <div class="done" id="done" hidden>
+        <span class="label" id="dlab">Today's word</span>
+        <h2 id="dword"></h2>
+        <p id="dfact"></p>
+        <div class="acts">
+          <button class="btn primary" id="shareB" type="button">Share result</button>
+          <button class="btn ghost" id="morseB" type="button">Hear it in Morse</button>
+          <button class="btn ghost" id="practiceB" type="button">Play a random one</button>
+        </div>
+        <p class="next" id="next"></p>
+      </div>
+      <div class="stats">
+        <div><span class="label">Played</span><b id="sPlayed">0</b></div>
+        <div><span class="label">Streak</span><b id="sStreak">0</b></div>
+        <div><span class="label">Best streak</span><b id="sMax">0</b></div>
+      </div>
+      <div class="dist" id="dist" aria-label="Guess distribution"></div>
+      <div class="legend">
+        <div><span class="tile c" aria-hidden="true">O</span>Right letter, right spot.</div>
+        <div><span class="tile p" aria-hidden="true">R</span>In the word, wrong spot.</div>
+        <div><span class="tile a" aria-hidden="true">B</span>Not in the word.</div>
+      </div>
+      <p class="fact">Type on your keyboard or tap the keys. A new word arrives at midnight in Abu Dhabi.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  var ANSWERS = [
+    ['orbit', 'The ISS goes around Earth about every 92 minutes, so the crew sees around 16 sunrises a day.'],
+    ['comet', "A comet's tail always points away from the Sun, pushed by sunlight and the solar wind, whichever way the comet is moving."],
+    ['lunar', 'The Moon drifts about 3.8 cm farther from Earth every year. We know because lasers bounce off mirrors the Apollo crews left behind.'],
+    ['solar', 'Sunlight takes about 8 minutes and 20 seconds to reach Earth.'],
+    ['alien', 'The two Voyager probes carry golden records with music, sounds and greetings in 55 languages, in case anyone ever finds them.'],
+    ['space', 'The Kármán line, 100 km up, is the most common definition of where space begins.'],
+    ['earth', 'Earth is the densest planet in the Solar System.'],
+    ['venus', 'A day on Venus (243 Earth days) is longer than its year (225 Earth days).'],
+    ['pluto', 'Pluto has not finished a single orbit since it was discovered in 1930. Its year lasts 248 Earth years.'],
+    ['rover', "The UAE's Rashid rover launched to the Moon in December 2022, the first Arab lunar rover."],
+    ['probe', "The UAE's Hope probe reached Mars orbit in February 2021, the first Arab mission to another planet."],
+    ['orion', "Betelgeuse, Orion's red shoulder, is so big that in the Sun's place it would reach past the orbit of Mars."],
+    ['atlas', "Atlas is a tiny moon of Saturn shaped like a flying saucer, with a ridge around its middle."],
+    ['titan', "Titan, Saturn's largest moon, has lakes and seas of liquid methane and ethane."],
+    ['ceres', 'Ceres is the largest object in the asteroid belt, big enough to count as a dwarf planet.'],
+    ['vesta', 'Vesta is the brightest asteroid, and on a dark night it can just be seen without a telescope.'],
+    ['dwarf', 'Our Sun is a yellow dwarf, an ordinary middle-aged star.'],
+    ['giant', 'Jupiter is more than twice as massive as all the other planets put together.'],
+    ['flare', 'A strong solar flare can disturb GPS by changing the ionosphere its signals pass through.'],
+    ['laser', 'Lasers fired at the Moon measure its distance to within millimetres.'],
+    ['radar', "The Magellan probe mapped Venus with radar, because its thick clouds hide the surface."],
+    ['radio', 'GPS signals reach the ground weaker than the background noise. Receivers dig them out by correlating with a known code.'],
+    ['soyuz', 'The Soyuz spacecraft has been flying crews since 1967.'],
+    ['aries', 'The spring equinox point is still called the First Point of Aries, even though the slow wobble of Earth has moved it into Pisces.'],
+    ['libra', 'The autumn equinox point is called the First Point of Libra, though it now sits in Virgo.'],
+    ['virgo', 'The Virgo Cluster holds well over a thousand galaxies, and its gravity tugs on our own Local Group.'],
+    ['hydra', 'Hydra is the largest of the 88 constellations.'],
+    ['rigel', 'Rigel is a blue supergiant, tens of thousands of times brighter than the Sun.'],
+    ['deneb', 'Deneb shines brightly in our sky even though it is well over a thousand light-years away.'],
+    ['spica', 'Spica is really two hot stars circling each other every four days.'],
+    ['algol', 'Algol, from the Arabic raʾs al-ghūl, dims every 2.87 days when one of its two stars passes in front of the other.'],
+    ['mimas', 'A huge crater called Herschel makes Saturn’s moon Mimas look like the Death Star.'],
+    ['ariel', "Ariel is a moon of Uranus. Uranus's moons are named after characters from Shakespeare and Alexander Pope."],
+    ['umbra', "The umbra is the darkest part of a shadow. Stand in the Moon's umbra and you see a total solar eclipse."],
+    ['nadir', 'Nadir, the point straight below you, comes from the Arabic word naẓīr.'],
+    ['epoch', 'Every orbit is described at an epoch, a reference moment. GPS time started its own count on 6 January 1980.'],
+    ['tidal', 'The Moon is tidally locked to Earth, so we always see the same face.'],
+    ['boost', 'The ISS needs regular reboosts, because the thin air at 400 km slowly drags it down.'],
+    ['abort', 'Crew capsules carry abort systems that can pull astronauts away from a failing rocket in seconds.'],
+    ['plume', "Saturn's moon Enceladus sprays plumes of water ice from cracks near its south pole."],
+    ['stars', 'Only a few thousand stars are visible to the naked eye across the whole sky, and far fewer under city lights.'],
+    ['moons', 'Saturn has the most known moons of any planet, well over 200.'],
+    ['rings', "All four giant planets have rings. Saturn's are just the brightest."],
+    ['light', 'Satellite navigation works by timing light. One nanosecond of clock error is about 30 cm of position error.'],
+    ['clock', 'Clocks on GPS satellites run about 38 microseconds a day fast because of relativity, and the system corrects for it.'],
+    ['delay', 'The ionosphere delays GNSS signals, which is why dual-frequency receivers are more accurate.'],
+    ['range', 'A receiver measures pseudoranges: distances to satellites that still include its own clock error.'],
+    ['phase', 'Survey receivers track the phase of the carrier wave itself to reach centimetre accuracy.'],
+    ['chips', 'The GPS C/A code has 1,023 chips and repeats every millisecond.'],
+    ['noise', 'GPS signals arrive roughly 20 dB below the noise around them.'],
+    ['track', 'After finding a satellite, a receiver tracks it with loops that follow the code and the carrier, thousands of times a second.'],
+    ['prism', 'Newton used a prism to show that white sunlight is a mix of colours.'],
+    ['scope', 'In 1610 Galileo pointed a telescope at Jupiter and found four moons going around it.'],
+    ['focus', "The James Webb Space Telescope's 18 mirror segments had to be lined up in space to work as one mirror."],
+    ['polar', 'Polaris is not the brightest star in the sky. It is only around 48th.'],
+    ['north', 'Polaris sits within a degree of the north celestial pole, but in about 12,000 years the pole will be near Vega.'],
+    ['storm', "Jupiter's Great Red Spot is a storm wider than Earth that has lasted for centuries."],
+    ['winds', 'Neptune has the fastest winds in the Solar System, over 2,000 km/h.'],
+    ['water', "Water ice hides in permanently shadowed craters near the Moon's poles."],
+    ['argon', "About 2% of Mars's thin atmosphere is argon."],
+    ['axial', "Earth's axial tilt of about 23.4° is what gives us seasons."],
+    ['years', 'A light-year is a distance, not a time: about 9.46 trillion km.'],
+    ['month', 'The word month comes from moon.'],
+    ['dusty', 'Mars has dust storms that can wrap the whole planet for months.'],
+    ['voids', 'The universe has vast, nearly empty voids hundreds of millions of light-years across.'],
+    ['halos', 'Galaxies sit inside huge halos of dark matter that we can only detect by their gravity.'],
+    ['waves', 'Gravitational waves were first detected in 2015, from two black holes merging over a billion light-years away.'],
+    ['spins', 'Some pulsars spin hundreds of times every second.']
+  ];
+  // fixed shuffle so the daily order isn't alphabetical or guessable
+  var seed = 20261026;
+  function rnd() { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; }
+  for (var s = ANSWERS.length - 1; s > 0; s--) { var r = Math.floor(rnd() * (s + 1)), tmp = ANSWERS[s]; ANSWERS[s] = ANSWERS[r]; ANSWERS[r] = tmp; }
+
+  var $ = function (id) { return document.getElementById(id); };
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // puzzle number: days since 25 October 2026, counted in Abu Dhabi time (UTC+4)
+  function dayNum() { return Math.floor((Date.now() + 4 * 3600e3 - Date.UTC(2026, 9, 25)) / 86400e3); }
+  var DAY = Math.max(0, dayNum()), daily = true, ans = ANSWERS[DAY % ANSWERS.length];
+  var WORD = ans[0], guesses = [], cur = '', over = false, valid = null;
+
+  var store = { get: function (k, d) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+    set: function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} } };
+  var stats = store.get('swStats', { played: 0, streak: 0, max: 0, dist: [0, 0, 0, 0, 0, 0], last: -1 });
+  var saved = store.get('swDay', null);
+  if (saved && saved.n === DAY) guesses = saved.g;
+
+  fetch('words.txt').then(function (r) { return r.ok ? r.text() : ''; }).then(function (t) {
+    if (!t) return; valid = new Set(); for (var k = 0; k < t.length; k += 5) valid.add(t.slice(k, k + 5));
+  }).catch(function () {});
+
+  var grid = $('grid'), kb = $('kb'), msg = $('msg');
+  for (var y = 0; y < 6; y++) {
+    var row = document.createElement('div'); row.className = 'row';
+    for (var x = 0; x < 5; x++) { var t = document.createElement('div'); t.className = 'tile'; row.appendChild(t); }
+    grid.appendChild(row);
+  }
+  ['qwertyuiop', 'asdfghjkl', '+zxcvbnm-'].forEach(function (line) {
+    var d = document.createElement('div');
+    line.split('').forEach(function (ch) {
+      var b = document.createElement('button'); b.type = 'button';
+      if (ch === '+') { b.textContent = 'Enter'; b.className = 'wide'; b.dataset.k = 'Enter'; }
+      else if (ch === '-') { b.textContent = '⌫'; b.className = 'wide'; b.dataset.k = 'Backspace'; b.setAttribute('aria-label', 'Delete'); }
+      else { b.textContent = ch; b.dataset.k = ch; }
+      d.appendChild(b);
+    });
+    kb.appendChild(d);
+  });
+
+  function score(g, w) {
+    var res = ['a', 'a', 'a', 'a', 'a', 'a'].slice(0, 5), left = {};
+    for (var i = 0; i < 5; i++) { if (g[i] === w[i]) res[i] = 'c'; else left[w[i]] = (left[w[i]] || 0) + 1; }
+    for (i = 0; i < 5; i++) if (res[i] !== 'c' && left[g[i]]) { res[i] = 'p'; left[g[i]]--; }
+    return res;
+  }
+  var NAMES = { c: 'right spot', p: 'in the word', a: 'not in the word' };
+  function paint(animateRow) {
+    var keys = {};
+    for (var y = 0; y < 6; y++) {
+      var row = grid.children[y], g = guesses[y] || (y === guesses.length ? cur : ''), res = guesses[y] ? score(guesses[y], WORD) : null;
+      for (var x = 0; x < 5; x++) {
+        var t = row.children[x], ch = g[x] || '';
+        t.textContent = ch; t.className = 'tile' + (ch ? ' full' : '');
+        if (res) {
+          (function (t, cls, delay, anim) {
+            if (anim && !reduce) { t.style.animationDelay = delay + 'ms'; t.classList.add('flip'); setTimeout(function () { t.classList.add(cls); }, delay + 250); }
+            else t.classList.add(cls);
+          })(t, res[x], x * 160, y === animateRow);
+          var k = keys[ch]; if (k !== 'c' && !(k === 'p' && res[x] === 'a')) keys[ch] = res[x];
+        }
+      }
+      row.setAttribute('aria-label', g ? 'Guess ' + (y + 1) + ': ' + g.toUpperCase() + (res ? ', ' + res.map(function (r, i) { return g[i].toUpperCase() + ' ' + NAMES[r]; }).join(', ') : '') : 'Empty row');
+    }
+    kb.querySelectorAll('button').forEach(function (b) { var s = keys[b.dataset.k]; b.className = (b.className.indexOf('wide') >= 0 ? 'wide' : '') + (s ? ' ' + s : ''); });
+  }
+
+  function say(t) { msg.textContent = t; }
+  function shake() { var row = grid.children[guesses.length]; row.classList.remove('shake'); void row.offsetWidth; row.classList.add('shake'); }
+  function press(k) {
+    if (over) return;
+    if (k === 'Enter') {
+      if (cur.length < 5) { say('Five letters, please.'); shake(); return; }
+      if (valid && !valid.has(cur) && !ANSWERS.some(function (a) { return a[0] === cur; })) { say('Not in the word list.'); shake(); return; }
+      guesses.push(cur); cur = ''; say('');
+      var res = score(guesses[guesses.length - 1], WORD);
+      say(guesses[guesses.length - 1].toUpperCase() + ': ' + res.map(function (r) { return { c: '●', p: '◐', a: '○' }[r]; }).join(' '));
+      paint(guesses.length - 1);
+      if (daily) store.set('swDay', { n: DAY, g: guesses });
+      var won = guesses[guesses.length - 1] === WORD;
+      if (won || guesses.length === 6) setTimeout(function () { finish(won, true); }, reduce ? 0 : 1100);
+      return;
+    }
+    if (k === 'Backspace') { cur = cur.slice(0, -1); paint(-1); return; }
+    if (/^[a-z]$/.test(k) && cur.length < 5) { cur += k; paint(-1); }
+  }
+  kb.addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) press(b.dataset.k); });
+  document.addEventListener('keydown', function (e) {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.target.closest && e.target.closest('button, a') && (e.key === 'Enter' || e.key === ' ')) return;
+    var k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+    if (k === 'Enter' || k === 'Backspace' || /^[a-z]$/.test(k)) { e.preventDefault(); press(k); }
+  });
+
+  function drawStats(highlight) {
+    $('sPlayed').textContent = stats.played; $('sStreak').textContent = stats.streak; $('sMax').textContent = stats.max;
+    var m = Math.max.apply(null, stats.dist.concat([1]));
+    $('dist').innerHTML = stats.dist.map(function (n, i) {
+      return '<div><span>' + (i + 1) + '</span><i style="width:' + Math.max(8, n / m * 100) + '%"' + (highlight === i ? ' class="me"' : '') + '>' + n + '</i></div>';
+    }).join('');
+  }
+  function finish(won, fresh) {
+    over = true;
+    if (daily && fresh && stats.last !== DAY) {
+      stats.played++;
+      if (won) { stats.streak = stats.last === DAY - 1 ? stats.streak + 1 : 1; stats.dist[guesses.length - 1]++; }
+      else stats.streak = 0;
+      stats.max = Math.max(stats.max, stats.streak); stats.last = DAY; store.set('swStats', stats);
+    }
+    drawStats(won && daily ? guesses.length - 1 : -1);
+    $('dlab').textContent = daily ? (won ? 'Got it in ' + guesses.length + '/6' : 'Today’s word') : (won ? 'Practice · ' + guesses.length + '/6' : 'Practice word');
+    $('dword').textContent = WORD.toUpperCase(); $('dfact').textContent = ans[1];
+    $('shareB').hidden = !daily; $('done').hidden = false;
+    say(won ? ['Out of this world!', 'Brilliant!', 'Great fix!', 'Nice!', 'Phew!', 'Just made it!'][guesses.length - 1] : 'The word was ' + WORD.toUpperCase() + '.');
+  }
+
+  $('shareB').addEventListener('click', function () {
+    var won = guesses[guesses.length - 1] === WORD;
+    var txt = 'Space Wordle #' + (DAY + 1) + ' ' + (won ? guesses.length : 'X') + '/6\n\n' +
+      guesses.map(function (g) { return score(g, WORD).map(function (r) { return { c: '🟩', p: '🟨', a: '⬛' }[r]; }).join(''); }).join('\n') +
+      '\n\nlab.mariamalzaabi.ae/space-wordle';
+    var ok = function () { say('Copied. Paste it anywhere.'); };
+    if (navigator.share && matchMedia('(hover: none)').matches) navigator.share({ text: txt }).catch(function () {});
+    else if (navigator.clipboard) navigator.clipboard.writeText(txt).then(ok, function () { say('Could not copy.'); });
+  });
+
+  // play the answer in Morse at 16 words per minute
+  var MORSE = { a: '.-', b: '-...', c: '-.-.', d: '-..', e: '.', f: '..-.', g: '--.', h: '....', i: '..', j: '.---', k: '-.-', l: '.-..', m: '--', n: '-.', o: '---', p: '.--.', q: '--.-', r: '.-.', s: '...', t: '-', u: '..-', v: '...-', w: '.--', x: '-..-', y: '-.--', z: '--..' };
+  var ac = null;
+  $('morseB').addEventListener('click', function () {
+    var AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+    ac = ac || new AC(); if (ac.state === 'suspended') ac.resume();
+    var u = 0.075, t = ac.currentTime + 0.15, o = ac.createOscillator(), g = ac.createGain();
+    o.frequency.value = 620; g.gain.value = 0; o.connect(g); g.connect(ac.destination);
+    WORD.split('').forEach(function (ch) {
+      MORSE[ch].split('').forEach(function (s) {
+        var d = s === '.' ? u : 3 * u;
+        g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.3, t + 0.006); g.gain.setValueAtTime(0.3, t + d - 0.006); g.gain.linearRampToValueAtTime(0, t + d);
+        t += d + u;
+      });
+      t += 2 * u;
+    });
+    o.start(); o.stop(t);
+    say(WORD.split('').map(function (c) { return MORSE[c]; }).join('  '));
+  });
+
+  $('practiceB').addEventListener('click', function () {
+    daily = false; var pick;
+    do { pick = ANSWERS[Math.floor(Math.random() * ANSWERS.length)]; } while (pick[0] === WORD && ANSWERS.length > 1);
+    ans = pick; WORD = pick[0]; guesses = []; cur = ''; over = false;
+    $('done').hidden = true; $('num').textContent = 'Game · Practice'; say('Practice round. It won’t count in your stats.');
+    paint(-1);
+  });
+
+  function countdown() {
+    var ms = Date.UTC(2026, 9, 25) + (DAY + 1) * 86400e3 - 4 * 3600e3 - Date.now();
+    if (ms <= 0) { $('next').textContent = 'A new word is ready. Reload the page.'; return; }
+    var h = Math.floor(ms / 3600e3), m = Math.floor(ms % 3600e3 / 60e3);
+    $('next').textContent = 'Next word in ' + h + 'h ' + m + 'm.';
+  }
+  setInterval(countdown, 30e3); countdown();
+
+  $('num').textContent = 'Game · Daily #' + (DAY + 1);
+  drawStats(-1); paint(-1);
+  if (guesses.length && (guesses[guesses.length - 1] === WORD || guesses.length === 6)) finish(guesses[guesses.length - 1] === WORD, false);
+})();
+</script>
+</body>
+</html>
