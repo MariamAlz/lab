@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Morse Message · Mariam's Lab</title>
+<meta name="description" content="Type a message and hear it as Morse code or as a 50 bit-per-second data signal, send it to a friend as a hidden link, or key your own Morse.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/morse/">
+<meta property="og:title" content="Morse Message · Mariam's Lab"><meta property="og:description" content="Hear your message as Morse or as a satellite-speed data signal, and send it as a hidden link."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.mx { display: grid; gap: 18px; }
+.strip { position: relative; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); background: rgba(7, 10, 24, 0.82); }
+.strip canvas { width: 100%; aspect-ratio: 1000 / 300; display: block; }
+@media (max-width: 640px) { .strip canvas { aspect-ratio: 560 / 300; } }
+.ctrl { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 32px; align-items: start; }
+@media (max-width: 860px) { .ctrl { grid-template-columns: 1fr; gap: 20px; } }
+.box { display: grid; gap: 14px; padding: 18px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); min-width: 0; }
+.box h2 { font-size: 1.25rem; font-weight: 800; }
+.fld { display: grid; gap: 6px; font-size: 0.92rem; }
+.fld > span { display: flex; justify-content: space-between; gap: 10px; }
+.fld output { font-family: var(--font-mono); color: var(--accent); }
+.msg { width: 100%; font: inherit; font-size: 1.1rem; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--line); background: rgba(7, 10, 24, 0.6); color: var(--ink); font-family: var(--font-body), "IBM Plex Sans Arabic", sans-serif; }
+.msg:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+.modes { display: flex; flex-wrap: wrap; gap: 8px; border: 0; padding: 0; margin: 0; }
+.modes legend { font-size: 0.92rem; margin-bottom: 6px; }
+.modes label { display: inline-flex; gap: 8px; align-items: center; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line); cursor: pointer; font-size: 0.92rem; }
+.modes label:has(input:checked) { border-color: var(--accent); color: var(--accent); }
+.modes input { accent-color: var(--accent); margin: 0; }
+.acts { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.code { font-family: var(--font-mono); font-size: 0.9rem; color: var(--muted); word-break: break-word; line-height: 1.7; min-height: 1.7em; }
+.note { font-size: 0.9rem; color: var(--muted); }
+.hiddenmsg { padding: 14px 16px; border-radius: 10px; border: 1px dashed var(--accent); color: var(--ink); }
+.key { width: 100%; padding: 26px; border-radius: 16px; border: 1px solid var(--line); background: rgba(7, 10, 24, 0.6); color: var(--ink); font-family: var(--font-display); font-size: 1.2rem; font-weight: 600; cursor: pointer; touch-action: none; user-select: none; -webkit-user-select: none; transition: background .08s, border-color .08s; }
+.key.on { background: var(--accent); color: #070A18; border-color: var(--accent); }
+.key:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.typed { font-family: var(--font-display); font-size: 1.5rem; font-weight: 600; min-height: 1.4em; word-break: break-word; }
+.sym { font-family: var(--font-mono); color: var(--accent); min-height: 1.5em; }
+.cheat { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 4px 12px; font-family: var(--font-mono); font-size: 0.82rem; color: var(--muted); }
+.cheat b { color: var(--ink); font-weight: 500; display: inline-block; width: 1.4em; }
+details summary { cursor: pointer; color: var(--accent); font-family: var(--font-mono); font-size: 0.85rem; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap mx">
+  <div class="sec-head">
+    <span class="label">Experiment · Signals · Sound</span>
+    <h1 style="font-size:var(--step-3)">Morse message.</h1>
+    <p>Type something and hear it as Morse code, or as a data signal at the speed GPS satellites talk. Then send it to a friend as a hidden message.</p>
+  </div>
+
+  <div class="strip"><canvas id="mc" width="1000" height="300" role="img" aria-label="Timeline of the signal. Each bar is a tone, with letters underneath."></canvas></div>
+
+  <div class="ctrl">
+    <div class="box">
+      <h2>Send</h2>
+      <div id="hid" class="hiddenmsg" hidden>Someone sent you a hidden message. Press play and try to read it, then reveal it.</div>
+      <label class="fld" id="msgf" for="msg"><span>Your message</span><input class="msg" id="msg" type="text" maxlength="80" value="Hello from Abu Dhabi" autocomplete="off" dir="auto"></label>
+      <fieldset class="modes"><legend>Send it as</legend>
+        <label><input type="radio" name="mode" value="morse" checked> Morse code</label>
+        <label><input type="radio" name="mode" value="data"> Data, 50 bits/s</label>
+      </fieldset>
+      <label class="fld" for="wpm" id="wpmf"><span>Speed <output id="wpmo">16 wpm</output></span><input type="range" id="wpm" min="8" max="30" value="16"></label>
+      <label class="fld" for="hz"><span>Pitch <output id="hzo">620 Hz</output></span><input type="range" id="hz" min="400" max="900" step="10" value="620"></label>
+      <div class="acts">
+        <button class="btn primary" id="play" type="button">Play</button>
+        <button class="btn ghost" id="share" type="button">Copy a hidden link</button>
+        <button class="btn ghost" id="reveal" type="button" hidden>Reveal</button>
+      </div>
+      <p class="code" id="code" aria-live="off"></p>
+      <p class="note" id="note" aria-live="polite"></p>
+    </div>
+
+    <div class="box">
+      <h2>Key it yourself</h2>
+      <p class="note">Hold the key for a dash, tap it for a dot. Pause to finish a letter. Space bar works too.</p>
+      <button class="key" id="key" type="button">Hold to send</button>
+      <div class="sym" id="sym" aria-hidden="true"></div>
+      <div class="typed" id="typed" aria-live="polite"></div>
+      <div class="acts"><button class="btn ghost" id="clr" type="button">Clear</button></div>
+      <details><summary>Cheat sheet</summary><div class="cheat" id="cheat"></div></details>
+    </div>
+  </div>
+
+  <p class="fact">Morse is still on air. Aircraft navigation beacons spell their names in Morse, and GPS satellites send their navigation message at just 50 bits per second, so a full almanac of every satellite takes 12.5 minutes to arrive.</p>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function css(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+  var $ = function (id) { return document.getElementById(id); };
+  var MORSE = {
+    A: '.-', B: '-...', C: '-.-.', D: '-..', E: '.', F: '..-.', G: '--.', H: '....', I: '..', J: '.---', K: '-.-', L: '.-..', M: '--',
+    N: '-.', O: '---', P: '.--.', Q: '--.-', R: '.-.', S: '...', T: '-', U: '..-', V: '...-', W: '.--', X: '-..-', Y: '-.--', Z: '--..',
+    0: '-----', 1: '.----', 2: '..---', 3: '...--', 4: '....-', 5: '.....', 6: '-....', 7: '--...', 8: '---..', 9: '----.',
+    '.': '.-.-.-', ',': '--..--', '?': '..--..', "'": '.----.', '!': '-.-.--', '/': '-..-.', '(': '-.--.', ')': '-.--.-', '&': '.-...',
+    ':': '---...', ';': '-.-.-.', '=': '-...-', '+': '.-.-.', '-': '-....-', '"': '.-..-.', '@': '.--.-.'
+  };
+  // Arabic Morse code
+  var AR = { 'ا': '.-', 'ب': '-...', 'ت': '-', 'ث': '-.-.', 'ج': '.---', 'ح': '....', 'خ': '---', 'د': '-..', 'ذ': '--..', 'ر': '.-.', 'ز': '---.',
+    'س': '...', 'ش': '----', 'ص': '-..-', 'ض': '...-', 'ط': '..-', 'ظ': '-.--', 'ع': '.-.-', 'غ': '--.', 'ف': '..-.', 'ق': '--.-', 'ك': '-.-',
+    'ل': '.-..', 'م': '--', 'ن': '-.', 'ه': '..-..', 'و': '.--', 'ي': '..', 'ء': '.' };
+  var FOLD = { 'أ': 'ا', 'إ': 'ا', 'آ': 'ا', 'ٱ': 'ا', 'ة': 'ه', 'ى': 'ي', 'ئ': 'ي', 'ؤ': 'و', '،': ',', '؟': '?', '؛': ';' };
+  var BACK = {}; Object.keys(MORSE).forEach(function (k) { BACK[MORSE[k]] = k; }); BACK['...---...'] = 'SOS';
+
+  var cv = $('mc'), g = cv.getContext('2d'), W = cv.width, H = cv.height, PH = 300;
+  // narrow screens get a shorter canvas so the letters stay readable
+  function fit() { W = cv.width = window.innerWidth <= 640 ? 560 : 1000; PH = Math.round(W * 0.3); }
+  fit(); window.addEventListener('resize', fit);
+  var msg = $('msg'), wpm = $('wpm'), hz = $('hz'), playB = $('play'), note = $('note'), code = $('code');
+  function mode() { return document.querySelector('input[name=mode]:checked').value; }
+
+  // Build the timeline: tone on/off events plus the span of each character
+  function build() {
+    var text = msg.value, ev = [], spans = [], t = 0, skipped = '';
+    if (mode() === 'morse') {
+      var u = 1.2 / +wpm.value, words = [], prevSpace = true;
+      for (var n = 0; n < text.length; n++) {
+        var ch = text[n], up = FOLD[ch] || ch.toUpperCase(), m = MORSE[up] || AR[up];
+        if (/\s/.test(ch)) { if (!prevSpace) { t += 4 * u; words.push('/'); } prevSpace = true; continue; }
+        if (!m) { if (skipped.indexOf(ch) < 0) skipped += ch; continue; }
+        var s0 = t;
+        for (var k = 0; k < m.length; k++) { var d = m[k] === '.' ? u : 3 * u; ev.push({ t: t, d: d, f: 0 }); t += d + u; }
+        spans.push({ a: s0, b: t - u, ch: ch, m: m }); words.push(m); t += 2 * u; prevSpace = false;
+      }
+      code.textContent = words.join(' ');
+      t = Math.max(0, t - 2 * u);
+    } else {
+      // UTF-8 bytes, each framed like a serial line: start bit 0, 8 data bits (LSB first), stop bit 1
+      var bytes = new TextEncoder().encode(text), bit = 0.02, out = [];
+      for (var b = 0; b < bytes.length; b++) {
+        var bits = [0]; for (var q = 0; q < 8; q++) bits.push((bytes[b] >> q) & 1); bits.push(1);
+        out.push(bits.slice(1, 9).reverse().join(''));
+        bits.forEach(function (v) { ev.push({ t: t, d: bit, f: v }); t += bit; });
+      }
+      // label characters across their bytes
+      var pos = 0;
+      for (var c of text) { var len = new TextEncoder().encode(c).length; spans.push({ a: pos * 10 * bit, b: (pos + len) * 10 * bit, ch: c }); pos += len; }
+      code.textContent = out.join(' ');
+    }
+    note.textContent = skipped ? 'Skipped characters Morse has no code for: ' + skipped : '';
+    return { ev: ev, spans: spans, dur: t };
+  }
+
+  var tl = build(), ac = null, play = null, keyOsc = null, keyG = null;
+  function audio() {
+    if (!ac) { var AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null; ac = new AC(); }
+    if (ac.state === 'suspended') ac.resume();
+    return ac;
+  }
+  function stop() {
+    if (play) { try { play.osc.stop(); } catch (e) {} play = null; }
+    playB.textContent = 'Play';
+  }
+  function start() {
+    if (!audio()) return;
+    stop(); tl = build();
+    if (!tl.ev.length) { note.textContent = 'Type something first.'; return; }
+    var t0 = ac.currentTime + 0.25, f = +hz.value, osc = ac.createOscillator(), gg = ac.createGain();
+    osc.type = 'sine'; osc.frequency.value = f; gg.gain.value = 0; osc.connect(gg); gg.connect(ac.destination);
+    if (mode() === 'morse') {
+      tl.ev.forEach(function (e) {
+        var a = t0 + e.t, b = a + e.d;
+        gg.gain.setValueAtTime(0, a); gg.gain.linearRampToValueAtTime(0.3, a + 0.006);
+        gg.gain.setValueAtTime(0.3, b - 0.006); gg.gain.linearRampToValueAtTime(0, b);
+      });
+    } else {
+      // two-tone FSK: the pitch for 0, 170 Hz higher for 1 (the classic radioteletype shift)
+      gg.gain.setValueAtTime(0, t0); gg.gain.linearRampToValueAtTime(0.22, t0 + 0.01);
+      tl.ev.forEach(function (e) { osc.frequency.setValueAtTime(e.f ? f + 170 : f, t0 + e.t); });
+      gg.gain.setValueAtTime(0.22, t0 + tl.dur - 0.01); gg.gain.linearRampToValueAtTime(0, t0 + tl.dur);
+    }
+    osc.start(); osc.stop(t0 + tl.dur + 0.1);
+    play = { osc: osc, t0: t0 }; playB.textContent = 'Stop';
+    osc.onended = function () { if (play && play.osc === osc) stop(); };
+  }
+  playB.addEventListener('click', function () { if (play) stop(); else start(); });
+
+  function refresh() {
+    $('wpmo').textContent = wpm.value + ' wpm'; $('hzo').textContent = hz.value + ' Hz';
+    $('wpmf').hidden = mode() !== 'morse';
+    if (play) stop();
+    tl = build();
+  }
+  [msg, wpm, hz].forEach(function (el) { el.addEventListener('input', refresh); });
+  document.querySelectorAll('input[name=mode]').forEach(function (el) { el.addEventListener('change', refresh); });
+
+  // Timeline: playhead fixed, the signal scrolls past it
+  function draw() {
+    g.clearRect(0, 0, W, H);
+    var morse = mode() === 'morse', pps = morse ? 220 * 16 / +wpm.value : 900;
+    var now = play ? Math.max(0, ac.currentTime - play.t0) : 0, x0 = PH - now * pps, onNow = false;
+    var acc = css('--accent'), sa = css('--sat-a'), muted = css('--muted'), ink = css('--ink'), line = css('--line');
+    g.strokeStyle = line; g.lineWidth = 1; g.beginPath(); g.moveTo(0, 150.5); g.lineTo(W, 150.5); g.stroke();
+    var hide = !$('hid').hidden;
+    if (morse) {
+      tl.ev.forEach(function (e) {
+        var x = x0 + e.t * pps, w = e.d * pps; if (x > W || x + w < 0) return;
+        var live = now >= e.t && now < e.t + e.d && play;
+        if (live) onNow = true;
+        g.fillStyle = live ? acc : (play && e.t + e.d < now ? sa : ink); g.globalAlpha = live ? 1 : 0.85;
+        g.beginPath(); g.roundRect(x, 132, Math.max(3, w), 36, 6); g.fill(); g.globalAlpha = 1;
+      });
+    } else {
+      g.strokeStyle = sa; g.lineWidth = 3; g.beginPath();
+      tl.ev.forEach(function (e, n) {
+        var x = x0 + e.t * pps, y = e.f ? 118 : 182;
+        if (n === 0) g.moveTo(x, y); else g.lineTo(x, y);
+        g.lineTo(x + e.d * pps, y);
+        if (play && now >= e.t && now < e.t + e.d) onNow = e.f ? 2 : 1;
+      });
+      g.stroke();
+      g.fillStyle = muted; g.font = '500 13px "JetBrains Mono", monospace'; g.textAlign = 'left'; g.textBaseline = 'middle';
+      g.fillText('1', 14, 118); g.fillText('0', 14, 182);
+    }
+    g.textAlign = 'center'; g.textBaseline = 'top';
+    tl.spans.forEach(function (s) {
+      var a = x0 + s.a * pps, b = x0 + s.b * pps; if (b < -40 || a > W + 40) return;
+      var live = play && now >= s.a && now < s.b + 0.05;
+      g.fillStyle = live ? acc : muted; g.font = (live ? '700 30px ' : '500 22px ') + '"Instrument Sans", "IBM Plex Sans Arabic", sans-serif';
+      g.fillText(hide ? '?' : s.ch, (a + b) / 2, 206);
+      if (morse && s.m && !hide) { g.font = '500 13px "JetBrains Mono", monospace'; g.fillText(s.m, (a + b) / 2, 248); }
+    });
+    // playhead and signal lamp
+    g.strokeStyle = acc; g.lineWidth = 2; g.setLineDash([4, 6]); g.beginPath(); g.moveTo(PH, 20); g.lineTo(PH, H - 20); g.stroke(); g.setLineDash([]);
+    g.beginPath(); g.arc(W - 46, 46, 18, 0, Math.PI * 2);
+    g.fillStyle = onNow ? acc : 'rgba(255,255,255,0.08)'; g.shadowColor = acc; g.shadowBlur = onNow && !reduce ? 30 : 0; g.fill(); g.shadowBlur = 0;
+    g.fillStyle = muted; g.font = '500 13px "JetBrains Mono", monospace'; g.textAlign = 'right'; g.textBaseline = 'middle';
+    g.fillText(morse ? 'MORSE · ' + wpm.value + ' WPM' : 'FSK · 50 BIT/S', W - 78, 46);
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+
+  // Hidden-message links: ?m=text (and &d=1 for data mode)
+  var qs = new URLSearchParams(location.search);
+  if (qs.get('m')) {
+    msg.value = qs.get('m').slice(0, 80);
+    if (qs.get('d') === '1') document.querySelector('input[value=data]').checked = true;
+    $('hid').hidden = false; $('msgf').hidden = true; code.hidden = true; $('reveal').hidden = false; $('share').hidden = true;
+    refresh();
+  }
+  $('reveal').addEventListener('click', function () {
+    $('hid').hidden = true; $('msgf').hidden = false; code.hidden = false; this.hidden = true; $('share').hidden = false;
+    note.textContent = 'The message was: ' + msg.value;
+  });
+  $('share').addEventListener('click', function () {
+    var url = location.origin + location.pathname + '?m=' + encodeURIComponent(msg.value) + (mode() === 'data' ? '&d=1' : '');
+    var done = function () { note.textContent = 'Link copied. Whoever opens it hears the message before they see it.'; };
+    if (navigator.clipboard) navigator.clipboard.writeText(url).then(done, function () { note.textContent = url; });
+    else note.textContent = url;
+  });
+
+  // Straight key: dot or dash from how long it is held, letters from the pauses
+  var keyEl = $('key'), symEl = $('sym'), typed = $('typed'), down = 0, sym = '', gapT = null, wordT = null;
+  function unit() { return 1200 / +wpm.value; }
+  function keyDown() {
+    if (down) return;
+    if (!audio()) return;
+    if (!keyOsc) {
+      keyOsc = ac.createOscillator(); keyG = ac.createGain(); keyG.gain.value = 0;
+      keyOsc.frequency.value = +hz.value; keyOsc.connect(keyG); keyG.connect(ac.destination); keyOsc.start();
+    }
+    keyOsc.frequency.setValueAtTime(+hz.value, ac.currentTime);
+    keyG.gain.setTargetAtTime(0.3, ac.currentTime, 0.004);
+    down = performance.now(); keyEl.classList.add('on');
+    clearTimeout(gapT); clearTimeout(wordT);
+  }
+  function keyUp() {
+    if (!down) return;
+    var held = performance.now() - down; down = 0; keyEl.classList.remove('on');
+    keyG.gain.setTargetAtTime(0, ac.currentTime, 0.004);
+    sym += held < 2 * unit() ? '.' : '-'; symEl.textContent = sym;
+    gapT = setTimeout(function () {
+      typed.textContent += BACK[sym] || '?'; sym = ''; symEl.textContent = '';
+      wordT = setTimeout(function () { if (typed.textContent && !/ $/.test(typed.textContent)) typed.textContent += ' '; }, 4 * unit());
+    }, 3 * unit());
+  }
+  keyEl.addEventListener('pointerdown', function (e) { e.preventDefault(); keyEl.setPointerCapture(e.pointerId); keyDown(); });
+  keyEl.addEventListener('pointerup', keyUp); keyEl.addEventListener('pointercancel', keyUp);
+  keyEl.addEventListener('keydown', function (e) { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); if (!e.repeat) keyDown(); } });
+  keyEl.addEventListener('keyup', function (e) { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); keyUp(); } });
+  keyEl.addEventListener('click', function (e) { e.preventDefault(); });
+  keyEl.addEventListener('blur', keyUp);
+  $('clr').addEventListener('click', function () { typed.textContent = ''; sym = ''; symEl.textContent = ''; clearTimeout(gapT); clearTimeout(wordT); });
+  $('cheat').innerHTML = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'.split('').map(function (c) { return '<span><b>' + c + '</b>' + MORSE[c] + '</span>'; }).join('');
+})();
+</script>
+</body>
+</html>
