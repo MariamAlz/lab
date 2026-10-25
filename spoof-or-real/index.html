@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Spoof or Real? · Mariam's Lab</title>
+<meta name="description" content="Watch a satellite navigation receiver and decide: is it fine, is it being jammed, or is someone faking the signals?">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/spoof-or-real/">
+<meta property="og:title" content="Spoof or Real? · Mariam's Lab"><meta property="og:description" content="Clean, jammed or spoofed? Read the receiver and call it."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.left { display: grid; gap: 14px; min-width: 0; }
+.board { aspect-ratio: 800 / 560; }
+.calls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.calls button { padding: 16px 8px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; cursor: pointer; }
+.calls button:hover:not(:disabled) { border-color: var(--accent); }
+.calls button:disabled { opacity: 0.45; cursor: default; }
+.calls button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.calls .c { color: var(--sat-b); } .calls .j { color: var(--accent); } .calls .s { color: var(--sat-c); }
+.verdict { display: grid; gap: 10px; padding: 18px; border-radius: 12px; border: 1px solid var(--accent); background: var(--surface); }
+.verdict h3 { font-size: 1.3rem; font-weight: 800; }
+.tells { display: grid; gap: 6px; padding: 0; margin: 0; list-style: none; color: var(--muted); font-size: 0.95rem; }
+.tells li::before { content: "→ "; color: var(--accent); }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Experiment · GNSS · Game</span>
+    <h1 style="font-size:var(--step-3)">Spoof or real?</h1>
+    <p>Navigation signals are faint, so they can be drowned out (jamming) or imitated (spoofing). You're watching a receiver in a car. Read its signals and call it: clean, jammed or spoofed. The sooner you're right, the more you score.</p>
+  </div>
+  <div class="game">
+    <div class="left">
+      <div class="board">
+        <canvas id="cv" width="800" height="560" role="img" aria-label="Receiver display: signal strength for each satellite over time, a map of the reported position against the road, and receiver status"></canvas>
+        <div class="overlay" id="ov">
+          <h3 id="ovt">Six drives</h3>
+          <p id="ovp">Each drive lasts two minutes, played fast. Some are fine. Some are not.</p>
+          <button class="btn primary" id="start" type="button">Start driving</button>
+        </div>
+      </div>
+      <div class="calls" role="group" aria-label="Your call">
+        <button class="c" id="bc" type="button" disabled>Clean</button>
+        <button class="j" id="bj" type="button" disabled>Jammed</button>
+        <button class="s" id="bs" type="button" disabled>Spoofed</button>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="stats">
+        <div><span class="label">Drive</span><b id="sR">0/6</b></div>
+        <div><span class="label">Score</span><b id="sS">0</b></div>
+        <div><span class="label">Best</span><b id="sB">0</b></div>
+      </div>
+      <div id="out" aria-live="polite"></div>
+      <ol class="howto" id="how">
+        <li><span>01</span>Signal strength (C/N0) differs from satellite to satellite and wanders a little. That's normal.</li>
+        <li><span>02</span>Watch for changes that hit every satellite at once, a clock that jumps, or a position that leaves the road.</li>
+        <li><span>03</span>Calling an attack too early is a false alarm. Calling "clean" before the end is a gamble.</li>
+      </ol>
+      <p class="fact">This is simulated and kept simple, but these tells are the real starting points for interference monitoring, the kind of thing GNSS engineers build tools for.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var $ = function (id) { return document.getElementById(id); };
+  function css(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+  function gauss() { return Math.sqrt(-2 * Math.log(1 - Math.random())) * Math.cos(2 * Math.PI * Math.random()); }
+  var cv = $('cv'), g = cv.getContext('2d'), W = cv.width, H = cv.height;
+  var DUR = 120, SPEED = 6, NS = 7, ROUNDS = 6;
+  var COLS = ['#84A0FF', '#4FD3BD', '#E9B467', '#F08AB3', '#B8A4FF', '#7FD1FF', '#C9E27A'];
+
+  // A scenario is a 120 s drive sampled once a second: C/N0 per satellite, reported offset from the road, clock offset, fix state
+  function scenario(kind) {
+    var sats = [], base = [], drift = [];
+    for (var k = 0; k < NS; k++) { base.push(34 + Math.random() * 14); drift.push((Math.random() - 0.5) * 0.04); sats.push({ prn: 1 + Math.floor(Math.random() * 32) }); }
+    var onset = kind === 'clean' ? -1 : 25 + Math.random() * 55;
+    var bridge = kind === 'clean' && Math.random() < 0.6 ? 30 + Math.random() * 60 : -1;
+    var setting = Math.random() < 0.5 ? Math.floor(Math.random() * NS) : -1;
+    var spoofLevel = 49 + Math.random() * 3, clock = 0, clockRate = (Math.random() - 0.5) * 0.4, off = 0, offRate = (Math.random() < 0.5 ? 1 : -1) * (0.25 + Math.random() * 0.25);
+    var data = [];
+    for (var t = 0; t <= DUR; t++) {
+      var row = { cn: [], off: 0, clock: 0, fix: true, n: 0 };
+      var since = onset >= 0 ? t - onset : -1;
+      for (k = 0; k < NS; k++) {
+        var v = base[k] + drift[k] * t + gauss() * 0.9;
+        if (k === setting) v -= Math.max(0, (t - 40) * 0.12);
+        if (bridge >= 0 && t >= bridge && t < bridge + 4) v -= 12 + gauss();
+        if (kind === 'jammed' && since >= 0) v -= Math.min(26, since * 0.9) + gauss() * 1.5;
+        if (kind === 'spoofed' && since >= 0) { var m = Math.min(1, since / 4); v = v * (1 - m) + (spoofLevel + gauss() * 0.4) * m; }
+        row.cn.push(v < 25 ? null : v);
+        if (v >= 25) row.n++;
+      }
+      clock += clockRate + gauss() * 0.6;
+      if (kind === 'spoofed' && since >= 0 && since < 1) clock += 180 + Math.random() * 200;
+      if (kind === 'spoofed' && since >= 0) { off += offRate; clock += 2.5; }
+      row.clock = clock;
+      row.fix = row.n >= 4;
+      row.off = off + gauss() * (kind === 'jammed' && since > 0 ? Math.min(6, since * 0.3) : 0.6);
+      data.push(row);
+    }
+    return { kind: kind, onset: onset, bridge: bridge, data: data, sats: sats };
+  }
+
+  var round = 0, score = 0, best = 0, sc = null, t0 = 0, tNow = 0, running = false, raf = 0, plan = [];
+  try { best = +localStorage.getItem('spoofBest') || 0; } catch (e) {}
+  $('sB').textContent = best;
+
+  function newPlan() {
+    plan = ['clean', 'clean', 'jammed', 'spoofed', 'spoofed', Math.random() < 0.5 ? 'spoofed' : 'jammed'];
+    for (var i = plan.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), x = plan[i]; plan[i] = plan[j]; plan[j] = x; }
+  }
+  function startRound() {
+    sc = scenario(plan[round]); t0 = performance.now(); tNow = 0; running = true;
+    $('sR').textContent = (round + 1) + '/' + ROUNDS; $('out').innerHTML = '';
+    ['bc', 'bj', 'bs'].forEach(function (id) { $(id).disabled = false; });
+    cancelAnimationFrame(raf); raf = requestAnimationFrame(loop);
+  }
+  function loop(now) {
+    tNow = Math.min(DUR, (now - t0) / 1000 * SPEED);
+    draw();
+    if (tNow >= DUR) { running = false; verdict(null); return; }
+    raf = requestAnimationFrame(loop);
+  }
+
+  // road: a gentle curve; car moves along it at constant speed
+  var MX = 30, MY = 300, MW = 470, MH = 240;
+  function road(u) { return { x: MX + 30 + u * (MW - 60), y: MY + MH / 2 + Math.sin(u * 5.2) * 40 + Math.sin(u * 2.1) * 25 }; }
+  function normal(u) { var a = road(u), b = road(Math.min(1, u + 0.002)), dx = b.x - a.x, dy = b.y - a.y, l = Math.hypot(dx, dy); return { x: -dy / l, y: dx / l }; }
+
+  function draw() {
+    var muted = css('--muted'), line = css('--line'), ink = css('--ink'), acc = css('--accent');
+    g.clearRect(0, 0, W, H);
+    var ti = Math.floor(tNow);
+    // signal strength plot
+    var PX = 56, PY = 24, PW = W - 80, PH = 220;
+    function py(v) { return PY + PH - (v - 20) / 35 * PH; }
+    g.font = '500 12px "JetBrains Mono", monospace'; g.textBaseline = 'middle'; g.textAlign = 'right'; g.fillStyle = muted;
+    [25, 35, 45, 55].forEach(function (v) { g.fillText(v, PX - 8, py(v)); g.strokeStyle = line; g.lineWidth = 1; g.beginPath(); g.moveTo(PX, py(v) + 0.5); g.lineTo(PX + PW, py(v) + 0.5); g.stroke(); });
+    g.textAlign = 'left'; g.fillText('Signal strength, C/N0 (dB-Hz)', PX, 10);
+    if (sc) for (var k = 0; k < NS; k++) {
+      g.strokeStyle = COLS[k]; g.lineWidth = 2; g.beginPath(); var pen = false;
+      for (var t = 0; t <= ti; t++) {
+        var v = sc.data[t].cn[k], x = PX + t / DUR * PW;
+        if (v === null) { pen = false; continue; }
+        if (!pen) { g.moveTo(x, py(v)); pen = true; } else g.lineTo(x, py(v));
+      }
+      g.stroke();
+    }
+    // map
+    g.fillStyle = muted; g.fillText('Map', MX, MY - 14);
+    g.strokeStyle = 'rgba(120,132,190,0.35)'; g.lineWidth = 14; g.lineCap = 'round'; g.beginPath();
+    for (var u = 0; u <= 1.0001; u += 0.01) { var p = road(u); if (u === 0) g.moveTo(p.x, p.y); else g.lineTo(p.x, p.y); }
+    g.stroke(); g.lineCap = 'butt';
+    if (sc) {
+      var last = null;
+      for (t = Math.max(0, ti - 50); t <= ti; t++) {
+        var r = sc.data[t]; if (!r.fix) continue;
+        var uu = t / DUR, rp = road(uu), nn = normal(uu), x2 = rp.x + nn.x * r.off * 3, y2 = rp.y + nn.y * r.off * 3;
+        g.fillStyle = ink; g.globalAlpha = 0.25 + 0.75 * (t - (ti - 50)) / 50; g.beginPath(); g.arc(x2, y2, 2.6, 0, Math.PI * 2); g.fill(); g.globalAlpha = 1;
+        last = { x: x2, y: y2 };
+      }
+      if (last && sc.data[ti].fix) { g.strokeStyle = acc; g.lineWidth = 2; g.beginPath(); g.arc(last.x, last.y, 8, 0, Math.PI * 2); g.stroke(); }
+    }
+    // status readouts
+    var RX = 540, RY = 300;
+    g.fillStyle = muted; g.fillText('Receiver', RX, RY - 14);
+    var row = sc ? sc.data[ti] : null;
+    var items = [
+      ['Satellites', row ? row.n + ' / ' + NS : '–'],
+      ['Fix', row ? (row.fix ? '3D fix' : 'NO FIX') : '–'],
+      ['Clock offset', row ? (row.clock >= 0 ? '+' : '') + Math.round(row.clock) + ' ns' : '–'],
+      ['Time', Math.floor(tNow) + ' s']
+    ];
+    items.forEach(function (it, i) {
+      var y = RY + 18 + i * 52;
+      g.fillStyle = muted; g.font = '500 12px "JetBrains Mono", monospace'; g.fillText(it[0], RX, y);
+      g.fillStyle = it[1] === 'NO FIX' ? css('--sat-c') : ink; g.font = '700 24px "Bricolage Grotesque", sans-serif'; g.fillText(it[1], RX, y + 22);
+    });
+    // progress
+    g.fillStyle = acc; g.fillRect(0, H - 3, W * tNow / DUR, 3);
+  }
+
+  var TELLS = {
+    clean: ['Each satellite kept its own strength, wandering slowly.', 'The clock drifted smoothly, and the position stayed on the road.'],
+    jammed: ['Signal strength fell on every satellite at the same time.', 'Satellites dropped out one by one until there was no fix. Jamming drowns the signals in noise.'],
+    spoofed: ['Every satellite suddenly got stronger and almost exactly as strong as the others. Real signals arrive at different strengths.', 'The clock jumped by hundreds of nanoseconds, and the position slid off the road while everything looked "healthy".']
+  };
+  var NAME = { clean: 'clean', jammed: 'jammed', spoofed: 'spoofed' };
+  function verdict(call) {
+    running = false; cancelAnimationFrame(raf);
+    ['bc', 'bj', 'bs'].forEach(function (id) { $(id).disabled = true; });
+    var k = sc.kind, pts = 0, why;
+    if (call === null) call = 'none';
+    if (call === k) {
+      if (k === 'clean') pts = tNow >= DUR ? 1000 : 700;
+      else if (tNow < sc.onset) pts = 0;
+      else pts = Math.round(400 + 600 * Math.max(0, 1 - (tNow - sc.onset) / 40));
+    }
+    if (call !== 'none' && call !== 'clean' && k !== 'clean' && tNow < sc.onset) why = 'You called it before anything had happened, so that counts as a false alarm.';
+    else if (call === 'none') why = k === 'clean' ? 'The drive ended clean. Calling it would have scored.' : 'You didn’t make a call before the drive ended.';
+    else why = call === k ? (k === 'clean' ? 'Correct.' : 'Correct, ' + Math.round(tNow - sc.onset) + ' s after it started.') : 'Not quite. It was ' + NAME[k] + '.';
+    score += pts; $('sS').textContent = score;
+    var bridgeNote = k === 'clean' && sc.bridge >= 0 ? '<li>All signals dipped together for a few seconds around ' + Math.round(sc.bridge) + ' s and came straight back. That was a bridge, not an attack.</li>' : '';
+    $('out').innerHTML = '<div class="verdict"><h3>' + (call === k ? '+' + pts + ' · ' : '') + 'It was ' + NAME[k] + (k !== 'clean' ? ', from ' + Math.round(sc.onset) + ' s' : '') + '</h3><p>' + why + '</p><ul class="tells">' +
+      TELLS[k].map(function (s) { return '<li>' + s + '</li>'; }).join('') + bridgeNote + '</ul>' +
+      '<div><button class="btn primary" id="next" type="button">' + (round + 1 < ROUNDS ? 'Next drive' : 'See your score') + '</button></div></div>';
+    tNow = DUR; draw();
+    $('next').addEventListener('click', function () {
+      round++;
+      if (round < ROUNDS) startRound();
+      else finish();
+    });
+    $('next').focus();
+  }
+  function finish() {
+    var rec = score > best; if (rec) { best = score; $('sB').textContent = best; try { localStorage.setItem('spoofBest', best); } catch (e) {} }
+    $('ovt').textContent = 'Shift over';
+    $('ovp').textContent = 'You scored ' + score + ' out of 6000.' + (rec ? ' New best!' : '');
+    $('start').textContent = 'Drive again'; $('ov').hidden = false; $('out').innerHTML = ''; $('start').focus();
+  }
+  $('bc').addEventListener('click', function () { if (running) verdict('clean'); });
+  $('bj').addEventListener('click', function () { if (running) verdict('jammed'); });
+  $('bs').addEventListener('click', function () { if (running) verdict('spoofed'); });
+  $('start').addEventListener('click', function () {
+    $('ov').hidden = true; round = 0; score = 0; $('sS').textContent = 0; newPlan(); startRound();
+  });
+  draw();
+})();
+</script>
+</body>
+</html>

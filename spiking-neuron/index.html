@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Spiking Neuron · Mariam's Lab</title>
+<meta name="description" content="Play with a leaky integrate-and-fire neuron: send it spikes, watch it charge, fire and reset, and hear every spike.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/spiking-neuron/">
+<meta property="og:title" content="Spiking Neuron · Mariam's Lab"><meta property="og:description" content="Send spikes into a leaky integrate-and-fire neuron and hear it fire."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.left { display: grid; gap: 14px; min-width: 0; }
+.scope { border-radius: var(--radius); border: 1px solid var(--line); background: rgba(7, 10, 24, 0.82); overflow: hidden; }
+.scope canvas { display: block; width: 100%; height: auto; }
+.ins { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 560px) { .ins { grid-template-columns: 1fr; } }
+.in { display: grid; gap: 10px; padding: 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); }
+.in h3 { font-size: 1rem; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
+.in h3 kbd { font-family: var(--font-mono); font-size: 0.75rem; padding: 1px 7px; border-radius: 5px; border: 1px solid var(--line); color: var(--muted); }
+.in label { display: grid; gap: 4px; font-size: 0.82rem; color: var(--muted); }
+.in label span { display: flex; justify-content: space-between; }
+.in output { font-family: var(--font-mono); color: var(--ink); }
+.in input[type=range], .tau input { width: 100%; accent-color: var(--accent); }
+.fire { padding: 10px; border-radius: 10px; border: 1px solid currentColor; background: transparent; font: inherit; font-weight: 600; cursor: pointer; }
+.fire:active { transform: scale(0.97); }
+.tau { display: grid; gap: 4px; font-size: 0.9rem; }
+.tau span { display: flex; justify-content: space-between; }
+.tau output { font-family: var(--font-mono); color: var(--accent); }
+.acts { display: flex; flex-wrap: wrap; gap: 10px; }
+.snd { font-family: var(--font-mono); font-size: 0.8rem; padding: 7px 12px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--muted); cursor: pointer; }
+.snd[aria-pressed="true"] { color: var(--sat-b); border-color: var(--sat-b); }
+.ops { display: grid; gap: 6px; font-size: 0.92rem; }
+.ops .bar { height: 10px; border-radius: 99px; background: rgba(120, 132, 190, 0.2); overflow: hidden; }
+.ops .bar i { display: block; height: 100%; background: var(--sat-b); width: 0; }
+.ops .bar.dense i { background: var(--sat-c); }
+.ops b { font-family: var(--font-mono); font-weight: 500; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Experiment · Neuromorphic AI · Sound</span>
+    <h1 style="font-size:var(--step-3)">One spiking neuron.</h1>
+    <p>Brains don't pass numbers around every millisecond. They send brief spikes, and only when something happens. Feed this neuron spikes and watch it charge up, leak away, and fire.</p>
+  </div>
+  <div class="game">
+    <div class="left">
+      <div class="scope"><canvas id="cv" width="800" height="440" role="img" aria-label="Live plot of the three inputs, the neuron's membrane voltage with its threshold, and the neuron's output spikes"></canvas></div>
+      <div class="ins" id="ins"></div>
+    </div>
+    <div class="panel">
+      <div class="stats">
+        <div><span class="label">Spikes in</span><b id="sIn">0</b></div>
+        <div><span class="label">Spikes out</span><b id="sOut">0</b></div>
+        <div><span class="label">Rate out</span><b id="sRate">0</b></div>
+      </div>
+      <label class="tau" for="tau"><span>Leak time constant <output id="tauo">20 ms</output></span><input type="range" id="tau" min="5" max="80" value="20"></label>
+      <div class="acts"><button class="snd" id="snd" type="button" aria-pressed="false">Sound off</button><button class="snd" id="rst" type="button">Reset</button></div>
+      <ol class="howto">
+        <li><span>01</span>Press A, S or D (or the Fire buttons) to send spikes. One is rarely enough.</li>
+        <li><span>02</span>Fire quickly, before the charge leaks away, and the neuron crosses its threshold and spikes.</li>
+        <li><span>03</span>Input C is inhibitory: it pulls the voltage down. Give the inputs a steady rate and listen.</li>
+      </ol>
+      <div class="ops" aria-live="off">
+        <span>Work done since you arrived</span>
+        <span>Spiking (only on spikes): <b id="oS">0</b></span><div class="bar"><i id="bS"></i></div>
+        <span>Clocked (every input, every ms): <b id="oD">0</b></span><div class="bar dense"><i id="bD"></i></div>
+      </div>
+      <p class="fact">My MSc thesis used spiking networks inside a GAN to clear haze from underwater images on a tight energy budget. This toy shows why that saves energy: work only happens when a spike arrives.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  function css(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+  var cv = $('cv'), g = cv.getContext('2d'), W = cv.width, H = cv.height;
+  // Leaky integrate-and-fire: V leaks toward 0 with time constant tau; each input spike adds its weight; at V >= 1 it fires and resets
+  var INPUTS = [
+    { name: 'Input A', key: 'a', w: 0.35, rate: 0, col: '--sat-a' },
+    { name: 'Input B', key: 's', w: 0.25, rate: 0, col: '--sat-b' },
+    { name: 'Input C', key: 'd', w: -0.3, rate: 0, col: '--sat-c' }
+  ];
+  var TH = 1, REF = 4, WIN = 1000;
+  var V = 0, t = 0, refUntil = -1, tau = 20, queue = [], vHist = [], inSp = [], outSp = [], nIn = 0, nOut = 0, tStart = 0;
+
+  // controls for each input
+  INPUTS.forEach(function (inp, i) {
+    var d = document.createElement('div'); d.className = 'in';
+    d.innerHTML = '<h3 style="color:var(' + inp.col + ')">' + inp.name + ' <kbd>' + inp.key.toUpperCase() + '</kbd></h3>' +
+      '<label for="w' + i + '"><span>Weight <output id="wo' + i + '">' + inp.w.toFixed(2) + '</output></span><input type="range" id="w' + i + '" min="-0.6" max="0.6" step="0.05" value="' + inp.w + '"></label>' +
+      '<label for="r' + i + '"><span>Steady rate <output id="ro' + i + '">off</output></span><input type="range" id="r' + i + '" min="0" max="80" step="5" value="0"></label>' +
+      '<button class="fire" type="button" style="color:var(' + inp.col + ')" id="f' + i + '">Fire</button>';
+    $('ins').appendChild(d);
+    $('w' + i).addEventListener('input', function () { inp.w = +this.value; $('wo' + i).textContent = inp.w.toFixed(2); });
+    $('r' + i).addEventListener('input', function () { inp.rate = +this.value; $('ro' + i).textContent = inp.rate ? inp.rate + ' Hz' : 'off'; });
+    $('f' + i).addEventListener('click', function () { queue.push(i); });
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.repeat || e.ctrlKey || e.metaKey || e.altKey || /input|textarea/i.test(e.target.tagName) && e.target.type !== 'range') return;
+    var i = INPUTS.findIndex(function (x) { return x.key === e.key.toLowerCase(); });
+    if (i >= 0) { queue.push(i); flash(i); }
+  });
+  function flash(i) { var b = $('f' + i); b.style.background = 'color-mix(in srgb, currentColor 20%, transparent)'; setTimeout(function () { b.style.background = ''; }, 120); }
+  $('tau').addEventListener('input', function () { tau = +this.value; $('tauo').textContent = tau + ' ms'; });
+  $('rst').addEventListener('click', function () { V = 0; vHist = []; inSp = []; outSp = []; nIn = 0; nOut = 0; tStart = t; });
+
+  // sound: a short pluck for each output spike, a soft tick for inputs
+  var ac = null, soundOn = false;
+  $('snd').addEventListener('click', function () {
+    soundOn = !soundOn; this.setAttribute('aria-pressed', soundOn); this.textContent = soundOn ? 'Sound on' : 'Sound off';
+    if (soundOn && !ac) { var AC = window.AudioContext || window.webkitAudioContext; if (AC) ac = new AC(); }
+    if (ac && ac.state === 'suspended') ac.resume();
+  });
+  function blip(freq, gain, len) {
+    if (!soundOn || !ac) return;
+    var o = ac.createOscillator(), gg = ac.createGain(), now = ac.currentTime;
+    o.type = 'triangle'; o.frequency.setValueAtTime(freq, now); o.frequency.exponentialRampToValueAtTime(freq * 0.5, now + len);
+    gg.gain.setValueAtTime(gain, now); gg.gain.exponentialRampToValueAtTime(0.0005, now + len);
+    o.connect(gg); gg.connect(ac.destination); o.start(now); o.stop(now + len + 0.02);
+  }
+
+  // simulate in 1 ms steps
+  function step() {
+    t += 1;
+    var decay = Math.exp(-1 / tau);
+    V *= decay;
+    INPUTS.forEach(function (inp, i) { if (inp.rate && Math.random() < inp.rate / 1000) queue.push(i); });
+    while (queue.length) {
+      var i = queue.shift(); nIn++; inSp.push({ t: t, i: i });
+      if (t >= refUntil) V += INPUTS[i].w;
+      blip(220 + i * 40, 0.04, 0.03);
+    }
+    if (V < -0.6) V = -0.6;
+    if (V >= TH) { outSp.push(t); nOut++; vHist.push(1.25); V = 0; refUntil = t + REF; blip(880, 0.22, 0.18); }
+    else vHist.push(V);
+    if (vHist.length > WIN) vHist.shift();
+    while (inSp.length && inSp[0].t < t - WIN) inSp.shift();
+    while (outSp.length && outSp[0] < t - WIN) outSp.shift();
+  }
+
+  var last = 0;
+  function frame(now) {
+    var ms = last ? Math.min(60, Math.round(now - last)) : 16; last = now;
+    for (var k = 0; k < ms; k++) step();
+    draw(); stats();
+    requestAnimationFrame(frame);
+  }
+  function xOf(tt) { return 60 + (tt - (t - WIN)) / WIN * (W - 80); }
+  function draw() {
+    var muted = css('--muted'), line = css('--line'), acc = css('--accent'), ink = css('--ink');
+    g.clearRect(0, 0, W, H);
+    g.font = '500 13px "JetBrains Mono", monospace'; g.textBaseline = 'middle'; g.textAlign = 'right';
+    // input rasters
+    INPUTS.forEach(function (inp, i) {
+      var y = 30 + i * 30; g.fillStyle = muted; g.fillText(inp.key.toUpperCase(), 44, y);
+      g.strokeStyle = line; g.lineWidth = 1; g.beginPath(); g.moveTo(60, y + 0.5); g.lineTo(W - 20, y + 0.5); g.stroke();
+    });
+    inSp.forEach(function (s) { var x = xOf(s.t), y = 30 + s.i * 30; g.strokeStyle = css(INPUTS[s.i].col); g.lineWidth = 2.5; g.beginPath(); g.moveTo(x, y - 10); g.lineTo(x, y + 10); g.stroke(); });
+    // membrane voltage
+    var top = 130, bot = 360, y0 = function (v) { return bot - (v + 0.6) / 1.9 * (bot - top); };
+    g.setLineDash([6, 6]); g.strokeStyle = acc; g.lineWidth = 1.5; g.beginPath(); g.moveTo(60, y0(TH)); g.lineTo(W - 20, y0(TH)); g.stroke(); g.setLineDash([]);
+    g.strokeStyle = line; g.beginPath(); g.moveTo(60, y0(0)); g.lineTo(W - 20, y0(0)); g.stroke();
+    g.fillStyle = acc; g.fillText('fire', 52, y0(TH)); g.fillStyle = muted; g.fillText('rest', 52, y0(0)); g.fillText('V', 52, top - 6);
+    g.strokeStyle = ink; g.lineWidth = 2; g.beginPath();
+    var n = vHist.length, x0 = W - 20 - n / WIN * (W - 80);
+    for (var k = 0; k < n; k++) { var x = x0 + k / WIN * (W - 80), y = y0(vHist[k]); if (k === 0) g.moveTo(x, y); else g.lineTo(x, y); }
+    g.stroke();
+    // output spikes
+    g.fillStyle = muted; g.fillText('out', 44, 400);
+    g.strokeStyle = line; g.lineWidth = 1; g.beginPath(); g.moveTo(60, 400.5); g.lineTo(W - 20, 400.5); g.stroke();
+    outSp.forEach(function (s) { var x = xOf(s); g.strokeStyle = acc; g.lineWidth = 3; g.beginPath(); g.moveTo(x, 386); g.lineTo(x, 414); g.stroke(); });
+    g.textAlign = 'left'; g.fillStyle = muted; g.fillText('1 second →', W - 120, H - 10);
+  }
+  var lastStat = 0;
+  function stats() {
+    if (t - lastStat < 100) return; lastStat = t;
+    $('sIn').textContent = nIn; $('sOut').textContent = nOut; $('sRate').textContent = outSp.length + ' Hz';
+    // synaptic operations: event-driven = one per input spike; clocked = every input updated every millisecond
+    var ev = nIn, dense = (t - tStart) * INPUTS.length;
+    $('oS').textContent = ev.toLocaleString(); $('oD').textContent = dense.toLocaleString();
+    $('bD').style.width = '100%'; $('bS').style.width = (dense ? Math.max(0.5, ev / dense * 100) : 0) + '%';
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
