@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Slab! · Mariam's Lab</title>
+<meta name="description" content="Play Wittgenstein's builders' language-game: learn a language nobody explains to you, only by using it.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/slab/">
+<meta property="og:title" content="Slab! · Mariam's Lab"><meta property="og:description" content="Wittgenstein's builders' language-game. Nobody tells you what the words mean. You find out by using them."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@1,9..144,500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.site { display: grid; gap: 16px; min-width: 0; }
+.scene { position: relative; border-radius: var(--radius); border: 1px solid var(--line); background: rgba(7, 10, 24, 0.82); overflow: hidden; }
+.scene svg.wall { display: block; width: 100%; height: auto; }
+.call { position: absolute; top: 16px; inset-inline-start: 16px; display: flex; align-items: center; gap: 12px; }
+.builder { width: 46px; height: 46px; flex: none; }
+.bubble { position: relative; padding: 10px 18px; border-radius: 16px; background: var(--ink); color: #070A18; font-family: var(--font-display); font-weight: 800; font-size: clamp(1.3rem, 4vw, 1.9rem); min-width: 4ch; }
+.bubble.no { background: var(--sat-c); }
+.bubble.yes { background: var(--sat-b); }
+.bubble.pop { animation: pop .25s ease; }
+@keyframes pop { from { transform: scale(.85); } to { transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .bubble.pop { animation: none; } }
+@media (max-width: 600px) { .call { position: static; padding: 14px 14px 0; } }
+.stage { position: absolute; top: 22px; inset-inline-end: 18px; font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.pile { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.stone { display: grid; place-items: center; gap: 6px; padding: 14px 6px 10px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); cursor: pointer; font: inherit; font-size: 0.78rem; font-family: var(--font-mono); }
+.stone svg { width: 100%; max-width: 92px; height: 64px; }
+.stone:hover { border-color: var(--accent); }
+.stone:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.stone.point { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent); animation: nudge 1s ease infinite; }
+@keyframes nudge { 50% { transform: translateY(-4px); } }
+@media (prefers-reduced-motion: reduce) { .stone.point { animation: none; } }
+.stone b { font-family: var(--font-display); font-size: 1.1rem; color: var(--ink); min-height: 1.3em; }
+.tray { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; min-height: 48px; }
+.tray .count { font-family: var(--font-mono); color: var(--muted); }
+.notes { display: grid; gap: 14px; }
+.notes blockquote { margin: 0; padding: 14px 16px; border-inline-start: 2px solid var(--accent); background: var(--surface); border-radius: 0 12px 12px 0; font-family: "Fraunces", Georgia, serif; font-style: italic; font-size: 1.08rem; line-height: 1.5; }
+.notes blockquote cite { display: block; margin-top: 8px; font-family: var(--font-mono); font-style: normal; font-size: 0.75rem; color: var(--muted); }
+.lex { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+.lex td { padding: 7px 4px; border-bottom: 1px solid var(--line); }
+.lex td:first-child { font-family: var(--font-display); font-weight: 800; color: var(--accent); }
+.lex td.q { color: var(--muted); font-family: var(--font-mono); font-size: 0.85rem; }
+.end { display: grid; gap: 12px; padding: 20px; border-radius: 12px; border: 1px solid var(--accent); background: var(--surface); }
+.end h2 { font-size: 1.5rem; font-weight: 800; }
+.acts { display: flex; flex-wrap: wrap; gap: 10px; }
+.voice { font-family: var(--font-mono); font-size: 0.8rem; padding: 7px 12px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--muted); cursor: pointer; }
+.voice[aria-pressed="true"] { color: var(--sat-b); border-color: var(--sat-b); }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Experiment · Philosophy of language</span>
+    <h1 style="font-size:var(--step-3)">Slab!</h1>
+    <p>Wittgenstein opens the <i>Philosophical Investigations</i> with two builders and a language of four words. You are the assistant. The builder calls out words you've never heard, and nobody will tell you what they mean.</p>
+  </div>
+  <div class="game">
+    <div class="site">
+      <div class="scene">
+        <svg class="wall" id="wall" viewBox="0 0 640 330" role="img" aria-label="The wall you are building"></svg>
+        <div class="call">
+          <svg class="builder" viewBox="0 0 46 46" aria-hidden="true"><circle cx="23" cy="14" r="9" fill="#E9B467"/><path d="M8 44c0-10 6-17 15-17s15 7 15 17z" fill="#84A0FF"/><rect x="12" y="4" width="22" height="6" rx="3" fill="#F08AB3"/></svg>
+          <div class="bubble" id="bubble" aria-live="assertive">…</div>
+        </div>
+        <span class="stage" id="stage"></span>
+      </div>
+      <div class="pile" id="pile" role="group" aria-label="The stones"></div>
+      <div class="tray" id="tray" hidden><span class="count" id="count"></span><button class="btn primary" id="give" type="button">Hand them over</button><button class="btn ghost" id="undo" type="button">Start again</button></div>
+      <div class="acts"><button class="voice" id="voice" type="button" aria-pressed="false">Builder's voice: off</button></div>
+    </div>
+    <div class="panel notes" id="notes">
+      <div class="stats">
+        <div><span class="label">Calls</span><b id="sCalls">0</b></div>
+        <div><span class="label">Wrong</span><b id="sWrong">0</b></div>
+        <div><span class="label">Stones</span><b id="sStones">0</b></div>
+      </div>
+      <p id="hint">Click the stone you think the builder wants. If you're wrong, he'll say so, but he won't say why.</p>
+      <div id="extra"></div>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var $ = function (id) { return document.getElementById(id); };
+  var NS = 'http://www.w3.org/2000/svg';
+  // the four stones of Investigations §2, drawn as simple shapes
+  var STONES = [
+    { id: 'block', en: 'Block', look: 'a cube', w: 44, h: 44, col: '#84A0FF' },
+    { id: 'pillar', en: 'Pillar', look: 'a tall column', w: 26, h: 86, col: '#4FD3BD' },
+    { id: 'slab', en: 'Slab', look: 'a flat slab', w: 78, h: 16, col: '#E9B467' },
+    { id: 'beam', en: 'Beam', look: 'a long beam', w: 116, h: 24, col: '#F08AB3' }
+  ];
+  var POOL = ['Tuka', 'Mela', 'Varo', 'Shen', 'Pilo', 'Dask', 'Ruma', 'Keb', 'Zolt', 'Nimo', 'Fesh', 'Brak'];
+  var NUMS = ['a', 'b', 'c', 'd'];
+  var STAGE1 = 10, STAGE2 = 6;
+
+  function stoneSVG(s, big) {
+    var sc = big ? 0.8 : 1, w = s.w * sc, h = s.h * sc, x = (120 - w) / 2, y = (90 - h) / 2 + 6;
+    return '<svg viewBox="0 0 120 96" aria-hidden="true"><path d="M' + x + ' ' + y + 'l8 -7h' + w + 'l-8 7z" fill="' + s.col + '" opacity=".55"/><path d="M' + (x + w) + ' ' + y + 'l8 -7v' + h + 'l-8 7z" fill="' + s.col + '" opacity=".35"/><rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" fill="' + s.col + '"/></svg>';
+  }
+
+  var words, english, stage, n, target, count, picks, calls, wrong, tries, placed, firstRight, done, voiceOn = false;
+
+  function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+
+  function start(eng) {
+    english = !!eng;
+    var w = english ? STONES.map(function (s) { return s.en; }) : shuffle(POOL.slice()).slice(0, 4);
+    words = {}; STONES.forEach(function (s, i) { words[s.id] = w[i]; });
+    stage = 1; n = 0; calls = 0; wrong = 0; placed = []; firstRight = {}; done = false; target = null;
+    $('pile').innerHTML = '';
+    // the stones lie in a random order, so the order of the words gives nothing away
+    shuffle(STONES.slice()).forEach(function (s) {
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'stone'; b.dataset.id = s.id;
+      b.setAttribute('aria-label', 'Stone: ' + s.look);
+      b.innerHTML = stoneSVG(s) + '<b></b>';
+      b.addEventListener('click', function () { pick(s.id); });
+      $('pile').appendChild(b);
+    });
+    $('extra').innerHTML = '<blockquote>The builder is building with stones: blocks, pillars, slabs and beams. The assistant passes them in the order he needs them, and they use a language of just four words.<cite>Paraphrasing Philosophical Investigations §2</cite></blockquote>';
+    $('hint').textContent = english ? 'These are Wittgenstein’s own four words. Too easy? That is part of the point.' : 'Click the stone you think the builder wants. If you’re wrong, he’ll say so, but he won’t say why.';
+    drawWall(); next();
+  }
+
+  function say(text, cls) {
+    var b = $('bubble'); b.textContent = text; b.className = 'bubble' + (cls ? ' ' + cls : '');
+    if (!reduce) { void b.offsetWidth; b.classList.add('pop'); }
+    if (voiceOn && window.speechSynthesis && !cls) {
+      speechSynthesis.cancel(); var u = new SpeechSynthesisUtterance(text.replace(/!/g, '')); u.rate = 0.9; u.lang = 'en-GB'; speechSynthesis.speak(u);
+    }
+  }
+  function stats() { $('sCalls').textContent = calls; $('sWrong').textContent = wrong; $('sStones').textContent = placed.length; }
+  function unpoint() { document.querySelectorAll('.stone.point').forEach(function (b) { b.classList.remove('point'); }); }
+
+  function next() {
+    unpoint(); tries = 0; picks = [];
+    if (stage === 1 && n > 0 && n < STAGE1) $('hint').textContent = 'Click the stone you think the builder wants.';
+    if (stage === 2 && n > 0) $('hint').textContent = 'Tap a stone as many times as you think he means, then hand them over.';
+    if (stage === 1 && n >= STAGE1) {
+      stage = 2; n = 0;
+      $('extra').innerHTML = '<blockquote>Now the language grows. It gets a series of number words, a, b, c, d, and the builder calls out a number together with a stone.<cite>Paraphrasing Philosophical Investigations §8</cite></blockquote>';
+      $('hint').textContent = 'New words. Tap a stone as many times as you think he means, then hand them over.';
+    }
+    if (stage === 2 && n >= STAGE2) return finish();
+    var prev = target && target.id;
+    do { target = { id: STONES[Math.floor(Math.random() * 4)].id }; } while (target.id === prev && stage === 1);
+    target.k = stage === 2 ? 1 + Math.floor(Math.random() * 4) : 1;
+    calls++; stats();
+    $('stage').textContent = stage === 1 ? '§2 · ' + (n + 1) + '/' + STAGE1 : '§8 · ' + (n + 1) + '/' + STAGE2;
+    $('tray').hidden = stage !== 2; tray();
+    setTimeout(function () { say((stage === 2 ? NUMS[target.k - 1] + ' – ' : '') + words[target.id] + '!'); }, 250);
+  }
+
+  function tray() { $('count').textContent = picks.length ? picks.length + ' × ' + STONES.filter(function (s) { return s.id === picks[0]; })[0].look : 'Nothing picked yet'; }
+
+  function pick(id) {
+    if (done || !target) return;
+    if (stage === 1) return judge(id, 1);
+    if (picks.length && picks[0] !== id) picks = [];
+    if (picks.length < 6) picks.push(id);
+    tray();
+  }
+  $('give').addEventListener('click', function () { if (picks.length) judge(picks[0], picks.length); });
+  $('undo').addEventListener('click', function () { picks = []; tray(); });
+
+  function judge(id, k) {
+    if (id === target.id && k === target.k) {
+      if (!(target.id in firstRight)) firstRight[target.id] = calls;
+      for (var i = 0; i < k; i++) placed.push(id);
+      stats(); drawWall(true);
+      say('✓', 'yes'); n++;
+      setTimeout(next, reduce ? 350 : 800);
+      return;
+    }
+    wrong++; tries++; stats(); picks = []; tray();
+    say('No.', 'no');
+    // after three misses the builder points: ostensive teaching (§6)
+    if (tries >= 3) {
+      var b = document.querySelector('.stone[data-id="' + target.id + '"]'); b.classList.add('point');
+      $('hint').textContent = stage === 1 ? 'He points at a stone. (Wittgenstein calls this ostensive teaching, §6.)' : 'He points at a stone and holds up ' + target.k + (target.k > 1 ? ' fingers.' : ' finger.');
+    }
+    setTimeout(function () { say((stage === 2 ? NUMS[target.k - 1] + ' – ' : '') + words[target.id] + '!'); }, 700);
+  }
+
+  // stack the stones into a wall: each one settles on the lowest spot it fits, like real masonry
+  function drawWall(anim) {
+    var svg = $('wall'), W = 640, G = 300, X0 = 24, B = 10, NB = Math.floor((W - 2 * X0) / B), sky = [], html = '';
+    for (var q = 0; q < NB; q++) sky.push(0);
+    html += '<rect x="0" y="' + G + '" width="' + W + '" height="30" fill="rgba(120,132,190,0.12)"/>';
+    placed.forEach(function (id, i) {
+      var s = STONES.filter(function (t) { return t.id === id; })[0], w = s.w, h = s.h, span = Math.ceil((w + 8) / B), best = -1, bestTop = 1e9;
+      for (var st = 0; st + span <= NB; st++) {
+        var top = Math.max.apply(null, sky.slice(st, st + span));
+        if (top < bestTop) { bestTop = top; best = st; }
+      }
+      if (best < 0 || bestTop + h > 200) return;
+      var x = X0 + best * B, y = G - bestTop;
+      for (var k = best; k < best + span; k++) sky[k] = bestTop + h + 3;
+      var last = anim && i === placed.length - 1 && !reduce;
+      html += '<g' + (last ? ' class="drop"' : '') + '><path d="M' + x + ' ' + (y - h) + 'l6 -5h' + w + 'l-6 5z" fill="' + s.col + '" opacity=".55"/><path d="M' + (x + w) + ' ' + (y - h) + 'l6 -5v' + h + 'l-6 5z" fill="' + s.col + '" opacity=".35"/><rect x="' + x + '" y="' + (y - h) + '" width="' + w + '" height="' + h + '" fill="' + s.col + '"/></g>';
+    });
+    svg.innerHTML = '<style>.drop{animation:drop .35s ease-out}@keyframes drop{from{transform:translateY(-40px);opacity:0}}</style>' + html;
+    svg.setAttribute('aria-label', 'The wall so far: ' + placed.length + ' stones');
+  }
+
+  function finish() {
+    done = true; target = null; unpoint(); $('tray').hidden = true; $('stage').textContent = 'Done';
+    say(english ? 'Thank you!' : '☺', 'yes');
+    STONES.forEach(function (s) { document.querySelector('.stone[data-id="' + s.id + '"] b').textContent = words[s.id]; });
+    var rows = STONES.map(function (s) {
+      return '<tr><td>' + words[s.id] + '</td><td>' + s.look + '</td><td class="q">' + (english ? '' : 'learned by call ' + (firstRight[s.id] || '–')) + '</td></tr>';
+    }).join('') + '<tr><td>a, b, c, d</td><td>one, two, three, four</td><td class="q"></td></tr>';
+    $('hint').textContent = '';
+    $('extra').innerHTML =
+      '<div class="end"><h2>You speak Builder.</h2>' +
+      '<p>' + calls + ' calls, ' + wrong + ' wrong, and a wall of ' + placed.length + ' stones. Nobody ever told you what a single word meant. You learned each one by doing something with it and seeing what happened.</p>' +
+      '<table class="lex">' + rows + '</table>' +
+      '<div class="acts"><button class="btn primary" id="again" type="button">New words</button>' + (english ? '' : '<button class="btn ghost" id="orig" type="button">Play with Wittgenstein’s words</button>') + '</div></div>' +
+      '<blockquote>For a large class of cases—though not for all—in which we employ the word “meaning” it can be defined thus: the meaning of a word is its use in the language.<cite>Wittgenstein, Philosophical Investigations §43</cite></blockquote>' +
+      '<blockquote>I shall also call the whole, consisting of language and the actions into which it is woven, the “language-game”.<cite>Wittgenstein, Philosophical Investigations §7</cite></blockquote>' +
+      '<p class="fact">Was what you learned a definition, or a skill? Could you now explain what “' + words.slab + '” means without pointing at anything, or doing anything? That question is where the Investigations begins.</p>';
+    $('again').addEventListener('click', function () { start(false); });
+    if ($('orig')) $('orig').addEventListener('click', function () { start(true); });
+    $('again').focus();
+  }
+
+  $('voice').addEventListener('click', function () {
+    voiceOn = !voiceOn; this.setAttribute('aria-pressed', voiceOn); this.textContent = "Builder's voice: " + (voiceOn ? 'on' : 'off');
+    if (!window.speechSynthesis) this.textContent = 'No voice in this browser';
+  });
+  start(false);
+})();
+</script>
+</body>
+</html>
