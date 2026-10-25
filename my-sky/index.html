@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>My sky and yours · Mariam's Lab</title>
+<meta name="description" content="Compare the navigation satellites above Abu Dhabi with the ones above your city, right now.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/my-sky/">
+<meta property="og:title" content="My sky and yours · Mariam's Lab"><meta property="og:description" content="Compare the navigation satellites above Abu Dhabi with the ones above your city, right now."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Reem+Kufi:wght@500;700&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+<style>
+/* Layout: two live sky plots side by side, Mariam's Abu Dhabi on the left, the visitor's city on the right; same night palette as mariamalzaabi.ae */
+.eyebrow { font: 500 0.72rem var(--font-mono); letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+h1 { font: 800 clamp(2rem, 5vw, 3.2rem)/1.05 var(--font-display); margin: 6px 0 10px; text-wrap: balance; letter-spacing: -0.01em; }
+h1 em { font-style: normal; color: var(--accent); }
+.lede { color: var(--muted); max-width: 60ch; margin: 0; }
+.note { font: 0.78rem/1.5 var(--font-mono); color: var(--muted); border: 1px dashed var(--line); border-radius: 12px; padding: 10px 14px; max-width: 70ch; }
+.pick { display: flex; flex-wrap: wrap; gap: 8px; }
+.pick button { font: 500 0.8rem var(--font-mono); color: var(--muted); background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px; cursor: pointer; }
+.pick button:hover { color: var(--ink); }
+.pick button[aria-pressed="true"] { color: var(--bg); background: var(--accent); border-color: var(--accent); }
+.pick button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.plots { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+@media (max-width: 760px) { .plots { grid-template-columns: 1fr; } }
+.plot { display: grid; gap: 10px; justify-items: center; padding: 18px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); min-width: 0; }
+.plot.you { border-color: color-mix(in srgb, var(--accent) 50%, transparent); }
+.plot h2 { margin: 0; font: 600 1.15rem var(--font-display); display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; justify-content: center; }
+.plot h2 small { font: 500 0.72rem var(--font-mono); color: var(--muted); letter-spacing: 0.06em; }
+canvas { width: 100%; max-width: 420px; aspect-ratio: 1; display: block; }
+.read { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 16px; font: 0.8rem var(--font-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.read b { color: var(--ink); font-weight: 500; }
+.read .a { color: var(--sat-a); } .read .b { color: var(--sat-b); } .read .c { color: var(--sat-c); }
+.verdict { font: 600 clamp(1.1rem, 2.6vw, 1.4rem)/1.35 var(--font-display); margin: 0; text-align: center; text-wrap: balance; }
+.verdict em { font-style: normal; color: var(--accent); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; justify-content: center; font: 0.75rem var(--font-mono); color: var(--muted); }
+.legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-inline-end: 6px; vertical-align: middle; }
+.mysky { display: grid; gap: 28px; }</style>
+<div class="mysky">
+  <header>
+    <div class="eyebrow">Experiment · GNSS</div>
+    <h1>My sky over Abu Dhabi, <em>and yours.</em></h1>
+    <p class="lede">These are the GPS, Galileo and BeiDou satellites above each city right now, worked out from the same orbit data the site downloads every day. Pick a city to compare it with Mariam's.</p>
+  </header>
+
+  <div class="pick" id="pick" role="group" aria-label="Choose your city"></div>
+
+  <p class="verdict" id="verdict"></p>
+
+  <div class="plots">
+    <section class="plot">
+      <h2>Abu Dhabi <small>MARIAM · 24.45° N 54.38° E</small></h2>
+      <canvas id="skyA" role="img" aria-label="Satellites above Abu Dhabi now"></canvas>
+      <div class="read" id="readA"></div>
+    </section>
+    <section class="plot you">
+      <h2 id="youName">You</h2>
+      <canvas id="skyB" role="img" aria-label="Satellites above your city now"></canvas>
+      <div class="read" id="readB"></div>
+    </section>
+  </div>
+
+  <div class="legend"><span><i style="background:var(--sat-a)"></i>GPS (USA)</span><span><i style="background:var(--sat-b)"></i>Galileo (EU)</span><span><i style="background:var(--sat-c)"></i>BeiDou (China)</span><span>Only satellites at least 10° above the horizon count</span></div>
+</div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Work with me ↗</a></div></footer>
+<script>
+var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function css(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+(function () {
+  var MU = 398600.4418, RE = 6378.137, J2 = 1.08263e-3, D2R = Math.PI / 180, MASK = 10;
+  var CITIES = [
+    ['Abu Dhabi', 24.4539, 54.3773, 'Asia/Dubai'], ['London', 51.5072, -0.1276, 'Europe/London'], ['New York', 40.7128, -74.006, 'America/New_York'],
+    ['Tokyo', 35.6762, 139.6503, 'Asia/Tokyo'], ['Sydney', -33.8688, 151.2093, 'Australia/Sydney'], ['Reykjavík', 64.1466, -21.9426, 'Atlantic/Reykjavik'],
+    ['Nairobi', -1.2921, 36.8219, 'Africa/Nairobi'], ['São Paulo', -23.5505, -46.6333, 'America/Sao_Paulo'], ['Riyadh', 24.7136, 46.6753, 'Asia/Riyadh'], ['Paris', 48.8566, 2.3522, 'Europe/Paris']
+  ];
+  var sats = [];
+  function observer(lat, lon) {
+    var f = 1 / 298.257223563, e2 = f * (2 - f), sl = Math.sin(lat * D2R), cl = Math.cos(lat * D2R), so = Math.sin(lon * D2R), co = Math.cos(lon * D2R);
+    var N = RE / Math.sqrt(1 - e2 * sl * sl);
+    return { x: N * cl * co, y: N * cl * so, z: N * (1 - e2) * sl, sl: sl, cl: cl, so: so, co: co };
+  }
+  function azel(o, ms, OBS) {
+    var n = o.n * 2 * Math.PI / 86400, a = Math.pow(MU / (n * n), 1 / 3), e = o.e, inc = o.i * D2R;
+    var dt = (ms - o.t) / 1000, p = a * (1 - e * e), k = 1.5 * n * J2 * Math.pow(RE / p, 2);
+    var raan = o.raan * D2R - k * Math.cos(inc) * dt, argp = o.argp * D2R + 0.5 * k * (5 * Math.cos(inc) * Math.cos(inc) - 1) * dt;
+    var M = (o.ma * D2R + n * dt) % (2 * Math.PI), E = M;
+    for (var it = 0; it < 8; it++) E -= (E - e * Math.sin(E) - M) / (1 - e * Math.cos(E));
+    var nu = 2 * Math.atan2(Math.sqrt(1 + e) * Math.sin(E / 2), Math.sqrt(1 - e) * Math.cos(E / 2)), rad = a * (1 - e * Math.cos(E));
+    var u = argp + nu, cO = Math.cos(raan), sO = Math.sin(raan), ci = Math.cos(inc), si = Math.sin(inc), cu = Math.cos(u), su = Math.sin(u);
+    var X = rad * (cO * cu - sO * su * ci), Y = rad * (sO * cu + cO * su * ci), Z = rad * su * si;
+    var g = ((280.46061837 + 360.98564736629 * (ms / 86400000 + 2440587.5 - 2451545)) % 360) * D2R, cg = Math.cos(g), sg = Math.sin(g);
+    var dx = cg * X + sg * Y - OBS.x, dy = -sg * X + cg * Y - OBS.y, dz = Z - OBS.z;
+    var east = -OBS.so * dx + OBS.co * dy, north = -OBS.sl * OBS.co * dx - OBS.sl * OBS.so * dy + OBS.cl * dz, up = OBS.cl * OBS.co * dx + OBS.cl * OBS.so * dy + OBS.sl * dz;
+    return [(Math.atan2(east, north) / D2R + 360) % 360, Math.atan2(up, Math.hypot(east, north)) / D2R];
+  }
+  function Plot(canvas) { this.cv = canvas; this.ctx = canvas.getContext('2d'); this.obs = null; this.tracks = []; }
+  Plot.prototype.compute = function () {
+    var now = Date.now(), O = this.obs, count = { a: 0, b: 0, c: 0 };
+    this.tracks = sats.map(function (s) {
+      var tr = []; for (var m = 60; m >= 0; m -= 4) tr.push(azel(s, now - m * 60000, O));
+      if (tr[tr.length - 1][1] > MASK) count[s.k]++;
+      return { s: s, tr: tr };
+    });
+    this.count = count; return count;
+  };
+  Plot.prototype.draw = function () {
+    var cv = this.cv, ctx = this.ctx, r = cv.getBoundingClientRect(), dpr = window.devicePixelRatio || 1, size = r.width;
+    if (!size) return;
+    cv.width = size * dpr; cv.height = size * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    var R = size / 2 - 22, c = size / 2, css = getComputedStyle(document.documentElement);
+    function v(n) { return css.getPropertyValue(n).trim(); }
+    function pos(az, el) { var rr = R * (90 - el) / 90, a = (az - 90) * D2R; return [c + rr * Math.cos(a), c + rr * Math.sin(a)]; }
+    ctx.strokeStyle = v('--line'); ctx.lineWidth = 1;
+    [0, 30, 60].forEach(function (el) { ctx.beginPath(); ctx.arc(c, c, R * (90 - el) / 90, 0, Math.PI * 2); ctx.stroke(); });
+    for (var a = 0; a < 360; a += 30) { var p = pos(a, 0); ctx.beginPath(); ctx.moveTo(c, c); ctx.lineTo(p[0], p[1]); ctx.stroke(); }
+    ctx.fillStyle = v('--muted'); ctx.font = '500 11px "JetBrains Mono", monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    [['N', 0], ['E', 90], ['S', 180], ['W', 270]].forEach(function (d) { var p = pos(d[1], -9); ctx.fillText(d[0], p[0], p[1]); });
+    ctx.textAlign = 'left';
+    var cols = { a: v('--sat-a'), b: v('--sat-b'), c: v('--sat-c') }, muted = v('--muted'), placed = [];
+    this.tracks.forEach(function (T) {
+      var col = cols[T.s.k], tr = T.tr, now = tr[tr.length - 1];
+      ctx.strokeStyle = col; ctx.lineWidth = 1.5;
+      for (var k = 1; k < tr.length; k++) {
+        if (tr[k][1] < MASK || tr[k - 1][1] < MASK) continue;
+        var p0 = pos(tr[k - 1][0], tr[k - 1][1]), p1 = pos(tr[k][0], tr[k][1]);
+        ctx.globalAlpha = k / tr.length * 0.5; ctx.beginPath(); ctx.moveTo(p0[0], p0[1]); ctx.lineTo(p1[0], p1[1]); ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+      if (now[1] < MASK) return;
+      var p = pos(now[0], now[1]);
+      ctx.fillStyle = col; ctx.beginPath(); ctx.arc(p[0], p[1], 4.5, 0, Math.PI * 2); ctx.fill();
+      if (placed.some(function (q) { return Math.abs(q[0] - p[0]) < 30 && Math.abs(q[1] - p[1]) < 13; })) return;
+      placed.push(p); ctx.fillStyle = muted; ctx.fillText(T.s.id, p[0] + 8, p[1] - 8);
+    });
+    // home marker at the zenith
+    ctx.fillStyle = v('--accent'); ctx.beginPath(); ctx.arc(c, c, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = v('--accent'); ctx.globalAlpha = 0.5; ctx.beginPath(); ctx.arc(c, c, 11, 0, Math.PI * 2); ctx.stroke(); ctx.globalAlpha = 1;
+  };
+  function readout(el, n, tz) {
+    var total = n.a + n.b + n.c, t = new Date().toLocaleTimeString('en-US', { timeZone: tz, hour: 'numeric', minute: '2-digit' });
+    el.innerHTML = '<span>SATS <b>' + total + '</b></span><span class="a">GPS ' + n.a + '</span><span class="b">GAL ' + n.b + '</span><span class="c">BDS ' + n.c + '</span><span>LOCAL <b>' + t + '</b></span>';
+    return total;
+  }
+  var A = new Plot(document.getElementById('skyA')), B = new Plot(document.getElementById('skyB'));
+  A.obs = observer(24.4539, 54.3773);
+  var cur = 1, pick = document.getElementById('pick');
+  // first guess: the viewer's own time zone, if it matches one of the cities
+  try { var tz = Intl.DateTimeFormat().resolvedOptions().timeZone; CITIES.forEach(function (c, i) { if (c[3] === tz && i) cur = i; }); } catch (e) {}
+  CITIES.forEach(function (c, i) {
+    if (!i) return;
+    var b = document.createElement('button'); b.type = 'button'; b.id = 'city-' + i; b.textContent = c[0];
+    b.addEventListener('click', function () { cur = i; update(); });
+    pick.appendChild(b);
+  });
+  function update() {
+    var c = CITIES[cur];
+    [].forEach.call(pick.children, function (b) { b.setAttribute('aria-pressed', b.id === 'city-' + cur ? 'true' : 'false'); });
+    B.obs = observer(c[1], c[2]);
+    document.getElementById('youName').innerHTML = c[0] + ' <small>YOU · ' + Math.abs(c[1]).toFixed(2) + '° ' + (c[1] >= 0 ? 'N' : 'S') + ' ' + Math.abs(c[2]).toFixed(2) + '° ' + (c[2] >= 0 ? 'E' : 'W') + '</small>';
+    document.getElementById('skyB').setAttribute('aria-label', 'Satellites above ' + c[0] + ' now');
+    var na = readout(document.getElementById('readA'), A.compute(), 'Asia/Dubai');
+    var nb = readout(document.getElementById('readB'), B.compute(), c[3]);
+    var d = nb - na;
+    document.getElementById('verdict').innerHTML = d === 0 ? 'Right now ' + c[0] + ' and Abu Dhabi see <em>exactly the same number</em> of satellites: ' + nb + '.'
+      : d > 0 ? 'Right now ' + c[0] + ' sees <em>' + d + ' more</em> navigation satellites than Abu Dhabi (' + nb + ' vs ' + na + ').'
+      : 'Right now Abu Dhabi sees <em>' + (-d) + ' more</em> navigation satellites than ' + c[0] + ' (' + na + ' vs ' + nb + ').';
+    A.draw(); B.draw();
+  }
+  fetch('https://mariamalzaabi.ae/assets/gnss.json', { cache: 'no-cache' }).then(function (r) { return r.json(); }).then(function (d) {
+    sats = d.sats.map(function (o) { o.t = Date.parse(o.epoch); o.k = { G: 'a', E: 'b', C: 'c' }[o.c] || 'a'; return o; });
+    update(); setInterval(update, 20000);
+  }).catch(function () { document.getElementById('verdict').textContent = 'Could not load orbit data. Try again in a moment.'; });
+  addEventListener('resize', function () { A.draw(); B.draw(); });
+})();
+</script>
+</body>
+</html>

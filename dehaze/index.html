@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dehaze your own photo · Mariam's Lab</title>
+<meta name="description" content="Remove haze from underwater or foggy photos right in your browser. Nothing is uploaded.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/dehaze/">
+<meta property="og:title" content="Dehaze your own photo · Mariam's Lab"><meta property="og:description" content="Remove haze from underwater or foggy photos right in your browser. Nothing is uploaded."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Reem+Kufi:wght@500;700&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+<div class="sec-head"><span class="label">Experiment · Computer vision</span><h1 style="font-size:var(--step-3)">Dehaze your own photo.</h1>
+<p>Underwater and foggy photos lose contrast because light scatters before it reaches the camera. Drop in a photo and this page estimates how much haze sits on every pixel, then removes it. Drag across the image to compare before and after.</p></div>
+<div class="thesis-text" style="max-width:820px">
+          <div class="haze">
+            <canvas id="haze" width="640" height="300" role="img" aria-label="Drag across the image to compare a hazy underwater scene with a dehazed one"></canvas>
+            <input type="range" id="hazeSlider" min="0" max="100" value="55" aria-label="Compare hazy and dehazed">
+            <span class="hz-l mono">HAZY</span><span class="hz-r mono">DEHAZED</span>
+          </div>
+          <div class="hz-try">
+            <label class="btn ghost hz-btn"><input type="file" id="hazeFile" accept="image/*" hidden><span id="hazeBtnTxt">Dehaze your own photo</span></label>
+            <span class="note">Runs in your browser. Your photo is never uploaded.</span>
+          </div>
+          <p class="mono note" id="hazeNote">Illustration only, drawn in the browser. Not output from the thesis model.</p>
+<p class="fact">How it works: the dark channel prior (He et al.) finds the haze, a guided filter keeps edges sharp, and a per-channel stretch removes the blue-green cast of underwater shots. My master's thesis at Khalifa University went further, with spiking GANs that run on low-power neuromorphic hardware.</p>
+</div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Work with me ↗</a></div></footer>
+<script>
+var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function css(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+  // Thesis illustration: hazy vs dehazed underwater scene, drawn procedurally
+  (function () {
+    var hc = document.getElementById('haze'), hx = hc.getContext('2d'), sl = document.getElementById('hazeSlider');
+    var w = hc.width, h = hc.height, rnd = function (i) { var x = Math.sin(i * 127.1) * 43758.5; return x - Math.floor(x); };
+    function scene(clear) {
+      var g = hx.createLinearGradient(0, 0, 0, h);
+      if (clear) { g.addColorStop(0, '#2a8fb8'); g.addColorStop(0.6, '#145a7a'); g.addColorStop(1, '#0b2f45'); }
+      else { g.addColorStop(0, '#6fb6a6'); g.addColorStop(0.6, '#5a9c8c'); g.addColorStop(1, '#4b8578'); }
+      hx.fillStyle = g; hx.fillRect(0, 0, w, h);
+      // light rays
+      hx.globalAlpha = clear ? 0.12 : 0.05; hx.fillStyle = '#ffffff';
+      for (var r = 0; r < 5; r++) { hx.beginPath(); hx.moveTo(80 + r * 120, 0); hx.lineTo(140 + r * 120, 0); hx.lineTo(60 + r * 140, h); hx.lineTo(20 + r * 140, h); hx.fill(); }
+      hx.globalAlpha = 1;
+      // seabed and rocks
+      hx.fillStyle = clear ? '#c9a46a' : '#7fa48d';
+      hx.beginPath(); hx.moveTo(0, h); for (var x = 0; x <= w; x += 20) hx.lineTo(x, h - 46 - Math.sin(x * 0.02) * 10 - rnd(x) * 6); hx.lineTo(w, h); hx.fill();
+      var coral = clear ? ['#ff7a59', '#ffb347', '#e0567a', '#9b6bff'] : ['#8fae9c', '#94b09c', '#86a896', '#8aa99b'];
+      for (var i = 0; i < 14; i++) {
+        var cx = 30 + i * 45 + rnd(i) * 20, base = h - 44, ht = 30 + rnd(i + 9) * 50;
+        hx.strokeStyle = coral[i % 4]; hx.lineWidth = 5; hx.lineCap = 'round';
+        hx.beginPath(); hx.moveTo(cx, base); hx.lineTo(cx + (rnd(i + 3) - 0.5) * 20, base - ht); hx.stroke();
+        hx.beginPath(); hx.moveTo(cx, base - ht * 0.5); hx.lineTo(cx + 14, base - ht * 0.8); hx.stroke();
+      }
+      // fish
+      for (var f = 0; f < 6; f++) {
+        var fx2 = 70 + f * 95 + rnd(f + 20) * 30, fy = 70 + rnd(f + 30) * 120, s = 10 + rnd(f) * 8;
+        hx.fillStyle = clear ? (f % 2 ? '#ffd166' : '#ff9f1c') : '#9fbfb0';
+        hx.beginPath(); hx.ellipse(fx2, fy, s, s * 0.5, 0, 0, 6.28); hx.fill();
+        hx.beginPath(); hx.moveTo(fx2 - s, fy); hx.lineTo(fx2 - s * 1.7, fy - s * 0.5); hx.lineTo(fx2 - s * 1.7, fy + s * 0.5); hx.fill();
+      }
+      // a small robot sub
+      hx.fillStyle = clear ? '#f2f4f8' : '#a9c4ba'; hx.beginPath(); hx.ellipse(w * 0.72, 110, 46, 18, 0, 0, 6.28); hx.fill();
+      hx.fillStyle = clear ? '#E9B467' : '#a3bfb2'; hx.beginPath(); hx.arc(w * 0.72 + 30, 110, 7, 0, 6.28); hx.fill();
+      if (!clear) { hx.fillStyle = 'rgba(120,180,165,0.55)'; hx.fillRect(0, 0, w, h); }
+    }
+    var A = document.createElement('canvas'), B = document.createElement('canvas'); A.width = B.width = w; A.height = B.height = h;
+    var box = hc.parentNode;
+    var ctxA = A.getContext('2d'), ctxB = B.getContext('2d');
+    var keep = hx; hx = ctxA; scene(false); hx = ctxB; scene(true); hx = keep;
+    function paint() {
+      var cut = w * sl.value / 100;
+      hx.drawImage(A, 0, 0); hx.save(); hx.beginPath(); hx.rect(cut, 0, w - cut, h); hx.clip(); hx.drawImage(B, 0, 0); hx.restore();
+      hx.fillStyle = '#E9B467'; hx.fillRect(cut - 1.5, 0, 3, h);
+      hx.beginPath(); hx.arc(cut, h / 2, 12, 0, 6.28); hx.fill();
+      hx.fillStyle = '#1a1205'; hx.font = '600 12px sans-serif'; hx.textAlign = 'center'; hx.textBaseline = 'middle'; hx.fillText('⇆', cut, h / 2 + 1);
+    }
+    sl.addEventListener('input', paint); paint();
+
+    // Dehaze your own photo: dark channel prior (He et al.) with a guided-filter refined
+    // transmission, plus a per-channel stretch to undo the blue-green cast of underwater shots.
+    var file = document.getElementById('hazeFile'), btnTxt = document.getElementById('hazeBtnTxt'), ar = document.documentElement.lang === 'ar';
+    var TX = ar ? { busy: 'جارٍ إزالة الضباب…', again: 'جرّب صورة أخرى', l: 'صورتك', r: 'بعد المعالجة', note: 'إزالة ضباب كلاسيكية (أولوية القناة المظلمة)، وليست نموذج الأطروحة.', bad: 'تعذّر فتح هذه الصورة. جرّب JPG أو PNG.' }
+      : { busy: 'Dehazing…', again: 'Try another photo', l: 'YOUR PHOTO', r: 'DEHAZED', note: 'Classic dehazing (dark channel prior), not the thesis model.', bad: "Couldn't open that image. Try a JPG or PNG." };
+    function boxBlur(src, W, H, rad) {
+      var tmp = new Float32Array(W * H), out = new Float32Array(W * H), x, y, s, n;
+      for (y = 0; y < H; y++) {
+        s = 0; n = 0; var row = y * W;
+        for (x = 0; x <= rad && x < W; x++) { s += src[row + x]; n++; }
+        for (x = 0; x < W; x++) {
+          tmp[row + x] = s / n;
+          if (x + rad + 1 < W) { s += src[row + x + rad + 1]; n++; }
+          if (x - rad >= 0) { s -= src[row + x - rad]; n--; }
+        }
+      }
+      for (x = 0; x < W; x++) {
+        s = 0; n = 0;
+        for (y = 0; y <= rad && y < H; y++) { s += tmp[y * W + x]; n++; }
+        for (y = 0; y < H; y++) {
+          out[y * W + x] = s / n;
+          if (y + rad + 1 < H) { s += tmp[(y + rad + 1) * W + x]; n++; }
+          if (y - rad >= 0) { s -= tmp[(y - rad) * W + x]; n--; }
+        }
+      }
+      return out;
+    }
+    function minFilter(src, W, H, rad) {
+      var tmp = new Float32Array(W * H), out = new Float32Array(W * H), x, y, k, m;
+      for (y = 0; y < H; y++) for (x = 0; x < W; x++) {
+        m = 1; for (k = Math.max(0, x - rad); k <= Math.min(W - 1, x + rad); k++) if (src[y * W + k] < m) m = src[y * W + k];
+        tmp[y * W + x] = m;
+      }
+      for (x = 0; x < W; x++) for (y = 0; y < H; y++) {
+        m = 1; for (k = Math.max(0, y - rad); k <= Math.min(H - 1, y + rad); k++) if (tmp[k * W + x] < m) m = tmp[k * W + x];
+        out[y * W + x] = m;
+      }
+      return out;
+    }
+    function dehaze(img) {
+      var W = img.width, H = img.height, N = W * H, d = img.data, C = [new Float32Array(N), new Float32Array(N), new Float32Array(N)], i, c;
+      var mean = [0, 0, 0];
+      for (i = 0; i < N; i++) for (c = 0; c < 3; c++) { C[c][i] = d[i * 4 + c] / 255; mean[c] += C[c][i] / N; }
+      // underwater shots lose red first, so use only green and blue for the dark channel there
+      var chans = mean[0] < 0.6 * (mean[1] + mean[2]) / 2 ? [1, 2] : [0, 1, 2];
+      var lo = new Float32Array(N);
+      for (i = 0; i < N; i++) { var m = 1; chans.forEach(function (k) { if (C[k][i] < m) m = C[k][i]; }); lo[i] = m; }
+      var dark = minFilter(lo, W, H, 7);
+      // atmospheric light: brightest pixel among the haziest 0.1%
+      var idx = Array.prototype.slice.call(dark).map(function (v, k) { return [v, k]; }).sort(function (a, b) { return b[0] - a[0]; }).slice(0, Math.max(1, N / 1000 | 0));
+      var best = idx[0][1], bi = -1;
+      idx.forEach(function (p) { var s = C[0][p[1]] + C[1][p[1]] + C[2][p[1]]; if (s > bi) { bi = s; best = p[1]; } });
+      var Aa = [Math.max(0.05, C[0][best]), Math.max(0.05, C[1][best]), Math.max(0.05, C[2][best])];
+      for (i = 0; i < N; i++) { m = 1; chans.forEach(function (k) { var v = C[k][i] / Aa[k]; if (v < m) m = v; }); lo[i] = m; }
+      var t = minFilter(lo, W, H, 7);
+      for (i = 0; i < N; i++) t[i] = 1 - 0.9 * t[i];
+      // guided filter, guide = grey image, so edges in the transmission follow the photo
+      var I = new Float32Array(N), rad = Math.max(8, Math.round(Math.min(W, H) / 25)), eps = 1e-3;
+      for (i = 0; i < N; i++) I[i] = 0.299 * C[0][i] + 0.587 * C[1][i] + 0.114 * C[2][i];
+      var II = new Float32Array(N), Ip = new Float32Array(N);
+      for (i = 0; i < N; i++) { II[i] = I[i] * I[i]; Ip[i] = I[i] * t[i]; }
+      var mI = boxBlur(I, W, H, rad), mp = boxBlur(t, W, H, rad), mII = boxBlur(II, W, H, rad), mIp = boxBlur(Ip, W, H, rad);
+      var a = new Float32Array(N), b = new Float32Array(N);
+      for (i = 0; i < N; i++) { a[i] = (mIp[i] - mI[i] * mp[i]) / (mII[i] - mI[i] * mI[i] + eps); b[i] = mp[i] - a[i] * mI[i]; }
+      var ma = boxBlur(a, W, H, rad), mb = boxBlur(b, W, H, rad);
+      var out = new ImageData(W, H), o = out.data;
+      for (c = 0; c < 3; c++) {
+        var J = new Float32Array(N);
+        for (i = 0; i < N; i++) J[i] = (C[c][i] - Aa[c]) / Math.max(0.15, ma[i] * I[i] + mb[i]) + Aa[c];
+        // stretch each channel between its 0.5% and 99.5% values to remove the colour cast
+        var sorted = Float32Array.from(J).sort(), lo2 = sorted[N * 0.005 | 0], hi2 = sorted[N * 0.995 | 0], span = Math.max(0.05, hi2 - lo2);
+        for (i = 0; i < N; i++) o[i * 4 + c] = Math.max(0, Math.min(255, (J[i] - lo2) / span * 255));
+      }
+      for (i = 0; i < N; i++) o[i * 4 + 3] = 255;
+      return out;
+    }
+    file.addEventListener('change', function () {
+      var f = file.files && file.files[0];
+      if (!f) return;
+      var url = URL.createObjectURL(f), im = new Image(), label = file.parentNode;
+      label.classList.add('busy'); btnTxt.textContent = TX.busy;
+      im.onerror = function () { URL.revokeObjectURL(url); label.classList.remove('busy'); btnTxt.textContent = TX.again; document.getElementById('hazeNote').textContent = TX.bad; };
+      im.onload = function () {
+        URL.revokeObjectURL(url);
+        setTimeout(function () {
+          var k = Math.min(1, 720 / Math.max(im.naturalWidth, im.naturalHeight));
+          w = Math.max(1, Math.round(im.naturalWidth * k)); h = Math.max(1, Math.round(im.naturalHeight * k));
+          A.width = B.width = hc.width = w; A.height = B.height = hc.height = h;
+          ctxA.drawImage(im, 0, 0, w, h);
+          ctxB.putImageData(dehaze(ctxA.getImageData(0, 0, w, h)), 0, 0);
+          box.style.aspectRatio = w + ' / ' + h; box.style.width = 'min(100%, calc(70vh * ' + (w / h).toFixed(4) + '))'; box.style.marginInline = 'auto';
+          box.querySelector('.hz-l').textContent = TX.l; box.querySelector('.hz-r').textContent = TX.r;
+          document.getElementById('hazeNote').textContent = TX.note;
+          sl.value = 50; paint();
+          label.classList.remove('busy'); btnTxt.textContent = TX.again; file.value = '';
+        }, 30);
+      };
+      im.src = url;
+    });
+  })();
+
+</script>
+</body>
+</html>
