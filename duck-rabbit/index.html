@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Duck or Rabbit? · Mariam's Lab</title>
+<meta name="description" content="Wittgenstein's duck-rabbit as an experiment: mark the moment the picture flips for you, and find out whether what you already see shapes what you see next.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/duck-rabbit/">
+<meta property="og:title" content="Duck or Rabbit? · Mariam's Lab"><meta property="og:description" content="Mark the moment the duck-rabbit flips for you, both ways."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@1,9..144,500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.view { position: relative; border-radius: var(--radius); border: 1px solid var(--line); background: rgba(7, 10, 24, 0.82); overflow: hidden; }
+.view svg { display: block; width: 100%; height: auto; }
+.view .overlay { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 14px; padding: 20px; text-align: center; background: rgba(7, 10, 24, 0.78); }
+.view .overlay h3 { font-size: var(--step-2); font-weight: 800; }
+.view .overlay p { color: var(--muted); max-width: 42ch; }
+.prog { position: absolute; left: 0; bottom: 0; height: 3px; background: var(--accent); width: 0; }
+.flip { width: 100%; padding: 22px; border-radius: 16px; font-family: var(--font-display); font-size: 1.25rem; font-weight: 700; border: 1px solid var(--accent); background: var(--accent); color: #070A18; cursor: pointer; }
+.flip:disabled { background: transparent; color: var(--muted); border-color: var(--line); cursor: default; }
+.flip:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+.left { display: grid; gap: 14px; min-width: 0; }
+.notes { display: grid; gap: 14px; }
+.notes blockquote { margin: 0; padding: 14px 16px; border-inline-start: 2px solid var(--accent); background: var(--surface); border-radius: 0 12px 12px 0; font-family: "Fraunces", Georgia, serif; font-style: italic; font-size: 1.08rem; line-height: 1.5; }
+.notes blockquote cite { display: block; margin-top: 8px; font-family: var(--font-mono); font-style: normal; font-size: 0.75rem; color: var(--muted); }
+.res { display: grid; gap: 14px; padding: 20px; border-radius: 12px; border: 1px solid var(--accent); background: var(--surface); }
+.res h2 { font-size: 1.5rem; font-weight: 800; }
+.scale { position: relative; height: 92px; margin: 4px 6px 0; }
+.scale .bar { position: absolute; left: 0; right: 0; top: 40px; height: 10px; border-radius: 99px; background: linear-gradient(90deg, var(--sat-a), var(--sat-c)); }
+.scale .ends { position: absolute; left: 0; right: 0; top: 58px; display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); }
+.mark { position: absolute; transform: translateX(-50%); font-family: var(--font-mono); font-size: 0.74rem; white-space: nowrap; text-align: center; }
+.mark.up { top: 0; color: var(--sat-c); }
+.mark.down { top: 74px; color: var(--sat-a); }
+.mark i { display: block; width: 2px; height: 14px; margin: 2px auto; background: currentColor; }
+.mark.down i { margin-top: -26px; }
+.free { display: grid; gap: 10px; }
+.free label { display: grid; gap: 6px; font-size: 0.92rem; }
+.free input[type=range] { width: 100%; accent-color: var(--accent); }
+.free .row { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); }
+.free label.chk, .chk { display: flex; gap: 8px; align-items: center; font-size: 0.92rem; }
+.chk input { accent-color: var(--accent); }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.hist { font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Experiment · Philosophy of language · Perception</span>
+    <h1 style="font-size:var(--step-3)">Duck or rabbit?</h1>
+    <p>Wittgenstein used this old drawing to ask what changes when a picture "flips". The lines stay the same, and yet you see something else. Here the picture drifts slowly from duck to rabbit and back. Tell it when it flips for you.</p>
+  </div>
+  <div class="game">
+    <div class="left">
+      <div class="view">
+        <svg id="fig" viewBox="20 40 360 240" role="img" aria-label="A drawing that can be seen as a duck facing left or a rabbit facing right"></svg>
+        <div class="prog" id="prog"></div>
+        <div class="overlay" id="ov">
+          <h3>Two slow sweeps</h3>
+          <p>First the duck becomes a rabbit, then the rabbit becomes a duck. Press the button (or the space bar) the moment you see the other animal.</p>
+          <button class="btn primary" id="start" type="button">Start</button>
+        </div>
+      </div>
+      <button class="flip" id="flip" type="button" disabled>Waiting…</button>
+    </div>
+    <div class="panel notes">
+      <p id="hint">Don't try to be clever. Just say when you see it.</p>
+      <div id="out"></div>
+      <blockquote>I contemplate a face, and then suddenly notice its likeness to another. I see that it has not changed; and yet I see it differently. I call this experience "noticing an aspect".<cite>Wittgenstein, Philosophical Investigations, Part II, xi</cite></blockquote>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var $ = function (id) { return document.getElementById(id); };
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function clamp(v) { return Math.max(0, Math.min(1, v)); }
+
+  // The figure, after Jastrow's duck-rabbit. t = 0 leans duck, t = 1 leans rabbit, 0.5 is the bare ambiguous drawing.
+  // Only small things change: the tip of the bill splits into two ears, and the context (water or grass) fades in.
+  function draw(t, ctx) {
+    var c = clamp(t), r = function (v) { return Math.round(v * 10) / 10; }, nx = r(lerp(48, 76, c));
+    var duck = ctx ? clamp(1 - 2.4 * c) : 0, rab = ctx ? clamp(2.4 * c - 1.4) : 0;
+    var ink = '#EEF0FA', s = '';
+    // water for the duck
+    s += '<g opacity="' + duck.toFixed(2) + '" stroke="#84A0FF" stroke-width="3" fill="none" stroke-linecap="round">' +
+      '<path d="M110 252 q15 -8 30 0 t30 0 t30 0 t30 0 t30 0 t30 0"/><path d="M150 266 q15 -8 30 0 t30 0 t30 0 t30 0"/>' +
+      '<circle cx="104" cy="104" r="3.5" fill="#EEF0FA" stroke="none"/></g>';
+    // grass, whiskers and a nose for the rabbit
+    s += '<g opacity="' + rab.toFixed(2) + '" stroke="#4FD3BD" stroke-width="3" fill="none" stroke-linecap="round">' +
+      '<path d="M120 262 l6 -22 M132 262 l-2 -26 M144 262 l8 -20 M300 262 l-6 -22 M312 262 l2 -28 M324 262 l8 -18 M210 262 l4 -16 M220 262 l-3 -20"/>' +
+      '<path d="M330 170 l34 -10 M330 172 l36 2 M330 175 l32 14" stroke="#EEF0FA" stroke-width="2"/>' +
+      '<circle cx="331" cy="164" r="4" fill="#F08AB3" stroke="none"/></g>';
+    s += '<g fill="none" stroke="' + ink + '" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">' +
+      '<path d="M196 102 C230 68 300 70 326 118 C334 134 334 148 330 156 L318 165 L329 173 C322 214 284 238 246 236 C214 234 196 214 192 196 C190 184 192 174 194 164"/>' +
+      '<path d="M196 102 C160 84 112 74 72 80 C50 84 42 98 48 106 L' + nx + ' 114 L48 122 C42 132 50 146 72 146 C112 150 160 158 194 164"/>' +
+      '<path d="M201 133 C170 127 140 121 ' + r(lerp(118, nx + 2, c)) + ' 115"/>' +
+      '<circle cx="262" cy="126" r="9" fill="' + ink + '" stroke="none"/></g>';
+    $('fig').innerHTML = s;
+  }
+
+  var SWEEP = 16, phase = 'idle', t0 = 0, tNow = 0, up = null, down = null, raf = 0;
+  var flipB = $('flip'), hist = [];
+  try { hist = JSON.parse(localStorage.getItem('duckRabbit') || '[]'); } catch (e) {}
+
+  function begin(p) {
+    phase = p; t0 = performance.now();
+    flipB.disabled = false;
+    flipB.textContent = p === 'up' ? "It's a rabbit now" : "It's a duck now";
+    $('hint').textContent = p === 'up' ? 'Watching the duck. Press when you see a rabbit.' : 'Now the other way. Press when you see a duck.';
+    flipB.focus();
+    cancelAnimationFrame(raf); raf = requestAnimationFrame(tick);
+  }
+  function tick(now) {
+    var k = Math.min(1, (now - t0) / 1000 / SWEEP);
+    tNow = phase === 'up' ? k : 1 - k;
+    draw(tNow, true); $('prog').style.width = (k * 100) + '%';
+    if (k >= 1) return record(true);
+    raf = requestAnimationFrame(tick);
+  }
+  function record(never) {
+    cancelAnimationFrame(raf);
+    if (phase === 'up') {
+      up = never ? 1 : tNow; phase = 'pause'; flipB.disabled = true; flipB.textContent = 'Get ready…';
+      $('hint').textContent = never ? 'It never flipped for you. Interesting! Now the other way.' : 'Got it. Now the other way.';
+      setTimeout(function () { draw(1, true); setTimeout(function () { begin('down'); }, reduce ? 300 : 900); }, 300);
+    } else if (phase === 'down') {
+      down = never ? 0 : tNow; phase = 'done'; flipB.disabled = true; flipB.textContent = 'Done';
+      $('prog').style.width = '0';
+      results();
+    }
+  }
+  flipB.addEventListener('click', function () { if (phase === 'up' || phase === 'down') record(false); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === ' ' && (phase === 'up' || phase === 'down')) { e.preventDefault(); record(false); }
+  });
+  $('start').addEventListener('click', function () { $('ov').hidden = true; up = down = null; begin('up'); });
+
+  function pct(v) { return Math.round(v * 100); }
+  function results() {
+    hist.unshift({ u: up, d: down }); hist = hist.slice(0, 5);
+    try { localStorage.setItem('duckRabbit', JSON.stringify(hist)); } catch (e) {}
+    var gap = up - down, msg;
+    if (gap > 0.08) msg = 'You held on to the duck well past the middle on the way up, and to the rabbit on the way back. What you already saw kept shaping what you saw. Perception researchers call this hysteresis.';
+    else if (gap < -0.08) msg = 'You flipped early both times, before the picture even reached the middle. You went looking for the other animal, and that was enough to see it.';
+    else msg = 'You flipped at about the same point in both directions, so the picture alone decided it for you, not what you were already seeing.';
+    $('hint').textContent = '';
+    $('out').innerHTML = '<div class="res"><h2>Where it flipped for you</h2>' +
+      '<div class="scale" aria-hidden="true"><div class="mark up" style="left:' + pct(up) + '%">to rabbit ' + pct(up) + '%<i></i></div><div class="bar"></div>' +
+      '<div class="mark down" style="left:' + pct(down) + '%"><i></i>to duck ' + pct(down) + '%</div></div>' +
+      '<p class="sr-only">Duck to rabbit at ' + pct(up) + '% of the way, rabbit to duck at ' + pct(down) + '%.</p>' +
+      '<p>' + msg + '</p>' +
+      (hist.length > 1 ? '<p class="hist">Your last runs: ' + hist.map(function (h) { return pct(h.u) + '/' + pct(h.d); }).join(' · ') + '</p>' : '') +
+      '<p>The drawing at 50% is the same in both sweeps. Only your seeing changed. Wittgenstein’s question is what that change is: not something new in the picture, so something in how you take it.</p>' +
+      '<div class="free"><label for="tr">Look for yourself<input type="range" id="tr" min="0" max="100" value="50"></label><div class="row"><span>duck</span><span>rabbit</span></div>' +
+      '<label class="chk"><input type="checkbox" id="ctx" checked> Show the water and grass</label><p class="hist">Try it at 50% with the context off, and flip it on purpose.</p></div>' +
+      '<div><button class="btn primary" id="again" type="button">Run it again</button></div></div>';
+    var tr = $('tr'), cx = $('ctx');
+    function free() { draw(tr.value / 100, cx.checked); }
+    tr.addEventListener('input', free); cx.addEventListener('change', free); free();
+    $('again').addEventListener('click', function () { $('out').innerHTML = ''; draw(0, true); begin('up'); });
+  }
+
+  draw(0, true);
+})();
+</script>
+</body>
+</html>
