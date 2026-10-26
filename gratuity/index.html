@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>End-of-Service Gratuity · Mariam's Lab</title>
+<meta name="description" content="Work out your UAE end-of-service gratuity under the private-sector labour law: 21 days a year for the first five years, 30 after, every step shown.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/gratuity/">
+<meta property="og:title" content="End-of-Service Gratuity · Mariam's Lab"><meta property="og:description" content="Your UAE gratuity, worked out step by step."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.form { display: grid; gap: 14px; }
+.f { display: grid; gap: 5px; }
+.f > span { font-size: 0.84rem; color: var(--muted); }
+.f input, .f select { font: inherit; color: var(--ink); background: rgba(7, 10, 24, 0.6); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; min-width: 0; }
+.f input[type=number] { font-family: var(--font-mono); }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.chk { display: flex; gap: 8px; align-items: flex-start; font-size: 0.9rem; cursor: pointer; }
+.chk input { accent-color: var(--accent); width: 17px; height: 17px; margin: 2px 0 0; flex: none; }
+.big { font-family: var(--font-display); font-weight: 800; font-size: clamp(2.4rem, 7vw, 3.6rem); color: var(--accent); line-height: 1; }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; counter-reset: s; }
+.steps li { counter-increment: s; display: grid; grid-template-columns: 1.8em minmax(0, 1fr) auto; gap: 8px; align-items: baseline; font-size: 0.9rem; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; }
+.steps li::before { content: counter(s); font-family: var(--font-mono); color: var(--muted); font-size: 0.8rem; }
+.steps small { display: block; color: var(--muted); font-size: 0.8rem; }
+.steps b { font-family: var(--font-mono); font-size: 0.86rem; white-space: nowrap; }
+.warn { padding: 10px 12px; border-radius: 10px; border: 1px solid color-mix(in srgb, var(--accent) 50%, var(--line)); font-size: 0.86rem; }
+.bar { display: flex; height: 12px; border-radius: 99px; overflow: hidden; background: var(--line); margin-top: 6px; }
+.bar i { display: block; height: 100%; }
+.key { display: flex; gap: 12px; flex-wrap: wrap; font-size: 0.78rem; color: var(--muted); margin-top: 6px; }
+.key i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-inline-end: 5px; }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Money · UAE</span>
+    <h1 style="font-size:var(--step-3)">End-of-service gratuity.</h1>
+    <p>Leaving a private-sector job in the UAE after at least a year? The law (Federal Decree-Law 33 of 2021) owes you a gratuity based on your basic salary. Enter your dates and see the amount, with every step of the sum shown.</p>
+  </div>
+  <div class="game">
+    <div class="panel form">
+      <div class="two">
+        <label class="f"><span>First working day</span><input type="date" id="start"></label>
+        <label class="f"><span>Last working day</span><input type="date" id="end"></label>
+      </div>
+      <label class="f"><span>Basic monthly salary (AED), not including allowances</span><input type="number" id="basic" min="0" step="100" value="12000"></label>
+      <label class="f"><span>Unpaid leave or unpaid absence during the job (days)</span><input type="number" id="unpaid" min="0" step="1" value="0"></label>
+      <label class="f"><span>Daily wage worked out as</span><select id="daily"><option value="30">basic ÷ 30 (most common)</option><option value="365">basic × 12 ÷ 365</option></select></label>
+      <label class="chk"><input type="checkbox" id="owed"><span>I owe my employer money they may deduct (loan, advance)</span></label>
+      <label class="f" id="owedF" hidden><span>Amount owed (AED)</span><input type="number" id="owedA" min="0" step="100" value="0"></label>
+      <p class="fact">Under the 2021 law it no longer matters whether you resign or are let go, or whether your contract was limited or unlimited: the gratuity is the same. Only the basic salary counts, not housing or transport allowances.</p>
+    </div>
+    <div class="panel" style="display:grid;gap:14px">
+      <div><span class="label">Your gratuity</span><div class="big" id="tot">—</div><p class="fact" id="sub" style="margin-top:8px"></p></div>
+      <div id="barBox"><div class="bar" id="bar"></div><div class="key"><span><i style="background:var(--sat-b)"></i>first 5 years, 21 days each</span><span><i style="background:var(--accent)"></i>after 5 years, 30 days each</span></div></div>
+      <ol class="steps" id="steps"></ol>
+      <div class="warn" id="warn" hidden></div>
+      <p class="fact">This follows the federal private-sector rules. Different rules apply in the DIFC and ADGM free zones (which use savings schemes), for federal and local government jobs (pension), for UAE nationals registered with a pension fund, and if your employer enrolled you in the voluntary savings scheme. Check your final settlement with MOHRE (call 80060) if it doesn't match.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  function aed(v) { return 'AED ' + Math.round(v).toLocaleString('en'); }
+  function iso(d) { return d.toISOString().slice(0, 10); }
+  var t = new Date(), s = new Date(t); s.setFullYear(t.getFullYear() - 7); s.setMonth(s.getMonth() - 4);
+  $('start').value = iso(s); $('end').value = iso(t);
+  function calc() {
+    var st = new Date($('start').value), en = new Date($('end').value), basic = +$('basic').value || 0, unpaid = +$('unpaid').value || 0;
+    $('owedF').hidden = !$('owed').checked;
+    if (isNaN(st) || isNaN(en) || en <= st) { $('tot').textContent = '—'; $('sub').textContent = 'Check the dates.'; $('steps').innerHTML = ''; return; }
+    var days = Math.round((en - st) / 864e5) + 1 - unpaid, years = days / 365;
+    var daily = $('daily').value === '30' ? basic / 30 : basic * 12 / 365;
+    var steps = [], warn = '';
+    steps.push(['Service counted', days.toLocaleString('en') + ' days' + (unpaid ? ' (after removing ' + unpaid + ' unpaid days)' : '') + ' = ' + years.toFixed(2) + ' years', years.toFixed(2) + ' y']);
+    steps.push(['Daily basic wage', aed(basic) + ($('daily').value === '30' ? ' ÷ 30' : ' × 12 ÷ 365'), 'AED ' + daily.toFixed(2)]);
+    var gr = 0, a = 0, b = 0;
+    if (years < 1) {
+      warn = 'You need at least one full year of continuous service to be owed a gratuity. You are ' + Math.ceil(365 - days) + ' days short.';
+    } else {
+      var y1 = Math.min(years, 5), y2 = Math.max(0, years - 5);
+      a = y1 * 21 * daily; b = y2 * 30 * daily;
+      steps.push(['First ' + (y1 < 5 ? y1.toFixed(2) : '5') + ' years × 21 days', y1.toFixed(2) + ' × 21 × ' + daily.toFixed(2), aed(a)]);
+      if (y2 > 0) steps.push(['Remaining ' + y2.toFixed(2) + ' years × 30 days', y2.toFixed(2) + ' × 30 × ' + daily.toFixed(2), aed(b)]);
+      gr = a + b;
+      var cap = basic * 24;
+      if (gr > cap) { steps.push(['Capped at two years of basic pay', 'The law caps the total at 24 × ' + aed(basic), aed(cap)]); a = a * cap / gr; b = b * cap / gr; gr = cap; }
+    }
+    var owed = $('owed').checked ? +$('owedA').value || 0 : 0;
+    if (owed && gr) steps.push(['Minus what you owe', 'Employers may deduct debts you owe them', '− ' + aed(Math.min(owed, gr))]);
+    var net = Math.max(0, gr - owed);
+    $('tot').textContent = aed(net);
+    $('sub').textContent = gr ? 'About ' + (net / basic).toFixed(1) + ' months of basic salary. It should be paid within 14 days of your last day.' : '';
+    $('steps').innerHTML = steps.map(function (x) { return '<li><span>' + x[0] + '<small>' + x[1] + '</small></span><b>' + x[2] + '</b></li>'; }).join('');
+    $('bar').innerHTML = gr ? '<i style="width:' + (a / gr * 100) + '%;background:var(--sat-b)"></i><i style="width:' + (b / gr * 100) + '%;background:var(--accent)"></i>' : '';
+    $('barBox').hidden = !gr;
+    $('warn').hidden = !warn; $('warn').textContent = warn;
+  }
+  ['start', 'end', 'basic', 'unpaid', 'daily', 'owed', 'owedA'].forEach(function (k) { $(k).addEventListener('input', calc); $(k).addEventListener('change', calc); });
+  calc();
+})();
+</script>
+</body>
+</html>
