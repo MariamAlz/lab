@@ -209,3 +209,10 @@ LabAr.add({
  "Play Monty Hall, test the birthday paradox, and see why your gut gets chance wrong.": "العب مونتي هول، واختبر مفارقة عيد الميلاد، واكتشف لماذا يخطئ حدسك في تقدير الصدفة.",
  "Play →": "العب ←"
 });
+/* index cards for newer tools */
+LabAr.add({
+ "Tool · Privacy": "أداة · خصوصية",
+ "How unique is your browser?": "ما مدى تفرّد متصفحك؟",
+ "See the 25 details any site can read without cookies, how much each gives away, and how to blend in.": "اطّلع على 25 تفصيلًا يقرؤها أي موقع من دون ملفات تعريف الارتباط، وكم يكشف كل منها، وكيف تندمج مع الآخرين.",
+ "Check my browser →": "افحص متصفحي ←"
+});

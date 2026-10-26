@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Browser Fingerprint · Mariam's Lab</title>
+<meta name="description" content="How unique is your browser? See the 25-plus details any website can read without cookies, how much each one narrows you down, and how to blend in.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/fingerprint/">
+<meta property="og:title" content="Browser Fingerprint · Mariam's Lab"><meta property="og:description" content="What websites can read about your browser without cookies, and how unique it makes you."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm.pri { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.btns { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.stats span { font-size: 0.78rem; color: var(--muted); }
+.stats b { word-break: break-all; }
+.idline { font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted); word-break: break-all; }
+.attrs { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.attrs li { padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; display: grid; gap: 4px; min-width: 0; }
+.attrs .hd { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: baseline; }
+.attrs .hd span { font-weight: 600; font-size: 0.92rem; }
+.attrs .hd em { font-style: normal; font-family: var(--font-mono); font-size: 0.78rem; color: var(--accent); white-space: nowrap; }
+.attrs code, .attrs .val { font-family: var(--font-mono); font-size: 0.76rem; color: var(--ink); opacity: .85; word-break: break-all; display: block; max-height: 4.6em; overflow: hidden; }
+.attrs small { color: var(--muted); font-size: 0.8rem; }
+.attrs li.chg { border-color: var(--sat-c); }
+.meter { height: 4px; border-radius: 2px; background: var(--line); overflow: hidden; }
+.meter i { display: block; height: 100%; background: linear-gradient(90deg, var(--sat-b), var(--accent), var(--sat-c)); }
+.box { padding: 16px; border-radius: var(--radius); border: 1px solid var(--line); background: rgba(7,10,24,.82); display: grid; gap: 10px; }
+.tipl { margin: 0; padding-inline-start: 1.1em; display: grid; gap: 6px; font-size: 0.88rem; color: var(--muted); }
+.tipl b { color: var(--ink); font-weight: 600; }
+details.adv { border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; }
+details.adv[open] { border-color: color-mix(in srgb, var(--accent) 50%, transparent); }
+details.adv summary { cursor: pointer; font-weight: 600; font-size: 0.92rem; }
+details.adv summary small { color: var(--accent); font-weight: 400; }
+details.adv .tipl { margin-top: 8px; }
+.ok { color: var(--sat-b); } .bad { color: var(--sat-c); } .meh { color: var(--accent); }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; }
+.shield { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--sat-b) 45%, transparent); background: color-mix(in srgb, var(--sat-b) 8%, transparent); font-size: 0.9rem; }
+@media (max-width: 520px) { .stats b { font-size: 1.15rem; } }
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Privacy · Security</span>
+    <h1 style="font-size:var(--step-3)">How unique is your browser?</h1>
+    <p>Websites can recognise you without cookies. Your screen size, fonts, graphics card, time zone and dozens of other small details add up to a fingerprint that often picks you out of millions. Here is exactly what any site can read right now, how much each detail gives away, and how to blend in.</p>
+  </div>
+  <div class="shield"><span class="ok">✓</span><span>Nothing on this page is sent anywhere. Every check runs in your browser, and the fingerprint is hashed on your device with SHA-256. If you save a baseline to compare later, it stays in this browser's local storage.</span></div>
+  <div class="stats" style="margin-top:16px"><div><b id="bits">…</b><span>bits of identifying information</span></div><div><b id="oneIn">…</b><span>how rare (estimate)</span></div><div><b id="nAttr">…</b><span>details read</span></div></div>
+  <p class="idline" id="fid">Fingerprint ID: working…</p>
+  <div class="game" style="margin-top:18px">
+    <div class="panel">
+      <span class="label">What any website can read</span>
+      <ul class="attrs" id="attrs"></ul>
+    </div>
+    <div class="panel">
+      <div class="box">
+        <span class="label">Compare after changes</span>
+        <p class="msg" id="cmp" style="margin:0">Save this result, change a setting (or switch on a VPN, or open a private window), then come back and press Run again.</p>
+        <div class="btns"><button class="sm pri" type="button" id="save">Save as my baseline</button><button class="sm" type="button" id="again">Run again</button><button class="sm" type="button" id="forget" hidden>Forget baseline</button></div>
+      </div>
+      <div class="box">
+        <span class="label">How to blend in</span>
+        <p class="msg" id="brow" style="margin:0"></p>
+        <div id="adv" style="display:grid;gap:8px"></div>
+        <ul class="tipl">
+          <li><b>Blend in, don't stand out.</b> Extensions that fake your user agent or block one API often make you rarer, not safer.</li>
+          <li><b>Fewer extras.</b> Unusual fonts, many extensions and odd window sizes all add bits.</li>
+          <li><b>Separate lives.</b> Use one browser for banking and accounts and another for casual browsing, so a fingerprint in one doesn't link to the other.</li>
+          <li><b>Cookies still matter.</b> Fingerprinting is one tool. Clearing cookies and blocking third-party trackers removes the easier ones.</li>
+        </ul>
+      </div>
+      <p class="fact"><b>How the score works.</b> Information is measured in bits: each bit halves the crowd you could belong to. About 33 bits is enough to single out one person among everyone on Earth. The bits per detail are approximations based on published studies of millions of browsers (EFF's Panopticlick, AmIUnique and later research), adjusted for how common your particular value is. Adding them up assumes the details are independent, which they aren't (a Mac user agent comes with Mac fonts), so the total is cut by a quarter to allow for overlap. Treat it as a rough guide, not a measurement.</p>
+      <p class="fact"><b>Canvas and audio fingerprints</b> work because every combination of graphics chip, driver, font renderer and operating system draws pixels and processes sound in very slightly different ways. The page draws a hidden image and generates a silent tone, then hashes the result. You never see it, and neither would you on a site that does this quietly.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  var N = navigator, KEY = 'fpBaseline';
+  function sha(s) {
+    if (window.crypto && crypto.subtle) return crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)).then(function (b) { return Array.prototype.map.call(new Uint8Array(b), function (x) { return (x < 16 ? '0' : '') + x.toString(16); }).join(''); });
+    var h = 2166136261; for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return Promise.resolve((h >>> 0).toString(16));
+  }
+  function mq(q) { try { return matchMedia(q).matches; } catch (e) { return false; } }
+
+  // ---------- collectors ----------
+  function canvasData() {
+    var c = document.createElement('canvas'); c.width = 280; c.height = 60; var g = c.getContext('2d');
+    g.textBaseline = 'top'; g.font = '16px "Times New Roman", serif'; g.fillStyle = '#f60'; g.fillRect(100, 1, 62, 20);
+    g.fillStyle = '#069'; g.fillText('Ωμέγα ✓😃 ∑ ½ ١٢٣ ÆØÅ', 2, 15); // no ASCII letters, so translation never alters it
+    g.fillStyle = 'rgba(102,204,0,0.7)'; g.font = '18px sans-serif'; g.fillText('ÆØÅ ∞ ≈ ¶ ™', 4, 35);
+    g.globalCompositeOperation = 'multiply'; g.fillStyle = 'rgb(255,0,255)'; g.beginPath(); g.arc(50, 50, 50, 0, Math.PI * 2, true); g.closePath(); g.fill();
+    g.fillStyle = 'rgb(0,255,255)'; g.beginPath(); g.arc(100, 50, 50, 0, Math.PI * 2, true); g.closePath(); g.fill();
+    try { return c.toDataURL(); } catch (e) { return 'blocked'; }
+  }
+  function webgl() {
+    var out = { vendor: 'not available', params: '' };
+    try {
+      var c = document.createElement('canvas'), gl = c.getContext('webgl') || c.getContext('experimental-webgl'); if (!gl) return out;
+      var ext = gl.getExtension('WEBGL_debug_renderer_info');
+      out.vendor = ext ? gl.getParameter(ext.UNMASKED_VENDOR_WEBGL) + ' · ' + gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.VENDOR) + ' · ' + gl.getParameter(gl.RENDERER);
+      var P = ['MAX_TEXTURE_SIZE', 'MAX_RENDERBUFFER_SIZE', 'MAX_VIEWPORT_DIMS', 'MAX_VERTEX_ATTRIBS', 'MAX_VERTEX_UNIFORM_VECTORS', 'MAX_FRAGMENT_UNIFORM_VECTORS', 'MAX_VARYING_VECTORS', 'MAX_COMBINED_TEXTURE_IMAGE_UNITS', 'MAX_CUBE_MAP_TEXTURE_SIZE', 'ALIASED_LINE_WIDTH_RANGE', 'ALIASED_POINT_SIZE_RANGE', 'SHADING_LANGUAGE_VERSION', 'VERSION'];
+      out.params = P.map(function (p) { var v = gl.getParameter(gl[p]); return p + '=' + (v && v.length != null && typeof v !== 'string' ? Array.prototype.join.call(v, ',') : v); }).join(';') + ';ext=' + (gl.getSupportedExtensions() || []).join(',');
+      out.nExt = (gl.getSupportedExtensions() || []).length;
+    } catch (e) {}
+    return out;
+  }
+  function audio() {
+    return new Promise(function (res) {
+      var A = window.OfflineAudioContext || window.webkitOfflineAudioContext; if (!A) return res('not available');
+      var t = setTimeout(function () { res('timed out'); }, 2500);
+      try {
+        var ctx = new A(1, 5000, 44100), o = ctx.createOscillator(), cp = ctx.createDynamicsCompressor();
+        o.type = 'triangle'; o.frequency.value = 10000;
+        cp.threshold.value = -50; cp.knee.value = 40; cp.ratio.value = 12; cp.attack.value = 0; cp.release.value = 0.25;
+        o.connect(cp); cp.connect(ctx.destination); o.start(0);
+        ctx.oncomplete = function (e) { clearTimeout(t); var d = e.renderedBuffer.getChannelData(0), s = 0; for (var i = 4500; i < 5000; i++) s += Math.abs(d[i]); res(s.toString()); };
+        var p = ctx.startRendering(); if (p && p.catch) p.catch(function () { clearTimeout(t); res('blocked'); });
+      } catch (e) { clearTimeout(t); res('blocked'); }
+    });
+  }
+  var FONTS = ['Arial', 'Arial Black', 'Arial Narrow', 'Helvetica', 'Helvetica Neue', 'Times New Roman', 'Times', 'Courier New', 'Courier', 'Georgia', 'Verdana', 'Tahoma', 'Trebuchet MS', 'Impact', 'Comic Sans MS', 'Palatino', 'Palatino Linotype', 'Garamond', 'Bookman Old Style', 'Century Gothic', 'Lucida Grande', 'Lucida Console', 'Lucida Sans Unicode', 'Segoe UI', 'Segoe Print', 'Calibri', 'Cambria', 'Candara', 'Consolas', 'Constantia', 'Corbel', 'Franklin Gothic Medium', 'Gill Sans', 'Futura', 'Optima', 'Avenir', 'Avenir Next', 'Baskerville', 'Didot', 'American Typewriter', 'Andale Mono', 'Menlo', 'Monaco', 'SF Pro Text', 'Ubuntu', 'DejaVu Sans', 'Liberation Sans', 'Noto Sans', 'Roboto', 'Open Sans', 'Lato', 'Source Sans Pro', 'Cantarell', 'MS Gothic', 'Meiryo', 'Yu Gothic', 'PingFang SC', 'Hiragino Sans', 'Microsoft YaHei', 'SimSun', 'Malgun Gothic', 'Nirmala UI', 'Geeza Pro', 'Al Bayan', 'Baghdad', 'Damascus', 'Traditional Arabic', 'Simplified Arabic', 'Arabic Typesetting', 'Sakkal Majalla', 'Dubai', 'Noto Naskh Arabic', 'Wingdings', 'Symbol', 'Marlett'];
+  function fonts() {
+    var c = document.createElement('canvas').getContext('2d'), s = 'mmmmmmmmmmlli1WwQ@#%ابجد', base = ['monospace', 'sans-serif', 'serif'], bw = {};
+    base.forEach(function (b) { c.font = '72px ' + b; bw[b] = c.measureText(s).width; });
+    return FONTS.filter(function (f) { return base.some(function (b) { c.font = '72px "' + f + '", ' + b; return c.measureText(s).width !== bw[b]; }); });
+  }
+  function hints() {
+    var d = N.userAgentData; if (!d) return Promise.resolve(null);
+    return (d.getHighEntropyValues ? d.getHighEntropyValues(['platform', 'platformVersion', 'architecture', 'bitness', 'model', 'fullVersionList']) : Promise.resolve(d)).then(function (h) {
+      return [h.platform, h.platformVersion, h.architecture, h.bitness ? h.bitness + '-bit' : '', h.model, (h.fullVersionList || h.brands || []).filter(function (b) { return !/Not.?A.?Brand/i.test(b.brand); }).map(function (b) { return b.brand + ' ' + b.version; }).join(', '), h.mobile ? 'mobile' : ''].filter(Boolean).join(' · ');
+    }).catch(function () { return null; });
+  }
+  function devices() {
+    if (!N.mediaDevices || !N.mediaDevices.enumerateDevices) return Promise.resolve('not available');
+    return N.mediaDevices.enumerateDevices().then(function (l) { var k = {}; l.forEach(function (d) { k[d.kind] = (k[d.kind] || 0) + 1; }); return ['audioinput', 'videoinput', 'audiooutput'].map(function (x) { return (k[x] || 0) + ' ' + { audioinput: 'mic', videoinput: 'camera', audiooutput: 'speaker' }[x]; }).join(', '); }).catch(function () { return 'blocked'; });
+  }
+  function storage() {
+    var parts = []; function t(n, f) { try { parts.push(n + (f() ? ' yes' : ' no')); } catch (e) { parts.push(n + ' blocked'); } }
+    t('localStorage', function () { return !!window.localStorage; }); t('sessionStorage', function () { return !!window.sessionStorage; }); t('indexedDB', function () { return !!window.indexedDB; });
+    var p = N.storage && N.storage.estimate ? N.storage.estimate().then(function (e) { return e.quota ? 'quota ≈ ' + (e.quota / 1e9).toFixed(e.quota > 1e10 ? 0 : 1) + ' GB' : ''; }).catch(function () { return ''; }) : Promise.resolve('');
+    return p.then(function (q) { return parts.join(', ') + (q ? ', ' + q : ''); });
+  }
+  var COMMON_TZ = /^(America\/(New_York|Chicago|Los_Angeles|Denver|Phoenix|Toronto|Sao_Paulo|Mexico_City)|Europe\/(London|Berlin|Paris|Madrid|Rome|Amsterdam|Warsaw|Moscow|Istanbul)|Asia\/(Kolkata|Calcutta|Shanghai|Tokyo|Jakarta|Manila|Seoul|Singapore)|UTC|Etc\/UTC)$/;
+
+  function collect() {
+    var gl = webgl(), cv1 = canvasData(), cv2 = canvasData(), noisy = cv1 !== cv2 && cv1 !== 'blocked';
+    var tz = ''; try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) {}
+    var ro = {}; try { ro = Intl.DateTimeFormat().resolvedOptions(); } catch (e) {}
+    var off = -new Date().getTimezoneOffset() / 60, langs = (N.languages && N.languages.length ? N.languages : [N.language]).join(', ');
+    var plugins = []; try { for (var i = 0; i < (N.plugins || []).length; i++) plugins.push(N.plugins[i].name); } catch (e) {}
+    var fl = fonts(), hw = N.hardwareConcurrency, mem = N.deviceMemory, tp = N.maxTouchPoints || 0;
+    var gamut = mq('(color-gamut: rec2020)') ? 'rec2020' : mq('(color-gamut: p3)') ? 'P3 (wide colour)' : mq('(color-gamut: srgb)') ? 'sRGB' : 'unknown', hdr = mq('(dynamic-range: high)');
+    var prefs = [mq('(prefers-color-scheme: dark)') ? 'dark mode' : 'light mode', mq('(prefers-reduced-motion: reduce)') ? 'reduced motion' : '', mq('(prefers-contrast: more)') ? 'more contrast' : '', mq('(forced-colors: active)') ? 'forced colours' : '', mq('(prefers-reduced-transparency: reduce)') ? 'reduced transparency' : ''].filter(Boolean);
+    var math = [Math.tan(-1e300), Math.acosh(1e300), Math.expm1(1), Math.sinh(1), Math.cbrt(100), Math.log1p(10)].join(',');
+    var dnt = N.doNotTrack || window.doNotTrack || N.msDoNotTrack, gpc = N.globalPrivacyControl;
+    var isFF = /Firefox\//.test(N.userAgent);
+    var A = [
+      { id: 'ua', n: 'User agent', v: N.userAgent, b: 10, x: 'Your browser, its version and your operating system. Sent with every request, too. Rare versions or unusual systems stand out most.' },
+      { id: 'hints', n: 'Client hints', v: null, b: 0, x: 'Chrome and Edge can hand over the exact OS version, chip type and device model when a site asks. Firefox and Safari don\'t support this.' },
+      { id: 'screen', n: 'Screen', v: screen.width + ' × ' + screen.height + ', ' + screen.colorDepth + '-bit colour', b: (screen.width === 1920 && screen.height === 1080) || (screen.width === 390 && screen.height === 844) ? 3.5 : 4.8, x: 'Screen size narrows the device down quickly: laptops, monitors and phone models each have their favourite sizes.' },
+      { id: 'dpr', n: 'Pixel ratio and usable area', v: 'ratio ' + devicePixelRatio + ', usable ' + screen.availWidth + ' × ' + screen.availHeight, b: 2.5, x: 'How dense your pixels are, and how much room your taskbar or dock takes. Zooming the page also changes the ratio.' },
+      { id: 'tz', n: 'Time zone', v: tz + ' (UTC' + (off >= 0 ? '+' : '') + off + ')', b: tz === 'UTC' || tz === 'Etc/UTC' ? 1.5 : COMMON_TZ.test(tz) ? 3.5 : 6, x: 'Gives away roughly where you are, even behind a VPN. A Gulf time zone is rare in global data, so it narrows you down a lot.' },
+      { id: 'lang', n: 'Languages', v: langs, b: /^en-US(, en)?$/.test(langs) ? 2 : (N.languages || []).length > 2 ? 6 : 4.5, x: 'The languages you set, in order. "Arabic, then English UK" is far rarer than plain "English US".' },
+      { id: 'intl', n: 'Date and number format', v: [ro.locale, ro.calendar, ro.numberingSystem].filter(Boolean).join(' · '), b: 1, x: 'Your regional settings for dates and digits. Mostly follows your language, but a Hijri calendar or Arabic digits add a little.' },
+      { id: 'cores', t: 1, n: 'CPU threads', v: hw == null ? 'not exposed' : hw + ' threads', b: hw == null ? 0.5 : hw === 4 || hw === 8 ? 1.5 : 2.8, x: 'How many tasks your processor can run at once. A hint at how new and expensive the device is.' },
+      { id: 'mem', t: 1, n: 'Device memory', v: mem == null ? 'not exposed' : '≈ ' + mem + ' GB', b: mem == null ? 0.3 : mem === 8 ? 1 : 2, x: 'A rounded RAM figure that Chrome-based browsers share with every site.' },
+      { id: 'touch', t: 1, n: 'Touch', v: tp ? tp + ' touch points' : 'no touch screen', b: tp ? 1.5 : 0.6, x: 'Whether you have a touch screen and how many fingers it tracks.' },
+      { id: 'plat', n: 'Platform and vendor', v: (N.platform || '?') + ' · ' + (N.vendor || 'no vendor'), b: 1, x: 'Older fields that repeat the user agent. Mostly redundant, but a mismatch reveals a faked user agent.' },
+      { id: 'canvas', t: noisy ? 1 : 0, n: 'Canvas drawing', v: noisy ? 'changes every time (random noise added)' : cv1, hashed: !noisy, b: noisy ? 0.5 : cv1 === 'blocked' ? 1 : 8, x: noisy ? 'Your browser adds tiny random noise to drawings, so this can\'t be used to follow you. Good.' : 'A hidden drawing of text and shapes. Tiny differences in graphics hardware, drivers and font smoothing make the pixels unique to your setup.' },
+      { id: 'webgl', n: '3D graphics chip', v: gl.vendor, b: /not available|Mesa|SwiftShader/.test(gl.vendor) ? 2 : 5, x: 'WebGL can name your graphics hardware outright, for example the exact laptop or phone chip.' },
+      { id: 'webglp', n: '3D graphics limits', v: gl.params || 'not available', hashed: !!gl.params, b: gl.params ? 3 : 0.5, x: 'Dozens of technical limits and ' + (gl.nExt || 0) + ' supported extensions. Together they act like a model number for your graphics stack.' },
+      { id: 'audio', n: 'Audio processing', v: null, hashed: true, b: 3.5, x: 'A silent tone run through an audio effect. The tiny rounding differences depend on your chip and browser build.' },
+      { id: 'fonts', n: 'Installed fonts', v: fl.length + ' of ' + FONTS.length + ' tested: ' + fl.join(', '), b: Math.min(9, 3 + fl.length * 0.12 + (fl.some(function (f) { return /Arabic|Majalla|Dubai|Baghdad|Damascus|Bayan/.test(f); }) ? 1.5 : 0)), x: 'Measured by how wide text renders. Fonts arrive with apps like Office or Adobe, so your list hints at what you have installed and your languages.' },
+      { id: 'plugins', t: plugins.length ? 0 : 1, n: 'Plugins', v: plugins.length ? plugins.join(', ') : 'none listed', b: plugins.length === 5 && /PDF/.test(plugins[0]) ? 0.5 : plugins.length ? 3 : 1, x: 'Modern browsers report the same short list of built-in PDF viewers to everyone, so this matters much less than it did ten years ago.' },
+      { id: 'dnt', t: 1, n: 'Do Not Track and GPC', v: 'Do Not Track: ' + (dnt === '1' || dnt === 'yes' ? 'on' : 'off') + ' · Global Privacy Control: ' + (gpc ? 'on' : 'off'), b: (dnt === '1' || gpc) ? 1.5 : 0.3, x: 'Privacy signals you can switch on. Sadly, switching them on makes you slightly rarer. GPC has legal weight in some places; DNT is mostly ignored.' },
+      { id: 'cookies', t: 1, n: 'Cookies', v: N.cookieEnabled ? 'enabled' : 'disabled', b: N.cookieEnabled ? 0.1 : 4, x: 'Almost everyone has cookies on, so turning them off fully makes you stand out (and breaks logins).' },
+      { id: 'storage', n: 'Storage', v: null, b: 1.5, x: 'Which storage types work, and the storage quota, which some browsers base on your free disk space.' },
+      { id: 'gamut', t: 1, n: 'Display colour', v: gamut + (hdr ? ', HDR' : ''), b: gamut === 'sRGB' && !hdr ? 0.7 : 1.5, x: 'Wide-colour and HDR screens are mostly recent Apple devices and high-end phones and monitors.' },
+      { id: 'prefs', t: 1, n: 'Accessibility and display preferences', v: prefs.join(', '), b: 0.8 + (prefs.length - 1) * 1.5, x: 'Dark mode is common. Reduced motion or high contrast are rarer and add bits. Never switch these off for privacy if you need them.' },
+      { id: 'devices', t: 1, n: 'Cameras and microphones', v: null, b: 1.5, x: 'Without asking permission, a site can count your microphones, cameras and speakers (not their names).' },
+      { id: 'math', n: 'Maths engine', v: math, b: 1, x: 'Some maths functions round slightly differently in each browser engine and operating system.' },
+      { id: 'misc', t: 1, n: 'Other flags', v: 'PDF viewer ' + (N.pdfViewerEnabled ? 'on' : 'off') + ' · automation ' + (N.webdriver ? 'yes' : 'no') + ' · notifications ' + (window.Notification ? Notification.permission : 'n/a'), b: 0.7, x: 'Small switches that rarely differ, but each one splits the crowd a little further.' }
+    ];
+    return Promise.all([hints(), audio(), storage(), devices()]).then(function (r) {
+      var by = {}; A.forEach(function (a) { by[a.id] = a; });
+      if (r[0]) { by.hints.v = r[0]; by.hints.b = 3; } else { by.hints.v = 'not supported' + (isFF ? ' (Firefox)' : ''); by.hints.b = 0.3; by.hints.t = 1; }
+      by.audio.v = r[1]; if (/not available|blocked|timed/.test(r[1])) { by.audio.b = 0.5; by.audio.hashed = false; by.audio.t = 1; }
+      by.storage.v = r[2]; by.devices.v = r[3];
+      by.noisy = noisy;
+      return Promise.all(A.map(function (a) { return a.hashed ? sha(a.v).then(function (h) { a.show = 'hash ' + h.slice(0, 16); a.h = h; }) : sha(a.v).then(function (h) { a.h = h; }); })).then(function () { return { list: A, noisy: noisy, tz: tz, isFF: isFF }; });
+    });
+  }
+
+  // ---------- render ----------
+  function oneIn(bits) {
+    var n = Math.pow(2, bits);
+    if (bits >= 33) return 'Unique';
+    if (n >= 1e9) return '1 in ' + (n / 1e9).toFixed(1) + ' billion';
+    if (n >= 1e6) return '1 in ' + Math.round(n / 1e6) + ' million';
+    if (n >= 1e3) return '1 in ' + Math.round(n / 1e3) + ' thousand';
+    return '1 in ' + Math.round(n);
+  }
+  var last = null;
+  function render(res) {
+    last = res;
+    var raw = res.list.reduce(function (s, a) { return s + a.b; }, 0), total = raw * 0.75;
+    $('bits').textContent = total.toFixed(1); $('oneIn').textContent = oneIn(total); $('nAttr').textContent = res.list.length;
+    var base = null; try { base = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) {}
+    return sha(res.list.map(function (a) { return a.id + '=' + a.h; }).join('|')).then(function (id) {
+      res.id = id;
+      $('fid').textContent = 'Fingerprint ID: ' + id.slice(0, 32) + ' (raw total ' + raw.toFixed(1) + ' bits before the overlap cut)';
+      var changed = {};
+      if (base && base.attrs) res.list.forEach(function (a) { if (base.attrs[a.id] && base.attrs[a.id] !== a.h) changed[a.id] = 1; });
+      $('attrs').innerHTML = res.list.map(function (a) {
+        return '<li' + (changed[a.id] ? ' class="chg"' : '') + '><div class="hd"><span>' + esc(a.n) + (changed[a.id] ? ' <small class="bad">changed</small>' : '') + '</span><em>' + a.b.toFixed(1) + ' bits</em></div><div class="meter"><i style="width:' + Math.min(100, a.b / 10 * 100) + '%"></i></div>' + (a.t ? '<div class="val">' + esc(a.v) + '</div>' : '<code>' + esc(a.show || a.v) + '</code>') + '<small>' + esc(a.x) + '</small></li>';
+      }).join('');
+      $('forget').hidden = !base;
+      if (base) {
+        var n = Object.keys(changed).length, when = new Date(base.at).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+        $('cmp').innerHTML = base.id === id ? '<b class="meh">Same fingerprint as your baseline from ' + esc(when) + '.</b> Whatever you changed, sites still see the same browser.' : '<b class="ok">' + n + ' detail' + (n === 1 ? '' : 's') + ' changed since your baseline from ' + esc(when) + '.</b> Changed: ' + esc(res.list.filter(function (a) { return changed[a.id]; }).map(function (a) { return a.n; }).join(', ')) + '. A site would see a different fingerprint, unless it links the two another way (cookies, logins, your IP).';
+      }
+      advice(res);
+    });
+  }
+  var ADV = [
+    ['firefox', 'Firefox', ['Settings, Privacy &amp; Security: set Enhanced Tracking Protection to <b>Strict</b>. It blocks known fingerprinting scripts and, in recent versions, adds fingerprinting protection.', 'For the strongest setting, open <code>about:config</code> and set <b>privacy.resistFingerprinting</b> to true. Your time zone becomes UTC, the window is rounded to standard sizes and many values are made generic, so you look like every other user of this setting. Some sites break.', 'Keep extensions to a minimum. uBlock Origin is a good one to have.']],
+    ['brave', 'Brave', ['Brave Shields randomises canvas, audio and WebGL output for each site and session ("farbling"). Leave <b>Block fingerprinting</b> on its standard setting.', 'The strict setting can break sites; use it for sensitive browsing only.', 'Brave also trims the language list and plugins it shares.']],
+    ['tor', 'Tor Browser', ['The strongest option: everyone using Tor Browser is made to look the same, and traffic is routed through three relays.', 'Don\'t maximise or resize the window; letterboxing keeps your window size common.', 'Don\'t install extensions or extra fonts, and don\'t log in to personal accounts in the same session.']],
+    ['safari', 'Safari', ['Intelligent Tracking Prevention (ITP) limits cross-site cookies and trims some details by default.', 'Safari offers <b>Advanced Tracking and Fingerprinting Protection</b>. It is on in Private Browsing; on Mac and iPhone you can also turn it on for all browsing (Settings, Safari, Advanced).', 'Safari exposes a short, standard font list, which helps you blend in with other Apple users.']],
+    ['chrome', 'Chrome or Edge', ['Chrome has few built-in fingerprinting defences. It has reduced the detail in its user agent, but client hints can still reveal more.', 'In Edge, set Tracking prevention to <b>Strict</b>.', 'For sensitive browsing, use Firefox, Brave, Safari or Tor Browser instead, and add uBlock Origin to block known fingerprinting scripts.']]
+  ];
+  function detect(res) {
+    var ua = N.userAgent;
+    if (N.brave) return 'brave';
+    if (res.isFF && (res.tz === 'UTC' || res.tz === 'Etc/UTC')) return 'tor';
+    if (res.isFF) return 'firefox';
+    if (/Safari\//.test(ua) && !/Chrome|Chromium|CriOS|Edg|OPR|FxiOS/.test(ua)) return 'safari';
+    return 'chrome';
+  }
+  var advDone = false;
+  function advice(res) {
+    if (advDone) return; advDone = true;
+    var me = detect(res), name = ADV.filter(function (a) { return a[0] === me; })[0][1];
+    $('brow').innerHTML = 'You seem to be using <b>' + esc(name) + '</b>' + (me === 'tor' ? ' (or Firefox with resistFingerprinting on)' : '') + (res.noisy ? '. Your browser already adds noise to canvas drawings.' : '.');
+    $('adv').innerHTML = ADV.map(function (a) { return '<details class="adv"' + (a[0] === me ? ' open' : '') + '><summary>' + a[1] + (a[0] === me ? ' <small>· yours</small>' : '') + '</summary><ul class="tipl">' + a[2].map(function (t) { return '<li>' + t + '</li>'; }).join('') + '</ul></details>'; }).join('');
+  }
+  function runAll() { $('fid').textContent = 'Fingerprint ID: working…'; return collect().then(render); }
+  $('again').onclick = function () { runAll(); };
+  $('save').onclick = function () {
+    if (!last || !last.id) return;
+    var attrs = {}; last.list.forEach(function (a) { attrs[a.id] = a.h; });
+    try { localStorage.setItem(KEY, JSON.stringify({ id: last.id, at: Date.now(), attrs: attrs })); } catch (e) { $('cmp').textContent = 'This browser blocked local storage, so the baseline could not be saved.'; return; }
+    $('cmp').innerHTML = '<b class="ok">Baseline saved.</b> Now change something (a setting, a private window, another browser profile) and press Run again.'; $('forget').hidden = false;
+    [].forEach.call(document.querySelectorAll('.attrs li.chg'), function (li) { li.classList.remove('chg'); var s = li.querySelector('.hd small'); if (s) s.remove(); });
+  };
+  $('forget').onclick = function () { try { localStorage.removeItem(KEY); } catch (e) {} $('forget').hidden = true; $('cmp').textContent = 'Baseline forgotten.'; };
+  runAll();
+})();
+</script>
+</body>
+</html>
