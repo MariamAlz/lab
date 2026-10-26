@@ -483,3 +483,10 @@ LabAr.add({
  "Satellite bleaching alerts and Degree Heating Weeks for UAE reefs, from Dibba to Sir Bu Nair.": "إنذارات ابيضاض المرجان من الأقمار الاصطناعية وأسابيع التسخين لشعاب الإمارات، من دبا إلى صير بونعير.",
  "Check reefs →": "افحص الشعاب ←"
 });
+/* index cards for newer tools */
+LabAr.add({
+ "Tool · Home · Pets": "أداة · المنزل · الحيوانات الأليفة",
+ "Lost pet or item poster": "ملصق لحيوان أليف أو غرض مفقود",
+ "A bilingual poster with a photo, last place seen and a QR code that doesn't print your personal number, for A4 or social.": "ملصق بالعربية والإنجليزية فيه صورة وآخر مكان شوهد فيه ورمز QR لا يكشف رقمك الشخصي، بمقاس A4 أو لوسائل التواصل.",
+ "Make one →": "اصنع ملصقًا ←"
+});

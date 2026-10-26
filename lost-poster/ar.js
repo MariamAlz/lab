@@ -1,0 +1,51 @@
+LabAr.add({
+  "Lost Pet Poster": "ملصق حيوان أو غرض مفقود",
+  "Tool · Home · Pets": "أداة · المنزل · الحيوانات الأليفة",
+  "Lost pet or item poster.": "ملصق لحيوان أليف أو غرض مفقود.",
+  "Make a clear poster in English, Arabic or both, ready to print on A4 or post as a square image. Add a photo, where and when it was last seen, and a QR code that opens a message to a contact you choose, so your personal number isn't printed on every lamp post. The photo stays on your device.":
+    "اصنع ملصقًا واضحًا بالعربية أو الإنجليزية أو كلتيهما، جاهزًا للطباعة على ورق A4 أو للنشر كصورة مربعة. أضف صورة، ومكان وزمان آخر مشاهدة، ورمز QR يفتح رسالة إلى جهة تواصل تختارها، فلا يُطبع رقمك الشخصي على كل عمود إنارة. تبقى الصورة على جهازك.",
+  "1 · The poster": "1 · الملصق",
+  "Lost": "مفقود", "Found": "تم العثور عليه",
+  "What is it?": "ما هو؟",
+  "Cat": "قطة", "Dog": "كلب", "Bird": "طائر", "Other pet": "حيوان أليف آخر",
+  "Phone": "هاتف", "Wallet": "محفظة", "Bag": "حقيبة", "Keys": "مفاتيح", "Other item": "غرض آخر",
+  "Language": "اللغة", "English": "الإنجليزية", "Arabic": "العربية", "Both": "كلتاهما",
+  "Size": "المقاس", "A4 to print": "A4 للطباعة", "Square for social": "مربع لوسائل التواصل",
+  "2 · Photo": "2 · الصورة",
+  "📷 Choose a photo": "📷 اختر صورة", "Remove photo": "احذف الصورة", "Zoom": "تكبير",
+  "Use a clear, recent photo. Drag it on the poster to frame it.": "استخدم صورة واضحة وحديثة. اسحبها على الملصق لضبط الإطار.",
+  "Drag the photo on the poster to frame it, and use the zoom.": "اسحب الصورة على الملصق لضبط الإطار، واستخدم التكبير.",
+  "That photo couldn't be opened. Try a JPG or PNG.": "تعذّر فتح هذه الصورة. جرّب JPG أو PNG.",
+  "3 · Details": "3 · التفاصيل",
+  "Name": "الاسم", "Name in Arabic": "الاسم بالعربية",
+  "Description": "الوصف", "Description in Arabic": "الوصف بالعربية",
+  "Last seen at": "مكان آخر مشاهدة", "Found at": "مكان العثور عليه", "Place in Arabic": "المكان بالعربية",
+  "Date and time": "التاريخ والوقت", "Reward (AED, optional)": "المكافأة (بالدرهم، اختيارية)",
+  "4 · How people contact you": "4 · كيف يتواصل الناس معك",
+  "The QR code opens": "رمز QR يفتح",
+  "A WhatsApp message": "رسالة WhatsApp", "A text message (SMS)": "رسالة نصية (SMS)", "An email": "بريدًا إلكترونيًا", "A link (form or post)": "رابطًا (نموذج أو منشور)",
+  "Number to message, with country code": "الرقم الذي تصله الرسائل، مع رمز الدولة",
+  "Email address": "البريد الإلكتروني", "Link": "الرابط",
+  "Also print it as text on the poster": "اطبعه أيضًا كنص على الملصق",
+  "Stay safe": "احمِ نفسك",
+  "Use a second number, a work phone or a new email made for this, not your main personal number.": "استخدم رقمًا ثانيًا أو هاتف العمل أو بريدًا جديدًا مخصصًا لهذا الغرض، وليس رقمك الشخصي الأساسي.",
+  "Scammers call lost-pet posters. They say they have your pet and ask for money first for \"transport\", \"vet bills\" or a \"deposit\". Never pay before you see your pet in person.":
+    "يتصل المحتالون بأصحاب إعلانات الحيوانات المفقودة، فيدّعون أن حيوانك لديهم ويطلبون المال مقدمًا بحجة «النقل» أو «فاتورة البيطري» أو «عربون». لا تدفع أبدًا قبل أن ترى حيوانك بنفسك.",
+  "Ask for a fresh photo or a detail that isn't on the poster. Never share a verification code sent to your phone.": "اطلب صورة حديثة أو تفصيلًا غير موجود في الملصق. ولا تشارك أبدًا رمز تحقق يصلك على هاتفك.",
+  "Meet in a public place, and take someone with you.": "التقِ في مكان عام، واصطحب أحدًا معك.",
+  "Poster preview": "معاينة الملصق",
+  "Download PNG": "تنزيل PNG",
+  "<b>What makes a poster work.</b> People glance at it for two or three seconds while walking or driving. So the word LOST, one big photo and the area matter far more than a long description. Put it up at eye level near where it went missing, at vets, pet shops, building lobbies and the mosque or supermarket notice board, and post the square version in local community groups.":
+    "<b>ما الذي يجعل الملصق فعّالًا؟</b> ينظر إليه الناس ثانيتين أو ثلاثًا أثناء المشي أو القيادة. لذلك فكلمة «مفقود» وصورة واحدة كبيرة والمنطقة أهم بكثير من وصف طويل. علّقه بمستوى النظر قرب مكان الفقدان، وعند العيادات البيطرية ومحلات الحيوانات الأليفة ومداخل المباني ولوحة إعلانات المسجد أو السوبرماركت، وانشر النسخة المربعة في مجموعات الحي.",
+  "For pets, also tell your building security and nearby vets, and check that the microchip details are up to date. For a lost item, report it to the police too. Most emirates have an online lost-and-found service, and a police report helps if the item had documents or cards in it.":
+    "للحيوانات الأليفة، أبلغ أيضًا أمن المبنى والعيادات البيطرية القريبة، وتأكد من تحديث بيانات الشريحة الإلكترونية. أما الغرض المفقود فأبلغ عنه الشرطة كذلك. معظم الإمارات لديها خدمة إلكترونية للمفقودات، ويفيد بلاغ الشرطة إن كان الغرض يحتوي على وثائق أو بطاقات.",
+  "Type a number to make the QR code. UAE mobiles can start with 05.": "أدخل رقمًا لإنشاء رمز QR. يمكن أن تبدأ أرقام الهواتف الإماراتية بـ 05.",
+  "Type an email address to make the QR code.": "أدخل بريدًا إلكترونيًا لإنشاء رمز QR.",
+  "Type a link starting with https:// to make the QR code.": "أدخل رابطًا يبدأ بـ https:// لإنشاء رمز QR.",
+  "The QR code library didn't load. Check your connection and reload.": "لم تُحمَّل مكتبة رمز QR. تحقق من اتصالك وأعد تحميل الصفحة.",
+  "Lots of text, so it was made smaller to fit. A shorter description reads better from a distance.": "النص طويل، لذا صُغّر ليتسع. الوصف الأقصر أسهل قراءة من بعيد."
+}, [
+  [/^The QR code opens (WhatsApp|SMS|Email) to (.+), with a message already typed\.$/, function (m, a, b) { return 'رمز QR يفتح ' + ({ WhatsApp: 'WhatsApp', SMS: 'رسالة نصية', Email: 'بريدًا إلكترونيًا' })[a] + ' إلى ⁦' + b + '⁩، مع رسالة جاهزة.'; }],
+  [/^The QR code opens: (.+)$/, function (m, b) { return 'رمز QR يفتح: ⁦' + b + '⁩'; }],
+  [/^Saved (.+\.png)\.$/, 'تم حفظ $1.']
+]);
