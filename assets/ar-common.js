@@ -216,3 +216,10 @@ LabAr.add({
  "See the 25 details any site can read without cookies, how much each gives away, and how to blend in.": "اطّلع على 25 تفصيلًا يقرؤها أي موقع من دون ملفات تعريف الارتباط، وكم يكشف كل منها، وكيف تندمج مع الآخرين.",
  "Check my browser →": "افحص متصفحي ←"
 });
+/* index cards for newer tools */
+LabAr.add({
+ "Heritage · Stars": "تراث · نجوم",
+ "Al Durur star calendar": "حساب الدرور",
+ "Today's durr in the old Gulf count from Suhail, a year wheel, and when the season stars really rise where you are.": "در اليوم في حساب أهل الخليج من طلوع سهيل، ودائرة السنة، ومتى تطلع نجوم المواسم فعلًا في مكانك.",
+ "Find today's durr →": "اعرف در اليوم ←"
+});

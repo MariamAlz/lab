@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Al Durur Star Calendar · Mariam's Lab</title>
+<meta name="description" content="Today's durr in the old Gulf star calendar (حساب الدرور), a year wheel of the 36 ten-day periods from the rising of Suhail, and when Suhail, the Pleiades and other anwa' stars really rise where you are.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/durur/">
+<meta property="og:title" content="Al Durur Star Calendar · Mariam's Lab"><meta property="og:description" content="Today's durr, the year wheel, and when Suhail really rises where you are."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.arx { font-family: 'IBM Plex Sans Arabic', var(--font-display), sans-serif; }
+.today { padding: 20px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); display: grid; gap: 6px; margin-top: 8px; }
+.today .big { font-family: 'IBM Plex Sans Arabic', var(--font-display), sans-serif; font-size: clamp(1.9rem, 6vw, 3rem); font-weight: 700; line-height: 1.15; color: var(--accent); }
+.today .en { font-size: 1.05rem; font-weight: 600; }
+.today .sub { color: var(--muted); font-size: 0.9rem; margin: 0; }
+.wheelbox { position: relative; width: 100%; max-width: 460px; margin: 0 auto; }
+.wheelbox svg { width: 100%; height: auto; display: block; }
+.wheelbox path.seg { cursor: pointer; stroke: var(--bg); stroke-width: 1.2; transition: opacity .15s; }
+.wheelbox path.seg:hover { opacity: .8; }
+.wheelbox path.sel { stroke: var(--ink); stroke-width: 2.5; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.dhead { display: grid; gap: 2px; }
+.dhead .arx { font-size: 1.5rem; font-weight: 700; }
+.dhead small { color: var(--muted); }
+.evs { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.evs li { padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; font-size: 0.9rem; display: grid; gap: 3px; border-inline-start: 4px solid var(--c, var(--line)); }
+.evs li .arx { font-size: 1rem; font-weight: 600; }
+.evs li small { color: var(--muted); font-size: 0.78rem; }
+.legendd { display: flex; gap: 10px; flex-wrap: wrap; font-size: 0.78rem; color: var(--muted); }
+.legendd > span::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-inline-end: 4px; vertical-align: -1px; background: var(--c); }
+.stars-t { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+.stars-t th, .stars-t td { text-align: start; padding: 8px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.stars-t th { font-weight: 600; color: var(--muted); font-size: 0.76rem; }
+.stars-t td .arx { font-weight: 600; font-size: 1rem; display: block; }
+.stars-t td small { color: var(--muted); display: block; font-size: 0.76rem; }
+.tblwrap { overflow-x: auto; }
+html:not(.ar) .stars-t td .arx { text-align: left; }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 0; }
+.latin { display: inline-flex; gap: 6px; align-items: center; font-size: 0.82rem; color: var(--muted); }
+.latin input { width: 76px; font: inherit; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 8px; padding: 4px 6px; }
+.srcs { font-size: 0.82rem; color: var(--muted); padding-inline-start: 18px; display: grid; gap: 4px; }
+.srcs a { color: inherit; }
+.bar10 { display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; max-width: 320px; }
+.bar10 i { height: 8px; border-radius: 3px; background: var(--line); }
+.bar10 i.on { background: var(--accent); }
+</style>
+<script src="../assets/sky.js"></script>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Heritage · Calendar · Stars</span>
+    <h1 style="font-size:var(--step-3)">Al Durur, the star calendar.</h1>
+    <p>Before printed calendars, people in the Emirates and Oman counted the year in tens of days, starting from the rising of Suhail (Canopus) in mid-August. Each ten days is a <span class="arx">دَرّ</span> (durr). Farmers, fishermen and sailors knew what each one meant. Here is today's durr, the full year, and when the old season stars really rise where you are.</p>
+  </div>
+
+  <div class="today" id="today"><span class="label">Today</span><b class="big" id="tBig">…</b></div>
+  <div class="stats" style="margin-top:12px">
+    <div><b id="sDay">–</b><span>Day of the count</span></div>
+    <div><b id="sNext">–</b><span id="sNextL">Days to the next hundred</span></div>
+    <div><b id="sSuhail">–</b><span>Days to the next Suhail</span></div>
+  </div>
+
+  <div class="game" style="margin-top:22px">
+    <div class="panel">
+      <span class="label">The year wheel · tap a durr</span>
+      <div class="wheelbox"><svg id="wheel" viewBox="0 0 400 400" role="img" aria-label="Year wheel of the 36 durur"></svg></div>
+      <div class="legendd" id="legend"></div>
+    </div>
+    <div class="panel" id="detail" aria-live="polite"></div>
+  </div>
+
+  <div class="panel" style="margin-top:28px">
+    <span class="label">The anwa' stars · first dawn sighting this year</span>
+    <p class="msg" style="color:var(--ink)">A season star "rises" on the first morning it can be seen low in the east just before dawn, after weeks hidden in the Sun's glare. That date depends on your latitude, so it moves a few days between Abu Dhabi and Kuwait.</p>
+    <div class="row" id="where"><button class="sm" type="button" id="me">📍 Use my location</button></div>
+    <div class="row">
+      <label class="latin">Latitude <input type="number" id="lat" step="0.1" min="-40" max="60" value="24.45"></label>
+      <label class="latin">Longitude <input type="number" id="lon" step="0.1" min="-180" max="180" value="54.38"></label>
+      <button class="sm" type="button" id="clear" aria-pressed="true">Clear horizon</button>
+      <button class="sm" type="button" id="hazy" aria-pressed="false">Hazy horizon</button>
+    </div>
+    <p class="msg" id="smsg" role="status"></p>
+    <div class="tblwrap"><table class="stars-t">
+      <thead><tr><th>Star</th><th>Traditional date</th><th>Calculated here</th><th>Difference</th></tr></thead>
+      <tbody id="stars"></tbody>
+    </table></div>
+  </div>
+
+  <div class="game" style="margin-top:28px">
+    <div class="panel">
+      <span class="label">How it works</span>
+      <p class="fact" style="margin:0">The count starts on <b>15 August</b>. The year is split into four parts: the hundred days of <span class="arx">الصفري</span> (autumn), the hundred of <span class="arx">الشتاء</span> (winter), the hundred of <span class="arx">الصيف</span> (which in the old Gulf sense means spring), and sixty days of <span class="arx">القيظ</span> (high summer). That is 36 durur, or 360 days. The last five days before Suhail, six in a leap year, are <span class="arx">المساريق</span>, the "stolen" days that are left out of the count.</p>
+      <p class="fact" style="margin:0">People speak of a durr by its running number inside its hundred: "<span class="arx">دخل الخمسين</span>" means the fiftieth day, the fifth durr, has begun. Because the count is tied to the solar year and not to the Moon, it falls on the same Gregorian dates every year, which made it a dependable guide for planting, fishing and travel.</p>
+      <p class="fact" style="margin:0">The calculated dates use the Sun's position and each star's position for this year. A star counts as seen when it is at least 2° above the horizon (5° for a hazy horizon) while the Sun is still far enough below it, about 10° for the brightest stars and more for fainter ones. For Abu Dhabi this gives about 25 August for Suhail, close to the 24 August that the Emirates Astronomy Society announces.</p>
+    </div>
+    <div class="panel">
+      <span class="label">Where sources differ</span>
+      <p class="fact" style="margin:0">Most UAE sources start the count with the Suhail season on 15 August, but Suhail is first seen at dawn around 24 August. Some people start counting from the actual sighting, and Omani sea people traditionally started about 15 days later, in early or mid September.</p>
+      <p class="fact" style="margin:0">Sources also differ on some star names. <span class="arx">الأحيمر</span> is the heart of Scorpius (Antares) in one account and Arcturus in another. <span class="arx">الكليبين</span> is described in different ways, so it is not calculated here. Some sources give <span class="arx">القيظ</span> 65 days by including the stolen days.</p>
+      <p class="fact" style="margin:0">Some astronomers now say the old dates fit less well than they did. Summers are hotter, and the stars themselves drift slowly against the calendar, by about a day every 70 years, because the Earth's axis wobbles. Suhail does not change the weather. It only marks the time of year.</p>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:22px">
+    <span class="label">Sources</span>
+    <ol class="srcs">
+      <li><a href="https://www.omandaily.om/article/1188598" rel="noopener">Oman Daily, "السنة الفلكية وحساب الدرور"</a>: structure, the hundreds, stolen days, sea storms, farming.</li>
+      <li><a href="https://www.emaratalyoum.com/life/four-sides/2021-01-04-1.1439264" rel="noopener">Emarat Al Youm (2021), Fujairah publishes the durur calendar</a>: 36 parts of ten days from mid-August.</li>
+      <li><a href="https://al-ain.com/article/suhail-season-temperature-refraction" rel="noopener">Al Ain News (2023), the Suhail season</a>: 15 August, the first 40 days of al-Safri, Suhail winds.</li>
+      <li><a href="https://www.emaratalyoum.com/local-section/other/2026-08-17-1.2074728" rel="noopener">Emarat Al Youm / WAM (2026), Suhail rises 24 August</a>: Ibrahim Al Jarwan, Emirates Astronomy Society.</li>
+      <li><a href="https://www.khaleejtimes.com/uae/weather/suhail-star-rises-august-24-uae-cooler-weather" rel="noopener">Khaleej Times (2026), Suhail and the Al Duroor calendar</a>: 36 periods, Sheikh Zayed Grand Mosque Centre committee.</li>
+      <li><a href="https://www.emaratalyoum.com/local-section/other/2026-06-04-1.2052166" rel="noopener">Emarat Al Youm / WAM (2026), the Pleiades rise 7 June</a>.</li>
+      <li><a href="https://www.emaratalyoum.com/local-section/other/2025-07-03-1.1957114" rel="noopener">Emarat Al Youm (2025), the peak heat season</a>: al-Haq'a 3 July, al-Han'a 16 July, al-Mirzam 29 July, al-Kulaibain 11 August.</li>
+      <li><a href="https://www.arnnewscentre.ae/ar/news/%D9%85%D9%86%D9%88%D8%B9%D8%A7%D8%AA/16-%D8%A3%D9%83%D8%AA%D9%88%D8%A8%D8%B1-%D9%85%D9%88%D8%B9%D8%AF-%D8%AF%D8%AE%D9%88%D9%84-%D9%85%D9%88%D8%B3%D9%85-%D8%A7%D9%84%D9%88%D8%B3%D9%85%D9%8A/" rel="noopener">ARN News (2020), al-Wasm starts 16 October</a>.</li>
+      <li><a href="https://www.albayan.ae/varieties/2022-12-04-1.4572652" rel="noopener">Al Bayan / WAM (2022), al-Murabba'aniya 7 December to 15 January</a>.</li>
+      <li><a href="https://www.thenationalnews.com/uae/science/old-emirati-calendar-signals-end-of-the-hottest-season-1.620509" rel="noopener">The National (2019), the old Emirati calendar</a>: Dubai Astronomy Group on how well it fits today.</li>
+    </ol>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var AR = !!(window.LabAr && LabAr.on);
+  function L(en, ar) { return AR ? ar : en; }
+  function ayam(n) { return n === 1 ? 'يومًا' : n === 2 ? 'يومين' : n <= 10 ? n + ' أيام' : n + ' يومًا'; }
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+  var DAY = 864e5;
+  var fmtD = new Intl.DateTimeFormat(AR ? 'ar-u-nu-latn' : 'en-GB', { day: 'numeric', month: 'long', timeZone: 'UTC' });
+  var fmtS = new Intl.DateTimeFormat(AR ? 'ar-u-nu-latn' : 'en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+  function fd(ms) { return fmtD.format(new Date(ms)); }
+  function fs(ms) { return fmtS.format(new Date(ms)); }
+
+  // The four parts of the count. start = day index from 15 August, len in days.
+  var MI = [
+    { ar: 'الصفري', en: 'Al Safri, autumn', start: 0, len: 100, col: '#e0a458' },
+    { ar: 'الشتاء', en: 'Al Shita, winter', start: 100, len: 100, col: '#5aa9e6' },
+    { ar: 'الصيف', en: 'Al Saif, spring', start: 200, len: 100, col: '#7cc47f' },
+    { ar: 'القيظ', en: 'Al Qaiz, high summer', start: 300, len: 60, col: '#ef6f5e' }
+  ];
+  var MSRQ = { ar: 'المساريق', en: 'Al Masariq, the stolen days', col: '#8a8f9e' };
+  var TENS = ['العشر', 'العشرين', 'الثلاثين', 'الأربعين', 'الخمسين', 'الستين', 'السبعين', 'الثمانين', 'التسعين', 'المية'];
+  var ORD = ['10th', '20th', '30th', '40th', '50th', '60th', '70th', '80th', '90th', '100th'];
+  var CAT = { w: ['Weather', 'الطقس', '#5aa9e6'], s: ['Sea and fishing', 'البحر والصيد', '#4fd3bd'], f: ['Farming and dates', 'الزراعة والنخيل', '#7cc47f'], st: ['Stars', 'النجوم', '#e0a458'] };
+
+  // Traditions, by Gregorian month/day ranges (inclusive). src = number in the sources list.
+  // A range given as mi'a-relative uses {d0, d1} as day indexes in the count instead.
+  var EV = [
+    { c: 'st', a: [8, 15], b: [8, 15], ar: 'بداية الحساب مع موسم سهيل', en: 'The count starts with the Suhail season', src: [2, 3] },
+    { c: 'w', a: [8, 15], b: [9, 23], ar: 'أول أربعين يومًا من الصفري: جو غير مستقر بين حر واعتدال، مع هبايب سهيل الرطبة ووعكات سهيل', en: 'The first 40 days of al-Safri: unsettled, swinging between heat and relief, with humid "Suhail breezes" and sticky heat spells', src: [3] },
+    { c: 'f', a: [8, 15], b: [9, 30], ar: 'غرس الشتلات يبدأ من منتصف أغسطس، وموسم الرطب يقترب من نهايته إلا الأصناف المتأخرة مثل الخصاب', en: 'Seedlings go in from mid-August. The date harvest is nearly over, apart from late kinds such as khasab', src: [1, 3] },
+    { c: 's', d: [0, 99], ar: 'تبدأ ضربات البحر المفاجئة مثل ضربة حويطم واللكيذب، فيحذر الصيادون', en: 'Sudden sea storms begin, such as Huwaitim and al-Lukaidhib, so fishermen take care', src: [1] },
+    { c: 'st', a: [8, 24], b: [8, 24], ar: 'أول رؤية لسهيل قبل الفجر في سماء الإمارات', en: 'Suhail first seen before dawn in UAE skies', src: [4] },
+    { c: 'w', a: [10, 16], b: [12, 6], ar: 'الوسم: نحو 52 يومًا من المطر الذي "يسم" الأرض بالعشب، ويبدأ عبور الطيور المهاجرة كالحبارى والصقور', en: 'Al-Wasm: about 52 days of rain that "brands" the land with green. Migrating birds such as the houbara and falcons pass through', src: [8] },
+    { c: 'st', a: [10, 16], b: [12, 6], ar: 'منازل الوسم: العواء 16 أكتوبر، السماك 29 أكتوبر، الغفر 11 نوفمبر، الزبانى 24 نوفمبر', en: 'Al-Wasm stars: al-Awwa 16 Oct, al-Simak 29 Oct, al-Ghafr 11 Nov, al-Zubana 24 Nov', src: [8] },
+    { c: 's', d: [80, 110], ar: 'غيوب الأحيمر من التسعين: يضطرب البحر أكثر من ثلاثة أسابيع ولا يبتعد الصيادون عن الساحل. وضربة الأحيمر من أشد الضربات', en: 'From the ninetieth, the "Uhaimir" spell: the sea is rough for over three weeks and fishermen stay close to shore. The Uhaimir storm is one of the worst', src: [1] },
+    { c: 'w', a: [12, 7], b: [1, 15], ar: 'مربعانية الشتاء: أربعون يومًا هي أشد البرد، وفيها الانقلاب الشتوي', en: 'The Murabba\'aniya of winter: the 40 coldest days, with the winter solstice', src: [1, 9] },
+    { c: 'st', a: [12, 7], b: [1, 15], ar: 'طلوع الإكليل والقلب والشولة فجرًا', en: 'The Crown, the Heart and the Sting of Scorpius rise at dawn', src: [9] },
+    { c: 'f', a: [12, 7], b: [1, 31], ar: 'يظهر العشب والفقع مع المطر، وتبدأ فحول النخيل بالطلع من منتصف المربعانية', en: 'Grass and desert truffles come up after rain. Male palms start to flower from the middle of the Murabba\'aniya', src: [9] },
+    { c: 'f', d: [100, 199], ar: 'وقت إكثار الفسائل وزراعة الورقيات', en: 'Time to plant palm offshoots and leafy vegetables', src: [1] },
+    { c: 's', d: [100, 199], ar: 'وفرة أسماك السطح وتنوعها', en: 'Plenty of surface fish, in many kinds', src: [1] },
+    { c: 'w', a: [1, 15], b: [3, 20], ar: 'بعد المربعانية: البطين ثم العقارب. وتعود موجة برد قصيرة نحو عشرة أيام تُعرف ببرد العجوز', en: 'After the Murabba\'aniya come al-Butain and al-Aqarib. A short cold snap of about ten days, "the old woman\'s cold", comes back', src: [1, 9] },
+    { c: 'w', d: [200, 299], ar: 'ينتهي البرد، ويحل الاعتدال الربيعي', en: 'The cold is over, and the spring equinox arrives', src: [1] },
+    { c: 'f', d: [200, 240], ar: 'تلقيح النخيل، ولا يتجاوز في العادة الأربعين من هذه المية', en: 'Date palms are pollinated, usually finished by the fortieth of this hundred', src: [1] },
+    { c: 's', d: [200, 299], ar: 'تكاثر الجرجور والهامور والكنعد، ويكثر الكوفر والبياح. وتأتي ضربة الثريا مع كنة الثريا، وهي محدودة في الغالب', en: 'Sharks, hamour and kingfish breed, and kofar and mullet are plentiful. The Thurayya storm comes when the Pleiades disappear, usually a mild one', src: [1] },
+    { c: 'st', a: [6, 7], b: [6, 19], ar: 'طلوع الثريا فجرًا، أول القيظ. "القيظ من طلوع الثريا إلى طلوع سهيل"', en: 'The Pleiades rise at dawn: the start of the hot season. "Al-Qaiz runs from the rising of the Pleiades to the rising of Suhail"', src: [6] },
+    { c: 'f', a: [6, 7], b: [8, 10], ar: 'موسم الرطب، ويختلف نضجه من منطقة إلى أخرى', en: 'Fresh date season, ripening at different times in different areas', src: [6] },
+    { c: 'w', d: [300, 359], ar: 'مربعانية القيظ، أشد أيام السنة حرًا، وفيها الانقلاب الصيفي', en: 'The Murabba\'aniya of summer, the hottest days of the year, with the summer solstice', src: [1] },
+    { c: 'f', d: [300, 365], ar: 'لا زراعة في هذه الأيام حتى يطلع سهيل', en: 'No planting in these days until Suhail rises', src: [1] },
+    { c: 'st', a: [7, 3], b: [7, 15], ar: 'طلوع الهقعة، أول نجوم الجوزاء', en: 'Al-Haq\'a rises, the first star of al-Jawza (Orion\'s head)', src: [7] },
+    { c: 'st', a: [7, 16], b: [7, 28], ar: 'طلوع الهنعة، ثاني نجوم الجوزاء', en: 'Al-Han\'a rises, the second star of al-Jawza', src: [7] },
+    { c: 'st', a: [7, 29], b: [8, 10], ar: 'طلوع المرزم، وتسمى وغرة المرزم أو وغرة الشعرى', en: 'Al-Mirzam rises. This heat spell is called the Mirzam or the Shi\'ra spell', src: [7] },
+    { c: 'st', a: [8, 11], b: [8, 14], ar: 'طلوع الكليبين، ونهاية جمرة القيظ', en: 'Al-Kulaibain rise, and the worst of the heat ends', src: [7] },
+    { c: 'w', d: [360, 365], ar: 'المساريق: خمسة أيام (ستة في السنة الكبيسة) خارج الحساب قبل طلوع سهيل', en: 'The stolen days: five days (six in a leap year) outside the count, before Suhail', src: [1] }
+  ];
+
+  function countStart(ms) { // UTC ms of the 15 August that starts the count containing ms
+    var d = new Date(ms), y = d.getUTCFullYear(), s = Date.UTC(y, 7, 15);
+    return ms >= s ? s : Date.UTC(y - 1, 7, 15);
+  }
+  function info(dayIdx, yearLen) {
+    if (dayIdx >= 360) return { msrq: true, n: 36, mi: null, k: dayIdx - 359, left: yearLen - dayIdx };
+    var n = Math.floor(dayIdx / 10), mi = dayIdx < 100 ? 0 : dayIdx < 200 ? 1 : dayIdx < 300 ? 2 : 3;
+    return { n: n, mi: mi, t: n - MI[mi].start / 10, k: dayIdx % 10 + 1 };
+  }
+  function durrName(n, both) {
+    if (n >= 36) return AR || !both ? MSRQ.ar : MSRQ.ar;
+    var mi = n < 10 ? 0 : n < 20 ? 1 : n < 30 ? 2 : 3, t = n - MI[mi].start / 10;
+    return 'دَرّ ' + TENS[t] + ' من ' + MI[mi].ar;
+  }
+  function durrEn(n) {
+    if (n >= 36) return MSRQ.en;
+    var mi = n < 10 ? 0 : n < 20 ? 1 : n < 30 ? 2 : 3, t = n - MI[mi].start / 10;
+    return 'The ' + ORD[t] + ' of ' + MI[mi].en.split(',')[0];
+  }
+
+  var now = Date.now(), tz = new Date(), todayUTC = Date.UTC(tz.getFullYear(), tz.getMonth(), tz.getDate());
+  var S0 = countStart(todayUTC), YLEN = Math.round((Date.UTC(new Date(S0).getUTCFullYear() + 1, 7, 15) - S0) / DAY);
+  var dayIdx = Math.round((todayUTC - S0) / DAY), TI = info(dayIdx, YLEN);
+
+  function evDays(e) { // day-index range [d0, d1] in this count
+    if (e.d) return [e.d[0], Math.min(e.d[1], YLEN - 1)];
+    var ys = new Date(S0).getUTCFullYear();
+    function idx(md) { var t = Date.UTC(ys, md[0] - 1, md[1]); if (t < S0) t = Date.UTC(ys + 1, md[0] - 1, md[1]); return Math.round((t - S0) / DAY); }
+    var a = idx(e.a), b = idx(e.b); if (b < a) b = a; return [a, b];
+  }
+  function evsFor(d0, d1) { return EV.filter(function (e) { var r = evDays(e); return r[0] <= d1 && r[1] >= d0; }); }
+
+  // ---- today
+  (function () {
+    var big = TI.msrq ? MSRQ.ar : durrName(TI.n);
+    var s0 = S0 + (TI.msrq ? 360 : TI.n * 10) * DAY, s1 = TI.msrq ? S0 + (YLEN - 1) * DAY : s0 + 9 * DAY;
+    var h = '<span class="label">' + L('Today', 'اليوم') + ' · ' + esc(fd(todayUTC)) + '</span><b class="big" dir="rtl" lang="ar">' + big + '</b>';
+    if (!AR) h += '<span class="en">' + esc(TI.msrq ? MSRQ.en : durrEn(TI.n)) + '</span>';
+    h += '<p class="sub">' + (TI.msrq ? L('Day ' + TI.k + ' of the stolen days, ' + fs(s0) + ' to ' + fs(s1), 'اليوم ' + TI.k + ' من المساريق، من ' + fs(s0) + ' إلى ' + fs(s1)) : L('Day ' + TI.k + ' of 10, from ' + fs(s0) + ' to ' + fs(s1), 'اليوم ' + TI.k + ' من 10، من ' + fs(s0) + ' إلى ' + fs(s1))) + '</p>';
+    h += '<div class="bar10">' + [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(function (i) { return '<i class="' + (i < TI.k ? 'on' : '') + '"></i>'; }).join('') + '</div>';
+    $('today').innerHTML = h;
+    $('sDay').textContent = dayIdx + 1;
+    var nextB = TI.msrq ? YLEN - dayIdx : (TI.mi < 3 ? MI[TI.mi].start + MI[TI.mi].len : 360) - dayIdx;
+    $('sNext').textContent = nextB;
+    $('sNextL').textContent = TI.mi === 3 ? L('Days to the stolen days', 'يومًا حتى المساريق') : TI.msrq ? L('Days to the new count', 'يومًا حتى بداية الحساب') : L('Days to the next hundred', 'يومًا حتى المية التالية');
+    $('sSuhail').textContent = dayIdx === 0 ? 0 : YLEN - dayIdx;
+  })();
+
+  // ---- wheel
+  var SEL = TI.n, NS = 'http://www.w3.org/2000/svg';
+  function pol(r, a) { var t = (a - 90) * Math.PI / 180; return [200 + r * Math.cos(t), 200 + r * Math.sin(t)]; }
+  function arc(r0, r1, a0, a1) {
+    var p0 = pol(r1, a0), p1 = pol(r1, a1), p2 = pol(r0, a1), p3 = pol(r0, a0), lg = a1 - a0 > 180 ? 1 : 0;
+    return 'M' + p0[0].toFixed(2) + ' ' + p0[1].toFixed(2) + 'A' + r1 + ' ' + r1 + ' 0 ' + lg + ' 1 ' + p1[0].toFixed(2) + ' ' + p1[1].toFixed(2) + 'L' + p2[0].toFixed(2) + ' ' + p2[1].toFixed(2) + 'A' + r0 + ' ' + r0 + ' 0 ' + lg + ' 0 ' + p3[0].toFixed(2) + ' ' + p3[1].toFixed(2) + 'Z';
+  }
+  function ang(d) { return d / YLEN * 360; }
+  function drawWheel() {
+    var s = '';
+    // month ring
+    var ys = new Date(S0).getUTCFullYear();
+    for (var m = 0; m < 12; m++) {
+      var y = m >= 7 ? ys : ys + 1, t = Date.UTC(y, m, 1), di = (t - S0) / DAY; if (di < 0) di += YLEN;
+      var p0 = pol(122, ang(di)), p1 = pol(128, ang(di)), pm = pol(110, ang(di + 15));
+      s += '<line x1="' + p0[0] + '" y1="' + p0[1] + '" x2="' + p1[0] + '" y2="' + p1[1] + '" stroke="currentColor" opacity=".35"/>';
+      s += '<text x="' + pm[0].toFixed(1) + '" y="' + pm[1].toFixed(1) + '" font-size="10" text-anchor="middle" dominant-baseline="middle" fill="currentColor" opacity=".6">' + esc(fmtS.formatToParts(new Date(t)).filter(function (x) { return x.type === 'month'; })[0].value) + '</text>';
+    }
+    for (var n = 0; n < 37; n++) {
+      var d0 = n * 10, d1 = n < 36 ? d0 + 10 : YLEN, mi = n < 10 ? 0 : n < 20 ? 1 : n < 30 ? 2 : n < 36 ? 3 : -1;
+      var col = mi < 0 ? MSRQ.col : MI[mi].col, op = mi < 0 ? 1 : 0.55 + 0.45 * ((n - (mi >= 0 ? MI[mi].start / 10 : 0)) % 2);
+      s += '<path class="seg' + (n === SEL ? ' sel' : '') + '" data-n="' + n + '" d="' + arc(132, 186, ang(d0), ang(d1)) + '" fill="' + col + '" fill-opacity="' + op + '"><title>' + esc(n < 36 ? durrName(n) : MSRQ.ar) + '</title></path>';
+      if (n < 36) {
+        var tn = (n - MI[mi].start / 10 + 1) * 10, pt = pol(159, ang(d0 + 5));
+        s += '<text x="' + pt[0].toFixed(1) + '" y="' + pt[1].toFixed(1) + '" font-size="9.5" font-weight="600" text-anchor="middle" dominant-baseline="middle" fill="#10131f" pointer-events="none">' + tn + '</text>';
+      }
+    }
+    MI.forEach(function (m) {
+      var p = pol(78, ang(m.start + m.len / 2));
+      s += '<text x="' + p[0].toFixed(1) + '" y="' + p[1].toFixed(1) + '" font-size="17" font-weight="700" text-anchor="middle" dominant-baseline="middle" fill="' + m.col + '" style="font-family:\'IBM Plex Sans Arabic\',sans-serif">' + m.ar + '</text>';
+    });
+    // today needle
+    var a = ang(dayIdx + 0.5), q0 = pol(36, a), q1 = pol(192, a);
+    s += '<line x1="' + q0[0].toFixed(1) + '" y1="' + q0[1].toFixed(1) + '" x2="' + q1[0].toFixed(1) + '" y2="' + q1[1].toFixed(1) + '" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>';
+    s += '<circle cx="200" cy="200" r="30" fill="var(--bg)" stroke="currentColor" stroke-opacity=".3"/>';
+    s += '<text x="200" y="196" font-size="11" text-anchor="middle" fill="currentColor" opacity=".7" style="font-family:\'IBM Plex Sans Arabic\',sans-serif">سهيل</text>';
+    s += '<text x="200" y="210" font-size="9" text-anchor="middle" fill="currentColor" opacity=".55">' + esc(L('15 Aug', '15 أغسطس')) + '</text>';
+    var top = pol(194, 0); s += '<polygon points="' + (top[0] - 5) + ',' + (top[1] - 6) + ' ' + (top[0] + 5) + ',' + (top[1] - 6) + ' ' + top[0] + ',' + (top[1] + 2) + '" fill="var(--accent)"/>';
+    $('wheel').innerHTML = s; $('wheel').style.color = 'var(--ink)';
+  }
+  $('wheel').addEventListener('click', function (e) { var p = e.target.closest('path.seg'); if (!p) return; SEL = +p.getAttribute('data-n'); drawWheel(); detail(); });
+  $('legend').innerHTML = MI.concat([MSRQ]).map(function (m) { return '<span style="--c:' + m.col + '"><span class="arx">' + m.ar + '</span>' + (AR ? '' : ' · ' + esc(m.en)) + '</span>'; }).join('');
+
+  // ---- detail of the selected durr
+  function detail() {
+    var n = SEL, d0 = n < 36 ? n * 10 : 360, d1 = n < 36 ? d0 + 9 : YLEN - 1;
+    var h = '<span class="label">' + (n === TI.n ? L('This durr', 'الدر الحالي') : L('Selected durr', 'الدر المختار')) + '</span>';
+    h += '<div class="dhead"><span class="arx" dir="rtl" lang="ar">' + (n < 36 ? durrName(n) : MSRQ.ar) + '</span>' + (AR ? '' : '<b>' + esc(n < 36 ? durrEn(n) : MSRQ.en) + '</b>') + '<small>' + esc(fd(S0 + d0 * DAY)) + ' – ' + esc(fd(S0 + d1 * DAY)) + '</small></div>';
+    var ev = evsFor(d0, d1);
+    var stars = (window.__durStars || []).filter(function (s) { return s.di != null && s.di >= d0 && s.di <= d1; });
+    h += '<ul class="evs">';
+    ['w', 's', 'f', 'st'].forEach(function (c) {
+      ev.filter(function (e) { return e.c === c; }).forEach(function (e) {
+        h += '<li style="--c:' + CAT[c][2] + '"><small>' + L(CAT[c][0], CAT[c][1]) + '</small><span class="arx" dir="rtl" lang="ar">' + e.ar + '</span>' + (AR ? '' : '<span>' + esc(e.en) + '</span>') + '<small>' + L('Source', 'المصدر') + ' ' + e.src.join(L(', ', '، ')) + '</small></li>';
+      });
+      if (c === 'st') stars.forEach(function (s) {
+        h += '<li style="--c:' + CAT.st[2] + '"><small>' + L('Calculated for your place', 'محسوب لموقعك') + '</small><span class="arx" dir="rtl" lang="ar">أول رؤية ' + (s.ar.indexOf('ال') === 0 ? 'لل' + s.ar.slice(2) : 'ل' + s.ar) + ' فجرًا في ' +esc(fdAr(s.ms)) + '</span>' + (AR ? '' : '<span>' + esc(s.en) + ' first seen at dawn on ' + esc(fd(s.ms)) + '</span>') + '</li>';
+      });
+    });
+    if (!ev.length && !stars.length) h += '<li><span>' + L('No special tradition is recorded here for this durr in the sources used.', 'لا يذكر المصدر عادة خاصة بهذا الدر.') + '</span></li>';
+    h += '</ul>';
+    $('detail').innerHTML = h;
+  }
+  var fmtAr = new Intl.DateTimeFormat('ar-u-nu-latn', { day: 'numeric', month: 'long', timeZone: 'UTC' });
+  function fdAr(ms) { return fmtAr.format(new Date(ms)); }
+
+  // ---- heliacal rising
+  function sunAlt(ms, lat, lon) { var d = Sky.dayNum(ms), s = Sky.sun(d), e = Sky.eclToEq(s, d); return Sky.toHoriz(e.ra, e.dec, Sky.lst(ms, lon), lat).alt; }
+  function seenMorning(day0, st, lat, lon, hmin) {
+    var t0 = day0 - lon / 15 * 3600000, av = 10.5 + Math.max(-1, st.mag); // arcus visionis, rough
+    for (var m = 0; m < 720; m += 4) {
+      var ms = t0 + m * 60000, sa = sunAlt(ms, lat, lon);
+      if (sa > -av) return false;
+      if (sa < -18) continue;
+      if (Sky.toHoriz(st.ra, st.dec, Sky.lst(ms, lon), lat).alt >= hmin) return true;
+    }
+    return false;
+  }
+  // first morning seen after at least 15 unseen mornings, scanning April to November of year y
+  function heliacal(st, y, lat, lon, hmin) {
+    var start = Date.UTC(y, 3, 1), miss = 0;
+    for (var i = 0; i < 240; i++) {
+      var t = start + i * DAY;
+      if (seenMorning(t, st, lat, lon, hmin)) { if (miss >= 15) return t; miss = 0; } else miss++;
+    }
+    return null;
+  }
+  window.__durHeliacal = heliacal; // used by the self-check
+  var STARS = [
+    { id: 'alcyone', ar: 'الثريا', en: 'The Pleiades', note: 'Start of al-Qaiz', noteAr: 'أول القيظ', trad: [6, 7], src: 6 },
+    { id: 'aldebaran', ar: 'الدبران', en: 'Aldebaran', note: 'Rises with the Pleiades spell, no separate date given', noteAr: 'يطلع ضمن وغرة الثريا، بلا موعد مستقل', trad: null, src: 7 },
+    { id: 'meissa', ar: 'الهقعة (الجوزاء)', en: 'Al-Haq\'a, Orion\'s head (Meissa)', note: 'First star of al-Jawza', noteAr: 'أول نجوم الجوزاء', trad: [7, 3], src: 7 },
+    { id: 'alhena', ar: 'الهنعة (الجوزاء)', en: 'Al-Han\'a (Alhena)', note: 'Second star of al-Jawza', noteAr: 'ثاني نجوم الجوزاء', trad: [7, 16], src: 7 },
+    { id: 'sirius', ar: 'الشعرى اليمانية', en: 'Sirius', note: 'The source names the spell after al-Mirzam or al-Shi\'ra on 29 July', noteAr: 'تُسمى الوغرة باسم المرزم أو الشعرى في 29 يوليو', trad: [7, 29], src: 7 },
+    { id: null, ar: 'الكليبين', en: 'Al-Kulaibain', note: 'Sources describe these stars differently, so no calculation', noteAr: 'تختلف المصادر في تحديدها، فلا حساب لها هنا', trad: [8, 11], src: 7 },
+    { id: 'canopus', ar: 'سهيل', en: 'Suhail (Canopus)', note: 'Count starts 15 Aug. First sighting announced for 24 Aug', noteAr: 'يبدأ الحساب 15 أغسطس، وتُعلن أول رؤية في 24 أغسطس', trad: [8, 15], trad2: [8, 24], src: 4 }
+  ];
+  var lat = 24.45, lon = 54.38, hmin = 2, timer = null;
+  function compute() {
+    $('smsg').textContent = L('Working it out…', 'جارٍ الحساب…');
+    clearTimeout(timer);
+    timer = setTimeout(function () {
+      var y = new Date().getUTCFullYear(), out = [], rows = '';
+      STARS.forEach(function (s) {
+        var st = s.id ? Sky.byId[s.id] : null, t = st ? heliacal(st, y, lat, lon, hmin) : null;
+        var trad = s.trad ? Date.UTC(y, s.trad[0] - 1, s.trad[1]) : null, trad2 = s.trad2 ? Date.UTC(y, s.trad2[0] - 1, s.trad2[1]) : null;
+        if (t != null) out.push({ ar: s.ar.replace(/ \(.*\)$/, ''), en: s.en, ms: t, di: ((Math.round((t - Date.UTC(y, 7, 15)) / DAY) % YLEN) + YLEN) % YLEN });
+        var ref = trad2 || trad, diff = t != null && ref != null ? Math.round((t - ref) / DAY) : null;
+        rows += '<tr><td><span class="arx" dir="rtl" lang="ar">' + s.ar + '</span>' + (AR ? '' : '<small>' + esc(s.en) + '</small>') + '<small>' + esc(L(s.note, s.noteAr)) + '</small></td>';
+        rows += '<td>' + (trad ? esc(fs(trad)) + (trad2 ? '<small>' + esc(L('sighting ', 'الرؤية ')) + esc(fs(trad2)) + '</small>' : '') : '–') + '</td>';
+        rows += '<td>' + (st ? (t != null ? '<b>' + esc(fs(t)) + '</b>' : L('Not seen from here', 'لا يُرى من هنا')) : '–') + '</td>';
+        rows += '<td>' + (diff == null ? '–' : (diff === 0 ? L('same day', 'اليوم نفسه') : L(Math.abs(diff) + (Math.abs(diff) === 1 ? ' day ' : ' days ') + (diff > 0 ? 'later' : 'earlier'), (diff > 0 ? 'متأخر ' : 'مبكر ') + ayam(Math.abs(diff))))) + '</td></tr>';
+      });
+      $('stars').innerHTML = rows;
+      window.__durStars = out;
+      $('smsg').textContent = L('Latitude ' + lat.toFixed(2) + '°, year ' + y + '. Differences are against the date in the sources (for Suhail, against the 24 August sighting).', 'خط العرض ' + lat.toFixed(2) + '°، سنة ' + y + '. الفرق محسوب عن التاريخ في المصادر (ولسهيل عن رؤية 24 أغسطس).');
+      detail();
+    }, 30);
+  }
+  var PLACES = [['Abu Dhabi', 'أبوظبي', 24.45, 54.38], ['Dubai', 'دبي', 25.2, 55.27], ['Al Ain', 'العين', 24.21, 55.74], ['Ras Al Khaimah', 'رأس الخيمة', 25.79, 55.94], ['Fujairah', 'الفجيرة', 25.13, 56.33], ['Muscat', 'مسقط', 23.59, 58.41], ['Riyadh', 'الرياض', 24.71, 46.68], ['Kuwait', 'الكويت', 29.37, 47.98]];
+  function pick(b) { [].forEach.call(document.querySelectorAll('#where .sm'), function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); }); }
+  function setPlace(a, o) { lat = a; lon = o; $('lat').value = a; $('lon').value = o; compute(); }
+  PLACES.forEach(function (p, i) {
+    var b = document.createElement('button'); b.className = 'sm'; b.type = 'button'; b.textContent = L(p[0], p[1]); b.setAttribute('aria-pressed', i === 0 ? 'true' : 'false');
+    b.onclick = function () { pick(b); setPlace(p[2], p[3]); };
+    $('where').appendChild(b);
+  });
+  $('me').onclick = function () {
+    if (!navigator.geolocation) { $('smsg').textContent = L('Your browser can\'t share a location.', 'متصفحك لا يستطيع مشاركة الموقع.'); return; }
+    navigator.geolocation.getCurrentPosition(function (p) { pick($('me')); setPlace(+p.coords.latitude.toFixed(2), +p.coords.longitude.toFixed(2)); }, function () { $('smsg').textContent = L('Location was not shared. Pick a place instead.', 'لم تتم مشاركة الموقع. اختر مكانًا بدلًا من ذلك.'); }, { maximumAge: 6e5, timeout: 10000 });
+  };
+  function manual() { var a = +$('lat').value, o = +$('lon').value; if (isFinite(a) && a > -40 && a < 60 && isFinite(o)) { pick(null); lat = a; lon = o; compute(); } }
+  $('lat').onchange = manual; $('lon').onchange = manual;
+  $('clear').onclick = function () { hmin = 2; $('clear').setAttribute('aria-pressed', 'true'); $('hazy').setAttribute('aria-pressed', 'false'); compute(); };
+  $('hazy').onclick = function () { hmin = 5; $('hazy').setAttribute('aria-pressed', 'true'); $('clear').setAttribute('aria-pressed', 'false'); compute(); };
+
+  drawWheel(); detail(); compute();
+})();
+</script>
+</body>
+</html>
