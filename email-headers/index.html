@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Email Header Detective · Mariam's Lab</title>
+<meta name="description" content="Paste an email's raw headers to see the route it travelled, where it really came from, and whether SPF, DKIM and DMARC passed. Runs in your browser.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/email-headers/">
+<meta property="og:title" content="Email Header Detective · Mariam's Lab"><meta property="og:description" content="Where did that email really come from?"><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.raw { width: 100%; min-height: 240px; resize: vertical; font-family: var(--font-mono); font-size: 0.78rem; line-height: 1.5; color: var(--ink); background: rgba(7, 10, 24, 0.7); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; white-space: pre; }
+.acts { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm:hover { border-color: var(--muted); }
+details.how { margin-top: 12px; font-size: 0.88rem; color: var(--muted); }
+details.how summary { cursor: pointer; color: var(--ink); }
+details.how li { margin: 4px 0; }
+.verdict { padding: 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); }
+.verdict h2 { font-size: 1.3rem; font-weight: 800; }
+.verdict p { color: var(--muted); font-size: 0.9rem; margin-top: 4px; }
+.auth { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.auth div { padding: 10px; border: 1px solid var(--line); border-radius: 10px; text-align: center; }
+.auth small { display: block; color: var(--muted); font-size: 0.75rem; letter-spacing: .06em; text-transform: uppercase; }
+.auth b { font-family: var(--font-mono); font-size: 0.95rem; }
+.ok { color: var(--sat-b); } .meh { color: var(--accent); } .bad { color: var(--sat-c); } .na { color: var(--muted); }
+.flags { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.flags li { display: grid; grid-template-columns: 1.4em minmax(0, 1fr); gap: 8px; font-size: 0.9rem; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line); }
+.flags small { display: block; color: var(--muted); font-size: 0.8rem; }
+.route { list-style: none; margin: 0; padding: 0; position: relative; }
+.route li { position: relative; padding: 0 0 16px 28px; }
+.route li::before { content: ""; position: absolute; left: 7px; top: 6px; width: 12px; height: 12px; border-radius: 50%; background: var(--sat-a); }
+.route li::after { content: ""; position: absolute; left: 12px; top: 20px; bottom: 0; width: 2px; background: var(--line); }
+.route li:last-child::after { display: none; }
+.route li.first::before { background: var(--accent); }
+.route li.last::before { background: var(--sat-b); }
+.route b { display: block; font-size: 0.92rem; word-break: break-all; }
+.route .m { font-family: var(--font-mono); font-size: 0.76rem; color: var(--muted); word-break: break-all; }
+.route .dl { display: inline-block; font-family: var(--font-mono); font-size: 0.74rem; padding: 1px 7px; border-radius: 99px; border: 1px solid var(--line); margin-top: 4px; }
+.kv { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 14px; font-size: 0.85rem; }
+.kv dt { color: var(--muted); } .kv dd { margin: 0; font-family: var(--font-mono); font-size: 0.8rem; word-break: break-all; }
+.res { display: grid; gap: 14px; }
+.res[hidden] { display: none !important; }
+h3.sub { font-size: 1rem; font-weight: 700; margin-top: 6px; }
+@media (max-width: 520px) { .auth b { font-size: 0.82rem; } }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Security</span>
+    <h1 style="font-size:var(--step-3)">Email header detective.</h1>
+    <p>Every email carries a hidden travel log. Paste it here to see which servers handed it along, how long each step took, who really sent it, and whether the sender's domain vouched for it. The headers stay in your browser.</p>
+  </div>
+  <div class="game">
+    <div>
+      <label for="raw" class="label">Raw headers</label>
+      <textarea class="raw" id="raw" spellcheck="false" placeholder="Paste the full headers (or the whole message source) here…" style="margin-top:8px"></textarea>
+      <div class="acts">
+        <button class="btn primary" type="button" id="go">Investigate</button>
+        <button class="sm" type="button" id="sample">Try a suspicious example</button>
+        <label class="sm" style="display:inline-flex;gap:6px;align-items:center"><input type="checkbox" id="live" checked style="accent-color:var(--accent)"> Look up server names</label>
+      </div>
+      <details class="how"><summary>How do I get the headers?</summary><ul>
+        <li><b>Gmail:</b> open the email, ⋮ menu → Show original → Copy to clipboard.</li>
+        <li><b>Outlook (web):</b> ⋯ → View → View message source. <b>Outlook (Windows):</b> File → Properties → Internet headers.</li>
+        <li><b>Apple Mail:</b> View → Message → All Headers (or Raw Source).</li>
+        <li><b>iPhone and Android apps</b> usually can't show them. Open the email in a web browser instead.</li>
+      </ul></details>
+    </div>
+    <div class="panel res" id="empty"><p class="fact">Headers name servers, addresses and timestamps, not passwords. Still, they can include your own email address, so only share them with people you trust. Server-name lookups go to Cloudflare's DNS; nothing else leaves this page.</p></div>
+    <div class="panel res" id="out" hidden>
+      <div class="verdict" id="verdict"></div>
+      <div class="auth" id="auth"></div>
+      <ul class="flags" id="flags"></ul>
+      <h3 class="sub">The route, from sender to you</h3>
+      <ol class="route" id="route"></ol>
+      <h3 class="sub">Who is who</h3>
+      <dl class="kv" id="who"></dl>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var SAMPLE = [
+    'Delivered-To: you@example.org',
+    'Received: by 2002:a05:6400:1:b0:2c1:1 with SMTP id x1csp112233; Sun, 25 Oct 2026 21:14:09 -0700 (PDT)',
+    'Received: from mail.cheap-host.example (mail.cheap-host.example. [203.0.113.45])',
+    '        by mx.example.org with ESMTPS id q9si4401;',
+    '        Sun, 25 Oct 2026 21:14:07 -0700 (PDT)',
+    'Received: from [192.168.1.20] (unknown [198.51.100.7])',
+    '        by mail.cheap-host.example (Postfix) with ESMTPSA id 4F2A1;',
+    '        Mon, 26 Oct 2026 04:12:51 +0000 (UTC)',
+    'Authentication-Results: mx.example.org;',
+    '       dkim=none;',
+    '       spf=softfail (domain of transitioning billing@paypa1-support.example does not designate 203.0.113.45 as permitted sender) smtp.mailfrom=billing@paypa1-support.example;',
+    '       dmarc=fail (p=NONE sp=NONE dis=NONE) header.from=bank-secure-login.example',
+    'Return-Path: <billing@paypa1-support.example>',
+    'From: "Bank Security <security@bank.example>" <alerts@bank-secure-login.example>',
+    'Reply-To: verify-now@free-mail.example',
+    'To: you@example.org',
+    'Subject: Urgent: your account will be suspended',
+    'Date: Mon, 26 Oct 2026 08:12:50 +0400',
+    'Message-ID: <20261026041250.4F2A1@mail.cheap-host.example>',
+    'X-Mailer: PHPMailer 6.1.4',
+    'MIME-Version: 1.0'
+  ].join('\n');
+
+  function unfold(t) {
+    t = t.replace(/\r\n/g, '\n');
+    var end = t.search(/\n\s*\n/); if (end > 0) t = t.slice(0, end);
+    var out = [];
+    t.split('\n').forEach(function (l) {
+      if (/^[ \t]/.test(l) && out.length) out[out.length - 1].v += ' ' + l.trim();
+      else { var m = l.match(/^([!-9;-~]+):\s?(.*)$/); if (m) out.push({ k: m[1], lk: m[1].toLowerCase(), v: m[2] }); }
+    });
+    return out;
+  }
+  function all(h, k) { return h.filter(function (x) { return x.lk === k; }).map(function (x) { return x.v; }); }
+  function one(h, k) { return all(h, k)[0] || ''; }
+  function addr(s) { var m = (s || '').match(/<([^>]+)>\s*$/) || (s || '').match(/([^\s<>"]+@[^\s<>"]+)/); return m ? m[1].trim().toLowerCase() : ''; }
+  function dom(a) { return (a.split('@')[1] || '').replace(/[>\s]/g, ''); }
+  function org(d) { var p = d.split('.'); if (p.length <= 2) return d; var sl = p[p.length - 2]; return (sl.length <= 3 && /^(co|com|net|org|gov|ac|edu)$/.test(sl) ? p.slice(-3) : p.slice(-2)).join('.'); }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function priv(ip) { return /^(10\.|127\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|169\.254\.|::1|f[cd]|fe80)/i.test(ip); }
+
+  function parseReceived(v) {
+    var semi = v.lastIndexOf(';'), date = semi >= 0 ? v.slice(semi + 1).trim() : '', body = semi >= 0 ? v.slice(0, semi) : v;
+    var from = (body.match(/\bfrom\s+(\S+)/i) || [])[1] || '';
+    var by = (body.match(/\bby\s+(\S+)/i) || [])[1] || '';
+    var wth = (body.match(/\bwith\s+(\S+)/i) || [])[1] || '';
+    var ips = (body.match(/\[(?:IPv6:)?([0-9a-f:.]+)\]/ig) || []).map(function (x) { return x.replace(/[\[\]]|IPv6:/gi, ''); });
+    if (!ips.length) { var m = body.match(/\b(\d{1,3}(?:\.\d{1,3}){3})\b/); if (m) ips.push(m[1]); }
+    var t = Date.parse(date.replace(/\s*\([^)]*\)\s*$/, ''));
+    return { from: from.replace(/[()]/g, ''), by: by, with: wth, ip: ips.filter(function (x) { return !priv(x); })[0] || ips[0] || '', t: isNaN(t) ? null : t, date: date };
+  }
+  function authRes(h) {
+    var r = { spf: '', dkim: '', dmarc: '' }, text = all(h, 'authentication-results').join(' ; ') + ' ' + all(h, 'arc-authentication-results').join(' ');
+    ['spf', 'dkim', 'dmarc'].forEach(function (k) { var m = text.match(new RegExp('\\b' + k + '=(\\w+)', 'i')); if (m) r[k] = m[1].toLowerCase(); });
+    if (!r.spf) { var rs = one(h, 'received-spf'); if (rs) r.spf = (rs.match(/^(\w+)/) || [])[1].toLowerCase(); }
+    return r;
+  }
+  function delay(ms) {
+    if (ms == null) return '';
+    var s = Math.round(ms / 1000);
+    if (s < -60) return 'clock mismatch';
+    if (s < 1) return 'under 1 s';
+    if (s < 120) return s + ' s';
+    if (s < 7200) return Math.round(s / 60) + ' min';
+    return (s / 3600).toFixed(1) + ' h';
+  }
+  function ptr(ip) {
+    if (!$('live').checked || !ip || priv(ip) || ip.indexOf(':') >= 0) return Promise.resolve('');
+    var name = ip.split('.').reverse().join('.') + '.in-addr.arpa';
+    return fetch('https://cloudflare-dns.com/dns-query?name=' + name + '&type=PTR', { headers: { accept: 'application/dns-json' } })
+      .then(function (r) { return r.json(); }).then(function (j) { return (j.Answer || []).map(function (a) { return a.data.replace(/\.$/, ''); })[0] || 'no reverse name'; })
+      .catch(function () { return ''; });
+  }
+
+  function run() {
+    var h = unfold($('raw').value);
+    if (!h.length) { $('out').hidden = true; $('empty').hidden = false; return; }
+    $('empty').hidden = true; $('out').hidden = false;
+    var fromH = one(h, 'from'), fromA = addr(fromH), fromD = dom(fromA);
+    var rp = addr(one(h, 'return-path')), rpD = dom(rp);
+    var reply = addr(one(h, 'reply-to')), replyD = dom(reply);
+    var dk = (one(h, 'dkim-signature').match(/\bd=([^;\s]+)/) || [])[1] || '';
+    var mid = one(h, 'message-id'), midD = (mid.match(/@([^>]+)>?/) || [])[1] || '';
+    var A = authRes(h), flags = [], score = 0;
+
+    // auth tiles
+    function tile(k, v) {
+      var cls = v === 'pass' ? 'ok' : /fail|softfail|permerror/.test(v) ? 'bad' : v ? 'meh' : 'na';
+      return '<div><small>' + k + '</small><b class="' + cls + '">' + (v || 'not shown') + '</b></div>';
+    }
+    $('auth').innerHTML = tile('SPF', A.spf) + tile('DKIM', A.dkim) + tile('DMARC', A.dmarc);
+    if (A.dmarc === 'fail') { score += 3; flags.push(['bad', 'DMARC failed', 'The domain in "From" (' + fromD + ') did not vouch for this message. This is the strongest sign of spoofing.']); }
+    else if (A.dmarc === 'pass') flags.push(['ok', 'DMARC passed', 'The sending domain ' + fromD + ' vouched for this message. (Scammers can still own look-alike domains, so check the spelling.)']);
+    if (/fail/.test(A.spf)) { score += 1; flags.push(['bad', 'SPF ' + A.spf, 'The server that delivered it is not on ' + (rpD || 'the sender') + "'s list of allowed senders."]); }
+    if (A.dkim && A.dkim !== 'pass') { score += 1; flags.push(['meh', 'No valid DKIM signature', 'The message was not signed, or the signature broke on the way.']); }
+    if (!A.spf && !A.dkim && !A.dmarc) flags.push(['meh', 'No authentication results', 'These headers have no Authentication-Results line. Copy them from your inbox provider\'s "show original" view for the full picture.']);
+
+    // display-name tricks
+    var disp = ((fromH.match(/^\s*"((?:[^"\\]|\\.)*)"/) || fromH.match(/^\s*([^<]*?)\s*</) || [])[1] || '').trim();
+    var dispMail = (disp.match(/[^\s<>"]+@[^\s<>"]+/) || [])[0];
+    if (dispMail && dispMail.toLowerCase() !== fromA) { score += 2; flags.push(['bad', 'Fake address in the name', 'The display name shows "' + dispMail + '" but the real sender is ' + fromA + '.']); }
+    if (replyD && fromD && org(replyD) !== org(fromD)) { score += 2; flags.push(['bad', 'Replies go somewhere else', 'If you hit reply, it goes to ' + reply + ', not ' + fromA + '.']); }
+    if (rpD && fromD && org(rpD) !== org(fromD)) { score += 1; flags.push(['meh', 'Different envelope sender', 'Bounces go to ' + rpD + '. Normal for newsletters and mailing services, odd for a bank or a friend.']); }
+    if (/[0-9]/.test(fromD.replace(/\.[a-z]+$/, '')) || /xn--/.test(fromD)) { score += 1; flags.push(['meh', 'Look-alike domain?', fromD + ' contains digits or international characters, a common trick (paypa1, rnicrosoft).']); }
+    var mailer = one(h, 'x-mailer'); if (/phpmailer|swiftmailer/i.test(mailer) && score) flags.push(['meh', 'Sent by a script', 'X-Mailer says ' + mailer + '. Big companies rarely send from bulk PHP scripts.']);
+
+    // route
+    var rec = all(h, 'received').map(parseReceived).reverse();
+    var origin = rec.length ? rec[0] : null;
+    var html = rec.map(function (r, i) {
+      var prev = i ? rec[i - 1].t : null, d = r.t != null && prev != null ? delay(r.t - prev) : '';
+      var slow = r.t != null && prev != null && r.t - prev > 600000;
+      if (slow) flags.push(['meh', 'Long wait at hop ' + (i + 1), 'The message sat for ' + d + ' before ' + (r.by || 'a server') + ' took it. Usually spam filtering or a busy queue.']);
+      return '<li class="' + (i === 0 ? 'first' : '') + (i === rec.length - 1 ? ' last' : '') + '" data-ip="' + esc(r.ip) + '"><b>' + esc(r.by || 'unknown server') + '</b>' +
+        '<div class="m">from ' + esc(r.from || '?') + (r.ip ? ' [' + esc(r.ip) + (priv(r.ip) ? ', private network' : '') + ']' : '') + (r.with ? ' · ' + esc(r.with) : '') + '</div>' +
+        '<div class="m ptr"></div>' + (d ? '<span class="dl' + (slow ? ' meh' : '') + '">+' + d + '</span>' : '') + '</li>';
+    }).join('');
+    $('route').innerHTML = html || '<li><b>No "Received" lines</b><div class="m">Paste the full headers to see the route.</div></li>';
+    if (rec.length) {
+      var tot = rec[rec.length - 1].t != null && rec[0].t != null ? delay(rec[rec.length - 1].t - rec[0].t) : '';
+      if (rec.some(function (r) { return /ESMTPS|ESMTPSA|TLS/i.test(r.with); })) flags.push(['ok', 'Encrypted on the way', 'At least one hop used TLS (ESMTPS).']);
+      if (tot) flags.push(['na', rec.length + ' hops, ' + tot + ' in total', 'From the first server that wrote a timestamp to your inbox.']);
+    }
+    [].forEach.call($('route').querySelectorAll('li[data-ip]'), function (li) {
+      ptr(li.dataset.ip).then(function (n) { if (n) li.querySelector('.ptr').textContent = 'reverse name: ' + n; });
+    });
+
+    // who
+    var who = [['From', fromA], ['Display name', disp], ['Reply-To', reply], ['Return-Path', rp], ['Signed by (DKIM)', dk], ['Message-ID host', midD], ['First public IP', (rec.filter(function (r) { return r.ip && !priv(r.ip); })[0] || {}).ip], ['Subject', one(h, 'subject')], ['Date', one(h, 'date')], ['Mail program', mailer]];
+    $('who').innerHTML = who.filter(function (x) { return x[1]; }).map(function (x) { return '<dt>' + x[0] + '</dt><dd>' + esc(x[1]) + '</dd>'; }).join('');
+
+    var v = score >= 4 ? ['bad', 'Very likely spoofed or phishing', 'Several warning signs together. Don\'t click links or reply; report it as phishing.']
+      : score >= 2 ? ['meh', 'Suspicious', 'Something doesn\'t line up. Check with the sender through a channel you already trust.']
+      : A.dmarc === 'pass' || (A.spf === 'pass' && A.dkim === 'pass') ? ['ok', 'Looks genuine', 'The sender\'s domain vouched for it and the route looks normal. Still read links carefully.']
+      : ['na', 'Not enough to tell', 'Nothing alarming, but the headers don\'t prove who sent it.'];
+    $('verdict').innerHTML = '<h2 class="' + v[0] + '">' + v[1] + '</h2><p>' + v[2] + '</p>';
+    var ic = { ok: '✓', bad: '✕', meh: '!', na: '·' };
+    $('flags').innerHTML = flags.map(function (f) { return '<li><span class="' + f[0] + '">' + ic[f[0]] + '</span><span>' + esc(f[1]) + '<small>' + esc(f[2]) + '</small></span></li>'; }).join('');
+    if (innerWidth < 900) $('out').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  $('go').onclick = run;
+  $('sample').onclick = function () { $('raw').value = SAMPLE; run(); };
+})();
+</script>
+</body>
+</html>
