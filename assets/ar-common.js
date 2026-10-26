@@ -195,3 +195,10 @@ LabAr.add({
  "Paste a link from X, Discord, Instagram, TikTok, LinkedIn or Mastodon and read the exact creation time hidden in its ID.": "الصق رابطًا من X أو Discord أو Instagram أو TikTok أو LinkedIn أو Mastodon لتعرف وقت إنشائه الدقيق المخبأ في رقمه.",
  "Decode a post →": "اكشف منشورًا ←"
 });
+/* index cards for newer tools */
+LabAr.add({
+ "Tool · Home": "أداة · المنزل",
+ "Open the windows or AC?": "النوافذ أم المكيّف؟",
+ "Hour by hour for 48 hours: when outside air is cool, dry and dust-free enough to switch the AC off.": "ساعة بساعة لمدة 48 ساعة: متى يكون الهواء الخارجي باردًا وجافًا وخاليًا من الغبار لتطفئ المكيّف.",
+ "Check the air →": "افحص الهواء ←"
+});

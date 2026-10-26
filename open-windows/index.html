@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Open the Windows or AC? · Mariam's Lab</title>
+<meta name="description" content="Is the air outside cool, dry and clean enough to switch off the AC and open the windows? An hour-by-hour answer for the next 48 hours in the UAE, with the reasons and the energy you'd save.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/open-windows/">
+<meta property="og:title" content="Open the Windows or AC? · Mariam's Lab"><meta property="og:description" content="When to switch off the AC and let fresh air in, hour by hour."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.where { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin-top: 8px; }
+.verdict { padding: 20px; border-radius: var(--radius); border: 1px solid var(--line); background: rgba(7,10,24,.82); display: grid; gap: 6px; }
+.verdict b.v { font-family: var(--font-display); font-size: clamp(1.5rem, 5vw, 2.4rem); font-weight: 800; line-height: 1.1; }
+.verdict .cd { font-family: var(--font-mono); font-size: 1.1rem; }
+.verdict p { margin: 0; color: var(--muted); }
+.hstrip { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(26px, 1fr); gap: 2px; overflow-x: auto; padding-bottom: 6px; }
+.hstrip button { all: unset; box-sizing: border-box; height: 58px; border-radius: 5px; position: relative; display: flex; align-items: flex-end; justify-content: center; font-family: var(--font-mono); font-size: 0.6rem; color: rgba(0,0,0,.78); padding-bottom: 3px; cursor: pointer; }
+.hstrip button.on { outline: 2px solid var(--ink); outline-offset: 1px; }
+.hstrip button i { position: absolute; top: 4px; left: 0; right: 0; text-align: center; font-style: normal; font-weight: 600; }
+.hstrip .day { grid-row: 1; }
+.legend { display: flex; gap: 10px; flex-wrap: wrap; font-size: 0.75rem; color: var(--muted); }
+.legend span::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-inline-end: 4px; vertical-align: -1px; background: var(--c); }
+.checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.checks li { display: grid; grid-template-columns: 1.4em minmax(0, 1fr); gap: 8px; font-size: 0.9rem; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; }
+.checks li small { display: block; color: var(--muted); font-size: 0.8rem; }
+.fl { display: grid; gap: 5px; min-width: 0; }
+.fl > span { font-size: 0.84rem; color: var(--muted); }
+.fl input { font: inherit; font-family: var(--font-mono); color: var(--ink); background: rgba(7,10,24,.6); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; min-width: 0; width: 100%; }
+.duo { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.hint { font-size: 0.76rem; color: var(--muted); margin: 0; }
+.save { padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); font-size: 0.9rem; }
+.save b.n { font-family: var(--font-display); font-size: 1.6rem; color: var(--sat-b); display: block; }
+html.ar .verdict .cd, html.ar .save b.n { unicode-bidi: plaintext; }
+html.ar .hstrip { direction: ltr; }
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Weather · Home · Live</span>
+    <h1 style="font-size:var(--step-3)">Open the windows or AC?</h1>
+    <p>From November to March, UAE evenings and early mornings are often cooler outside than inside. Opening the windows then airs the house for free. This checks every hour of the next two days for cool air, dry air, clean air and no dust, and tells you when the next good window is.</p>
+  </div>
+  <div class="where" id="where"><button class="sm" type="button" id="me">📍 Use my location</button></div>
+  <p class="msg" id="msg" role="status"></p>
+  <div class="game" style="margin-top:12px">
+    <div class="panel">
+      <div class="verdict" id="verdict"><b class="v">Loading…</b></div>
+      <span class="label">Next 48 hours · tap an hour</span>
+      <div class="hstrip" id="strip"></div>
+      <div class="legend"><span style="--c:#4fd3bd">Open</span><span style="--c:#ffc857">Maybe</span><span style="--c:#ff6f7d">Keep closed</span></div>
+      <span class="label" id="hrLabel">Right now</span>
+      <ul class="checks" id="checks"></ul>
+    </div>
+    <div class="panel" id="frm">
+      <div class="duo">
+        <label class="fl"><span>Indoor temperature (°C)</span><input type="number" id="tin" min="10" max="40" step="0.5" value="24"></label>
+        <label class="fl"><span>Indoor humidity (%)</span><input type="number" id="rhin" min="5" max="100" step="1" value="50"></label>
+      </div>
+      <div class="duo">
+        <label class="fl"><span>AC power when running (kW)</span><input type="number" id="kw" min="0.3" max="20" step="0.1" value="1.8"></label>
+        <label class="fl"><span>Electricity price (AED per kWh)</span><input type="number" id="tariff" min="0" max="2" step="0.01" value="0.30"></label>
+      </div>
+      <p class="hint">A 1.5 ton split unit draws about 1.5 to 2 kW. Check your bill for your real price per kWh, which depends on your emirate and how much you use.</p>
+      <div class="save" id="save"></div>
+      <p class="fact" style="margin:0"><b>Why the dew point matters more than humidity.</b> Air at 20°C and 80% humidity sounds cool, but its dew point is 16.5°C. Air at 26°C and 70% has a dew point near 20°C. Let that in and your sofa, walls and bedding soak up the moisture, and when you close up again the AC spends its first hour drying the house instead of cooling it. Below about 18°C dew point, outside air feels fresh. Above it, it feels sticky, even if it's cooler.</p>
+      <p class="fact" style="margin:0"><b>What's approximate.</b> The weather and air quality are forecasts from Open-Meteo and the CAMS model, not a sensor on your street. A busy road, a building site or a neighbour's generator can make your air worse than the model. The energy figure assumes the AC would otherwise run about 40% of each hour; your real saving depends on your home and settings.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var KEY = 'openWin1', DUTY = 0.4;
+  var PLACES = [['Abu Dhabi', 24.4539, 54.3773], ['Dubai', 25.2048, 55.2708], ['Sharjah', 25.3463, 55.4209], ['Al Ain', 24.2075, 55.7447], ['Ajman', 25.4052, 55.5136], ['Ras Al Khaimah', 25.7895, 55.9432], ['Fujairah', 25.1288, 56.3265], ['Hatta', 24.8000, 56.1170]];
+  var COL = ['#4fd3bd', '#ffc857', '#ff6f7d'], WORD = ['Open the windows', 'Maybe, with care', 'Keep closed'];
+  var rows = null, selI = 0, nowMs = 0, name = '';
+  function n(id, d) { var v = parseFloat($(id).value); return isFinite(v) ? v : d; }
+  function pad(x) { return (x < 10 ? '0' : '') + x; }
+  function es(T) { return 6.112 * Math.exp(17.62 * T / (243.12 + T)); }
+  function dew(T, RH) { var g = Math.log(Math.max(1e-3, RH) / 100 * es(T) / 6.112); return 243.12 * g / (17.62 - g); }
+  // each check: 0 ok, 1 marginal, 2 bad
+  function judge(h, Tin, RHin) {
+    var c = [], tdIn = dew(Tin, RHin);
+    var dt = h.T - Tin;
+    c.push([dt <= -1 ? 0 : dt <= 1 ? 1 : 2, 'Temperature', h.T.toFixed(1) + '°C outside vs ' + Tin + '°C inside' + (dt <= -1 ? ', so fresh air will cool the house.' : dt <= 1 ? ', about the same, so it won\'t cool much.' : ', so opening up would heat the house.')]);
+    c.push([h.Td < 17 ? 0 : h.Td < 19 ? 1 : 2, 'Moisture', 'Dew point ' + h.Td.toFixed(1) + '°C outside' + (h.Td < 17 ? ', dry and fresh.' : h.Td < 19 ? ', borderline. It may feel a bit muggy.' : ', muggy. It would bring damp into the house.') + (h.Td > tdIn + 2 && h.Td >= 17 ? ' Yours inside is ' + tdIn.toFixed(1) + '°C.' : '')]);
+    if (h.pm25 != null) {
+      var a = h.pm25 <= 25 && h.pm10 <= 75 ? 0 : h.pm25 <= 50 && h.pm10 <= 150 ? 1 : 2;
+      c.push([a, 'Air quality', 'PM2.5 ' + Math.round(h.pm25) + ' and PM10 ' + Math.round(h.pm10) + ' µg/m³' + ['. Clean enough.', '. Moderate; skip it if anyone has asthma.', '. Polluted. Keep the windows shut.'][a]]);
+      var d = h.dust <= 30 ? 0 : h.dust <= 80 ? 1 : 2;
+      c.push([d, 'Dust', Math.round(h.dust) + ' µg/m³ of desert dust' + ['. Fine.', '. Some dust in the air; expect a film on surfaces.', '. Dusty. You\'d be cleaning sand off the floor.'][d]]);
+    } else c.push([1, 'Air quality', 'Unavailable right now, so check for haze before opening up.']);
+    var w = h.wind == null ? 0 : h.wind <= 30 ? 0 : h.wind <= 45 ? 1 : 2;
+    c.push([w, 'Wind', (h.wind == null ? '?' : Math.round(h.wind)) + ' km/h' + ['. Fine.', '. Breezy, may blow papers around.', '. Strong enough to lift sand.'][w]]);
+    var lvl = Math.max.apply(null, c.map(function (x) { return x[0]; }));
+    return { lvl: lvl, c: c };
+  }
+  window.WindowMath = { judge: judge, dew: dew };
+  function get(u) { return fetch(u).then(function (r) { if (!r.ok) throw 0; return r.json(); }); }
+  function load(lat, lon, nm) {
+    name = nm; $('msg').textContent = 'Fetching the forecast for ' + nm + '…';
+    var w = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon + '&hourly=temperature_2m,dew_point_2m,wind_speed_10m&timezone=auto&forecast_days=3';
+    var a = 'https://air-quality-api.open-meteo.com/v1/air-quality?latitude=' + lat + '&longitude=' + lon + '&hourly=pm2_5,pm10,dust&timezone=auto&forecast_days=3';
+    Promise.all([get(w), get(a).catch(function () { return null; })]).then(function (r) {
+      var W = r[0].hourly, A = r[1] && r[1].hourly, off = r[0].utc_offset_seconds || 0, all = [];
+      W.time.forEach(function (t, i) {
+        var j = A ? A.time.indexOf(t) : -1;
+        if (W.temperature_2m[i] == null) return;
+        all.push({ t: t, ms: Date.parse(t + ':00Z') - off * 1000, T: W.temperature_2m[i], Td: W.dew_point_2m[i], wind: W.wind_speed_10m[i], pm25: j >= 0 ? A.pm2_5[j] : null, pm10: j >= 0 ? A.pm10[j] : null, dust: j >= 0 ? A.dust[j] : null });
+      });
+      var k = 0; all.forEach(function (h, i) { if (h.ms <= Date.now()) k = i; });
+      rows = all.slice(k, k + 48); selI = 0;
+      $('msg').textContent = nm + (A ? '' : ' · air quality is unavailable right now');
+      render();
+    }).catch(function () { $('msg').textContent = 'Couldn\'t reach the forecast service. Check your connection and try again.'; $('verdict').innerHTML = '<b class="v">No data</b>'; });
+  }
+  function hh(t) { return t.slice(11, 13); }
+  function dayWord(t) { return t.slice(0, 10) === rows[0].t.slice(0, 10) ? 'today' : t.slice(0, 10) === new Date(Date.parse(rows[0].t.slice(0, 10) + 'T00:00Z') + 864e5).toISOString().slice(0, 10) ? 'tomorrow' : 'on ' + new Date(t.slice(0, 10) + 'T12:00Z').toLocaleDateString('en-GB', { weekday: 'long', timeZone: 'UTC' }); }
+  var win = null;
+  function render() {
+    if (!rows) return;
+    save();
+    var Tin = n('tin', 24), RHin = Math.max(1, Math.min(100, n('rhin', 50)));
+    rows.forEach(function (h) { h.j = judge(h, Tin, RHin); });
+    // next run of "open" hours
+    win = null;
+    for (var i = 0; i < rows.length; i++) if (rows[i].j.lvl === 0) { var e = i; while (e + 1 < rows.length && rows[e + 1].j.lvl === 0) e++; win = { a: i, b: e }; break; }
+    var openH = rows.filter(function (h) { return h.j.lvl === 0; }).length;
+    $('strip').innerHTML = rows.map(function (h, i) { return '<button type="button" data-i="' + i + '" class="' + (i === selI ? 'on' : '') + '" style="background:' + COL[h.j.lvl] + '" title="' + h.t.slice(11, 16) + ' ' + WORD[h.j.lvl] + '" aria-label="' + h.t.slice(11, 16) + ' ' + dayWord(h.t) + ': ' + WORD[h.j.lvl] + '"><i>' + Math.round(h.T) + '°</i>' + (i === 0 ? 'now' : hh(h.t)) + '</button>'; }).join('');
+    var kwh = openH * n('kw', 1.8) * DUTY;
+    $('save').innerHTML = '<span class="label">If you use every open hour</span><b class="n">≈ ' + kwh.toFixed(1) + ' kWh</b>' + openH + ' hour' + (openH === 1 ? '' : 's') + ' with the AC off in the next 48, worth about AED ' + (kwh * n('tariff', 0.3)).toFixed(2) + '. Small per day, but it adds up across a whole winter of evenings, and the house smells fresher too.';
+    tick(); showHour(selI);
+  }
+  function tick() {
+    if (!rows) return;
+    var v = $('verdict'), now = Date.now();
+    if (!win) { v.style.borderColor = COL[2]; v.innerHTML = '<span class="label">Next good window</span><b class="v" style="color:' + COL[2] + '">Keep the AC on</b><p><span>No hour in the next 48 passes every check.</span> ' + topReason() + '</p>'; return; }
+    var a = rows[win.a], b = rows[win.b], endMs = b.ms + 3600e3;
+    if (a.ms <= now) {
+      var left = Math.max(0, Math.round((endMs - now) / 60000));
+      v.style.borderColor = COL[0];
+      v.innerHTML = '<span class="label">Right now</span><b class="v" style="color:' + COL[0] + '">Open the windows</b><span class="cd">until about ' + b.t.slice(11, 13) + ':59 · ' + Math.floor(left / 60) + 'h ' + pad(left % 60) + 'm left</span><p>Cooler, dry, clean air outside. Switch the AC off and let it in.</p>';
+    } else {
+      var s = Math.max(0, Math.round((a.ms - now) / 1000));
+      v.style.borderColor = COL[0];
+      v.innerHTML = '<span class="label">Next good window</span><b class="v" style="color:' + COL[0] + '">' + a.t.slice(11, 16) + ' to ' + pad((+b.t.slice(11, 13) + 1) % 24) + ':00 ' + dayWord(a.t) + '</b><span class="cd">starts in ' + Math.floor(s / 3600) + 'h ' + pad(Math.floor(s % 3600 / 60)) + 'm ' + pad(s % 60) + 's</span><p><span>Keep the windows shut until then.</span> ' + topReason() + '</p>';
+    }
+  }
+  function topReason() { var h = rows[0], bad = h.j.c.filter(function (x) { return x[0] === h.j.lvl && x[0] > 0; }); return bad.length ? '<span>Right now:</span> ' + bad.map(function (x) { return '<span>' + x[2] + '</span>'; }).join(' ') : ''; }
+  function showHour(i) {
+    var h = rows[i]; if (!h) return; selI = i;
+    [].forEach.call(document.querySelectorAll('#strip button'), function (b) { b.className = +b.dataset.i === i ? 'on' : ''; });
+    $('hrLabel').textContent = (i === 0 ? 'Right now' : h.t.slice(11, 16) + ' ' + dayWord(h.t)) + ' · ' + WORD[h.j.lvl];
+    $('checks').innerHTML = h.j.c.map(function (x) { return '<li><span style="color:' + COL[x[0]] + '">' + ['✓', '~', '✕'][x[0]] + '</span><span>' + x[1] + '<small>' + x[2] + '</small></span></li>'; }).join('');
+  }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify({ tin: $('tin').value, rhin: $('rhin').value, kw: $('kw').value, tariff: $('tariff').value })); } catch (e) {} }
+  try { var s0 = JSON.parse(localStorage.getItem(KEY) || 'null'); if (s0) ['tin', 'rhin', 'kw', 'tariff'].forEach(function (k) { if (s0[k]) $(k).value = s0[k]; }); } catch (e) {}
+  $('strip').addEventListener('click', function (e) { var b = e.target.closest('[data-i]'); if (b) showHour(+b.dataset.i); });
+  $('frm').addEventListener('input', render);
+  setInterval(tick, 1000);
+  PLACES.forEach(function (p, i) {
+    var b = document.createElement('button'); b.className = 'sm'; b.type = 'button'; b.textContent = p[0]; b.setAttribute('aria-pressed', 'false');
+    b.onclick = function () { pick(b); load(p[1], p[2], p[0]); try { localStorage.setItem('openWinPlace', i); } catch (e) {} };
+    $('where').appendChild(b);
+  });
+  function pick(b) { [].forEach.call(document.querySelectorAll('#where .sm'), function (x) { x.setAttribute('aria-pressed', x === b); }); }
+  $('me').onclick = function () {
+    if (!navigator.geolocation) { $('msg').textContent = 'Your browser can\'t share a location.'; return; }
+    $('msg').textContent = 'Asking for your location…';
+    navigator.geolocation.getCurrentPosition(function (p) { pick($('me')); load(p.coords.latitude.toFixed(3), p.coords.longitude.toFixed(3), 'Your location'); }, function () { $('msg').textContent = 'Location was not shared. Pick a city instead.'; }, { maximumAge: 6e5, timeout: 10000 });
+  };
+  var i0 = 1; try { var s = localStorage.getItem('openWinPlace'); if (s != null && PLACES[+s]) i0 = +s; } catch (e) {}
+  document.querySelectorAll('#where .sm')[i0 + 1].click();
+})();
+</script>
+</body>
+</html>
