@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Password Generator · Mariam's Lab</title>
+<meta name="description" content="Make strong passwords or passphrases with rules you choose: length, character sets, look-alikes, required characters. Generated on your device with a secure random source.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/password/">
+<meta property="og:title" content="Password Generator · Mariam's Lab"><meta property="og:description" content="Passwords and passphrases with your own rules, made on your device."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm:hover { border-color: var(--muted); }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.ctrls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.out { position: relative; padding: 18px; border-radius: var(--radius); border: 1px solid var(--line); background: rgba(7, 10, 24, 0.82); }
+.pw { font-family: var(--font-mono); font-size: clamp(1.05rem, 2.6vw, 1.5rem); line-height: 1.45; word-break: break-all; min-height: 2.9em; user-select: all; }
+.pw .d { color: var(--sat-a); } .pw .s { color: var(--sat-c); }
+.outacts { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.meter { height: 8px; border-radius: 99px; background: var(--line); overflow: hidden; margin-top: 16px; }
+.meter i { display: block; height: 100%; width: 0; border-radius: inherit; transition: width .25s ease, background .25s ease; }
+.verdict { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 8px; font-size: 0.88rem; color: var(--muted); }
+.verdict b { color: var(--ink); }
+.rules { display: grid; gap: 14px; }
+.field { display: grid; gap: 6px; }
+.field > span { font-size: 0.85rem; color: var(--muted); }
+.lenrow { display: flex; gap: 10px; align-items: center; }
+.lenrow input[type=range] { flex: 1; min-width: 0; accent-color: var(--accent); }
+.num { width: 4.5em; font: inherit; font-family: var(--font-mono); color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 8px; padding: 5px 8px; }
+.txt { width: 100%; font: inherit; font-family: var(--font-mono); font-size: 0.9rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; }
+.chk { display: flex; gap: 10px; align-items: flex-start; font-size: 0.92rem; cursor: pointer; }
+.chk input { accent-color: var(--accent); width: 18px; height: 18px; margin: 2px 0 0; flex: none; }
+.chk small { display: block; color: var(--muted); font-size: 0.8rem; }
+.sets { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.more { display: grid; gap: 10px; }
+.batch { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.batch li { display: flex; gap: 10px; align-items: center; justify-content: space-between; padding: 8px 12px; border: 1px solid var(--line); border-radius: 10px; font-family: var(--font-mono); font-size: 0.85rem; }
+.batch li span { word-break: break-all; min-width: 0; }
+.msg { font-size: 0.85rem; color: var(--sat-c); min-height: 1.2em; }
+[hidden] { display: none !important; }
+@media (max-width: 520px) { .sets { grid-template-columns: minmax(0, 1fr); } }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Security</span>
+    <h1 style="font-size:var(--step-3)">Password generator.</h1>
+    <p>Set the rules a site asks for, or your own, and get a password that follows them. Everything is made on your device with the browser's secure random source. Nothing is sent or stored anywhere.</p>
+  </div>
+  <div class="game">
+    <div>
+      <div class="ctrls" role="group" aria-label="Kind" style="margin-bottom:12px">
+        <button class="sm" type="button" data-mode="chars" aria-pressed="true">Password</button>
+        <button class="sm" type="button" data-mode="words" aria-pressed="false">Passphrase</button>
+      </div>
+      <div class="out">
+        <div class="pw" id="pw" aria-live="polite"></div>
+        <div class="meter" aria-hidden="true"><i id="bar"></i></div>
+        <div class="verdict"><span id="verdict">—</span><span id="bits">—</span></div>
+        <div class="outacts">
+          <button class="btn primary" type="button" id="copy">Copy</button>
+          <button class="btn ghost" type="button" id="again">New one</button>
+          <button class="btn ghost" type="button" id="five">Give me 5</button>
+        </div>
+      </div>
+      <p class="msg" id="msg" role="status" style="margin-top:10px"></p>
+      <ul class="batch" id="batch" aria-label="More passwords"></ul>
+      <div class="stats" style="margin-top:14px">
+        <div><span class="label">Fast attacker</span><b id="tFast" style="font-size:1rem">—</b></div>
+        <div><span class="label">Slow attacker</span><b id="tSlow" style="font-size:1rem">—</b></div>
+        <div><span class="label">Possible</span><b id="tPool" style="font-size:1rem">—</b></div>
+      </div>
+    </div>
+    <div class="panel rules">
+      <div class="ctrls" role="group" aria-label="Presets">
+        <button class="sm" type="button" data-preset="strong">Strong</button>
+        <button class="sm" type="button" data-preset="wifi">Wi-Fi friendly</button>
+        <button class="sm" type="button" data-preset="strict">Picky website</button>
+        <button class="sm" type="button" data-preset="pin">PIN</button>
+        <button class="sm" type="button" data-preset="phrase">Memorable</button>
+      </div>
+
+      <div id="charRules" class="rules">
+        <label class="field"><span>Length</span>
+          <span class="lenrow"><input type="range" id="len" min="4" max="64" value="20" aria-label="Length"><input class="num" type="number" id="lenN" min="4" max="128" value="20" aria-label="Length, exact"></span>
+        </label>
+        <div class="sets">
+          <label class="chk"><input type="checkbox" id="up" checked><span>A–Z<small>capital letters</small></span></label>
+          <label class="chk"><input type="checkbox" id="lo" checked><span>a–z<small>small letters</small></span></label>
+          <label class="chk"><input type="checkbox" id="di" checked><span>0–9<small>digits</small></span></label>
+          <label class="chk"><input type="checkbox" id="sy" checked><span>Symbols<small>edit the list below</small></span></label>
+        </div>
+        <label class="field"><span>Symbols allowed</span><input class="txt" id="syms" value="!@#$%^&amp;*-_=+?" spellcheck="false" autocomplete="off"></label>
+        <div class="more">
+          <label class="chk"><input type="checkbox" id="each" checked><span>At least one of each ticked kind</span></label>
+          <label class="chk"><input type="checkbox" id="amb"><span>Avoid look-alikes<small>no I l 1 | O 0 o, easier to read out or type on a TV</small></span></label>
+          <label class="chk"><input type="checkbox" id="first"><span>Start with a letter</span></label>
+          <label class="chk"><input type="checkbox" id="norep"><span>No same character twice in a row</span></label>
+          <label class="chk"><input type="checkbox" id="uniq"><span>Never repeat a character</span></label>
+        </div>
+        <label class="field"><span>Never use these characters</span><input class="txt" id="excl" placeholder="e.g. &quot;'\`" spellcheck="false" autocomplete="off"></label>
+        <label class="field"><span>Also allow these characters</span><input class="txt" id="incl" placeholder="optional" spellcheck="false" autocomplete="off"></label>
+      </div>
+
+      <div id="wordRules" class="rules" hidden>
+        <label class="field"><span>Words</span>
+          <span class="lenrow"><input type="range" id="wc" min="3" max="12" value="5" aria-label="Number of words"><b id="wcN" class="mono">5</b></span>
+        </label>
+        <label class="field"><span>Between words</span>
+          <select class="txt" id="sep"><option value="-">dash  -</option><option value=" ">space</option><option value=".">dot  .</option><option value="_">underscore  _</option><option value="">nothing</option><option value="digit">a random digit</option></select>
+        </label>
+        <label class="chk"><input type="checkbox" id="cap" checked><span>Capitalise each word</span></label>
+        <label class="chk"><input type="checkbox" id="addN" checked><span>Add a number at the end</span></label>
+        <label class="chk"><input type="checkbox" id="addS"><span>Add a symbol at the end</span></label>
+        <label class="field"><span>Shortest and longest word allowed</span>
+          <span class="lenrow"><input class="num" type="number" id="wmin" min="3" max="9" value="3" aria-label="Shortest word"><span>to</span><input class="num" type="number" id="wmax" min="3" max="9" value="9" aria-label="Longest word"></span>
+        </label>
+      </div>
+      <p class="fact">"Fast attacker" assumes a stolen database with a quick hash and a rig trying ten billion guesses a second. "Slow attacker" assumes a properly slow hash at ten thousand a second. Times are for trying half of all possibilities. Your rules are remembered on this device only.</p>
+      <p class="credit" style="font-size:0.8rem;color:var(--muted)">Passphrase words: EFF large wordlist (CC BY 3.0 US).</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var SETS = { up: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', lo: 'abcdefghijklmnopqrstuvwxyz', di: '0123456789' };
+  var AMB = 'Il1|O0o';
+  var words = null, mode = 'chars', current = '';
+  var ids = ['len', 'lenN', 'up', 'lo', 'di', 'sy', 'syms', 'each', 'amb', 'first', 'norep', 'uniq', 'excl', 'incl', 'wc', 'sep', 'cap', 'addN', 'addS', 'wmin', 'wmax'];
+
+  // uniform integer in [0, n) without modulo bias
+  function rnd(n) {
+    if (n <= 1) return 0;
+    var lim = Math.floor(4294967296 / n) * n, b = new Uint32Array(1);
+    do crypto.getRandomValues(b); while (b[0] >= lim);
+    return b[0] % n;
+  }
+  function uniq(s) { return Array.from(new Set(Array.from(s))).join(''); }
+  function clean(s) {
+    var ex = $('excl').value + ($('amb').checked ? AMB : '');
+    return Array.from(s).filter(function (c) { return ex.indexOf(c) < 0 && c.trim(); }).join('');
+  }
+  function groups() {
+    var g = [];
+    ['up', 'lo', 'di'].forEach(function (k) { if ($(k).checked) g.push(clean(SETS[k])); });
+    if ($('sy').checked) g.push(clean(uniq($('syms').value)));
+    var inc = clean(uniq($('incl').value));
+    return { req: g.filter(function (x) { return x.length; }), extra: inc };
+  }
+  function makeChars() {
+    var G = groups(), pool = uniq(G.req.join('') + G.extra), n = +$('lenN').value;
+    var letters = Array.from(pool).filter(function (c) { return /\p{L}/u.test(c); }).join('');
+    if (!pool) return { err: 'Tick at least one kind of character.' };
+    if ($('first').checked && !letters) return { err: '"Start with a letter" needs letters in the mix.' };
+    if ($('uniq').checked && n > pool.length) return { err: 'Only ' + pool.length + ' different characters are allowed, so a ' + n + '-character password would have to repeat one.' };
+    if ($('each').checked && G.req.length > n) return { err: 'Too short to fit one of each kind.' };
+    if ($('norep').checked && pool.length < 2 && n > 1) return { err: 'Need at least two characters to avoid repeats.' };
+    for (var tries = 0; tries < 5000; tries++) {
+      var out = [], used = {};
+      for (var i = 0; i < n; i++) {
+        var p = i === 0 && $('first').checked ? letters : pool;
+        var opts = Array.from(p).filter(function (c) {
+          if ($('uniq').checked && used[c]) return false;
+          if ($('norep').checked && out.length && out[out.length - 1] === c) return false;
+          return true;
+        });
+        var c = opts[rnd(opts.length)]; out.push(c); used[c] = 1;
+      }
+      var ok = !$('each').checked || G.req.every(function (g) { return out.some(function (c) { return g.indexOf(c) >= 0; }); });
+      if (ok) return { pw: out.join(''), bits: charBits(pool.length, letters.length, n) };
+    }
+    return { err: 'These rules are too tight to satisfy. Loosen one.' };
+  }
+  function charBits(P, L, n) {
+    var b = 0;
+    for (var i = 0; i < n; i++) {
+      var k = i === 0 && $('first').checked ? L : P;
+      if ($('uniq').checked) k = Math.max(1, k - i); else if ($('norep').checked && i > 0) k = Math.max(1, k - 1);
+      b += Math.log2(k);
+    }
+    return b;
+  }
+  function wordList() {
+    var lo = +$('wmin').value, hi = +$('wmax').value;
+    return words.filter(function (w) { return w.length >= lo && w.length <= hi && /^[a-z]+$/.test(w); });
+  }
+  function makeWords() {
+    if (!words) return { err: 'Loading words…' };
+    var list = wordList(), k = +$('wc').value, sep = $('sep').value, parts = [], bits = 0;
+    if (list.length < 50) return { err: 'Allow a wider range of word lengths.' };
+    for (var i = 0; i < k; i++) {
+      var w = list[rnd(list.length)];
+      if ($('cap').checked) w = w[0].toUpperCase() + w.slice(1);
+      parts.push(w); bits += Math.log2(list.length);
+    }
+    var out = parts[0];
+    for (var j = 1; j < parts.length; j++) {
+      if (sep === 'digit') { out += rnd(10); bits += Math.log2(10); } else out += sep;
+      out += parts[j];
+    }
+    if ($('addN').checked) { out += rnd(10); bits += Math.log2(10); }
+    if ($('addS').checked) { var S = '!@#$%&*?'; out += S[rnd(S.length)]; bits += 3; }
+    return { pw: out, bits: bits };
+  }
+  function make() { return mode === 'chars' ? makeChars() : makeWords(); }
+  function esc(s) { return s.replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function paint(s) {
+    return Array.from(s).map(function (c) { var e = esc(c); return /[0-9]/.test(c) ? '<span class="d">' + e + '</span>' : /[\p{L}]/u.test(c) || c === ' ' ? e : '<span class="s">' + e + '</span>'; }).join('');
+  }
+  function dur(sec) {
+    if (sec < 1) return 'instantly';
+    var u = [[31557600e9, 'billion years'], [31557600e6, 'million years'], [31557600e3, 'thousand years'], [31557600, 'years'], [86400, 'days'], [3600, 'hours'], [60, 'minutes'], [1, 'seconds']];
+    for (var i = 0; i < u.length; i++) if (sec >= u[i][0]) { var v = sec / u[i][0]; if (i === 0 && v >= 1000) return 'longer than the universe'; return (v < 10 ? v.toFixed(1) : Math.round(v).toLocaleString('en')) + ' ' + u[i][1]; }
+  }
+  function big(bits) {
+    if (bits < 40) return Math.round(Math.pow(2, bits)).toLocaleString('en');
+    var e = bits * Math.LOG10E * Math.LN2; return '10<sup>' + Math.floor(e) + '</sup>';
+  }
+  function gen() {
+    var r = make();
+    $('batch').innerHTML = '';
+    if (r.err) { $('msg').textContent = r.err; $('pw').textContent = ''; current = ''; score(0); return; }
+    $('msg').textContent = ''; current = r.pw; $('pw').innerHTML = paint(r.pw); score(r.bits);
+  }
+  function score(bits) {
+    var lv = bits < 40 ? [0, 'Weak', 'var(--sat-c)'] : bits < 60 ? [1, 'Fair', 'var(--accent)'] : bits < 80 ? [2, 'Strong', 'var(--sat-b)'] : [3, 'Very strong', 'var(--sat-b)'];
+    $('bar').style.width = Math.min(100, bits / 128 * 100) + '%'; $('bar').style.background = lv[2];
+    $('verdict').innerHTML = bits ? '<b>' + lv[1] + '</b>' : '—';
+    $('bits').textContent = bits ? Math.round(bits) + ' bits of randomness' : '—';
+    var half = Math.pow(2, bits - 1);
+    $('tFast').textContent = bits ? dur(half / 1e10) : '—';
+    $('tSlow').textContent = bits ? dur(half / 1e4) : '—';
+    $('tPool').innerHTML = bits ? big(bits) : '—';
+  }
+  function save() {
+    var o = { mode: mode };
+    ids.forEach(function (k) { var e = $(k); o[k] = e.type === 'checkbox' ? e.checked : e.value; });
+    try { localStorage.setItem('pwRules', JSON.stringify(o)); } catch (e) {}
+  }
+  function load() {
+    try { var o = JSON.parse(localStorage.getItem('pwRules') || 'null'); if (!o) return; ids.forEach(function (k) { if (k in o) { var e = $(k); if (e.type === 'checkbox') e.checked = o[k]; else e.value = o[k]; } }); setMode(o.mode || 'chars', true); } catch (e) {}
+  }
+  function setMode(m, quiet) {
+    mode = m;
+    [].forEach.call(document.querySelectorAll('[data-mode]'), function (b) { b.setAttribute('aria-pressed', b.dataset.mode === m); });
+    $('charRules').hidden = m !== 'chars'; $('wordRules').hidden = m !== 'words';
+    if (!quiet) { save(); gen(); }
+  }
+  var PRESETS = {
+    strong: { mode: 'chars', len: 20, up: 1, lo: 1, di: 1, sy: 1, each: 1, amb: 0, first: 0, norep: 0, uniq: 0, excl: '', incl: '' },
+    wifi: { mode: 'chars', len: 16, up: 1, lo: 1, di: 1, sy: 0, each: 1, amb: 1, first: 0, norep: 1, uniq: 0, excl: '', incl: '' },
+    strict: { mode: 'chars', len: 12, up: 1, lo: 1, di: 1, sy: 1, syms: '!@#$%&*?', each: 1, amb: 1, first: 1, norep: 1, uniq: 0, excl: '', incl: '' },
+    pin: { mode: 'chars', len: 6, up: 0, lo: 0, di: 1, sy: 0, each: 0, amb: 0, first: 0, norep: 1, uniq: 0, excl: '', incl: '' },
+    phrase: { mode: 'words', wc: 5, sep: '-', cap: 1, addN: 1, addS: 0 }
+  };
+  [].forEach.call(document.querySelectorAll('[data-preset]'), function (b) {
+    b.onclick = function () {
+      var p = PRESETS[b.dataset.preset];
+      Object.keys(p).forEach(function (k) {
+        if (k === 'mode') return;
+        var e = $(k); if (e.type === 'checkbox') e.checked = !!p[k]; else e.value = p[k];
+      });
+      if ('len' in p) $('lenN').value = p.len;
+      if ('wc' in p) $('wcN').textContent = p.wc;
+      setMode(p.mode);
+    };
+  });
+  [].forEach.call(document.querySelectorAll('[data-mode]'), function (b) { b.onclick = function () { setMode(b.dataset.mode); }; });
+  $('len').addEventListener('input', function () { $('lenN').value = this.value; save(); gen(); });
+  $('lenN').addEventListener('input', function () { var v = Math.max(4, Math.min(128, +this.value || 4)); if (+this.value >= 4) { $('len').value = Math.min(64, v); save(); gen(); } });
+  $('lenN').addEventListener('change', function () { this.value = Math.max(4, Math.min(128, +this.value || 4)); save(); gen(); });
+  $('wc').addEventListener('input', function () { $('wcN').textContent = this.value; save(); gen(); });
+  ids.forEach(function (k) { if (k === 'len' || k === 'lenN' || k === 'wc') return; $(k).addEventListener(($(k).type === 'checkbox' || $(k).tagName === 'SELECT') ? 'change' : 'input', function () { save(); gen(); }); });
+  $('again').onclick = gen;
+  $('five').onclick = function () {
+    var html = '';
+    for (var i = 0; i < 5; i++) { var r = make(); if (r.err) break; html += '<li><span>' + esc(r.pw) + '</span><button class="sm" type="button" data-c="' + esc(r.pw) + '">Copy</button></li>'; }
+    $('batch').innerHTML = html;
+  };
+  function copy(t, btn) {
+    if (!t) return;
+    var done = function () { var o = btn.textContent; btn.textContent = 'Copied'; setTimeout(function () { btn.textContent = o; }, 1200); };
+    if (navigator.clipboard) navigator.clipboard.writeText(t).then(done, function () { $('msg').textContent = 'Copy was blocked. Select the text and copy it yourself.'; });
+  }
+  $('copy').onclick = function () { copy(current, this); };
+  $('batch').addEventListener('click', function (e) { var b = e.target.closest('[data-c]'); if (b) copy(b.dataset.c, b); });
+  load(); $('wcN').textContent = $('wc').value; $('len').value = Math.min(64, +$('lenN').value);
+  gen();
+  fetch('../assets/words/eff-large.txt').then(function (r) { return r.text(); }).then(function (t) { words = t.split('\n').map(function (w) { return w.trim(); }).filter(Boolean); if (mode === 'words') gen(); });
+})();
+</script>
+</body>
+</html>
