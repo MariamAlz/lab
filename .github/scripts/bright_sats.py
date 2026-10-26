@@ -40,7 +40,12 @@ def main():
         sl = list(tles(get("https://celestrak.org/NORAD/elements/gp.php?GROUP=starlink&FORMAT=tle")))
         print(len(sl), "Starlink elements")
         low = [(n, l1, l2) for n, l1, l2 in sl if float(l2[52:63]) > 15.45]
-        launches = sorted({l1[9:14] for n, l1, l2 in low}, reverse=True)[:4]
+        # A train is a launch with several satellites still low together; single low
+        # satellites are usually old ones re-entering, not a visible line.
+        count = {}
+        for n, l1, l2 in low:
+            count[l1[9:14]] = count.get(l1[9:14], 0) + 1
+        launches = sorted([k for k, c in count.items() if c >= 5], reverse=True)[:4]
         for n, l1, l2 in low:
             if l1[9:14] in launches:
                 trains.append({"name": n, "launch": l1[9:14].strip(), "tle1": l1, "tle2": l2})
