@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Home First-Aid Kit Check · Mariam's Lab</title>
+<meta name="description" content="Check your home first-aid kit for UAE life: a kit list for your household, expiry tracking, a shopping list, a medicines cabinet with heat warnings, and a quick what-to-do guide for heat stroke, burns, choking, stings and more.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/first-aid/">
+<meta property="og:title" content="Home First-Aid Kit Check · Mariam's Lab"><meta property="og:description" content="A UAE first-aid kit list, expiry tracker and quick emergency guide."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.85rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 13px; cursor: pointer; }
+.sm[aria-pressed="true"], .sm.pri { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.sm.miss[aria-pressed="true"] { background: var(--sat-c); border-color: var(--sat-c); }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: 0.9rem; }
+.row input, .row select { font: inherit; color: var(--ink); background: rgba(7,10,24,.6); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; max-width: 13em; }
+html[data-theme="light"] .row input, html[data-theme="light"] .row select, html[data-theme="light"] .kit input, html[data-theme="light"] .shop { background: #fff; }
+.flags { display: flex; gap: 6px; flex-wrap: wrap; }
+.flags label { display: inline-flex; gap: 6px; align-items: center; font-size: 0.86rem; padding: 6px 11px; border: 1px solid var(--line); border-radius: 10px; cursor: pointer; }
+.flags input { accent-color: var(--accent); }
+.acts { display: flex; gap: 6px; flex-wrap: wrap; }
+.msg { font-size: 0.86rem; color: var(--muted); margin: 0; }
+.grp { font-size: 1.05rem; margin: 14px 0 6px; }
+.kit { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.kit li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); font-size: 0.88rem; align-items: center; }
+.kit li.h { border-color: color-mix(in srgb, var(--sat-b) 50%, transparent); }
+.kit li.m { border-color: color-mix(in srgb, var(--sat-c) 55%, transparent); }
+.kit small { display: block; color: var(--muted); }
+.kit .ctl { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+.kit input[type=date] { font: inherit; font-size: 0.8rem; color: var(--ink); background: rgba(7,10,24,.6); border: 1px solid var(--line); border-radius: 8px; padding: 4px 6px; }
+.flag { font-family: var(--font-mono); font-size: 0.74rem; }
+.flag.x { color: var(--sat-c); } .flag.s { color: var(--accent); }
+.att { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 0.88rem; }
+.att li { display: flex; justify-content: space-between; gap: 10px; border-bottom: 1px solid var(--line); padding: 5px 0; }
+.shop { width: 100%; box-sizing: border-box; min-height: 120px; font: inherit; font-size: 0.86rem; color: var(--ink); background: rgba(7,10,24,.6); border: 1px solid var(--line); border-radius: 10px; padding: 10px; resize: vertical; }
+.note { padding: 12px 14px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent); background: color-mix(in srgb, var(--accent) 8%, transparent); font-size: 0.88rem; }
+.warnb { border-color: color-mix(in srgb, var(--sat-c) 55%, transparent); background: color-mix(in srgb, var(--sat-c) 9%, transparent); }
+.aids { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
+.aid { padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); font-size: 0.88rem; display: grid; gap: 8px; align-content: start; }
+.aid h3 { margin: 0; font-size: 1.05rem; }
+.aid ol { margin: 0; padding-left: 20px; display: grid; gap: 3px; }
+.aid .call { color: var(--sat-c); font-weight: 600; }
+.aid .dont { color: var(--muted); }
+.nums { display: flex; gap: 10px; flex-wrap: wrap; }
+.nums div { padding: 10px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); font-size: 0.85rem; }
+.nums b { font-family: var(--font-display); font-size: 1.5rem; display: block; }
+.meds { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.meds li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); font-size: 0.88rem; }
+.meds small { grid-column: 1 / -1; color: var(--muted); }
+.meds .hot { grid-column: 1 / -1; color: var(--sat-c); font-size: 0.82rem; }
+.wrapx { overflow-wrap: anywhere; }
+section.pg[hidden] { display: none; }
+@media (min-width: 861px) { #side { position: sticky; top: 80px; } }
+@media (max-width: 860px) { #side { order: -1; } }
+@media (max-width: 560px) { .kit li { grid-template-columns: minmax(0, 1fr); } .kit .ctl { justify-content: flex-start; } }
+.pcl { display: none; }
+@media print {
+  .labbar, .labfoot, .noprint, .sec-head p, section.pg { display: none !important; }
+  html, body { background: #fff !important; color: #000 !important; }
+  * { color: #000 !important; text-shadow: none !important; box-shadow: none !important; backdrop-filter: none !important; }
+  .labmain { padding: 0; }
+  .pcl { display: block !important; }
+  .pcl table { width: 100%; border-collapse: collapse; font-size: 10pt; }
+  .pcl th, .pcl td { border: 1px solid #999; padding: 3px 6px; text-align: left; }
+  .pcl h2 { font-size: 13pt; margin: 10px 0 4px; }
+}
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Health · UAE · Checklist</span>
+    <h1 style="font-size:var(--step-3)">Home first-aid kit check.</h1>
+    <p>Most home kits are a box of old plasters and a painkiller that expired two summers ago. This page gives you a kit list for your household and the UAE climate, tracks what you have and when it expires, and turns the gaps into a shopping list. There is also a quick guide for common emergencies, to read now rather than during one.</p>
+  </div>
+
+  <div class="nums noprint" style="margin-bottom:16px"><div><b>998</b>Ambulance</div><div><b>999</b>Police</div><div><b>997</b>Civil Defence (fire)</div></div>
+
+  <div class="acts noprint" role="tablist"><button class="sm" type="button" data-t="kit" aria-pressed="true">My kit</button><button class="sm" type="button" data-t="meds" aria-pressed="false">Medicines cabinet</button><button class="sm" type="button" data-t="guide" aria-pressed="false">What to do</button></div>
+
+  <section class="pg" id="p-kit" style="margin-top:16px">
+    <div class="game">
+      <div class="panel" style="display:grid;gap:10px;align-content:start;min-width:0">
+        <span class="label">Who is the kit for?</span>
+        <div class="flags" id="hh">
+          <label><input type="checkbox" data-h="kids"> Kids</label>
+          <label><input type="checkbox" data-h="eld"> Older relatives</label>
+          <label><input type="checkbox" data-h="pets"> Pets</label>
+          <label><input type="checkbox" data-h="car"> Car kit</label>
+          <label><input type="checkbox" data-h="desert"> Desert trips and camping</label>
+        </div>
+        <p class="msg">Hot-climate items are always included. Mark each item as have or missing, and add the expiry date printed on the pack.</p>
+        <div id="kit"></div>
+      </div>
+      <div class="panel" style="display:grid;gap:12px;align-content:start;min-width:0" id="side">
+        <div class="stats"><div><b id="sHave">0/0</b><span>items you have</span></div><div><b id="sExp">0</b><span>expired</span></div><div><b id="sSoon">0</b><span>expire in 60 days</span></div></div>
+        <span class="label">Needs attention</span>
+        <ul class="att" id="att"></ul>
+        <span class="label">Shopping list</span>
+        <textarea class="shop" id="shop" readonly aria-label="Shopping list"></textarea>
+        <div class="acts"><button class="sm pri" type="button" id="copy">Copy list</button><button class="sm" type="button" id="ics">Expiry reminders (.ics)</button><button class="sm" type="button" id="ntf">Remind me on this device</button><button class="sm" type="button" id="prn">Print checklist</button></div>
+        <p class="msg" id="out" aria-live="polite"></p>
+        <p class="fact" style="margin:0">Why expiry matters more here: medicines are tested for storage at up to 25 or 30°C. A car parked in a UAE summer can pass 60°C inside, and storerooms and balconies often sit above 40°C. Heat breaks down tablets, melts creams and dries out burn gel faster than the printed date assumes.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="pg" id="p-meds" hidden style="margin-top:16px">
+    <div class="game">
+      <div class="panel" style="display:grid;gap:10px;align-content:start">
+        <span class="label">Add a medicine</span>
+        <label class="row"><span>Name</span><input id="mN" maxlength="60" placeholder="e.g. Paracetamol 500 mg"></label>
+        <label class="row"><span>For</span><input id="mW" maxlength="30" placeholder="e.g. Sara (optional)"></label>
+        <label class="row"><span>Expiry date</span><input type="date" id="mE"></label>
+        <label class="row"><span>Storage on the pack</span><select id="mS"><option value="25">Below 25°C</option><option value="30">Below 30°C</option><option value="fr">Fridge, 2 to 8°C</option><option value="dry">Cool, dry place (no figure)</option></select></label>
+        <label class="row"><span>Where you keep it</span><select id="mL"><option value="bed">Bedroom or living room (AC)</option><option value="kit">Kitchen</option><option value="bath">Bathroom</option><option value="fridge">Fridge</option><option value="store">Storeroom or maid's room</option><option value="bal">Balcony</option><option value="car">Car or handbag left in the car</option></select></label>
+        <button class="sm pri" type="button" id="mAdd" style="justify-self:start">Add medicine</button>
+        <div class="note warnb">UAE summer heat: inside a parked car, a storeroom without AC, or on a balcony, temperatures go well above 25°C, and above 30°C most of the year. Keep medicines in an air-conditioned room, away from the stove, the window and the bathroom steam. Insulin and other fridge medicines need a cool bag for travel.</div>
+      </div>
+      <div class="panel" style="display:grid;gap:10px;align-content:start;min-width:0">
+        <span class="label">Your cabinet</span>
+        <ul class="meds" id="meds"></ul>
+        <p class="msg">Take expired or heat-damaged medicines to a pharmacy for safe disposal instead of the bin. Ask the pharmacist if you are unsure whether something is still fine.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="pg" id="p-guide" hidden style="margin-top:16px">
+    <div class="note warnb" style="margin-bottom:12px"><b>This is not medical training.</b> It is a short summary of standard first-aid guidance of the kind taught by the Red Crescent and Red Cross. In an emergency call <b>998</b> for an ambulance (999 for police) and follow the dispatcher. A real first-aid course, with hands-on CPR practice, is worth a few hours of anyone's time.</div>
+    <div class="aids" id="aids"></div>
+  </section>
+
+  <div class="pcl" id="pcl"></div>
+
+  <p class="fact" style="margin-top:22px">Kit lists follow common Red Cross and Red Crescent home-kit suggestions, adapted for heat. Doses are not given on purpose: always follow the pack or your pharmacist, especially for children. Your list stays in this browser only.</p>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  // [id, group, name, note, expires?]
+  var ITEMS = [
+    ['plast', 'base', 'Plasters, assorted sizes', 'Fabric ones stick better in sweat.', 0],
+    ['gauze', 'base', 'Sterile gauze pads', 'Several sizes, individually wrapped.', 1],
+    ['dress', 'base', 'Sterile wound dressings', 'At least 2 medium and 1 large.', 1],
+    ['band', 'base', 'Conforming or crepe bandages', 'For holding dressings and sprains.', 0],
+    ['tri', 'base', 'Triangular bandage', 'Sling or large pad.', 0],
+    ['tape', 'base', 'Adhesive medical tape', '', 0],
+    ['glove', 'base', 'Disposable gloves (nitrile)', 'Several pairs. Latex can perish in heat.', 0],
+    ['sciss', 'base', 'Scissors and tweezers', 'Tweezers also for splinters and thorns.', 0],
+    ['wipes', 'base', 'Alcohol-free cleansing wipes', '', 1],
+    ['saline', 'base', 'Sterile saline pods', 'For washing eyes and wounds.', 1],
+    ['thermo', 'base', 'Digital thermometer', 'Check the battery.', 0],
+    ['para', 'base', 'Paracetamol', 'Follow the pack dose.', 1],
+    ['ibu', 'base', 'Ibuprofen', 'Not for everyone; check the leaflet.', 1],
+    ['anti', 'base', 'Antihistamine tablets', 'For mild allergies and stings.', 1],
+    ['hydro', 'base', 'Hydrocortisone 1% or sting relief cream', '', 1],
+    ['shield', 'base', 'CPR face shield', '', 0],
+    ['card', 'base', 'Emergency card', 'Numbers (998, 999), allergies, blood group, doctor.', 0],
+    ['ors', 'heat', 'Oral rehydration salts (ORS) sachets', 'At least 6. For heat exhaustion, vomiting and diarrhoea.', 1],
+    ['cold', 'heat', 'Instant cold packs', 'Single-use; store out of the sun.', 1],
+    ['burn', 'heat', 'Burn gel or hydrogel burn dressings', 'Heat dries them out: check yearly.', 1],
+    ['cling', 'heat', 'Cling film', 'Loose cover for burns after cooling.', 0],
+    ['foil', 'heat', 'Foil emergency blanket', 'Shade in sun, warmth in shock.', 0],
+    ['spf', 'heat', 'Sunscreen SPF 30 or higher', 'Heat ruins it; replace yearly.', 1],
+    ['after', 'heat', 'After-sun or aloe gel', '', 1],
+    ['spray', 'heat', 'Water spray bottle and cooling towel', 'For cooling someone fast.', 0],
+    ['kpara', 'kids', 'Children\'s paracetamol liquid with syringe', 'Dose by age and weight on the pack.', 1],
+    ['kibu', 'kids', 'Children\'s ibuprofen liquid', 'Check age limits on the pack.', 1],
+    ['kors', 'kids', 'Children\'s ORS', 'Flavoured ones get drunk.', 1],
+    ['kplast', 'kids', 'Kids\' plasters', '', 0],
+    ['nasal', 'kids', 'Saline nose drops or spray', '', 1],
+    ['nappy', 'kids', 'Nappy rash cream', '', 1],
+    ['kthermo', 'kids', 'Ear or forehead thermometer', 'Easier with a wriggly child.', 0],
+    ['pills', 'eld', 'Weekly pill organiser', '', 0],
+    ['medlist', 'eld', 'Written list of medicines and allergies', 'Give it to paramedics.', 0],
+    ['bp', 'eld', 'Blood pressure monitor', 'If a doctor asked you to check.', 0],
+    ['gluc', 'eld', 'Glucose tablets or gel', 'For anyone on diabetes medicine.', 1],
+    ['glass', 'eld', 'Spare reading glasses and a torch', '', 0],
+    ['vet', 'pets', 'Vet\'s and 24-hour vet clinic contacts', 'Never give pets human painkillers.', 0],
+    ['vwrap', 'pets', 'Self-adhesive bandage (vet wrap)', 'Sticks to itself, not to fur.', 0],
+    ['tick', 'pets', 'Tick remover', '', 0],
+    ['muzz', 'pets', 'Soft muzzle', 'Hurt animals bite.', 0],
+    ['bowl', 'pets', 'Collapsible water bowl', '', 0],
+    ['psal', 'pets', 'Saline for eyes and paws', '', 1],
+    ['ckit', 'car', 'Compact first-aid kit in the car', 'Fabric items only: no medicines in the car.', 0],
+    ['cwater', 'car', 'Water, 2 litres or more per person', 'Swap bottles monthly in summer.', 0],
+    ['shade', 'car', 'Windscreen sunshade', '', 0],
+    ['tri2', 'car', 'Warning triangle and reflective vest', 'Check what UAE traffic rules require.', 0],
+    ['ext', 'car', 'Small fire extinguisher', 'Check the gauge.', 1],
+    ['torch', 'car', 'Torch and phone charging cable', '', 0],
+    ['dwater', 'desert', 'Extra water, several litres per person per day', 'Plus spare for the car.', 0],
+    ['dors', 'desert', 'Extra ORS sachets', '', 1],
+    ['splint', 'desert', 'Mouldable splint and elastic bandage', 'For sprains and suspected fractures.', 0],
+    ['hat', 'desert', 'Wide hat or shemagh, sunglasses', '', 0],
+    ['whistle', 'desert', 'Whistle and signal mirror', '', 0],
+    ['nav', 'desert', 'Offline map, power bank, shared trip plan', 'Tell someone your route and return time.', 0],
+    ['boots', 'desert', 'Closed shoes and a torch for night', 'Shake out shoes: scorpions hide in them.', 0]
+  ];
+  var GN = { base: 'Basic kit', heat: 'Hot climate', kids: 'Kids', eld: 'Older relatives', pets: 'Pets', car: 'Car', desert: 'Desert trips and camping' };
+  var KEY = 'firstAidKit', st = { hh: {}, have: {}, exp: {}, meds: [], notify: false };
+  try { var sv = JSON.parse(localStorage.getItem(KEY) || 'null'); if (sv) for (var k in sv) st[k] = sv[k]; } catch (e) {}
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} }
+  function today() { var d = new Date(); d.setHours(0, 0, 0, 0); return d; }
+  function parse(s) { var p = s.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]); }
+  function daysTo(s) { return Math.round((parse(s) - today()) / 864e5); }
+  function fmt(s) { return parse(s).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }); }
+  var SOON = 60;
+  function active() { return ITEMS.filter(function (it) { return it[1] === 'base' || it[1] === 'heat' || st.hh[it[1]]; }); }
+  function flag(dateStr) { if (!dateStr) return ''; var d = daysTo(dateStr); return d < 0 ? 'x' : d <= SOON ? 's' : ''; }
+
+  [].forEach.call(document.querySelectorAll('[data-h]'), function (el) { el.checked = !!st.hh[el.dataset.h]; el.onchange = function () { st.hh[el.dataset.h] = el.checked; save(); renderKit(); }; });
+
+  function renderKit() {
+    var A = active(), html = '', groups = ['base', 'heat', 'kids', 'eld', 'pets', 'car', 'desert'];
+    groups.forEach(function (g) {
+      var items = A.filter(function (it) { return it[1] === g; }); if (!items.length) return;
+      html += '<h2 class="grp">' + GN[g] + '</h2><ul class="kit">' + items.map(function (it) {
+        var h = st.have[it[0]], ex = st.exp[it[0]] || '', f = flag(ex);
+        return '<li class="' + (h === 1 ? 'h' : h === 0 ? 'm' : '') + '" data-id="' + it[0] + '"><span><b>' + it[2] + '</b>' + (it[3] ? '<small>' + it[3] + '</small>' : '') + (f ? '<span class="flag ' + f + '">' + (f === 'x' ? 'Expired ' : 'Expires ') + fmt(ex) + '</span>' : '') + '</span><span class="ctl">' + (it[4] ? '<input type="date" data-e="1" value="' + ex + '" aria-label="Expiry date for ' + esc(it[2]) + '">' : '') + '<button class="sm" type="button" data-v="1" aria-pressed="' + (h === 1) + '">Have</button><button class="sm miss" type="button" data-v="0" aria-pressed="' + (h === 0) + '">Missing</button></span></li>';
+      }).join('') + '</ul>';
+    });
+    $('kit').innerHTML = html;
+    summary();
+  }
+  $('kit').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-v]'); if (!b) return; var id = b.closest('li').dataset.id, v = +b.dataset.v;
+    if (st.have[id] === v) delete st.have[id]; else st.have[id] = v; save(); renderKit();
+  });
+  $('kit').addEventListener('change', function (e) {
+    if (!e.target.dataset.e) return; var id = e.target.closest('li').dataset.id;
+    if (e.target.value) { st.exp[id] = e.target.value; if (st.have[id] === undefined) st.have[id] = 1; } else delete st.exp[id];
+    save(); renderKit();
+  });
+  function allDated() {
+    var A = active(), out = [];
+    A.forEach(function (it) { if (it[4] && st.exp[it[0]] && st.have[it[0]] !== 0) out.push({ name: it[2], exp: st.exp[it[0]], kind: 'kit' }); });
+    st.meds.forEach(function (m) { if (m.exp) out.push({ name: m.name + (m.who ? ' (' + m.who + ')' : ''), exp: m.exp, kind: 'med' }); });
+    return out.sort(function (a, b) { return a.exp < b.exp ? -1 : 1; });
+  }
+  function summary() {
+    var A = active(), have = A.filter(function (it) { return st.have[it[0]] === 1 && flag(st.exp[it[0]]) !== 'x'; }).length;
+    var D = allDated(), ex = D.filter(function (d) { return daysTo(d.exp) < 0; }), soon = D.filter(function (d) { var x = daysTo(d.exp); return x >= 0 && x <= SOON; });
+    $('sHave').textContent = have + '/' + A.length; $('sExp').textContent = ex.length; $('sSoon').textContent = soon.length;
+    var att = ex.map(function (d) { return '<li><span>' + esc(d.name) + '</span><span class="flag x">expired ' + fmt(d.exp) + '</span></li>'; }).concat(soon.map(function (d) { return '<li><span>' + esc(d.name) + '</span><span class="flag s">' + fmt(d.exp) + '</span></li>'; }));
+    var unk = A.filter(function (it) { return st.have[it[0]] === undefined; }).length;
+    if (unk) att.push('<li><span>' + unk + ' item' + (unk > 1 ? 's' : '') + ' not checked yet</span><span class="flag">–</span></li>');
+    $('att').innerHTML = att.join('') || '<li><span>Nothing expired or missing. Check again in a few months.</span></li>';
+    var shop = [];
+    A.forEach(function (it) { if (st.have[it[0]] === 0) shop.push(it[2]); else if (flag(st.exp[it[0]]) === 'x') shop.push(it[2] + ' (replace, expired)'); else if (flag(st.exp[it[0]]) === 's') shop.push(it[2] + ' (expires soon)'); });
+    st.meds.forEach(function (m) { if (m.exp && daysTo(m.exp) < 0) shop.push(m.name + ' (replace, expired)'); });
+    $('shop').value = shop.length ? 'First-aid shopping list\n' + shop.map(function (s) { return '- ' + s; }).join('\n') : '';
+    $('shop').placeholder = 'Mark items as missing, or add expiry dates, and the list builds here.';
+    renderPrint();
+  }
+  $('copy').onclick = function () {
+    var t = $('shop').value; if (!t) { $('out').textContent = 'The list is empty.'; return; }
+    function fb() { $('shop').removeAttribute('readonly'); $('shop').select(); try { document.execCommand('copy'); $('out').textContent = 'Copied.'; } catch (e) { $('out').textContent = 'Select the text and copy it.'; } $('shop').setAttribute('readonly', ''); }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(function () { $('out').textContent = 'Copied. Paste it into WhatsApp or your notes.'; }, fb); else fb();
+  };
+
+  // reminders
+  function ymd(s) { return s.replace(/-/g, ''); }
+  function icsEsc(s) { return String(s).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n'); }
+  $('ics').onclick = function () {
+    var D = allDated().filter(function (d) { return daysTo(d.exp) >= 0; });
+    if (!D.length) { $('out').textContent = 'Add expiry dates in the future first.'; return; }
+    var stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, ''), L = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Mariams Lab//First aid kit//EN', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH'];
+    D.forEach(function (d, i) {
+      var e = parse(d.exp), n = new Date(e.getTime() + 864e5), nx = n.getFullYear() + ('0' + (n.getMonth() + 1)).slice(-2) + ('0' + n.getDate()).slice(-2);
+      L.push('BEGIN:VEVENT', 'UID:fa-' + i + '-' + ymd(d.exp) + '-' + Math.random().toString(36).slice(2, 8) + '@lab.mariamalzaabi.ae', 'DTSTAMP:' + stamp, 'DTSTART;VALUE=DATE:' + ymd(d.exp), 'DTEND;VALUE=DATE:' + nx, 'SUMMARY:' + icsEsc('Expires: ' + d.name), 'DESCRIPTION:' + icsEsc('First-aid kit item expires today. Replace it, and take the old one to a pharmacy for disposal.'), 'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:' + icsEsc(d.name + ' expires in 2 weeks'), 'TRIGGER:-P14D', 'END:VALARM', 'END:VEVENT');
+    });
+    L.push('END:VCALENDAR');
+    var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([L.join('\r\n') + '\r\n'], { type: 'text/calendar' })); a.download = 'first-aid-expiry.ics'; document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    $('out').textContent = D.length + ' reminder' + (D.length > 1 ? 's' : '') + ' saved, each with an alert two weeks before.';
+  };
+  function notifyNow() {
+    if (!st.notify || !('Notification' in window) || Notification.permission !== 'granted') return;
+    var D = allDated().filter(function (d) { return daysTo(d.exp) <= 30; });
+    if (D.length) try { new Notification('First-aid kit', { body: D.length + ' item' + (D.length > 1 ? 's are' : ' is') + ' expired or expiring within 30 days: ' + D.slice(0, 3).map(function (d) { return d.name; }).join(', ') }); } catch (e) {}
+  }
+  $('ntf').onclick = function () {
+    if (!('Notification' in window)) { $('out').textContent = 'This browser does not support notifications. Use the .ics reminders instead.'; return; }
+    Notification.requestPermission().then(function (p) {
+      st.notify = p === 'granted'; save();
+      $('out').textContent = p === 'granted' ? 'Done. When you open this page, it will notify you about anything expiring within 30 days. For reminders when the page is closed, use the .ics file.' : 'Notifications are blocked. Use the .ics reminders instead.';
+      notifyNow();
+    });
+  };
+  $('prn').onclick = function () { renderPrint(); window.print(); };
+  function renderPrint() {
+    var A = active(), html = '<h2>First-aid kit checklist</h2><table><thead><tr><th>✓</th><th>Item</th><th>Group</th><th>Expiry</th></tr></thead><tbody>';
+    A.forEach(function (it) { html += '<tr><td>' + (st.have[it[0]] === 1 && flag(st.exp[it[0]]) !== 'x' ? '☑' : '☐') + '</td><td>' + it[2] + '</td><td>' + GN[it[1]] + '</td><td>' + (st.exp[it[0]] ? fmt(st.exp[it[0]]) : (it[4] ? '______' : '')) + '</td></tr>'; });
+    html += '</tbody></table>';
+    if (st.meds.length) { html += '<h2>Medicines</h2><table><thead><tr><th>Medicine</th><th>For</th><th>Expiry</th></tr></thead><tbody>' + st.meds.map(function (m) { return '<tr><td>' + esc(m.name) + '</td><td>' + esc(m.who || '') + '</td><td>' + (m.exp ? fmt(m.exp) : '') + '</td></tr>'; }).join('') + '</tbody></table>'; }
+    html += '<p>Emergency: 998 ambulance, 999 police, 997 fire.</p>';
+    $('pcl').innerHTML = html;
+  }
+
+  // medicines
+  var SN = { '25': 'below 25°C', '30': 'below 30°C', fr: 'in the fridge (2 to 8°C)', dry: 'in a cool, dry place' }, LN = { bed: 'bedroom or living room', kit: 'kitchen', bath: 'bathroom', fridge: 'fridge', store: 'storeroom', bal: 'balcony', car: 'car' };
+  function heatWarn(m) {
+    var w = [];
+    if (m.loc === 'car') w.push('A parked car in the UAE can pass 60°C in summer. Do not keep medicines in the car.');
+    else if (m.loc === 'bal' || m.loc === 'store') w.push('Balconies and storerooms here often exceed 25°C, and in summer pass 40°C. Move it into an air-conditioned room.');
+    else if (m.loc === 'bath') w.push('Bathroom steam and heat shorten shelf life. A bedroom drawer is better.');
+    else if (m.loc === 'kit' && m.store === '25') w.push('Keep it away from the stove, oven and sunny windows; kitchens get warm.');
+    if (m.store === 'fr' && m.loc !== 'fridge') w.push('This one needs the fridge. Out of it, check the leaflet for how long it lasts at room temperature.');
+    if (m.store !== 'fr' && m.loc === 'fridge') w.push('Most medicines do not need the fridge, and damp can spoil tablets. Check the leaflet.');
+    return w.join(' ');
+  }
+  function renderMeds() {
+    if (!st.meds.length) { $('meds').innerHTML = '<li><span>No medicines yet. Add what you keep at home, with the expiry date from the box.</span></li>'; return; }
+    $('meds').innerHTML = st.meds.map(function (m, i) {
+      var f = flag(m.exp), w = heatWarn(m), d = m.exp ? daysTo(m.exp) : null;
+      return '<li><b class="wrapx">' + esc(m.name) + (m.who ? ' <span style="color:var(--muted);font-weight:400">· ' + esc(m.who) + '</span>' : '') + '</b><span class="flag ' + f + '">' + (m.exp ? (d < 0 ? 'Expired ' : '') + fmt(m.exp) : 'No date') + '</span><small>Store ' + SN[m.store] + '. Kept in the ' + LN[m.loc] + '.</small>' + (w ? '<span class="hot">' + w + '</span>' : '') + '<span class="acts" style="grid-column:1/-1"><button class="sm" type="button" data-x="' + i + '">Remove</button></span></li>';
+    }).join('');
+  }
+  $('mAdd').onclick = function () {
+    var n = $('mN').value.trim(); if (!n) { $('mN').focus(); return; }
+    st.meds.push({ name: n, who: $('mW').value.trim(), exp: $('mE').value, store: $('mS').value, loc: $('mL').value });
+    $('mN').value = ''; $('mW').value = ''; $('mE').value = ''; save(); renderMeds(); summary();
+  };
+  $('meds').addEventListener('click', function (e) { var x = e.target.closest('[data-x]'); if (!x) return; st.meds.splice(+x.dataset.x, 1); save(); renderMeds(); summary(); });
+
+  // emergency guide
+  var AIDS = [
+    ['Heat stroke', 'Hot skin, confusion, slurred speech, collapse or a fit. Sweating may have stopped. This is life-threatening.', ['Call 998 now.', 'Move them into shade or an air-conditioned room.', 'Remove extra clothing.', 'Cool them fast: cold water over the body, wet towels, a fan, cold packs in the neck, armpits and groin.', 'If they are fully awake, give small sips of cool water.', 'If they become unresponsive and are not breathing normally, start CPR and follow the dispatcher.'], 'Do not give drinks to someone confused or drowsy.', 'you suspect heat stroke at all. It is always an emergency.'],
+    ['Heat exhaustion', 'Heavy sweating, headache, dizziness, nausea, cramps, pale clammy skin, fast pulse.', ['Move them somewhere cool and let them lie down with legs raised.', 'Loosen clothing and cool the skin with water and a fan.', 'Give water or an ORS drink, in sips.', 'Stay with them. They should feel better within 30 minutes.'], '', 'They get confused, stop sweating, faint, vomit repeatedly, or are not better in 30 minutes.'],
+    ['Burns and scalds', 'Includes hot car seats and seatbelt buckles, which burn children in summer.', ['Cool the burn under cool or lukewarm running water for 20 minutes.', 'Remove rings, watches and clothing near the burn, unless stuck to it.', 'Cover loosely with cling film or a clean non-fluffy dressing.', 'Keep the person warm while cooling the burn.'], 'No ice, butter, toothpaste or creams. Do not burst blisters.', 'The burn is bigger than their palm, is on the face, hands, feet, joints or genitals, is chemical or electrical, is on a baby or older person, or you are unsure.'],
+    ['Bleeding cuts', '', ['Press firmly on the wound with a clean pad or cloth, and keep pressing.', 'Raise the injured part if you can.', 'If blood soaks through, add another pad on top; do not lift the first one.', 'For a small cut: rinse under clean water, dry, and cover with a plaster.'], 'Do not pull out anything stuck deep in the wound; press around it.', 'Bleeding is heavy or will not stop with pressure, the wound is deep or gaping, or the person feels faint.'],
+    ['Choking (adult or child over 1)', 'They cannot speak, breathe or cough properly, and may clutch the throat.', ['Encourage them to cough.', 'If that fails: lean them forward and give up to 5 firm back blows between the shoulder blades.', 'Then up to 5 abdominal thrusts: stand behind, fist above the belly button, pull sharply in and up.', 'Repeat back blows and thrusts until it clears.', 'If they become unresponsive, call 998 and start CPR.'], 'Anyone who had abdominal thrusts should be checked by a doctor afterwards.', 'It does not clear after the first cycles, or they become unresponsive.'],
+    ['Choking (baby under 1)', '', ['Lay the baby face down along your forearm, head lower, supporting the jaw.', 'Give up to 5 back blows between the shoulder blades.', 'Turn the baby face up and give up to 5 chest thrusts with two fingers in the centre of the chest.', 'Repeat until it clears. Check the mouth, but do not sweep blindly with a finger.'], 'Never do abdominal thrusts on a baby.', 'It does not clear quickly, or the baby becomes unresponsive.'],
+    ['Severe allergic reaction', 'Swelling of the lips, tongue or throat, wheezing, trouble breathing, widespread rash, feeling faint.', ['Call 998.', 'If they have an adrenaline auto-injector, help them use it in the outer thigh, as its label shows.', 'Let them sit up if breathing is hard; lie them down with legs raised if they feel faint.', 'If there is no improvement after 5 minutes and a second injector is available, use it.', 'A mild reaction (itchy rash only) can be treated with an antihistamine from the pack, while you watch for worse signs.'], '', 'Any breathing difficulty, swelling of the mouth or throat, or collapse.'],
+    ['Jellyfish sting', 'Common on UAE beaches in some seasons. Most stings here are painful but not dangerous.', ['Get out of the water and ask the lifeguard for help if there is one.', 'Rinse the area with sea water, not fresh water.', 'Lift off any tentacles with tweezers or the edge of a card, wearing gloves if possible.', 'Soak in water as hot as is comfortable (not scalding) for around 20 minutes, or use a cold pack, to ease pain.', 'Painkillers from the pack can help.'], 'Do not rub, and do not use fresh water, urine or alcohol. Advice on vinegar varies by species; follow local lifeguards.', 'Trouble breathing, chest pain, a large area stung, a sting on the face or genitals, a young child, or severe pain.'],
+    ['Scorpion sting', 'Most cause sharp local pain. Some species found in the UAE can be dangerous, especially for children.', ['Move away from the scorpion. Keep the person calm and still.', 'Wash the area with soap and water.', 'Put a cold pack on it, wrapped in a cloth, for 10 minutes at a time.', 'Take a photo of the scorpion only if it is safe to do so.'], 'Do not cut, suck or squeeze the sting, and do not use a tourniquet.', 'Children and older people stung should be seen urgently. For anyone: sweating, drooling, vomiting, muscle twitching, trouble breathing or spreading pain.'],
+    ['Feverish child', 'A fever is a temperature of 38°C or more.', ['Offer drinks often, and breast or formula feeds for babies.', 'Dress them in light clothing; do not over-wrap. Keep the room comfortably cool.', 'Paracetamol or ibuprofen can make them more comfortable: use the children\'s version and the dose on the pack for their age or weight.', 'If they have a fit: lay them on their side on the floor, move things away, do not put anything in the mouth, and time it.'], 'No aspirin for under-16s. Cold baths and sponging are not recommended.', 'A baby under 3 months with 38°C or more, a fit, a rash that does not fade when pressed with a glass, a stiff neck, trouble breathing, very drowsy or hard to wake, no wet nappy in 12 hours, or fever lasting over 5 days.']
+  ];
+  $('aids').innerHTML = AIDS.map(function (a) {
+    return '<div class="aid"><h3>' + a[0] + '</h3>' + (a[1] ? '<span>' + a[1] + '</span>' : '') + '<ol>' + a[2].map(function (s) { return '<li>' + s + '</li>'; }).join('') + '</ol>' + (a[3] ? '<span class="dont">' + a[3] + '</span>' : '') + '<span class="call">Call 998 if: ' + a[4] + '</span></div>';
+  }).join('');
+
+  // tabs
+  [].forEach.call(document.querySelectorAll('[data-t]'), function (b) { b.onclick = function () { [].forEach.call(document.querySelectorAll('[data-t]'), function (x) { x.setAttribute('aria-pressed', x === b); $('p-' + x.dataset.t).hidden = x !== b; }); }; });
+  renderKit(); renderMeds(); notifyNow();
+})();
+</script>
+</body>
+</html>

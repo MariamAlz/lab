@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Moving Home in the UAE · Mariam's Lab</title>
+<meta name="description" content="A dated moving-home checklist for the UAE: tenancy registration (Ejari, Tawtheeq and the rest), DEWA, TAQA, SEWA and EtihadWE connections, chiller, internet, permits, deposits and address updates, in the right order. Export to your calendar.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/moving/">
+<meta property="og:title" content="Moving Home in the UAE · Mariam's Lab"><meta property="og:description" content="Ejari or Tawtheeq, utilities, chiller, internet and permits, in the right order, with dates."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.85rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 13px; cursor: pointer; }
+.sm[aria-pressed="true"], .sm.pri { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: 0.9rem; }
+.row input, .row select { font: inherit; color: var(--ink); background: rgba(7,10,24,.6); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; max-width: 13em; }
+html[data-theme="light"] .row input, html[data-theme="light"] .row select, html[data-theme="light"] .mv input { background: #fff; }
+.flags { display: flex; gap: 6px; flex-wrap: wrap; }
+.flags label { display: inline-flex; gap: 6px; align-items: center; font-size: 0.86rem; padding: 6px 11px; border: 1px solid var(--line); border-radius: 10px; cursor: pointer; }
+.flags input { accent-color: var(--accent); }
+.acts { display: flex; gap: 6px; flex-wrap: wrap; }
+.prog { height: 8px; border-radius: 99px; background: var(--line); overflow: hidden; }
+.prog i { display: block; height: 100%; width: 0; background: var(--sat-b); transition: width .3s; }
+.msg { font-size: 0.86rem; color: var(--muted); margin: 0; }
+.ph { margin: 26px 0 10px; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.ph h2 { font-size: 1.25rem; margin: 0; }
+.ph span { font-family: var(--font-mono); font-size: 0.78rem; color: var(--muted); }
+.tl { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.tl > li { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 4px 12px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); font-size: 0.9rem; align-items: start; }
+.tl > li.done { opacity: .55; }
+.tl > li.done > b { text-decoration: line-through; }
+.tl input[type=checkbox] { width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--sat-b); cursor: pointer; }
+.tl b { font-size: 1rem; }
+.tl .dt { font-family: var(--font-mono); font-size: 0.8rem; text-align: end; white-space: nowrap; color: var(--muted); }
+.tl .dt.late { color: var(--sat-c); }
+.tl .bd { grid-column: 2 / -1; color: var(--muted); display: grid; gap: 6px; }
+.tl .dep { font-size: 0.78rem; color: var(--sat-a); }
+.tl details { font-size: 0.85rem; }
+.tl summary { cursor: pointer; color: var(--ink); }
+.tl details ul { margin: 6px 0 0; padding-left: 18px; }
+.note { padding: 12px 14px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent); background: color-mix(in srgb, var(--accent) 8%, transparent); font-size: 0.88rem; }
+.mvs { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+.mv { display: grid; gap: 6px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); font-size: 0.85rem; }
+.mv input[type=text], .mv input[type=number] { font: inherit; color: var(--ink); background: rgba(7,10,24,.6); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; width: 100%; box-sizing: border-box; }
+.mv label { display: flex; gap: 6px; align-items: center; }
+.mv.best { border-color: var(--sat-b); }
+.cl { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.cl li label { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; align-items: start; font-size: 0.88rem; cursor: pointer; }
+.cl input { margin-top: 3px; accent-color: var(--sat-b); }
+.cl small { display: block; color: var(--muted); }
+.subh { font-size: 1.05rem; margin: 6px 0 0; }
+.wrapx { overflow-wrap: anywhere; }
+@media print {
+  .labbar, .labfoot, .noprint, .sec-head p { display: none !important; }
+  html, body { background: #fff !important; color: #000 !important; }
+  * { color: #000 !important; text-shadow: none !important; box-shadow: none !important; backdrop-filter: none !important; }
+  .tl > li, .mv, .panel, .note { background: #fff !important; border-color: #999 !important; break-inside: avoid; }
+  .tl > li.done { opacity: 1; }
+  .game { display: block; }
+  .labmain { padding: 0; }
+}
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Home · UAE · Checklist</span>
+    <h1 style="font-size:var(--step-3)">Moving home in the UAE.</h1>
+    <p>Moving here has a strict order: no registered tenancy, no electricity; no electricity account, often no move-in permit. This page builds a dated plan from eight weeks before your move to two weeks after, with the right authority names for each emirate and the documents each step asks for. Tick things off as you go, add it to your calendar, or print it.</p>
+  </div>
+
+  <div class="game noprint">
+    <div class="panel" style="display:grid;gap:10px;align-content:start">
+      <span class="label">Your move</span>
+      <label class="row"><span>Moving from</span><select id="iF"></select></label>
+      <label class="row"><span>Moving to</span><select id="iT"></select></label>
+      <label class="row"><span>Move date</span><input type="date" id="iD"></label>
+      <label class="row"><span>New home is</span><select id="iR"><option value="rent">Rented</option><option value="buy">Bought</option></select></label>
+      <label class="row"><span>Type</span><select id="iV"><option value="apt">Apartment</option><option value="villa">Villa or townhouse</option></select></label>
+      <div class="flags">
+        <label><input type="checkbox" id="iC"> District cooling (chiller)</label>
+        <label><input type="checkbox" id="iG"> Piped gas</label>
+        <label><input type="checkbox" id="iP"> Pets</label>
+        <label><input type="checkbox" id="iK"> Kids changing school</label>
+        <label><input type="checkbox" id="iA"> Car (parking permit)</label>
+      </div>
+      <div class="acts"><button class="sm pri" type="button" id="gen">Build my plan</button></div>
+      <p class="fact" style="margin:0">How it works: each step is tied to the steps it needs. A utility account in the UAE is opened against your registered tenancy (or title deed), and building management usually wants both before it issues a move-in permit. So registration sits early, and everything else hangs off it.</p>
+    </div>
+    <div class="panel" style="display:grid;gap:12px;align-content:start;min-width:0">
+      <span class="label">Progress</span>
+      <div class="stats"><div><b id="sDone">0/0</b><span>steps done</span></div><div><b id="sDays">–</b><span id="sDaysL">days to move</span></div><div><b id="sLate">0</b><span>overdue</span></div></div>
+      <div class="prog"><i id="bar"></i></div>
+      <p class="msg" id="nextUp"></p>
+      <div class="acts"><button class="sm" type="button" id="ics">Add to calendar (.ics)</button><button class="sm" type="button" id="prn">Print</button><button class="sm" type="button" id="clr">Clear ticks</button></div>
+      <div class="note wrapx" id="cross" hidden></div>
+    </div>
+  </div>
+
+  <div id="tl"></div>
+
+  <div class="game" style="margin-top:34px">
+    <div class="panel" style="display:grid;gap:10px;align-content:start;min-width:0">
+      <h2 class="subh">Packing plan by room</h2>
+      <p class="msg">Pack the rooms you use least first. Label every box with the room and a number, and keep a list on your phone.</p>
+      <ul class="cl" id="pack"></ul>
+    </div>
+    <div class="panel" style="display:grid;gap:10px;align-content:start;min-width:0">
+      <h2 class="subh">Key handover checklist</h2>
+      <ul class="cl" id="keys"></ul>
+    </div>
+  </div>
+
+  <div class="panel noprint" style="margin-top:34px;display:grid;gap:10px">
+    <h2 class="subh">Compare movers</h2>
+    <p class="msg">Get at least three quotes, ideally after a home survey (video surveys are common). Enter them here; the page highlights the best price among quotes that cover the things that matter.</p>
+    <div class="mvs" id="mvs"></div>
+    <p class="msg" id="mvOut"></p>
+  </div>
+
+  <p class="fact" style="margin-top:22px">Rules, fees and app names change, so always check the official site (DLD, TAMM, the municipality, DEWA, TAQA Distribution, SEWA or EtihadWE) before you pay anything. Amounts marked "approx." are widely quoted ranges, not official figures. Your ticks and quotes stay in this browser only.</p>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  var NORTH_OWN = 'the emirate\'s land and real estate department';
+  var EM = {
+    dxb: { n: 'Dubai', reg: 'Ejari', regHow: 'Register the contract on Ejari through the Dubai REST app, an Ejari typing centre or your agent. Ejari is run by the Dubai Land Department (RERA).', regFee: 'The fee is small (roughly AED 200 to 250, approx.). Check the DLD site.', util: 'DEWA', utilHow: 'Apply for move-in on the DEWA app or website. DEWA reads your Ejari, so Ejari must be done first. Owners use the title deed instead.', dep: 'DEWA takes a refundable security deposit, widely quoted as about AED 2,000 for an apartment and AED 4,000 for a villa (approx., check DEWA).', fee: 'Tenants also pay the Dubai Municipality housing fee, about 5% of the yearly rent spread over the DEWA bills (approx.).', cool: 'Empower, Emicool, Tabreed, Lootah or your building\'s own provider', gas: 'your building\'s gas provider (often named in the building rules)', school: 'KHDA', addr: 'your Makani number (the 10-digit code on the building plate or in the Makani app)', park: 'Public-zone resident permits are issued by Parkin; private buildings and communities issue their own cards.', own: 'Dubai Land Department', toll: 'Salik' },
+    auh: { n: 'Abu Dhabi', reg: 'Tawtheeq', regHow: 'Register the lease in Tawtheeq through the TAMM platform. Landlords or agents often do it for you; ask for the certificate.', regFee: 'Check TAMM for the current fee.', util: 'TAQA Distribution (formerly ADDC in Abu Dhabi and AADC in Al Ain)', utilHow: 'Apply for a connection through TAMM or the TAQA Distribution app. It uses your Tawtheeq, so register the lease first. Owners use the title deed.', dep: 'A refundable security deposit is charged; check the amount on TAMM.', fee: 'Expat tenants pay a municipality fee, about 3% of the yearly rent, added to the utility bill (approx.).', cool: 'Tabreed or your building\'s own provider', gas: 'your building\'s gas provider', school: 'ADEK', addr: 'your Onwani address (on the plate outside the building)', park: 'Resident parking permits (Mawaqif) are applied for through the Darb or TAMM app.', own: 'the DARI platform (ADREC)', toll: 'Darb' },
+    shj: { n: 'Sharjah', reg: 'tenancy attestation', regHow: 'Have the tenancy contract attested by Sharjah Municipality, online or at a service centre.', regFee: 'Check Sharjah Municipality for the fee.', util: 'SEWA', utilHow: 'Apply on the SEWA app or website with the attested contract (owners use the title deed).', dep: 'SEWA takes a refundable deposit; check SEWA for the amount.', fee: '', cool: 'your building\'s cooling provider (Tabreed, Emicool and others operate in parts of Sharjah)', gas: 'SEWA, which supplies piped gas to many Sharjah buildings, or your building\'s provider', school: 'SPEA (Sharjah Private Education Authority)', addr: '', park: 'Sharjah Municipality issues resident parking permits.', own: 'the Sharjah Real Estate Registration Department', toll: '' },
+    ajm: { n: 'Ajman', reg: 'Tasdeeq', regHow: 'Register the lease in Tasdeeq with the Ajman Department of Municipality and Planning.', regFee: 'Check the Ajman municipality site for the fee.', util: 'EtihadWE (Etihad Water and Electricity, formerly FEWA)', utilHow: 'Apply on the EtihadWE app or website with the registered contract.', dep: 'EtihadWE takes a refundable deposit; check EtihadWE for the amount.', fee: '', cool: 'your building\'s cooling provider', gas: 'your building\'s gas provider', school: 'the Ministry of Education (MOE)', addr: '', park: 'Ask Ajman Municipality or your building about resident parking.', own: NORTH_OWN, toll: '' },
+    rak: { n: 'Ras Al Khaimah', reg: 'tenancy attestation', regHow: 'Have the lease attested by RAK Municipality.', regFee: 'Check RAK Municipality for the fee.', util: 'EtihadWE (Etihad Water and Electricity, formerly FEWA)', utilHow: 'Apply on the EtihadWE app or website with the attested contract.', dep: 'EtihadWE takes a refundable deposit; check EtihadWE for the amount.', fee: '', cool: 'your building\'s cooling provider', gas: 'your building\'s gas provider', school: 'the Ministry of Education (MOE)', addr: '', park: 'Ask RAK Municipality or your building about resident parking.', own: NORTH_OWN, toll: '' },
+    fuj: { n: 'Fujairah', reg: 'tenancy attestation', regHow: 'Have the lease attested by Fujairah Municipality.', regFee: 'Check Fujairah Municipality for the fee.', util: 'EtihadWE (Etihad Water and Electricity, formerly FEWA)', utilHow: 'Apply on the EtihadWE app or website with the attested contract.', dep: 'EtihadWE takes a refundable deposit; check EtihadWE for the amount.', fee: '', cool: 'your building\'s cooling provider', gas: 'your building\'s gas provider', school: 'the Ministry of Education (MOE)', addr: '', park: 'Ask Fujairah Municipality or your building about resident parking.', own: NORTH_OWN, toll: '' },
+    uaq: { n: 'Umm Al Quwain', reg: 'tenancy attestation', regHow: 'Have the lease attested by Umm Al Quwain Municipality.', regFee: 'Check UAQ Municipality for the fee.', util: 'EtihadWE (Etihad Water and Electricity, formerly FEWA)', utilHow: 'Apply on the EtihadWE app or website with the attested contract.', dep: 'EtihadWE takes a refundable deposit; check EtihadWE for the amount.', fee: '', cool: 'your building\'s cooling provider', gas: 'your building\'s gas provider', school: 'the Ministry of Education (MOE)', addr: '', park: 'Ask UAQ Municipality or your building about resident parking.', own: NORTH_OWN, toll: '' }
+  };
+  function shortU(e) { return e.util.split(' (')[0]; }
+  var ORDER = ['dxb', 'auh', 'shj', 'ajm', 'rak', 'fuj', 'uaq'];
+  var opts = ORDER.map(function (k) { return '<option value="' + k + '">' + EM[k].n + '</option>'; }).join('');
+  $('iF').innerHTML = opts; $('iT').innerHTML = opts;
+
+  var KEY = 'movingUAE', st = { f: 'dxb', t: 'dxb', d: '', r: 'rent', v: 'apt', c: false, g: false, p: false, k: false, a: false, done: {}, pack: {}, keys: {}, mv: [{}, {}, {}] };
+  try { var sv = JSON.parse(localStorage.getItem(KEY) || 'null'); if (sv) for (var k in sv) st[k] = sv[k]; } catch (e) {}
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} }
+  function iso(d) { return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+  function parse(s) { var p = s.split('-'); return new Date(+p[0], +p[1] - 1, +p[2], 12); }
+  function addDays(d, n) { var x = new Date(d.getTime()); x.setDate(x.getDate() + n); return x; }
+  if (!st.d) st.d = iso(addDays(new Date(), 56));
+
+  // Task list. d = days from move day. deps = ids that must come first. show(c) decides if it applies.
+  function tasks(c) {
+    var E = c.E, F = c.F, rent = c.rent;
+    var L = [
+      { id: 'notice', d: -56, title: 'Check the notice period on your current home', body: 'If you rent now, your contract sets how much notice you must give (60 or 90 days is common; read yours). Send notice in writing and keep proof. Ask how the landlord wants the handover done.', docs: ['Current tenancy contract', 'Written notice (email or registered letter, as the contract says)'] },
+      { id: 'quotes', d: -54, title: 'Get three movers\' quotes', body: 'Ask for a survey (in person or video). Compare what is included: packing material, wrapping, furniture dismantling, AC or TV mounting, and goods-in-transit insurance. Use the comparison below.', docs: ['Inventory or room list', 'Building access rules for both homes (lift booking, allowed hours)'] },
+      { id: 'school', d: -50, show: c.kids, title: 'Start the school move', body: 'Apply to the new school early; good schools fill up. Ask the current school for a transfer certificate (TC). ' + (c.cross ? 'Moving emirate also changes the school regulator, from ' + F.school + ' to ' + E.school : 'Private schools here are regulated by ' + E.school) + '. Attested TCs are needed for some moves; ask the new school.', docs: ['Child\'s passport, visa and Emirates ID', 'Latest report cards', 'Transfer certificate from the current school', 'Vaccination record', 'Parent\'s Emirates ID'] },
+      { id: 'pets1', d: -48, show: c.pets, title: 'Check pet rules for the new home', body: 'Make sure the building or community allows pets (get it in the contract if you can). Check your pet\'s microchip and vaccination record are up to date, and ask the vet about stress on moving day.', docs: ['Pet vaccination card', 'Microchip number', 'Municipality pet registration, if your emirate has one'] },
+      rent
+        ? { id: 'contract', d: -42, title: 'Sign the tenancy contract', body: 'Read it before signing: rent, number of cheques, maintenance terms, notice period, renewal, and whether chiller, gas and pets are covered. Agree the security deposit (in Dubai often about 5% of yearly rent unfurnished and 10% furnished, approx.). Agree the handover date and inspection.', docs: ['Passport and residence visa', 'Emirates ID', 'Rent cheques or transfer', 'Security deposit cheque', 'Agent fee (if using an agent)'] }
+        : { id: 'contract', d: -42, title: 'Complete the purchase and title deed', body: 'The transfer happens at ' + E.own + '. Once it is done you get the title deed, which you use instead of a tenancy registration for utilities. Ask the seller for the service-charge clearance and the developer NOC.', docs: ['Passport and Emirates ID', 'Sale agreement (MOU / Form F in Dubai)', 'Developer NOC', 'Mortgage bank letter (if financed)', 'Manager\'s cheques for the transfer'] },
+      rent
+        ? { id: 'reg', d: -38, deps: ['contract'], title: 'Register the tenancy (' + E.reg + ')', body: E.regHow + ' ' + E.regFee, docs: ['Signed tenancy contract', 'Your Emirates ID and passport', 'Landlord\'s title deed copy and ID (the landlord or agent usually provides)', 'Previous registration number, if renewing'] }
+        : { id: 'reg', d: -38, deps: ['contract'], title: 'Get your title deed copy ready', body: 'Owners skip tenancy registration. Keep a PDF of the title deed handy: the utility company, building management and cooling provider will all ask for it.', docs: ['Title deed', 'Emirates ID'] },
+      { id: 'insure', d: -35, title: 'Sort out insurance', body: (rent ? 'The landlord\'s building insurance does not cover your belongings. ' : 'Mortgage lenders usually require building insurance; you still need contents cover. ') + 'Get a contents policy that starts on move day, and check whether the movers\' goods-in-transit cover is included or extra. Tell your car and health insurers your new address after the move.', docs: ['List of valuables with rough values', 'Movers\' insurance terms'] },
+      { id: 'book', d: -32, deps: ['quotes'], title: 'Book the movers', body: 'Confirm the date, time window, number of crew, materials and insurance in writing. Ask for their trade licence, which many buildings want before giving a move permit.', docs: ['Signed quote', 'Movers\' trade licence copy', 'Deposit payment receipt'] },
+      { id: 'permitIn', d: -28, deps: ['reg', 'book'], title: c.villa ? 'Ask the community about move-in rules' : 'Apply for the move-in permit and NOC', body: (c.villa ? 'Many villa communities need a move-in permit or gate pass for the truck, and some take a refundable deposit. ' : 'Building management (or the developer\'s community portal) issues the move-in permit or NOC. Many take a refundable security deposit and a lift booking. ') + 'Ask about allowed moving hours, Fridays and holidays, and lift protection.', docs: [rent ? E.reg + ' certificate' : 'Title deed', 'Emirates ID', 'Movers\' trade licence', 'Refundable deposit (cheque or card)', 'Move date and time'] },
+      { id: 'permitOut', d: -27, deps: ['book'], title: 'Apply for the move-out permit at the old home', body: 'Your current building usually wants a move-out permit too, and may ask for a final clearance of service charges, chiller or utility bills before signing it.', docs: ['Emirates ID', 'Tenancy contract or title deed', 'Movers\' trade licence', 'Proof of cleared bills, if asked'] },
+      { id: 'util', d: -21, deps: ['reg'], title: 'Connect electricity and water (' + shortU(E) + ')', body: E.utilHow + ' ' + E.dep + (E.fee ? ' ' + E.fee : '') + ' Pick a start date a day or two before you move so lights and AC are on when the movers arrive.', docs: [rent ? E.reg + ' certificate or number' : 'Title deed', 'Emirates ID', 'Premise or account number from the meter or the old bill', 'Card for the deposit'] },
+      { id: 'cool', d: -20, deps: ['reg'], show: c.chill, title: 'Open the district cooling (chiller) account', body: 'Your AC runs on district cooling, billed separately from ' + shortU(E) + '. Common providers here: ' + E.cool + '. Check the contract to see if cooling is included in rent ("chiller-free") or billed to you. Providers often ask for a deposit and an activation fee; check their site.', docs: [rent ? E.reg + ' certificate' : 'Title deed', 'Emirates ID', 'Unit or premise number', 'Card for the deposit'] },
+      { id: 'net', d: -19, deps: ['reg'], title: 'Move or order internet (e& or du)', body: 'Check which provider actually serves the new building; some buildings only have one. If you keep the same provider, ask for a relocation, which can keep your plan. Book installation for move day or the day after. Ask what happens to the router and any lock-in period at the old home.', docs: [rent ? E.reg + ' certificate or tenancy contract' : 'Title deed', 'Emirates ID', 'Current account number'] },
+      { id: 'gas', d: -14, deps: ['reg'], show: c.gas, title: 'Arrange gas', body: 'Piped gas is handled by ' + E.gas + '. Ask about the connection, deposit and meter reading on day one. ' + (c.villa ? 'Villas often use cylinders: buy from a licensed supplier only, and keep cylinders outside or ventilated, out of direct sun.' : 'Close the gas account at the old home too.'), docs: [rent ? E.reg + ' certificate' : 'Title deed', 'Emirates ID'] },
+      { id: 'park', d: -14, deps: ['reg'], show: c.car, title: 'Apply for a parking permit', body: E.park + (E.toll ? ' Tolls here are ' + E.toll + '.' : '') + (c.cross && F.toll !== E.toll && E.toll ? ' You are moving into a different toll system, so set up ' + E.toll + ' if you will drive in ' + E.n + ' daily.' : '') + ' Ask building management for the parking card or sticker for your bay.', docs: [rent ? E.reg + ' certificate' : 'Title deed', 'Car registration card (mulkiya)', 'Emirates ID', 'Driving licence'] },
+      { id: 'packStart', d: -14, title: 'Start packing rooms you use least', body: 'Follow the packing plan below. Sell or donate what you will not take; charities and resale apps get busy at the end of the month.', docs: [] },
+      { id: 'final', d: -10, deps: ['util'], title: 'Book the final reading at the old home (' + shortU(F) + ')', body: 'Request a move-out or account closure on ' + shortU(F) + ' for the day after you leave, so the account stays on while you clean. Give your bank IBAN for the deposit refund. Close or transfer the chiller and gas accounts at the old home too.', docs: ['Old account or premise number', 'Emirates ID', 'Bank IBAN for the refund'] },
+      { id: 'mail', d: -7, title: 'Redirect mail and deliveries', body: 'Update the address in your shopping and delivery apps, Aramex (including Shop and Ship if you use it), and any couriers that hold your profile. An Emirates Post PO box stays where it is, so if yours is near the old home, decide whether to keep it or rent one closer.' + (E.addr ? ' Your new address is easiest to share as ' + E.addr + '.' : ''), docs: ['New full address, building name and unit number'] },
+      { id: 'pets2', d: -3, show: c.pets, title: 'Plan the pets\' moving day', body: 'Keep pets in a quiet room or with a sitter while doors are open, with water and their bed. Never leave a pet in a car, even for a few minutes.', docs: [] },
+      { id: 'ess', d: -2, title: 'Pack an essentials box and confirm everything', body: 'Essentials: documents folder, chargers, medicines, toiletries, a change of clothes, kettle and mugs, toilet paper, bin bags, a tool kit and snacks. Confirm movers, permits and lift booking at both homes. Defrost the fridge the night before.', docs: ['Permits for both buildings', 'Movers\' booking confirmation'] },
+      { id: 'move', d: 0, deps: ['permitIn', 'permitOut', 'util'], title: 'Moving day', body: 'Photograph every room and the meters (electricity, water, chiller, gas) at both homes, with dates. Check boxes in against your list. Use the key handover checklist below.', docs: ['Emirates ID', 'Move-in and move-out permits', 'Key handover checklist'] },
+      { id: 'check', d: 1, deps: ['move'], title: 'Check everything works at the new home', body: 'Test the AC in every room, the water heater, taps, drains, smoke detectors, sockets and the intercom. Write a snag list with photos and send it to the landlord or developer within the first week.', docs: ['Snag list with photos'] },
+      { id: 'handover', d: 3, deps: ['move'], title: 'Hand back the old home', body: 'Clean it, attend the check-out inspection, hand back all keys and cards, and get the handover or clearance form signed.' + (F.reg === 'Ejari' ? ' Make sure the old Ejari is cancelled when the contract ends; an active one can cause trouble when you register again later.' : ''), docs: ['Check-in photos from when you moved in', 'All keys, cards and remotes', 'Final utility and chiller clearance', 'Signed handover form'] },
+      { id: 'addr', d: 5, deps: ['move'], title: 'Update your address', body: 'Tell your bank, your employer\'s HR (they hold it for visa and medical insurance records), your health and car insurers, and update the address linked to your Emirates ID through the ICP app or website. ' + (c.car ? 'Update the address on your vehicle file with the traffic authority. ' : '') + 'Check the official site for each; some banks ask for a utility bill or tenancy registration as proof.', docs: ['Emirates ID', rent ? E.reg + ' certificate (as proof of address)' : 'Title deed', 'First utility bill, if asked'] },
+      { id: 'pets3', d: 7, deps: ['move'], show: c.pets, title: 'Update the pet\'s details', body: 'Update the microchip contact address and any municipality pet registration. Walk dogs early or late; pavements get hot enough to burn paws.', docs: ['Microchip number', 'Pet vaccination card'] },
+      { id: 'school2', d: 7, deps: ['school'], show: c.kids, title: 'Settle in at school', body: 'Check school transport routes for the new address and update the address on the school\'s parent portal.', docs: [] },
+      { id: 'refund', d: 10, deps: ['final'], title: 'Check the utility deposit refund', body: 'Make sure the final bill from ' + shortU(F) + ' is paid and the deposit refund has reached your account. Chase the chiller and gas deposits too.', docs: ['Final bill', 'Refund reference'] },
+      { id: 'deposit', d: 14, deps: ['handover'], title: 'Collect the security deposits', body: (rent ? 'Follow up on the landlord\'s security deposit; deductions should be for damage beyond normal wear, backed by evidence. ' : '') + 'Building management should return the move-in and move-out permit deposits once they confirm no damage. If something is wrongly deducted, ask in writing; Dubai and Abu Dhabi have rental dispute centres.', docs: ['Receipts for each deposit', 'Handover form', 'Before and after photos'] }
+    ];
+    return L.filter(function (t) { return t.show === undefined || t.show; });
+  }
+
+  function ctx() {
+    return { E: EM[st.t], F: EM[st.f], rent: st.r === 'rent', villa: st.v === 'villa', chill: st.c, gas: st.g, pets: st.p, kids: st.k, car: st.a, cross: st.f !== st.t };
+  }
+  var cur = [];
+  function build() {
+    var c = ctx(), L = tasks(c), byId = {}, move = parse(st.d);
+    L.forEach(function (t) { byId[t.id] = t; });
+    // enforce: a step is never dated before the steps it depends on
+    for (var pass = 0; pass < 3; pass++) L.forEach(function (t) { (t.deps || []).forEach(function (d) { if (byId[d] && byId[d].d >= t.d) t.d = byId[d].d + 1; }); });
+    L.forEach(function (t) { t.date = addDays(move, t.d); });
+    L.sort(function (a, b) { return a.d - b.d; });
+    cur = L;
+    var PH = [['8 to 6 weeks before', -999, -36], ['5 to 4 weeks before', -35, -22], ['3 to 2 weeks before', -21, -8], ['The last week', -7, -1], ['Move day', 0, 0], ['After the move', 1, 999]];
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+    var html = '';
+    PH.forEach(function (p) {
+      var items = L.filter(function (t) { return t.d >= p[1] && t.d <= p[2]; });
+      if (!items.length) return;
+      html += '<div class="ph"><h2>' + p[0] + '</h2><span>' + fmt(items[0].date) + (items.length > 1 && items[items.length - 1].d !== items[0].d ? ' to ' + fmt(items[items.length - 1].date) : '') + '</span></div><ul class="tl">';
+      items.forEach(function (t) {
+        var done = !!st.done[t.id], late = !done && t.date < today;
+        var deps = (t.deps || []).filter(function (d) { return byId[d]; }).map(function (d) { return byId[d].title; });
+        html += '<li class="' + (done ? 'done' : '') + '"><input type="checkbox" data-id="' + t.id + '"' + (done ? ' checked' : '') + ' aria-label="Done: ' + esc(t.title) + '"><b>' + esc(t.title) + '</b><span class="dt' + (late ? ' late' : '') + '">' + (late ? 'late · ' : '') + fmt(t.date) + '</span><div class="bd"><span>' + esc(t.body) + '</span>' + (deps.length ? '<span class="dep">After: ' + esc(deps.join('; ')) + '</span>' : '') + (t.docs.length ? '<details><summary>Documents you\'ll need (' + t.docs.length + ')</summary><ul>' + t.docs.map(function (d) { return '<li>' + esc(d) + '</li>'; }).join('') + '</ul></details>' : '') + '</div></li>';
+      });
+      html += '</ul>';
+    });
+    $('tl').innerHTML = html;
+    var cr = '';
+    if (c.cross) cr = 'Moving from ' + c.F.n + ' to ' + c.E.n + ': the new home uses ' + (c.rent ? c.E.reg + ' and ' : '') + shortU(c.E) + ', while the final bill at the old home comes from ' + shortU(c.F) + '.' + (c.kids ? ' The school regulator changes from ' + c.F.school + ' to ' + c.E.school + '.' : '') + ' Your Emirates ID and visa stay valid across emirates; just update the address.';
+    $('cross').hidden = !cr; $('cross').textContent = cr;
+    stats();
+  }
+  function fmt(d) { return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }); }
+  function stats() {
+    var n = cur.length, dn = cur.filter(function (t) { return st.done[t.id]; }).length;
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+    var late = cur.filter(function (t) { return !st.done[t.id] && t.date < today; }).length;
+    var days = Math.round((parse(st.d) - today) / 864e5 - 0.5);
+    $('sDone').textContent = dn + '/' + n; $('bar').style.width = (n ? dn / n * 100 : 0) + '%';
+    $('sDays').textContent = Math.abs(days); $('sDaysL').textContent = days >= 0 ? 'days to move' : 'days since move';
+    $('sLate').textContent = late;
+    var nx = cur.filter(function (t) { return !st.done[t.id]; })[0];
+    $('nextUp').textContent = nx ? 'Next: ' + nx.title + ' (' + fmt(nx.date) + ').' + (late ? ' Overdue steps are marked late: do them as soon as you can, in the order shown.' : '') : 'All done. Enjoy the new home.';
+  }
+  $('tl').addEventListener('change', function (e) {
+    var id = e.target.dataset && e.target.dataset.id; if (!id) return;
+    if (e.target.checked) st.done[id] = 1; else delete st.done[id];
+    save(); e.target.closest('.tl > li').className = e.target.checked ? 'done' : ''; stats();
+  });
+
+  // packing plan
+  function rooms() {
+    var R = [['store', 'Storeroom, balcony and decorations', 4, 'Seasonal items, camping gear, books, frames. Wrap frames in blankets.'],
+      ['guest', 'Guest room and spare cupboards', 3, 'Spare bedding, out-of-season clothes (in the UAE, the winter jackets).'],
+      ['living', 'Living room', 2, 'Books, ornaments, extra cushions. TV last; photograph cables before unplugging.'],
+      ['kitchen', 'Kitchen', 1, 'Pack all but a few plates, mugs and a pan. Wrap glass in paper, plates on their edge. Use up frozen food.'],
+      ['bed', 'Bedrooms', 1, 'Clothes in wardrobe boxes on hangers. Keep a week of clothes in a suitcase.'],
+      ['bath', 'Bathrooms', 0, 'Pack the last few days. Tape lids, and keep medicines with you, not on the truck (trucks get very hot).'],
+      ['docs', 'Documents and valuables', 0, 'Passports, Emirates IDs, contracts, jewellery and hard drives travel with you.']];
+    if (st.v === 'villa') R.splice(1, 0, ['garden', 'Garden, garage and roof', 4, 'Tools, BBQ, bikes, pots. Empty gas cylinders and fuel; most movers will not carry them.'], ['maid', 'Maid\'s or helper\'s room and laundry', 2, 'Agree with your helper what they pack and when.']);
+    if (st.k) R.splice(3, 0, ['kids', 'Kids\' rooms', 1, 'Let kids pack one box of favourites that rides in the car with them.']);
+    return R;
+  }
+  function renderPack() {
+    var m = parse(st.d);
+    $('pack').innerHTML = rooms().map(function (r) {
+      var w = r[2] ? addDays(m, -7 * r[2]) : addDays(m, -2);
+      return '<li><label><input type="checkbox" data-p="' + r[0] + '"' + (st.pack[r[0]] ? ' checked' : '') + '><span><b>' + r[1] + '</b> · ' + (r[2] ? r[2] + ' week' + (r[2] > 1 ? 's' : '') + ' before' : 'last days') + ' (from ' + fmt(w) + ')<small>' + r[3] + '</small></span></label></li>';
+    }).join('');
+  }
+  $('pack').addEventListener('change', function (e) { var k = e.target.dataset.p; if (!k) return; if (e.target.checked) st.pack[k] = 1; else delete st.pack[k]; save(); });
+  var KEYS = [['o', 'Old home: photos of every room and wall, dated'], ['o', 'Old home: final meter readings photographed (electricity, water, chiller, gas)'], ['o', 'Old home: all keys, access cards, parking cards, mailbox key and remotes returned and counted'], ['o', 'Old home: handover or clearance form signed by landlord or agent'], ['o', 'Old home: forwarding address and IBAN given for the deposit'], ['n', 'New home: keys, access cards and remotes counted against the handover list'], ['n', 'New home: check-in inspection report signed, with photos of existing marks'], ['n', 'New home: starting meter readings photographed'], ['n', 'New home: ask whether locks were changed since the last tenant'], ['n', 'New home: emergency contacts for building management and maintenance saved'], ['n', 'New home: smoke detectors and fire extinguisher location checked']];
+  function renderKeys() { $('keys').innerHTML = KEYS.map(function (k, i) { return '<li><label><input type="checkbox" data-k="' + i + '"' + (st.keys[i] ? ' checked' : '') + '><span>' + k[1] + '</span></label></li>'; }).join(''); }
+  $('keys').addEventListener('change', function (e) { var k = e.target.dataset.k; if (k == null) return; if (e.target.checked) st.keys[k] = 1; else delete st.keys[k]; save(); });
+
+  // movers comparison
+  var MF = [['ins', 'Goods-in-transit insurance'], ['mat', 'Packing materials included'], ['dis', 'Dismantle and reassemble'], ['lic', 'Trade licence seen'], ['srv', 'Did a survey'], ['wr', 'Quote in writing']];
+  function renderMv() {
+    $('mvs').innerHTML = st.mv.map(function (m, i) {
+      return '<div class="mv" data-i="' + i + '"><input type="text" data-f="name" placeholder="Mover ' + (i + 1) + ' name" value="' + esc(m.name || '') + '" aria-label="Mover ' + (i + 1) + ' name"><input type="number" min="0" data-f="price" placeholder="Price (AED)" value="' + esc(m.price || '') + '" aria-label="Mover ' + (i + 1) + ' price">' + MF.map(function (f) { return '<label><input type="checkbox" data-f="' + f[0] + '"' + (m[f[0]] ? ' checked' : '') + '> ' + f[1] + '</label>'; }).join('') + '</div>';
+    }).join('');
+    mvSum();
+  }
+  function mvSum() {
+    var best = -1, bs = null;
+    st.mv.forEach(function (m, i) {
+      if (!(+m.price > 0)) return;
+      var sc = MF.filter(function (f) { return m[f[0]]; }).length;
+      if (!m.ins || !m.lic) return;
+      if (bs === null || sc > bs.sc || (sc === bs.sc && +m.price < +bs.p)) { best = i; bs = { sc: sc, p: m.price }; }
+    });
+    [].forEach.call(document.querySelectorAll('.mv'), function (el, i) { el.classList.toggle('best', i === best); });
+    var priced = st.mv.filter(function (m) { return +m.price > 0; }).length;
+    $('mvOut').textContent = best >= 0 ? 'Best pick so far: ' + (st.mv[best].name || 'Mover ' + (best + 1)) + ', AED ' + (+st.mv[best].price).toLocaleString('en') + ' with ' + bs.sc + ' of ' + MF.length + ' boxes ticked.' : priced ? 'No quote has both insurance and a trade licence yet. Ask before you book.' : 'Enter prices to compare.';
+  }
+  $('mvs').addEventListener('input', function (e) {
+    var card = e.target.closest('.mv'); if (!card) return; var m = st.mv[+card.dataset.i], f = e.target.dataset.f;
+    m[f] = e.target.type === 'checkbox' ? e.target.checked : e.target.value; save(); mvSum();
+  });
+
+  // calendar export
+  function icsEsc(s) { return String(s).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n'); }
+  function fold(line) { var out = '', i = 0; while (line.length - i > 73) { out += line.slice(i, i + 73) + '\r\n '; i += 73; } return out + line.slice(i); }
+  function ymd(d) { return iso(d).replace(/-/g, ''); }
+  $('ics').onclick = function () {
+    var todo = cur.filter(function (t) { return !st.done[t.id]; }); if (!todo.length) todo = cur;
+    var stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
+    var L = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Mariams Lab//Moving UAE//EN', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH'];
+    todo.forEach(function (t) {
+      L.push('BEGIN:VEVENT', 'UID:' + t.id + '-' + st.d + '@lab.mariamalzaabi.ae', 'DTSTAMP:' + stamp, 'DTSTART;VALUE=DATE:' + ymd(t.date), 'DTEND;VALUE=DATE:' + ymd(addDays(t.date, 1)), 'SUMMARY:' + icsEsc('Move: ' + t.title), 'DESCRIPTION:' + icsEsc(t.body + (t.docs.length ? '\nDocuments: ' + t.docs.join('; ') : '')), 'TRANSP:TRANSPARENT', 'END:VEVENT');
+    });
+    L.push('END:VCALENDAR');
+    var blob = new Blob([L.map(fold).join('\r\n') + '\r\n'], { type: 'text/calendar' }), a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = 'moving-plan.ics'; document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  };
+  $('prn').onclick = function () { [].forEach.call(document.querySelectorAll('.tl details'), function (d) { d.open = true; }); window.print(); };
+  $('clr').onclick = function () { if (confirm('Clear all ticks?')) { st.done = {}; st.pack = {}; st.keys = {}; save(); build(); renderPack(); renderKeys(); } };
+
+  // inputs
+  var MAP = { iF: 'f', iT: 't', iD: 'd', iR: 'r', iV: 'v', iC: 'c', iG: 'g', iP: 'p', iK: 'k', iA: 'a' };
+  Object.keys(MAP).forEach(function (id) { var el = $(id); if (el.type === 'checkbox') el.checked = !!st[MAP[id]]; else el.value = st[MAP[id]]; });
+  function readInputs() { Object.keys(MAP).forEach(function (id) { var el = $(id); st[MAP[id]] = el.type === 'checkbox' ? el.checked : el.value; }); if (!st.d) st.d = iso(addDays(new Date(), 56)); save(); build(); renderPack(); }
+  Object.keys(MAP).forEach(function (id) { $(id).addEventListener('change', readInputs); });
+  $('gen').onclick = function () { readInputs(); $('tl').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+  build(); renderPack(); renderKeys(); renderMv();
+})();
+</script>
+</body>
+</html>
