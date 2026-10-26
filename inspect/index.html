@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Domain &amp; Link Inspector · Mariam's Lab</title>
+<meta name="description" content="Paste a link or domain before you trust it: look-alike tricks, how old the domain is and who registered it, its security grade, and every subdomain in public certificate logs.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/inspect/">
+<meta property="og:title" content="Domain &amp; Link Inspector · Mariam's Lab"><meta property="og:description" content="Is this link what it claims to be? Age, owner, look-alikes, security grade, subdomains."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.inrow { display: flex; gap: 8px; flex-wrap: wrap; }
+.inrow input { flex: 1 1 260px; min-width: 0; font: inherit; font-family: var(--font-mono); color: var(--ink); background: rgba(7,10,24,.7); border: 1px solid var(--line); border-radius: 999px; padding: 11px 16px; }
+.sm { font: inherit; font-size: 0.8rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 4px 11px; cursor: pointer; }
+.tries { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; align-items: center; }
+.lbl { font-size: 0.78rem; color: var(--muted); }
+.res { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 20px; }
+.sec { padding: 16px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); display: grid; gap: 10px; align-content: start; min-width: 0; }
+.sec h2 { font-size: 1.05rem; font-weight: 700; display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.sec h2 small { font-family: var(--font-mono); font-size: 0.72rem; color: var(--muted); font-weight: 400; }
+.verdict { grid-column: 1 / -1; }
+.verdict h2 { font-size: clamp(1.3rem, 3.5vw, 1.8rem); font-weight: 800; }
+.flags { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.flags li { display: grid; grid-template-columns: 1.3em minmax(0, 1fr); gap: 6px; font-size: 0.88rem; }
+.flags small { display: block; color: var(--muted); font-size: 0.8rem; word-break: break-word; }
+.kv { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 5px 12px; font-size: 0.86rem; margin: 0; }
+.kv dt { color: var(--muted); } .kv dd { margin: 0; font-family: var(--font-mono); font-size: 0.8rem; word-break: break-all; }
+.grade { font-family: var(--font-display); font-size: 3rem; font-weight: 800; line-height: 1; }
+.subs { display: flex; flex-wrap: wrap; gap: 5px; max-height: 260px; overflow: auto; }
+.subs span { font-family: var(--font-mono); font-size: 0.74rem; padding: 2px 8px; border-radius: 99px; border: 1px solid var(--line); word-break: break-all; }
+.ok { color: var(--sat-b); } .bad { color: var(--sat-c); } .meh { color: var(--accent); } .na { color: var(--muted); }
+.wait { color: var(--muted); font-size: 0.86rem; }
+[hidden] { display: none !important; }
+@media (max-width: 760px) { .res { grid-template-columns: minmax(0, 1fr); } }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Security</span>
+    <h1 style="font-size:var(--step-3)">Domain &amp; link inspector.</h1>
+    <p>Got a link in a text message or an email? Paste it here before you tap it. You'll see whether the address is pretending to be someone else, how long the domain has existed and who registered it, how well the site is secured, and every subdomain that has ever had a public certificate.</p>
+  </div>
+  <form class="inrow" id="f"><input id="q" placeholder="Paste a link or a domain, e.g. https://rta-fines-pay.top/login" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Link or domain"><button class="btn primary" type="submit">Inspect</button></form>
+  <div class="tries"><span class="lbl">Try</span><button class="sm" type="button" data-q="https://emiratesnbd.com.secure-login.example/verify">a look-alike trick</button><button class="sm" type="button" data-q="http://xn--pple-43d.com">a hidden letter</button><button class="sm" type="button" data-q="mariamalzaabi.ae">mariamalzaabi.ae</button><button class="sm" type="button" data-q="github.com">github.com</button></div>
+  <div class="res" id="res" hidden>
+    <div class="sec verdict" id="verdict"></div>
+    <div class="sec"><h2>The address itself <small>checked on your device</small></h2><ul class="flags" id="link"></ul></div>
+    <div class="sec"><h2>Age and owner <small>RDAP registry</small></h2><div id="rdap" class="wait">Asking the registry…</div></div>
+    <div class="sec"><h2>Security grade <small>Mozilla Observatory</small></h2><div id="obs" class="wait">Scanning the site's headers…</div></div>
+    <div class="sec"><h2>Certificates and subdomains <small>crt.sh logs</small></h2><div id="ct" class="wait">Searching public logs (can take 20 s)…</div></div>
+  </div>
+  <p class="fact" style="margin-top:22px">Nothing here opens the link itself. The domain name (never the full link) is sent to the public registry, Mozilla Observatory and crt.sh. A clean result doesn't prove a site is safe: brand-new scam sites start clean. When a message pushes you to act fast, go to the company's site or app yourself instead.</p>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var BRANDS = ['emiratesnbd', 'adcb', 'bankfab', 'fab', 'mashreq', 'dib', 'adib', 'rakbank', 'cbd', 'etisalat', 'eand', 'du', 'dewa', 'addc', 'rta', 'mohre', 'icp', 'uaepass', 'emirates', 'flydubai', 'etihad', 'airarabia', 'aramex', 'emiratespost', 'noon', 'amazon', 'paypal', 'apple', 'icloud', 'google', 'gmail', 'microsoft', 'outlook', 'office', 'whatsapp', 'instagram', 'facebook', 'netflix', 'dhl', 'fedex', 'careem', 'talabat', 'binance', 'coinbase', 'salik', 'tabby', 'tamara'];
+  var SECOND = /^(co|com|net|org|gov|ac|edu|sch|mil|nhs|ltd|plc)$/;
+  var RISKY_TLD = /\.(zip|mov|top|xyz|click|link|work|loan|win|gq|ml|cf|tk|ga|rest|cam|icu|buzz|sbs|cfd|monster|lol)$/;
+  var SHORT = /^(bit\.ly|tinyurl\.com|t\.co|goo\.gl|ow\.ly|is\.gd|cutt\.ly|rb\.gy|shorturl\.at|s\.id|t\.ly|rebrand\.ly)$/;
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function lev(a, b) { var d = []; for (var i = 0; i <= a.length; i++) { d[i] = [i]; } for (var j = 1; j <= b.length; j++) d[0][j] = j; for (i = 1; i <= a.length; i++) for (j = 1; j <= b.length; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); return d[a.length][b.length]; }
+  function unpuny(host) {
+    // decode xn-- labels (RFC 3492)
+    return host.split('.').map(function (l) {
+      if (l.indexOf('xn--') !== 0) return l;
+      var input = l.slice(4), out = [], n = 128, i = 0, bias = 72, b = input.lastIndexOf('-');
+      if (b > 0) for (var k = 0; k < b; k++) out.push(input.charCodeAt(k));
+      for (var idx = b > 0 ? b + 1 : 0; idx < input.length;) {
+        var oldi = i, w = 1;
+        for (var kk = 36; ; kk += 36) {
+          var c = input.charCodeAt(idx++), digit = c - 48 < 10 ? c - 22 : c - 65 < 26 ? c - 65 : c - 97 < 26 ? c - 97 : 36;
+          i += digit * w; var t = kk <= bias ? 1 : kk >= bias + 26 ? 26 : kk - bias; if (digit < t) break; w *= 36 - t;
+        }
+        var len = out.length + 1, delta = i - oldi; delta = oldi === 0 ? Math.floor(delta / 700) : delta >> 1; delta += Math.floor(delta / len);
+        for (var kb = 0; delta > 455; kb += 36) delta = Math.floor(delta / 35); bias = kb + Math.floor(36 * delta / (delta + 38));
+        n += Math.floor(i / len); i %= len; out.splice(i++, 0, n);
+      }
+      return String.fromCodePoint.apply(null, out);
+    }).join('.');
+  }
+  function registrable(host) { var p = host.split('.'); if (p.length <= 2) return host; return (SECOND.test(p[p.length - 2]) ? p.slice(-3) : p.slice(-2)).join('.'); }
+
+  function parse(q) {
+    q = q.trim(); var url;
+    try { url = new URL(/^[a-z]+:\/\//i.test(q) ? q : 'https://' + q); } catch (e) { return null; }
+    var host = url.hostname.replace(/\.$/, '').toLowerCase();
+    if (!/\./.test(host)) return null;
+    return { raw: q, url: url, host: host, reg: registrable(host), hasPath: /^[a-z]+:\/\//i.test(q) };
+  }
+  function linkChecks(p) {
+    var f = [], score = 0, u = p.url, host = p.host, shown = unpuny(host), reg = p.reg, regName = reg.split('.')[0];
+    if (shown !== host) { score += 3; f.push(['bad', 'Hidden international letters', 'It displays as "' + shown + '" but is really ' + host + '. Letters from other alphabets can look identical to Latin ones.']); }
+    if (/^\d+\.\d+\.\d+\.\d+$/.test(host) || host.indexOf(':') >= 0) { score += 2; f.push(['bad', 'A bare IP address', 'Real companies use names, not numbers.']); }
+    if (SHORT.test(host)) { score += 1; f.push(['meh', 'A link shortener', 'It hides where you will really end up. Ask the sender for the full link.']); }
+    var sub = host.slice(0, host.length - reg.length).replace(/\.$/, '');
+    BRANDS.forEach(function (b) {
+      if (regName === b) return;
+      if (sub && sub.split(/[.-]/).indexOf(b) >= 0) { score += 3; f.push(['bad', 'Brand name in the wrong place', '"' + b + '" appears before the real domain, which is ' + reg + '. The part just before the ending is what counts.']); }
+      else if (regName.length >= 4 && b.length >= 4 && regName !== b && (regName.indexOf(b) >= 0 || lev(regName.replace(/0/g, 'o').replace(/1/g, 'l'), b) <= 1 || lev(regName, b) <= 2 && b.length >= 7)) { score += 2; f.push(['bad', 'Looks like ' + b, reg + ' is not ' + b + '\'s domain, but it is close enough to fool a quick glance.']); }
+    });
+    if (RISKY_TLD.test(host)) { score += 1; f.push(['meh', 'A cheap, often-abused ending', '.' + host.split('.').pop() + ' domains cost very little and are common in scam texts.']); }
+    var shownName = unpuny(reg).split('.')[0];
+    BRANDS.forEach(function (b) { if (regName !== b && shownName.split('-').indexOf(b) >= 0 && regName.indexOf('-') >= 0) { score += 2; var B = b.length <= 4 ? b.toUpperCase() : b; f.push(['bad', 'Borrows the name ' + B, reg + ' is not run by ' + B + '; anyone can buy a name with a company\'s name in it.']); } });
+    if ((shownName.match(/-/g) || []).length >= 2) { score += 1; f.push(['meh', 'Lots of hyphens', 'Names like "pay-fine-now-online" are a scam favourite.']); }
+    if (p.hasPath && u.protocol === 'http:') { score += 1; f.push(['meh', 'Not encrypted', 'The link starts with http://, so anything you type could be read on the way.']); }
+    if (u.username || u.password || /@/.test(p.raw.split('?')[0].replace(/^[a-z]+:\/\//i, '').split('/')[0])) { score += 3; f.push(['bad', 'An @ sign in the address', 'Everything before @ is ignored; you would really go to ' + host + '.']); }
+    if (p.hasPath && /login|verify|secure|update|account|confirm|pay|fine|refund|otp|wallet/i.test(u.pathname + u.search) && score) f.push(['meh', 'Asks you to act', 'The link points at a login, payment or verification page. Scams nearly always do.']);
+    if (!f.length) f.push(['ok', 'Nothing odd in the address', 'The name is plain and the real domain is ' + reg + '.']);
+    return { flags: f, score: score };
+  }
+  function flagsHTML(f) { var ic = { ok: '✓', bad: '✕', meh: '!', na: '·' }; return f.map(function (x) { return '<li><span class="' + x[0] + '">' + ic[x[0]] + '</span><span>' + esc(x[1]) + '<small>' + esc(x[2]) + '</small></span></li>'; }).join(''); }
+  function fmtD(s) { var d = new Date(s); return isNaN(d) ? s : d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }); }
+  function ageText(days) { return days < 60 ? days + ' days' : days < 730 ? Math.round(days / 30) + ' months' : (days / 365).toFixed(1) + ' years'; }
+
+  var state = {};
+  function verdict() {
+    var s = state, ageBad = s.age != null && s.age < 90, ageMeh = s.age != null && s.age < 365;
+    var total = s.link.score + (ageBad ? 3 : ageMeh ? 1 : 0) + (s.ctAge != null && s.ctAge < 30 ? 1 : 0);
+    var v = total >= 4 ? ['bad', 'Don\'t trust this link', 'Several warning signs together. Go to the company\'s app or type their address yourself.'] : total >= 2 ? ['meh', 'Be careful', 'Something doesn\'t add up. Check with the sender another way before entering anything.'] : ['ok', 'No obvious red flags', 'Nothing alarming found, but always check the real domain (' + s.p.reg + ') before logging in or paying.'];
+    $('verdict').innerHTML = '<h2 class="' + v[0] + '">' + v[1] + '</h2><p class="wait" style="font-size:.95rem">' + v[2] + '</p>' + (s.age != null ? '<p class="wait">Domain age: <b class="' + (ageBad ? 'bad' : ageMeh ? 'meh' : 'ok') + '">' + ageText(s.age) + '</b></p>' : '');
+  }
+
+  function rdap(reg) {
+    return fetch('https://rdap.org/domain/' + reg).then(function (r) { if (r.status === 404) throw new Error('nf'); if (!r.ok) throw new Error('x'); return r.json(); }).then(function (j) {
+      var ev = {}; (j.events || []).forEach(function (e) { ev[e.eventAction] = e.eventDate; });
+      var reg = ((j.entities || []).filter(function (e) { return (e.roles || []).indexOf('registrar') >= 0; })[0] || {}), regName = '';
+      try { regName = reg.vcardArray[1].filter(function (v) { return v[0] === 'fn'; })[0][3]; } catch (e) {}
+      var reg2 = ((j.entities || []).filter(function (e) { return (e.roles || []).indexOf('registrant') >= 0; })[0] || {}), owner = '';
+      try { owner = reg2.vcardArray[1].filter(function (v) { return v[0] === 'fn' || v[0] === 'org'; })[0][3]; } catch (e) {}
+      var created = ev.registration, days = created ? Math.floor((Date.now() - new Date(created)) / 864e5) : null;
+      state.age = days; verdict();
+      var rows = [['Registered', created ? fmtD(created) + ' (' + ageText(days) + ' ago)' : 'not shown'], ['Expires', ev.expiration ? fmtD(ev.expiration) : 'not shown'], ['Last changed', ev['last changed'] ? fmtD(ev['last changed']) : ''], ['Registrar', regName], ['Registered to', owner && !/redact|privacy|withheld/i.test(owner) ? owner : 'hidden for privacy (normal)'], ['Status', (j.status || []).slice(0, 3).join(', ')]];
+      $('rdap').className = ''; $('rdap').innerHTML = '<dl class="kv">' + rows.filter(function (r) { return r[1]; }).map(function (r) { return '<dt>' + r[0] + '</dt><dd>' + esc(r[1]) + '</dd>'; }).join('') + '</dl>' + (days != null && days < 90 ? '<p class="bad" style="font-size:.86rem">Registered very recently. Most scam domains are used within weeks of being bought.</p>' : '');
+    }).catch(function (e) { $('rdap').textContent = e.message === 'nf' ? 'No registration record found. The domain may not exist, or its registry (some country endings, including .ae) doesn\'t publish RDAP data.' : 'The registry didn\'t answer. Try again later.'; });
+  }
+  function obs(host) {
+    return fetch('https://observatory-api.mdn.mozilla.net/api/v2/scan?host=' + encodeURIComponent(host), { method: 'POST' }).then(function (r) { return r.json(); }).then(function (j) {
+      if (!j.grade) throw new Error(j.error || 'x');
+      var col = /^A/.test(j.grade) ? 'ok' : /^[BC]/.test(j.grade) ? 'meh' : 'bad';
+      $('obs').className = ''; $('obs').innerHTML = '<div style="display:flex;gap:16px;align-items:center"><span class="grade ' + col + '">' + esc(j.grade) + '</span><span class="wait">Score ' + j.score + '/100<br>' + j.tests_passed + ' of ' + (j.tests_passed + j.tests_failed) + ' checks passed</span></div><p class="wait">This grades the protective settings a site sends to browsers (forcing HTTPS, blocking clickjacking and script injection). It says how carefully a site is set up, not whether its owner is honest.</p>' + (j.details_url ? '<a class="wait" href="' + esc(j.details_url) + '" target="_blank" rel="noopener">Full report ↗</a>' : '');
+    }).catch(function () { $('obs').textContent = 'Couldn\'t scan this site. It may not run a website, or it blocked the scanner.'; });
+  }
+  function ct(reg) {
+    var ctl = new AbortController(); setTimeout(function () { ctl.abort(); }, 40000);
+    return fetch('https://crt.sh/?q=' + encodeURIComponent('%.' + reg) + '&output=json', { signal: ctl.signal }).then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(function (j) {
+      var names = {}, first = null;
+      j.forEach(function (c) { (c.name_value || '').split('\n').forEach(function (n) { n = n.toLowerCase().trim(); if (n.endsWith(reg)) names[n] = 1; }); var d = new Date(c.not_before); if (!first || d < first) first = d; });
+      var list = Object.keys(names).sort(function (a, b) { return a.split('.').length - b.split('.').length || a.localeCompare(b); });
+      var age = first ? Math.floor((Date.now() - first) / 864e5) : null; state.ctAge = age; verdict();
+      $('ct').className = ''; $('ct').innerHTML = (first ? '<p class="wait">First certificate: <b>' + fmtD(first) + '</b> · ' + j.length.toLocaleString('en') + ' certificates logged · ' + list.length + ' names</p>' : '<p class="wait">No certificates logged. A site without one can\'t use HTTPS.</p>') +
+        '<div class="subs">' + list.slice(0, 300).map(function (n) { return '<span>' + esc(n) + '</span>'; }).join('') + '</div>' + (list.length > 300 ? '<p class="wait">…and ' + (list.length - 300) + ' more.</p>' : '') +
+        '<p class="wait">For your own domain, this shows forgotten test or staging sites that the whole internet can see.</p>';
+    }).catch(function () { $('ct').textContent = 'crt.sh is busy or slow right now. Try again in a minute.'; });
+  }
+  function run(q) {
+    var p = parse(q);
+    if (!p) { alert('That doesn\'t look like a link or domain.'); return; }
+    state = { p: p, link: linkChecks(p), age: null, ctAge: null };
+    $('res').hidden = false; $('link').innerHTML = flagsHTML(state.link.flags); verdict();
+    ['rdap', 'obs', 'ct'].forEach(function (k) { $(k).className = 'wait'; });
+    $('rdap').textContent = 'Asking the registry…'; $('obs').textContent = 'Scanning the site\'s headers…'; $('ct').textContent = 'Searching public logs (can take 20 s)…';
+    rdap(p.reg); obs(p.host); ct(p.reg);
+    history.replaceState(null, '', '?q=' + encodeURIComponent(p.hasPath ? p.raw : p.host));
+  }
+  $('f').onsubmit = function (e) { e.preventDefault(); run($('q').value); };
+  [].forEach.call(document.querySelectorAll('[data-q]'), function (b) { b.onclick = function () { $('q').value = b.dataset.q; run(b.dataset.q); }; });
+  var q0 = new URLSearchParams(location.search).get('q'); if (q0) { $('q').value = q0; run(q0); }
+})();
+</script>
+</body>
+</html>
