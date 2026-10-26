@@ -15,7 +15,7 @@
   try { if (lang) localStorage.setItem(KEY, lang); else lang = localStorage.getItem(KEY); } catch (e) {}
   var AR = lang === 'ar';
   var script = document.currentScript, base = script ? script.src.replace(/assets\/i18n\.js.*$/, '') : '../';
-  var dict = Object.create(null), html = Object.create(null), pats = [], done = new WeakMap(), arVals = new Set();
+  var dict = Object.create(null), html = Object.create(null), pats = [], done = new WeakMap(), arVals = new Set(), outs = new Set();
   var debug = /i18ndebug/.test(location.search), missing = window.__i18nMissing = new Set();
   function norm(s) { return s.replace(/\s+/g, ' ').trim(); }
   window.LabAr = {
@@ -31,8 +31,9 @@
     if (!AR || s == null) return s;
     var n = norm(String(s)); if (!n || !/[A-Za-z]/.test(n)) return s;
     var hasAr = /[\u0600-\u06FF]/.test(n);
+    if (outs.has(n) || (dict[n] == null && arVals.has(n))) return s; // already a translation: don't translate it again
     if (dict[n] != null) return keepSpace(s, dict[n]);
-    for (var i = 0; i < pats.length; i++) { var m = n.match(pats[i][0]); if (m) { var r = pats[i][1]; return keepSpace(s, typeof r === 'function' ? r.apply(null, m) : n.replace(pats[i][0], r)); } }
+    for (var i = 0; i < pats.length; i++) { var m = n.match(pats[i][0]); if (m) { var r = pats[i][1], o = typeof r === 'function' ? r.apply(null, m) : n.replace(pats[i][0], r); outs.add(norm(String(o))); return keepSpace(s, o); } }
     if (debug && !hasAr && !arVals.has(n)) missing.add(n);
     return s;
   }
