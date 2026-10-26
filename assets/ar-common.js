@@ -297,3 +297,10 @@ LabAr.add({
  "Describe what you post and see the dossier a stranger could build: home area, weekly routine, security answers, with a fix for each.": "صِف ما تنشره وشاهد الملف الذي قد يجمعه غريب عنك: منطقة سكنك وروتينك الأسبوعي وإجابات أسئلة الأمان، مع حل لكل منها.",
  "See my dossier →": "اعرض ملفي ←"
 });
+/* index cards for newer tools */
+LabAr.add({
+ "Tool · Shopping": "أداة · تسوّق",
+ "Which pack is cheaper?": "أي عبوة أرخص؟",
+ "Compare supermarket packs by price per kg, litre, piece or wash, with buy 2 get 1 and extra free offers counted in.": "قارن عبوات السوبرماركت بسعر الكيلو أو اللتر أو القطعة أو الغسلة، مع احتساب عروض اشترِ 2 واحصل على 1 والكمية الإضافية المجانية.",
+ "Compare packs →": "قارن العبوات ←"
+});

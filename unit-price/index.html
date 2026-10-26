@@ -1,0 +1,470 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Which pack is cheaper? · Mariam's Lab</title>
+<meta name="description" content="A quick supermarket unit-price comparer for the UAE. Type or snap the price and size, handle buy 2 get 1 and extra free offers, and see which pack is really cheaper per kg, litre, piece or wash.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/unit-price/">
+<meta property="og:title" content="Which pack is cheaper? · Mariam's Lab"><meta property="og:description" content="Compare packs by price per kg, litre, piece or wash, offers included."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.88rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px; cursor: pointer; min-height: 40px; }
+.sm:hover { border-color: var(--muted); }
+.sm[aria-pressed="true"], .sm.pri { background: var(--accent); color: #1a1205; border-color: var(--accent); }
+.pills { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 0; }
+.msg.warn { color: var(--sat-c); }
+.items { display: grid; gap: 12px; }
+.item { padding: 14px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); display: grid; gap: 10px; min-width: 0; }
+.item.top { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+.ihead { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; align-items: center; }
+.fld { font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; min-width: 0; width: 100%; box-sizing: border-box; min-height: 44px; }
+.fld:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.big { font-family: var(--font-mono); font-size: 1.35rem; font-weight: 500; text-align: center; min-height: 54px; padding: 8px 6px; }
+.nums { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) minmax(0, 0.9fr) minmax(0, 0.8fr); gap: 8px; align-items: end; }
+.nums label, .offer label { display: grid; gap: 4px; font-size: 0.74rem; color: var(--muted); min-width: 0; }
+select.fld { padding-inline: 6px; }
+.offer { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr); gap: 8px; align-items: end; }
+.offer .big { font-size: 1.1rem; min-height: 44px; }
+.iout { font-size: 0.86rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+.iout b { font-family: var(--font-mono); color: var(--ink); font-size: 1rem; }
+.x { background: none; border: 0; color: var(--muted); font-size: 1.4rem; cursor: pointer; padding: 0 6px; min-height: 40px; min-width: 40px; }
+.rank { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.rank li { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 4px 12px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; align-items: center; }
+.rank li.win { border-color: var(--accent); background: rgba(233,180,103,.12); }
+.rank .pos { font-family: var(--font-display); font-weight: 800; font-size: 1.4rem; color: var(--muted); }
+.rank li.win .pos { color: var(--accent); }
+.rank .who { display: grid; gap: 2px; min-width: 0; }
+.rank .who b { overflow-wrap: anywhere; }
+.rank .who small, .rank .pr small { color: var(--muted); font-size: 0.78rem; }
+.rank .pr { display: grid; gap: 1px; text-align: end; }
+.rank .pr b { font-family: var(--font-display); font-weight: 800; font-size: 1.25rem; white-space: nowrap; }
+.rank .cmp { grid-column: 1 / -1; margin: 0; font-size: 0.84rem; color: var(--muted); }
+.rank .cmp b { color: var(--ink); }
+.badge { display: inline-block; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; background: var(--accent); color: #1a1205; border-radius: 999px; padding: 1px 8px; margin-inline-start: 6px; vertical-align: 1px; }
+.use { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 0.9rem; }
+.use .fld { width: 6.5em; }
+.use select.fld { width: auto; }
+.warns { display: grid; gap: 4px; }
+.tips { margin: 0; padding-inline-start: 18px; display: grid; gap: 6px; font-size: 0.9rem; color: var(--muted); }
+.tips b { color: var(--ink); }
+.stats b { overflow-wrap: anywhere; line-height: 1.15; }
+.winbar { display: none; }
+@media (max-width: 860px) {
+  .winbar { display: flex; position: fixed; z-index: 20; left: 12px; right: 12px; bottom: calc(10px + env(safe-area-inset-bottom)); gap: 8px; align-items: baseline; flex-wrap: wrap; padding: 10px 14px; border-radius: 999px; border: 1px solid var(--accent); background: rgba(7,10,24,.94); color: var(--ink); font: inherit; font-size: 0.88rem; cursor: pointer; text-align: start; }
+  .winbar[hidden] { display: none !important; }
+  .winbar b { font-family: var(--font-mono); color: var(--accent); }
+  .winbar #wbn b { font-family: inherit; color: var(--ink); font-weight: 600; }
+  body { padding-bottom: 70px; }
+}
+.stats span { font-size: 0.76rem; color: var(--muted); }
+.scanin { display: none; }
+@media (max-width: 520px) {
+  .nums { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .offer { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .offer label:first-child { grid-column: 1 / -1; }
+  .stats b { font-size: 1.05rem; }
+}
+html.ar .big, html.ar .use .fld { direction: ltr; }
+html.ar .rank .pr b, html.ar .iout b, html.ar .stats b { unicode-bidi: plaintext; }
+html.ar .badge { text-transform: none; letter-spacing: 0; }
+[hidden] { display: none !important; }
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Shopping · UAE</span>
+    <h1 style="font-size:var(--step-3)">Which pack is cheaper?</h1>
+    <p>Standing in the aisle with two packs of rice and a "buy 2 get 1" sticker? Type the price and size of each, or snap the shelf label, and see the real price per kg, litre, piece or wash. Offers are counted in, and it shows what you'd save in a month.</p>
+  </div>
+  <div class="game">
+    <div class="panel">
+      <span class="label">What are you buying?</span>
+      <div class="pills" id="cats"></div>
+      <div class="items" id="items"></div>
+      <div class="pills">
+        <button class="sm pri" type="button" id="add">+ Add a pack</button>
+        <button class="sm" type="button" id="example">Load a made-up example</button>
+        <button class="sm" type="button" id="clear">Clear this list</button>
+      </div>
+      <p class="msg" id="scanmsg" role="status"></p>
+      <input class="scanin" type="file" accept="image/*" capture="environment" id="scanfile">
+    </div>
+    <div class="panel">
+      <span class="label">Cheapest first</span>
+      <div class="warns" id="warns"></div>
+      <ol class="rank" id="rank"></ol>
+      <div class="stats">
+        <div><b id="s1">–</b><span id="s1l">Best unit price</span></div>
+        <div><b id="s2">–</b><span>Cheaper than the dearest</span></div>
+        <div><b id="s3">–</b><span>Saved a month vs the dearest</span></div>
+      </div>
+      <div class="use">
+        <label for="useamt">I use about</label>
+        <input class="fld big" id="useamt" type="text" inputmode="decimal" autocomplete="off" placeholder="0">
+        <select class="fld" id="useunit" aria-label="Usage unit"></select>
+        <span>a month</span>
+      </div>
+      <div class="pills">
+        <button class="sm pri" type="button" id="share">Share result</button>
+        <a class="sm" id="wa" href="#" target="_blank" rel="noopener">Send on WhatsApp</a>
+        <button class="sm" type="button" id="copy">Copy</button>
+      </div>
+      <p class="msg" id="sharemsg" role="status"></p>
+      <span class="label" style="margin-top:6px">Aisle tips</span>
+      <ul class="tips">
+        <li><b>Check the small print on the shelf label.</b> Many supermarkets in the UAE already print the price per kg or per litre in small type under the main price.</li>
+        <li><b>Bulk isn't always cheaper.</b> A big pack at full price can cost more per kg than a smaller pack on offer.</li>
+        <li><b>Watch the drained weight on canned food.</b> A 400 g tin of chickpeas may hold only 240 g once the water is gone. Compare the drained weight.</li>
+        <li><b>A deal only counts if you use it all.</b> Three bottles of oil for the price of two is no saving if one goes off.</li>
+        <li><b>Rolls and sheets don't compare.</b> One roll can hold 150 sheets or 300. Use the sheet count from the pack.</li>
+      </ul>
+      <p class="fact" style="margin:0"><b>How offers are counted.</b> "Buy 2 get 1 free" means 3 packs for the price of 2, so each pack costs a third less. "Extra 20% free" sounds similar, but it is only about 17% off, because you pay the same for 1.2 times as much. A straight "20% off" is the better of the two.</p>
+      <p class="fact" style="margin:0">Your lists are saved in this browser only. Prices change often, so treat the result as a quick guide and check the till receipt.</p>
+    </div>
+  </div>
+</div></main>
+<button class="winbar" type="button" id="winbar" hidden><span>Cheapest:</span><span id="wbn"></span><b id="wbp"></b><span id="wbu"></span></button>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var KEY = 'unitPrice.v1';
+  var TESS = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
+  function T(s) { return window.LabAr && LabAr.on ? LabAr.t(s) : s; }
+
+  // units: dimension + factor to the base unit (g, ml, or one of each counted thing)
+  var UNITS = {
+    g: { d: 'mass', f: 1, one: 'g', many: 'g' }, kg: { d: 'mass', f: 1000, one: 'kg', many: 'kg' },
+    ml: { d: 'vol', f: 1, one: 'ml', many: 'ml' }, L: { d: 'vol', f: 1000, one: 'L', many: 'L' },
+    pc: { d: 'pc', f: 1, one: 'piece', many: 'pieces' }, sheet: { d: 'sheet', f: 1, one: 'sheet', many: 'sheets' },
+    roll: { d: 'roll', f: 1, one: 'roll', many: 'rolls' }, wash: { d: 'wash', f: 1, one: 'wash', many: 'washes' },
+    sachet: { d: 'sachet', f: 1, one: 'sachet', many: 'sachets' }
+  };
+  var UNIT_ORDER = ['g', 'kg', 'ml', 'L', 'pc', 'sheet', 'roll', 'wash', 'sachet'];
+  var UNIT_OPT = { g: 'g', kg: 'kg', ml: 'ml', L: 'L', pc: 'pieces', sheet: 'sheets', roll: 'rolls', wash: 'washes', sachet: 'sachets' };
+  // how a unit price is shown: [base amount, label]
+  var SHOW = {
+    mass: [[1000, 'per kg'], [100, 'per 100 g']], vol: [[1000, 'per L'], [100, 'per 100 ml']],
+    pc: [[1, 'per piece']], sheet: [[100, 'per 100 sheets'], [1, 'per sheet']], roll: [[1, 'per roll']],
+    wash: [[1, 'per wash']], sachet: [[1, 'per sachet']]
+  };
+  var USE_UNITS = { mass: ['kg', 'g'], vol: ['L', 'ml'], pc: ['pc'], sheet: ['sheet'], roll: ['roll'], wash: ['wash'], sachet: ['sachet'] };
+  var CATS = [
+    { id: 'rice', name: 'Rice', unit: 'kg', size: '', use: 5 },
+    { id: 'water', name: 'Water', unit: 'L', size: '', use: 40 },
+    { id: 'oil', name: 'Cooking oil', unit: 'L', size: '', use: 2 },
+    { id: 'nappies', name: 'Nappies', unit: 'pc', size: '', use: 150 },
+    { id: 'detergent', name: 'Detergent', unit: 'wash', size: '', use: 20 },
+    { id: 'tissues', name: 'Tissues', unit: 'sheet', size: '', use: 1000 },
+    { id: 'milk', name: 'Milk', unit: 'L', size: '', use: 12 },
+    { id: 'other', name: 'Other', unit: 'g', size: '', use: '' }
+  ];
+  // clearly made-up examples (no brands, invented prices)
+  var EXAMPLES = {
+    rice: [['Small bag', '12.50', '2', 'kg', '1', 'none'], ['Big sack', '58', '10', 'kg', '1', 'none'], ['Offer bag', '29', '5', 'kg', '1', 'extra', '20']],
+    water: [['6-pack', '9', '1.5', 'L', '6', 'none'], ['Big bottle', '4', '5', 'L', '1', 'none'], ['12 small', '7.5', '330', 'ml', '12', 'nfor', '2', '13']],
+    oil: [['1.5 L bottle', '16', '1.5', 'L', '1', 'none'], ['Twin pack', '30', '1.8', 'L', '2', 'none'], ['Offer bottle', '12', '1', 'L', '1', 'bxgy', '2', '1']],
+    nappies: [['Jumbo pack', '75', '64', 'pc', '1', 'none'], ['Small pack', '32', '24', 'pc', '1', 'pct', '25']],
+    detergent: [['Powder', '42', '40', 'wash', '1', 'none'], ['Liquid', '35', '28', 'wash', '1', 'none'], ['Pods', '28', '20', 'wash', '1', 'bxgy', '1', '1']],
+    tissues: [['5 boxes', '20', '150', 'sheet', '5', 'none'], ['Single box', '5', '200', 'sheet', '1', 'nfor', '3', '12']],
+    milk: [['1 L', '6.5', '1', 'L', '1', 'none'], ['2 L', '11', '2', 'L', '1', 'none'], ['4 x 1 L', '24', '1', 'L', '4', 'pct', '10']],
+    other: [['Tin A', '4.5', '400', 'g', '1', 'none'], ['Tin B', '7', '800', 'g', '1', 'none']]
+  };
+
+  function digits(s) {
+    s = String(s == null ? '' : s).replace(/[٠-٩]/g, function (c) { return c.charCodeAt(0) - 0x660; })
+      .replace(/[۰-۹]/g, function (c) { return c.charCodeAt(0) - 0x6F0; }).replace(/٫/g, '.').replace(/[٬،]/g, ',');
+    return s;
+  }
+  function num(s) {
+    s = digits(s).replace(/\s/g, '');
+    if (/^\d*,\d{1,2}$/.test(s)) s = s.replace(',', '.'); else s = s.replace(/,/g, '');
+    var m = s.match(/\d*\.?\d+/); return m ? parseFloat(m[0]) : NaN;
+  }
+
+  // the maths: what you pay, and how much you get, for the smallest buy that gets the offer
+  function deal(it) {
+    var P = num(it.price), Q = num(it.size) * (num(it.count) || 1), u = UNITS[it.unit], a = num(it.a), b = num(it.b);
+    if (!u || !(Q > 0)) return null;
+    Q *= u.f;
+    var r = { packs: 1, pay: P, qty: Q, promo: 'none' };
+    if (it.promo === 'bxgy' && a > 0 && b > 0) r = { packs: a + b, pay: a * P, qty: (a + b) * Q, promo: 'bxgy' };
+    else if (it.promo === 'nfor' && a > 0 && b > 0) r = { packs: a, pay: b, qty: a * Q, promo: 'nfor' };
+    else if (it.promo === 'pct' && a > 0 && a < 100) r = { packs: 1, pay: P * (1 - a / 100), qty: Q, promo: 'pct' };
+    else if (it.promo === 'extra' && a > 0) r = { packs: 1, pay: P, qty: Q * (1 + a / 100), promo: 'extra' };
+    if (!(r.pay > 0)) return null;
+    r.unit = r.pay / r.qty; r.d = u.d; r.base = Q; r.full = P > 0 ? P / Q : null;
+    return r;
+  }
+
+  // reading a shelf label or pack: price, size, unit, count
+  function parseLabel(text) {
+    var t = digits(text).replace(/[|]/g, ' ').replace(/\s+/g, ' ');
+    var out = {};
+    var U = '(kgs?|kilo|kilos|grams?|gms?|g|ml|mls|ltrs?|litres?|liters?|l|كغ|كجم|كيلو|جم|غم|غ|مل|لتر)';
+    function unitOf(s) {
+      s = s.toLowerCase();
+      if (/^(kgs?|kilos?|كغ|كجم|كيلو)$/.test(s)) return 'kg';
+      if (/^(grams?|gms?|g|جم|غم|غ)$/.test(s)) return 'g';
+      if (/^(mls?|مل)$/.test(s)) return 'ml';
+      return 'L';
+    }
+    var m = t.match(new RegExp('(\\d+)\\s*[x×*]\\s*(\\d+(?:[.,]\\d+)?)\\s*' + U + '(?![a-z])', 'i'));
+    if (m) { out.count = m[1]; out.size = m[2].replace(',', '.'); out.unit = unitOf(m[3]); }
+    else if ((m = t.match(new RegExp('(\\d+(?:[.,]\\d+)?)\\s*' + U + '\\s*[x×*]\\s*(\\d+)(?!\\d)', 'i')))) { out.size = m[1].replace(',', '.'); out.unit = unitOf(m[2]); out.count = m[3]; }
+    else {
+      var re = new RegExp('(per\\s*|/\\s*)?(\\d+(?:[.,]\\d+)?)\\s*' + U + '(?![a-z])', 'gi'), k;
+      while ((k = re.exec(t))) { if (!k[1]) { out.size = k[2].replace(',', '.'); out.unit = unitOf(k[3]); break; } }
+      if (!out.size) {
+        var c = t.match(/(\d+)\s*(pcs|pieces|piece|nappies|diapers|sheets|rolls|washes|wash|loads|sachets|قطعة|ورقة|لفة|غسلة)(?![a-z])/i);
+        if (c) { out.size = c[1]; var w = c[2].toLowerCase(); out.unit = /sheet|ورقة/.test(w) ? 'sheet' : /roll|لفة/.test(w) ? 'roll' : /wash|load|غسلة/.test(w) ? 'wash' : /sachet/.test(w) ? 'sachet' : 'pc'; }
+      }
+    }
+    var p = t.match(/(?:aed|dhs?|dh|د\.?\s?إ|درهم)\.?\s*(\d+(?:[.,]\d{1,2})?)(?!\s*\/)/i) || t.match(/(\d+[.,]\d{2})\s*(?:aed|dhs?|درهم)(?!\s*\/)/i);
+    if (!p) {
+      var best = null, re2 = /(\d+[.,]\d{2})(?!\d)(\s*\/|\s*per)?/gi, q;
+      while ((q = re2.exec(t))) { if (!q[2]) { var v = parseFloat(q[1].replace(',', '.')); if (best == null || v > best) best = v; } }
+      if (best != null) out.price = String(best);
+    } else out.price = p[1].replace(',', '.');
+    return out;
+  }
+
+  // state
+  var S = { cat: 'rice', lists: {} };
+  try { var sv = JSON.parse(localStorage.getItem(KEY)); if (sv && sv.lists) S = sv; } catch (e) {}
+  var uid = 1;
+  function cat() { for (var i = 0; i < CATS.length; i++) if (CATS[i].id === S.cat) return CATS[i]; return CATS[0]; }
+  function blank(u) { return { id: 'i' + Date.now().toString(36) + (uid++), name: '', price: '', size: '', unit: u, count: '1', promo: 'none', a: '', b: '' }; }
+  function list() {
+    var c = cat(), L = S.lists[c.id];
+    if (!L || !L.items) { L = S.lists[c.id] = { items: [blank(c.unit), blank(c.unit)], use: String(c.use), useUnit: c.unit }; }
+    return L;
+  }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+  function letter(i) { return 'Pack ' + String.fromCharCode(65 + i); }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function money(v) { return 'AED ' + (v >= 100 ? v.toFixed(0) : v >= 1 ? v.toFixed(2) : v.toFixed(3)); }
+  function fmtQ(v) { return (Math.round(v * 100) / 100).toString(); }
+
+  // categories
+  $('cats').innerHTML = CATS.map(function (c) { return '<button class="sm" type="button" data-cat="' + c.id + '">' + c.name + '</button>'; }).join('');
+  $('cats').addEventListener('click', function (e) { var b = e.target.closest('[data-cat]'); if (!b) return; S.cat = b.getAttribute('data-cat'); save(); build(); });
+
+  function unitSelect(sel) {
+    return UNIT_ORDER.map(function (u) { return '<option value="' + u + '"' + (u === sel ? ' selected' : '') + '>' + UNIT_OPT[u] + '</option>'; }).join('');
+  }
+  var NUMIN = ' type="text" inputmode="decimal" autocomplete="off" enterkeyhint="next"';
+  function itemHTML(it, i) {
+    return '<div class="item" data-id="' + it.id + '">' +
+      '<div class="ihead"><input class="fld" data-k="name" type="text" autocomplete="off" maxlength="40" placeholder="' + letter(i) + '" aria-label="Name" value="' + esc(it.name) + '">' +
+      '<button class="sm" type="button" data-scan>📷 Scan label</button><button class="x" type="button" data-rm aria-label="Remove">×</button></div>' +
+      '<div class="nums">' +
+      '<label>Price (AED)<input class="fld big" data-k="price"' + NUMIN + ' placeholder="0.00" value="' + esc(it.price) + '"></label>' +
+      '<label>Size<input class="fld big" data-k="size"' + NUMIN + ' placeholder="0" value="' + esc(it.size) + '"></label>' +
+      '<label>Unit<select class="fld big" data-k="unit" style="font-size:1rem">' + unitSelect(it.unit) + '</select></label>' +
+      '<label>× Packs<input class="fld big" data-k="count"' + NUMIN + ' placeholder="1" value="' + esc(it.count) + '"></label></div>' +
+      '<div class="offer"><label>Offer<select class="fld" data-k="promo">' +
+      '<option value="none">No offer</option><option value="bxgy">Buy X get Y free</option><option value="nfor">X for AED Y</option><option value="pct">% off</option><option value="extra">Extra % free</option></select></label>' +
+      '<label data-pa hidden><span data-pal></span><input class="fld big" data-k="a"' + NUMIN + ' value="' + esc(it.a) + '"></label>' +
+      '<label data-pb hidden><span data-pbl></span><input class="fld big" data-k="b"' + NUMIN + ' value="' + esc(it.b) + '"></label></div>' +
+      '<div class="iout" data-out></div></div>';
+  }
+  var PROMO_LBL = { bxgy: ['Buy', 'Get free'], nfor: ['Packs', 'For AED'], pct: ['% off', ''], extra: ['% extra', ''] };
+  function promoFields(el, it) {
+    var l = PROMO_LBL[it.promo];
+    el.querySelector('[data-pa]').hidden = !l; el.querySelector('[data-pb]').hidden = !l || !l[1];
+    if (l) { el.querySelector('[data-pal]').textContent = l[0]; el.querySelector('[data-pbl]').textContent = l[1]; }
+  }
+  function build() {
+    var L = list();
+    [].forEach.call($('cats').children, function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-cat') === S.cat ? 'true' : 'false'); });
+    $('items').innerHTML = L.items.map(itemHTML).join('');
+    L.items.forEach(function (it) { var el = $('items').querySelector('[data-id="' + it.id + '"]'); el.querySelector('[data-k="promo"]').value = it.promo; promoFields(el, it); });
+    $('useamt').value = L.use || '';
+    calc();
+  }
+  function find(id) { var L = list(); for (var i = 0; i < L.items.length; i++) if (L.items[i].id === id) return L.items[i]; return null; }
+
+  $('items').addEventListener('input', onEdit);
+  $('items').addEventListener('change', onEdit);
+  function onEdit(e) {
+    var f = e.target, k = f.getAttribute('data-k'), el = f.closest('.item'); if (!k || !el) return;
+    var it = find(el.getAttribute('data-id')); if (!it) return;
+    var v = f.value;
+    if (f.getAttribute('inputmode') === 'decimal' && /[٠-٩۰-۹٫]/.test(v)) { v = digits(v); f.value = v; }
+    it[k] = v;
+    if (k === 'promo') promoFields(el, it);
+    save(); calc();
+  }
+  $('items').addEventListener('click', function (e) {
+    var el = e.target.closest('.item'); if (!el) return;
+    if (e.target.closest('[data-rm]')) { var L = list(); L.items = L.items.filter(function (x) { return x.id !== el.getAttribute('data-id'); }); if (!L.items.length) L.items.push(blank(cat().unit)); save(); build(); }
+    else if (e.target.closest('[data-scan]')) { scanFor = el.getAttribute('data-id'); $('scanfile').value = ''; $('scanfile').click(); }
+  });
+  $('add').addEventListener('click', function () {
+    var L = list(), last = L.items[L.items.length - 1];
+    L.items.push(blank(last ? last.unit : cat().unit)); save(); build();
+    var all = $('items').querySelectorAll('.item'); var n = all[all.length - 1].querySelector('[data-k="price"]'); if (n) n.focus();
+  });
+  $('example').addEventListener('click', function () {
+    var L = list();
+    L.items = (EXAMPLES[S.cat] || EXAMPLES.other).map(function (x) { var it = blank(x[3]); it.name = x[0]; it.price = x[1]; it.size = x[2]; it.count = x[4]; it.promo = x[5]; it.a = x[6] || ''; it.b = x[7] || ''; return it; });
+    save(); build();
+  });
+  $('clear').addEventListener('click', function () { var c = cat(); S.lists[c.id] = null; list(); save(); build(); });
+  $('useamt').addEventListener('input', function () { var v = this.value; if (/[٠-٩۰-۹٫]/.test(v)) { v = digits(v); this.value = v; } list().use = v; save(); calc(); });
+  $('useunit').addEventListener('change', function () { list().useUnit = this.value; save(); calc(); });
+
+  function nameOf(it, i) { return it.name ? { t: it.name, own: true } : { t: letter(i), own: false }; }
+  function nameHTML(n) { return '<b' + (n.own ? ' data-noar' : '') + '>' + esc(n.t) + '</b>'; }
+  function dealText(r, it) {
+    var u = UNITS[it.unit], q = fmtQ(r.qty / u.f) + ' ' + (r.qty / u.f === 1 ? u.one : u.many);
+    if (r.promo === 'none') return '1 pack, ' + q + ' for ' + money(r.pay);
+    if (r.promo === 'pct' || r.promo === 'extra') return 'With offer: ' + q + ' for ' + money(r.pay);
+    return r.packs + ' packs, ' + q + ' for ' + money(r.pay);
+  }
+
+  var last = null;
+  function calc() {
+    var L = list(), rows = [], warns = [], dims = {};
+    L.items.forEach(function (it, i) {
+      var el = $('items').querySelector('[data-id="' + it.id + '"]'), out = el && el.querySelector('[data-out]');
+      var r = deal(it);
+      if (!r) { if (out) out.innerHTML = '<span>Enter a price and size.</span>'; return; }
+      var sh = SHOW[r.d];
+      if (out) out.innerHTML = sh.map(function (s, j) { return '<b>' + money(r.unit * s[0]) + '</b><span>' + s[1] + '</span>' + (j < sh.length - 1 ? '<span>·</span>' : ''); }).join('') +
+        (r.promo !== 'none' && r.full ? '<span>·</span><span>' + Math.round((1 - r.unit / r.full) * 100) + '% less with the offer</span>' : '');
+      dims[r.d] = (dims[r.d] || 0) + 1;
+      rows.push({ it: it, i: i, r: r, n: nameOf(it, i) });
+    });
+    // compare only the most common kind of unit
+    var dk = Object.keys(dims), main = dk.sort(function (a, b) { return dims[b] - dims[a]; })[0];
+    if (dk.length > 1) {
+      if (dims.roll && dims.sheet) warns.push('Rolls and sheets can\'t be compared. Check the sheets per roll on the pack and enter sheets.');
+      else warns.push('Some packs use a different kind of unit, so they are left out. Use weight, volume or count for all of them.');
+    }
+    var good = rows.filter(function (x) { return x.r.d === main; }).sort(function (a, b) { return a.r.unit - b.r.unit; });
+    // usage unit options follow the units being compared
+    var d = main || UNITS[cat().unit].d, uu = USE_UNITS[d];
+    if (uu.indexOf(L.useUnit) < 0) L.useUnit = uu[0];
+    var cur = Array.prototype.map.call($('useunit').options, function (o) { return o.value; }).join();
+    if (cur !== uu.join()) $('useunit').innerHTML = uu.map(function (u) { return '<option value="' + u + '">' + UNIT_OPT[u] + '</option>'; }).join('');
+    $('useunit').value = L.useUnit;
+    var use = num(L.use) * UNITS[L.useUnit].f; if (!(use > 0)) use = 0;
+
+    [].forEach.call($('items').children, function (el) { el.classList.remove('top'); });
+    if (!good.length) {
+      $('rank').innerHTML = '<li><span class="msg" style="grid-column:1/-1">Add a price and size for at least two packs.</span></li>';
+      $('s1').textContent = $('s2').textContent = $('s3').textContent = '–'; $('s1l').textContent = 'Best unit price';
+      $('warns').innerHTML = warns.map(function (w) { return '<p class="msg warn">' + w + '</p>'; }).join('');
+      last = null; $('winbar').hidden = true; shareLinks(); return;
+    }
+    var sh = SHOW[d][0], best = good[0].r.unit, worst = good[good.length - 1].r.unit;
+    $('items').querySelector('[data-id="' + good[0].it.id + '"]').classList.add('top');
+    $('rank').innerHTML = good.map(function (x, k) {
+      var r = x.r, cmp;
+      if (k === 0) {
+        cmp = good.length > 1 ? (good[1].r.unit - best) / good[1].r.unit < 0.005 ? '<span>Same price as the next one.</span>' : '<span>' + Math.round((good[1].r.unit - best) / good[1].r.unit * 100) + '% cheaper than the next best.</span>' : '<span>Add another pack to compare.</span>';
+      } else if ((r.unit - best) / r.unit < 0.005) cmp = '<span>Same unit price as the cheapest.</span>';
+      else {
+        cmp = '<span>The cheapest is ' + Math.round((r.unit - best) / r.unit * 100) + '% cheaper.</span> ' +
+          (use ? '<span>Switching saves <b>' + money((r.unit - best) * use) + '</b> a month.</span>' : '<span>Add your monthly use to see the saving.</span>');
+      }
+      return '<li class="' + (k === 0 ? 'win' : '') + '"><span class="pos">' + (k + 1) + '</span><div class="who"><span>' + nameHTML(x.n) + (k === 0 ? '<span class="badge">Cheapest</span>' : '') + '</span><small>' + dealText(r, x.it) + '</small></div>' +
+        '<div class="pr"><b>' + money(r.unit * sh[0]) + '</b><small>' + sh[1] + '</small></div><p class="cmp">' + cmp + '</p></li>';
+    }).join('');
+    // bulk check: is the biggest pack the cheapest?
+    if (good.length > 1) {
+      var big = good.slice().sort(function (a, b) { return b.r.base - a.r.base; })[0];
+      if (big !== good[0] && big.r.base > good[0].r.base) warns.push('Here the bigger pack is not the cheaper one.');
+    }
+    $('warns').innerHTML = warns.map(function (w) { return '<p class="msg warn">' + w + '</p>'; }).join('');
+    $('s1').textContent = money(best * sh[0]); $('s1l').textContent = sh[1];
+    $('s2').textContent = good.length > 1 ? Math.round((worst - best) / worst * 100) + '%' : '–';
+    $('s3').textContent = good.length > 1 && use ? money((worst - best) * use) : '–';
+    last = { good: good, sh: sh, use: use };
+    $('wbn').innerHTML = nameHTML(good[0].n); $('wbp').textContent = money(best * sh[0]); $('wbu').textContent = sh[1];
+    $('winbar').hidden = good.length < 2;
+    shareLinks();
+  }
+
+  function shareText() {
+    if (!last) return '';
+    var c = cat(), g = last.good, lines = ['🛒 ' + T('Which pack is cheaper?') + ' · ' + T(c.name)];
+    g.forEach(function (x, k) {
+      lines.push((k + 1) + '. ' + (x.n.own ? x.n.t : T(x.n.t)) + ': ' + T(money(x.r.unit * last.sh[0])) + ' ' + T(last.sh[1]) + (k === 0 ? ' ✅ ' + T('Cheapest') : '') + ' (' + T(dealText(x.r, x.it)) + ')');
+    });
+    if (g.length > 1) {
+      var w = g[g.length - 1].r.unit, b = g[0].r.unit;
+      lines.push(T('The cheapest is ' + Math.round((w - b) / w * 100) + '% cheaper.'));
+      if (last.use) lines.push(T('Switching saves ' + money((w - b) * last.use) + ' a month.'));
+    }
+    lines.push('lab.mariamalzaabi.ae/unit-price/');
+    return lines.join('\n');
+  }
+  function shareLinks() { $('wa').href = 'https://wa.me/?text=' + encodeURIComponent(shareText() || 'lab.mariamalzaabi.ae/unit-price/'); }
+  $('wa').addEventListener('click', shareLinks);
+  $('winbar').addEventListener('click', function () { $('rank').scrollIntoView({ behavior: 'smooth', block: 'center' }); });
+  function copy(t) {
+    if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(t).then(function () { $('sharemsg').textContent = 'Copied. Paste it into WhatsApp.'; }, function () { fallbackCopy(t); });
+    fallbackCopy(t);
+  }
+  function fallbackCopy(t) {
+    var ta = document.createElement('textarea'); ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); $('sharemsg').textContent = 'Copied. Paste it into WhatsApp.'; } catch (e) { $('sharemsg').textContent = 'Copy didn\'t work here. Use the WhatsApp button.'; }
+    ta.remove();
+  }
+  $('copy').addEventListener('click', function () { var t = shareText(); if (!t) { $('sharemsg').textContent = 'Add at least one pack first.'; return; } copy(t); });
+  $('share').addEventListener('click', function () {
+    var t = shareText(); if (!t) { $('sharemsg').textContent = 'Add at least one pack first.'; return; }
+    if (navigator.share) navigator.share({ text: t }).catch(function () {}); else copy(t);
+  });
+
+  // shelf label scan (tesseract.js, loaded only when needed)
+  var scanFor = null, tessP = null;
+  function loadTess() {
+    if (window.Tesseract) return Promise.resolve(window.Tesseract);
+    if (tessP) return tessP;
+    tessP = new Promise(function (res, rej) {
+      var s = document.createElement('script'); s.src = TESS; s.async = true; s.crossOrigin = 'anonymous';
+      s.onload = function () { window.Tesseract ? res(window.Tesseract) : rej(new Error('no lib')); };
+      s.onerror = function () { tessP = null; rej(new Error('load failed')); };
+      document.head.appendChild(s);
+    });
+    return tessP;
+  }
+  $('scanfile').addEventListener('change', function () {
+    var file = this.files && this.files[0], id = scanFor; if (!file || !id) return;
+    var m = $('scanmsg'); m.className = 'msg'; m.textContent = 'Loading the label reader…';
+    loadTess().then(function (Tz) {
+      m.textContent = 'Reading the label…';
+      return Tz.recognize(file, 'eng');
+    }).then(function (res) {
+      var text = res && res.data ? res.data.text : '', got = parseLabel(text), it = find(id);
+      if (!it) return;
+      var parts = [];
+      if (got.price) { it.price = got.price; parts.push(money(num(got.price))); }
+      if (got.size) { it.size = got.size; it.unit = got.unit; it.count = got.count || '1'; parts.push((got.count ? got.count + ' × ' : '') + got.size + ' ' + UNIT_OPT[got.unit]); }
+      save(); build();
+      if (parts.length) { m.textContent = 'Read: ' + parts.join(', ') + '. Check it against the label.'; }
+      else { m.className = 'msg warn'; m.textContent = 'Couldn\'t find a price or size. Type them in instead.'; }
+    }).catch(function () {
+      m.className = 'msg warn'; m.textContent = 'The label reader didn\'t load. Type the price and size instead.';
+    });
+  });
+
+  window.__unitPrice = { deal: deal, parseLabel: parseLabel, num: num, digits: digits, shareText: shareText };
+  build();
+})();
+</script>
+</body>
+</html>
