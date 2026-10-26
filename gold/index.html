@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gold Calculator · Mariam's Lab</title>
+<meta name="description" content="Live gold rates in AED for 24K, 22K, 21K and 18K. Work out the fair price of jewellery with making charges and VAT, what your gold is worth, and zakat on gold.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/gold/">
+<meta property="og:title" content="Gold Calculator · Mariam's Lab"><meta property="og:description" content="Live gold rates in AED, jewellery prices, resale value and zakat."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.rates { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.rates div { padding: 14px; border-radius: 12px; border: 1px solid var(--line); background: linear-gradient(160deg, rgba(233, 180, 103, 0.14), transparent 70%); }
+.rates small { display: block; font-family: var(--font-mono); font-size: 0.74rem; color: var(--muted); letter-spacing: .06em; }
+.rates b { display: block; font-family: var(--font-display); font-size: clamp(1.2rem, 3vw, 1.7rem); font-weight: 800; color: var(--accent); }
+.rates span { font-size: 0.75rem; color: var(--muted); }
+.src { display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--muted); margin-top: 10px; }
+.src input { width: 7em; font: inherit; font-family: var(--font-mono); color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 8px; padding: 4px 8px; }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 24px 0 14px; }
+.sm { font: inherit; font-size: 0.85rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; cursor: pointer; }
+.sm:hover { border-color: var(--muted); }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.form { display: grid; gap: 12px; }
+.f { display: grid; gap: 5px; }
+.f > span { font-size: 0.82rem; color: var(--muted); }
+.in { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.in input, .in select { font: inherit; color: var(--ink); background: rgba(7, 10, 24, 0.6); border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; min-width: 0; }
+.in input[type=number] { width: 8em; font-family: var(--font-mono); }
+.chk { display: flex; gap: 8px; align-items: center; font-size: 0.9rem; cursor: pointer; }
+.chk input { accent-color: var(--accent); width: 17px; height: 17px; margin: 0; }
+.bill { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 14px; font-size: 0.92rem; }
+.bill dt { color: var(--muted); } .bill dd { margin: 0; font-family: var(--font-mono); text-align: end; }
+.bill .tot { font-family: var(--font-display); font-weight: 800; font-size: 1.6rem; color: var(--accent); }
+.bill hr { grid-column: 1 / -1; border: 0; border-top: 1px solid var(--line); margin: 4px 0; width: 100%; }
+.items { display: grid; gap: 8px; }
+.items .row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; padding: 8px; border: 1px solid var(--line); border-radius: 10px; }
+.items .row input { width: 6em; }
+.x { background: none; border: 0; color: var(--muted); font-size: 1.2rem; cursor: pointer; margin-inline-start: auto; }
+.note { font-size: 0.82rem; color: var(--muted); }
+.ok { color: var(--sat-b); }
+[hidden] { display: none !important; }
+@media (max-width: 640px) { .rates { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Money · UAE</span>
+    <h1 style="font-size:var(--step-3)">Gold calculator.</h1>
+    <p>Live gold rates in dirhams, then the three questions people actually ask: is this piece fairly priced, what is my gold worth, and how much zakat is due on it.</p>
+  </div>
+
+  <div class="rates" id="rates" aria-live="polite"></div>
+  <div class="src"><span id="src">Loading the live price…</span>
+    <label>Use my shop's 24K rate <input type="number" id="own" min="1" step="0.01" placeholder="AED/g" aria-label="Your shop's 24 karat rate in dirhams per gram"></label></div>
+
+  <div class="tabs" role="group" aria-label="Calculator">
+    <button class="sm" type="button" data-t="buy" aria-pressed="true">Buying jewellery</button>
+    <button class="sm" type="button" data-t="worth" aria-pressed="false">What's my gold worth</button>
+    <button class="sm" type="button" data-t="zakat" aria-pressed="false">Zakat on gold</button>
+  </div>
+
+  <div class="game">
+    <div class="panel form" id="buy">
+      <label class="f"><span>Weight</span><span class="in"><input type="number" id="bW" min="0" step="0.01" value="10"><select id="bU"><option value="1">grams</option><option value="11.6638">tola</option><option value="31.1035">troy ounces</option></select></span></label>
+      <label class="f"><span>Karat</span><span class="in"><select id="bK"><option value="24">24K</option><option value="22">22K</option><option value="21" selected>21K</option><option value="18">18K</option><option value="14">14K</option></select></span></label>
+      <label class="f"><span>Making charge</span><span class="in"><input type="number" id="bM" min="0" step="0.5" value="40"><select id="bMU"><option value="g">AED per gram</option><option value="p">% of gold value</option><option value="f">AED for the piece</option></select></span></label>
+      <label class="chk"><input type="checkbox" id="bV" checked><span>Add 5% VAT (jewellery; bars and coins of 99% purity are VAT-free)</span></label>
+      <label class="f"><span>Price the shop quoted (optional)</span><span class="in"><input type="number" id="bQ" min="0" step="1" placeholder="AED"></span></label>
+    </div>
+    <div class="panel" id="buyOut"></div>
+
+    <div class="panel form" id="worth" hidden>
+      <div class="items" id="items"></div>
+      <button class="sm" type="button" id="addI">+ Add a piece</button>
+      <label class="f"><span>Shops usually buy back below the rate. Deduction</span><span class="in"><input type="number" id="wD" min="0" max="30" step="0.5" value="3"> %</span></label>
+    </div>
+    <div class="panel" id="worthOut" hidden></div>
+
+    <div class="panel form" id="zakat" hidden>
+      <p class="note">Add everything you've owned for a full lunar year: jewellery, coins and bars.</p>
+      <div class="items" id="zitems"></div>
+      <button class="sm" type="button" id="addZ">+ Add a piece</button>
+      <label class="chk"><input type="checkbox" id="zJ" checked><span>Include jewellery I wear regularly</span></label>
+      <p class="note">Scholars differ on everyday jewellery: the Hanafi school counts it, while most Shafi'i, Maliki and Hanbali scholars exempt jewellery worn normally. Untick to leave it out, and ask a scholar you trust if unsure.</p>
+    </div>
+    <div class="panel" id="zakatOut" hidden></div>
+  </div>
+  <p class="fact" style="margin-top:22px">Rates are worked out from the international spot price, converted at the dirham's fixed peg (3.6725 to the dollar). UAE shop boards are usually within about 1% of this; type your shop's 24K rate above to match it exactly. A tola is 11.66 g. Nothing you enter leaves this page.</p>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var OZ = 31.1034768, PEG = 3.6725, NISAB = 85;
+  var spot = null, tab = 'buy';
+  function aed(v, dp) { return 'AED ' + v.toLocaleString('en', { minimumFractionDigits: dp == null ? 2 : dp, maximumFractionDigits: dp == null ? 2 : dp }); }
+  function r24() { var o = +$('own').value; return o > 0 ? o : spot ? spot * PEG / OZ : 0; }
+  function rate(k) { return r24() * k / 24; }
+
+  function rates() {
+    $('rates').innerHTML = [24, 22, 21, 18].map(function (k) { return '<div><small>' + k + 'K per gram</small><b>' + (r24() ? rate(k).toFixed(2) : '—') + '</b><span>AED · tola ' + (r24() ? Math.round(rate(k) * 11.6638).toLocaleString('en') : '—') + '</span></div>'; }).join('');
+  }
+  function fetchLive() {
+    return fetch('https://api.gold-api.com/price/XAU', { cache: 'no-store' }).then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(function (j) {
+      spot = +j.price; $('src').textContent = 'Live spot $' + spot.toFixed(2) + '/oz · updated ' + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) + ' · gold-api.com';
+    }).catch(function () {
+      return fetch('../assets/gold.json', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (j) {
+        spot = j.xau_usd_oz; $('src').textContent = 'Spot $' + spot.toFixed(2) + '/oz as of ' + new Date(j.updated).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) + ' (live price unavailable)';
+      });
+    }).catch(function () { $('src').textContent = 'Couldn\'t load a price. Type your shop\'s 24K rate to calculate.'; });
+  }
+
+  function buy() {
+    var g = +$('bW').value * +$('bU').value, k = +$('bK').value, rt = rate(k), gold = g * rt;
+    var m = +$('bM').value, mu = $('bMU').value, mk = mu === 'g' ? m * g : mu === 'p' ? gold * m / 100 : m;
+    var sub = gold + mk, vat = $('bV').checked ? sub * 0.05 : 0, tot = sub + vat, q = +$('bQ').value;
+    var h = '<dl class="bill"><dt>' + g.toFixed(2) + ' g of ' + k + 'K at ' + rt.toFixed(2) + '/g</dt><dd>' + aed(gold) + '</dd><dt>Making charge</dt><dd>' + aed(mk) + '</dd>' + (vat ? '<dt>VAT 5%</dt><dd>' + aed(vat) + '</dd>' : '') + '<hr><dt>Fair total</dt><dd class="tot">' + aed(tot, 0) + '</dd>' +
+      '<dt>All-in price per gram</dt><dd>' + aed(g ? tot / g : 0) + '</dd><dt>Pure gold inside</dt><dd>' + (g * k / 24).toFixed(2) + ' g</dd></dl>';
+    if (q) {
+      var diff = q - tot, impliedMk = q / ($('bV').checked ? 1.05 : 1) - gold;
+      h += '<p class="note" style="margin-top:12px">The shop asked <b>' + aed(q, 0) + '</b>, ' + (Math.abs(diff) < tot * 0.01 ? 'which matches the fair price.' : (diff > 0 ? aed(diff, 0) + ' more' : aed(-diff, 0) + ' less') + ' than this estimate.') + ' That works out to a making charge of about <b>' + aed(g ? impliedMk / g : 0) + ' per gram</b>. Making charges are usually negotiable; the gold rate is not.</p>';
+    }
+    h += '<p class="note" style="margin-top:10px">Tourists can claim back the VAT on the making charge (not on the gold) at the airport through Planet.</p>';
+    $('buyOut').innerHTML = h;
+  }
+
+  function rowHTML(w, k, unit) {
+    return '<div class="row in"><input type="number" min="0" step="0.01" value="' + w + '" aria-label="Weight"><select aria-label="Unit"><option value="1"' + (unit === 1 ? ' selected' : '') + '>g</option><option value="11.6638">tola</option><option value="31.1035">oz</option></select><select aria-label="Karat">' + [24, 22, 21, 18, 14].map(function (x) { return '<option value="' + x + '"' + (x === k ? ' selected' : '') + '>' + x + 'K</option>'; }).join('') + '</select><input type="text" placeholder="what it is" aria-label="Description" style="flex:1 1 8em;width:auto"><button class="x" type="button" aria-label="Remove">×</button></div>';
+  }
+  function rows(id) { return [].map.call($(id).querySelectorAll('.row'), function (r) { var f = r.querySelectorAll('input,select'); return { g: +f[0].value * +f[1].value, k: +f[2].value }; }); }
+  function worth() {
+    var R = rows('items'), pure = 0, val = 0;
+    R.forEach(function (r) { pure += r.g * r.k / 24; val += r.g * rate(r.k); });
+    var d = +$('wD').value / 100;
+    $('worthOut').innerHTML = '<dl class="bill"><dt>Total weight</dt><dd>' + R.reduce(function (s, r) { return s + r.g; }, 0).toFixed(2) + ' g</dd><dt>Pure gold inside</dt><dd>' + pure.toFixed(2) + ' g</dd><dt>Value at today\'s rate</dt><dd>' + aed(val, 0) + '</dd><hr><dt>Likely cash offer</dt><dd class="tot">' + aed(val * (1 - d), 0) + '</dd></dl><p class="note" style="margin-top:10px">Shops pay for the gold only, never the making charge you paid, which is why jewellery loses value the day you buy it. Bars and coins keep closest to the rate.</p>';
+  }
+  function zakat() {
+    var R = rows('zitems');
+    var inc = $('zJ').checked;
+    var list = [].map.call($('zitems').querySelectorAll('.row'), function (r, i) { return { r: R[i], worn: r.dataset.worn === '1' }; });
+    var pure = 0; list.forEach(function (x) { if (inc || !x.worn) pure += x.r.g * x.r.k / 24; });
+    var val = pure * r24(), due = pure >= NISAB;
+    $('zakatOut').innerHTML = '<dl class="bill"><dt>Pure gold counted</dt><dd>' + pure.toFixed(2) + ' g</dd><dt>Nisab (85 g of pure gold)</dt><dd>' + aed(NISAB * r24(), 0) + '</dd><dt>Value of your gold</dt><dd>' + aed(val, 0) + '</dd><hr><dt>' + (due ? 'Zakat due (2.5%)' : 'Below nisab') + '</dt><dd class="tot">' + (due ? aed(val * 0.025, 0) : '<span class="ok">None</span>') + '</dd></dl>' +
+      (due ? '<p class="note" style="margin-top:10px">Equal to ' + (pure * 0.025).toFixed(2) + ' g of pure gold. You can pay in money or in gold.</p>' : '<p class="note" style="margin-top:10px">You need ' + (NISAB - pure).toFixed(1) + ' g more pure gold before zakat on gold applies. If you also hold savings or other assets, many scholars add them together toward the nisab.</p>');
+  }
+  function all() { rates(); buy(); worth(); zakat(); try { localStorage.setItem('goldOwn', $('own').value); } catch (e) {} }
+
+  function addRow(id, w, k, worn) {
+    var d = document.createElement('div'); d.innerHTML = rowHTML(w, k, 1); var r = d.firstChild;
+    if (id === 'zitems') { r.dataset.worn = worn ? '1' : '0'; var lb = document.createElement('label'); lb.className = 'chk'; lb.innerHTML = '<input type="checkbox"' + (worn ? ' checked' : '') + '> worn'; lb.querySelector('input').onchange = function () { r.dataset.worn = this.checked ? '1' : '0'; all(); }; r.insertBefore(lb, r.querySelector('.x')); }
+    $(id).appendChild(r); all();
+  }
+  ['items', 'zitems'].forEach(function (id) {
+    $(id).addEventListener('input', all); $(id).addEventListener('change', all);
+    $(id).addEventListener('click', function (e) { if (e.target.classList.contains('x')) { e.target.closest('.row').remove(); all(); } });
+  });
+  $('addI').onclick = function () { addRow('items', 5, 21); };
+  $('addZ').onclick = function () { addRow('zitems', 5, 21, true); };
+  ['bW', 'bU', 'bK', 'bM', 'bMU', 'bV', 'bQ', 'wD', 'zJ', 'own'].forEach(function (k) { $(k).addEventListener('input', all); $(k).addEventListener('change', all); });
+  [].forEach.call(document.querySelectorAll('[data-t]'), function (b) {
+    b.onclick = function () {
+      tab = b.dataset.t;
+      [].forEach.call(document.querySelectorAll('[data-t]'), function (x) { x.setAttribute('aria-pressed', x === b); });
+      ['buy', 'worth', 'zakat'].forEach(function (t) { $(t).hidden = t !== tab; $(t + 'Out').hidden = t !== tab; });
+    };
+  });
+  try { $('own').value = localStorage.getItem('goldOwn') || ''; } catch (e) {}
+  addRow('items', 20, 21); addRow('items', 8, 18);
+  addRow('zitems', 60, 21, true); addRow('zitems', 20, 24, false);
+  fetchLive().then(all); all();
+  setInterval(function () { if (!document.hidden && !+$('own').value) fetchLive().then(all); }, 120000);
+})();
+</script>
+</body>
+</html>
