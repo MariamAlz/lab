@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>IP &amp; VPN Leak Test · Mariam's Lab</title>
+<meta name="description" content="See what your IP address tells every website about you, and check whether your VPN leaks your real address through WebRTC or IPv6.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/leak-test/">
+<meta property="og:title" content="IP &amp; VPN Leak Test · Mariam's Lab"><meta property="og:description" content="What your IP reveals, and whether your VPN leaks."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.ipbig { font-family: var(--font-mono); font-size: clamp(1.4rem, 5vw, 2.4rem); color: var(--accent); word-break: break-all; }
+.box { padding: 18px; border-radius: var(--radius); border: 1px solid var(--line); background: rgba(7,10,24,.82); display: grid; gap: 10px; }
+.kv { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 14px; font-size: 0.9rem; margin: 0; }
+.kv dt { color: var(--muted); } .kv dd { margin: 0; font-family: var(--font-mono); font-size: 0.84rem; word-break: break-word; }
+.checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.checks li { display: grid; grid-template-columns: 1.4em minmax(0, 1fr); gap: 8px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; font-size: 0.92rem; }
+.checks small { display: block; color: var(--muted); font-size: 0.82rem; word-break: break-word; }
+.ok { color: var(--sat-b); } .bad { color: var(--sat-c); } .meh { color: var(--accent); } .na { color: var(--muted); }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; justify-self: start; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Privacy · Live</span>
+    <h1 style="font-size:var(--step-3)">IP &amp; VPN leak test.</h1>
+    <p>Every website you visit sees your IP address, and from it, roughly where you are and who your internet provider is. A VPN is supposed to hide that. Here's what sites see right now, and whether your real address is slipping out some other way.</p>
+  </div>
+  <div class="game">
+    <div class="box">
+      <span class="label">Websites see you as</span>
+      <div class="ipbig" id="ip">…</div>
+      <dl class="kv" id="info"></dl>
+      <button class="sm" type="button" id="again">Run again (after switching your VPN on or off)</button>
+    </div>
+    <div class="panel" style="display:grid;gap:12px">
+      <span class="label">Leak checks</span>
+      <ul class="checks" id="checks"><li><span class="na">·</span><span>Running…</span></li></ul>
+      <p class="fact">How to use it: run it once with your VPN off and note the provider, then switch the VPN on and run again. Everything should change to the VPN's location and company. If your home provider (for example e&amp; or du) still appears anywhere, something is leaking. Your IP is sent to ipify, ipwho.is and a Google STUN server to look it up; this page stores nothing.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function get(url, ms) { var c = new AbortController(); setTimeout(function () { c.abort(); }, ms || 6000); return fetch(url, { signal: c.signal, cache: 'no-store' }); }
+  function webrtc() {
+    return new Promise(function (res) {
+      if (!window.RTCPeerConnection) return res({ unsupported: true });
+      var pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] }), out = { host: [], srflx: [] };
+      pc.createDataChannel('x');
+      pc.onicecandidate = function (e) {
+        if (!e.candidate) { pc.close(); return res(out); }
+        var p = e.candidate.candidate.split(' '), ip = p[4], typ = p[7];
+        if (typ === 'host' && out.host.indexOf(ip) < 0) out.host.push(ip);
+        if (typ === 'srflx' && out.srflx.indexOf(ip) < 0) out.srflx.push(ip);
+      };
+      pc.createOffer().then(function (o) { return pc.setLocalDescription(o); }).catch(function () { res({ unsupported: true }); });
+      setTimeout(function () { try { pc.close(); } catch (e) {} res(out); }, 5000);
+    });
+  }
+  function run() {
+    $('ip').textContent = '…'; $('info').innerHTML = ''; $('checks').innerHTML = '<li><span class="na">·</span><span>Running…</span></li>';
+    var v4 = get('https://api.ipify.org?format=json').then(function (r) { return r.json(); }).then(function (j) { return j.ip; }).catch(function () { return null; });
+    var v6 = get('https://api64.ipify.org?format=json').then(function (r) { return r.json(); }).then(function (j) { return j.ip; }).catch(function () { return null; });
+    Promise.all([v4, v6, webrtc()]).then(function (r) {
+      var ip4 = r[0], ip6 = r[1] && r[1].indexOf(':') >= 0 ? r[1] : null, rtc = r[2], main = ip4 || ip6;
+      $('ip').textContent = main || 'couldn\'t detect';
+      var info = main ? get('https://ipwho.is/' + main).then(function (x) { return x.json(); }).catch(function () { return {}; }) : Promise.resolve({});
+      return info.then(function (g) {
+        var c = g.connection || {};
+        var rows = [['Approximate place', [g.city, g.region, g.country].filter(Boolean).join(', ')], ['Internet provider', c.isp || c.org], ['Network (ASN)', c.asn ? 'AS' + c.asn + (c.org ? ' · ' + c.org : '') : ''], ['IPv6 address', ip6 || 'none'], ['Time zone from IP', g.timezone && g.timezone.id]];
+        $('info').innerHTML = rows.filter(function (x) { return x[1]; }).map(function (x) { return '<dt>' + x[0] + '</dt><dd>' + esc(x[1]) + '</dd>'; }).join('');
+        var tzIP = g.timezone && g.timezone.id, tzMe = Intl.DateTimeFormat().resolvedOptions().timeZone, checks = [];
+        // WebRTC
+        if (rtc.unsupported) checks.push(['ok', 'WebRTC is switched off', 'Your browser doesn\'t expose WebRTC here, so it can\'t leak.']);
+        else {
+          var other = rtc.srflx.filter(function (x) { return x !== ip4 && x !== ip6; });
+          if (other.length) checks.push(['bad', 'WebRTC leak', 'A video-call feature revealed a different public address: ' + other.join(', ') + '. Sites can read it even with your VPN on. Turn on your VPN\'s WebRTC protection or use a browser that blocks it.']);
+          else if (rtc.srflx.length) checks.push(['ok', 'No WebRTC leak', 'The address revealed through WebRTC matches the one above.']);
+          else checks.push(['ok', 'No WebRTC address exposed', 'The STUN test returned nothing beyond what sites already see.']);
+          var lan = rtc.host.filter(function (x) { return !/\.local$/.test(x); });
+          checks.push(lan.length ? ['meh', 'Local network address visible', 'Your device\'s address inside your home network (' + lan.join(', ') + ') is exposed. Older browsers do this; update it.'] : ['ok', 'Local address hidden', 'Your browser hides your home-network address behind a random name.']);
+        }
+        if (ip4 && ip6) checks.push(['meh', 'You have IPv6 too', 'Many VPNs only cover IPv4. If the IPv6 address above belongs to your home provider while the VPN is on, it leaks. Disable IPv6 or use a VPN that tunnels it.']);
+        if (tzIP && tzMe && tzIP !== tzMe) checks.push(['meh', 'Clock and location disagree', 'Your IP says ' + tzIP + ' but your device clock says ' + tzMe + '. Sites use this mismatch to spot VPN users.']);
+        else if (tzIP) checks.push(['na', 'Clock matches IP location', 'Your device time zone (' + tzMe + ') fits the IP location, so nothing gives away a VPN here.']);
+        var hosting = /hosting|datacenter|data center|cloud|vpn|m247|digitalocean|ovh|hetzner|amazon|google|microsoft|linode|vultr|choopa|datacamp|cdn77|leaseweb/i.test((c.org || '') + ' ' + (c.isp || ''));
+        checks.push(hosting ? ['na', 'Looks like a VPN or data centre', 'Your address belongs to ' + (c.org || c.isp) + ', not a home provider. Streaming and banking sites may notice.'] : ['na', 'Looks like a home or mobile connection', (c.isp || 'Your provider') + ' is what sites see. With a VPN on, this should change.']);
+        checks.push(['na', 'DNS leaks need a server test', 'A web page can\'t see which DNS server you use. For that, try the DNS checker in this lab or your VPN\'s own leak test.']);
+        var ic = { ok: '✓', bad: '✕', meh: '!', na: '·' };
+        $('checks').innerHTML = checks.map(function (x) { return '<li><span class="' + x[0] + '">' + ic[x[0]] + '</span><span>' + esc(x[1]) + '<small>' + esc(x[2]) + '</small></span></li>'; }).join('');
+      });
+    });
+  }
+  $('again').onclick = run;
+  run();
+})();
+</script>
+</body>
+</html>
