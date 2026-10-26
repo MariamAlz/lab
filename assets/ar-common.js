@@ -276,3 +276,10 @@ LabAr.add({
  "Registration age, DNS, email spoofing grade, certificates, subdomains, hosting and look-alike domains, as one exportable report.": "عمر التسجيل وسجلات DNS ودرجة الحماية من انتحال البريد والشهادات والنطاقات الفرعية والاستضافة والنطاقات المشابهة، في تقرير واحد قابل للتصدير.",
  "Build a dossier →": "أنشئ الملف ←"
 });
+/* index cards for newer tools */
+LabAr.add({
+ "Tool · Money": "أداة · مال",
+ "Zakat calculator": "حاسبة الزكاة",
+ "Zakat on cash, gold, silver, shares, business stock and crypto, with today's nisab and the scholars' views side by side.": "الزكاة على النقد والذهب والفضة والأسهم وعروض التجارة والعملات المشفرة، مع نصاب اليوم وآراء العلماء جنبًا إلى جنب.",
+ "Work it out →": "احسب زكاتك ←"
+});

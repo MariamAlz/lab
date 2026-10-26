@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Zakat Calculator · Mariam's Lab</title>
+<meta name="description" content="Work out zakat on cash, gold and silver, shares, business stock, money owed to you and crypto, with today's gold price for the nisab and the scholars' differing views shown side by side.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/zakat/">
+<meta property="og:title" content="Zakat Calculator · Mariam's Lab"><meta property="og:description" content="Zakat on cash, gold, silver, shares, stock and crypto, with today's nisab."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.prices { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.prices > div { padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); display: grid; gap: 4px; min-width: 0; }
+.prices small { color: var(--muted); font-size: 0.78rem; }
+.prices input { width: 100%; box-sizing: border-box; font: inherit; font-family: var(--font-mono); font-size: 1.05rem; color: var(--accent); background: transparent; border: 1px solid var(--line); border-radius: 8px; padding: 5px 8px; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.grp { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: grid; gap: 10px; margin: 0; min-width: 0; }
+.grp legend { font-family: var(--font-display); font-weight: 600; padding: 0 6px; }
+.fld { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; font-size: 0.9rem; }
+.fld > span small { display: block; color: var(--muted); font-size: 0.76rem; }
+.fld input, .fld select, .two select, .two input { font: inherit; color: var(--ink); background: rgba(7, 10, 24, 0.6); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; min-width: 0; }
+.fld input[type=number], .two input[type=number] { width: 8.5em; font-family: var(--font-mono); text-align: end; }
+.two { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+.two input[type=number] { width: 6em; }
+.opts { display: grid; gap: 6px; }
+.opt { display: flex; gap: 8px; align-items: flex-start; font-size: 0.86rem; cursor: pointer; }
+.opt input { accent-color: var(--accent); margin-top: 3px; }
+.opt small { display: block; color: var(--muted); }
+.hint { font-size: 0.8rem; color: var(--muted); margin: 0; }
+.verd { padding: 18px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); display: grid; gap: 6px; }
+.verd b.big { font-family: var(--font-display); font-size: clamp(1.8rem, 6vw, 2.6rem); font-weight: 800; color: var(--accent); line-height: 1.1; }
+.verd p { margin: 0; color: var(--muted); }
+.bill { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 14px; font-size: 0.9rem; margin: 0; }
+.bill dt { color: var(--muted); } .bill dd { margin: 0; font-family: var(--font-mono); text-align: end; }
+.bill hr { grid-column: 1 / -1; border: 0; border-top: 1px solid var(--line); margin: 4px 0; width: 100%; }
+.bill .neg { color: var(--sat-c); }
+.hijri { font-size: 0.9rem; display: grid; gap: 4px; }
+.hijri input { font: inherit; color: var(--ink); background: rgba(7, 10, 24, 0.6); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; }
+#hijriOut { display: grid; gap: 4px; }
+.respanel { display: grid; gap: 16px; }
+@media (min-width: 861px) { .respanel { position: sticky; top: 80px; } }
+.links { display: grid; gap: 6px; font-size: 0.88rem; padding-inline-start: 18px; margin: 0; }
+.links a { color: var(--ink); }
+html.ar .bill dd { font-family: "IBM Plex Sans Arabic", var(--font-mono), sans-serif; }
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Money · Faith</span>
+    <h1 style="font-size:var(--step-3)">Zakat calculator.</h1>
+    <p>Add up what you own, take off what you owe now, and see whether you pass the nisab and how much zakat is due. Where scholars differ, such as everyday jewellery or long-term shares, you choose the view and the page says whose view it is. Nothing you type leaves this page.</p>
+  </div>
+
+  <div class="prices">
+    <div><small>24K gold, AED per gram</small><input type="number" id="pGold" min="0" step="0.01" aria-label="Gold price, AED per gram"><small id="pGoldSrc">Loading today's price…</small></div>
+    <div><small>Silver, AED per gram</small><input type="number" id="pSilver" min="0" step="0.01" aria-label="Silver price, AED per gram"><small id="pSilverSrc">Edit if your dealer quotes a different price.</small></div>
+    <div><small>Nisab today</small><b id="nisabV" style="font-family:var(--font-display);font-size:1.3rem">–</b><small id="nisabL">85 g of gold</small></div>
+  </div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;align-items:center">
+    <span class="hint">Nisab based on</span>
+    <button class="sm" type="button" id="nGold" aria-pressed="true">Gold (85 g)</button>
+    <button class="sm" type="button" id="nSilver" aria-pressed="false">Silver (595 g)</button>
+  </div>
+
+  <div class="game" style="margin-top:20px">
+    <div class="panel" id="form">
+      <fieldset class="grp"><legend>Cash</legend>
+        <label class="fld"><span>Cash at home and in bank accounts<small>Current, savings and deposit accounts, in AED</small></span><input type="number" id="cash" min="0" step="any" placeholder="0"></label>
+        <label class="fld"><span>Rental income you still hold<small>The property itself is not counted, only the rent you have saved</small></span><input type="number" id="rent" min="0" step="any" placeholder="0"></label>
+      </fieldset>
+
+      <fieldset class="grp"><legend>Gold and silver</legend>
+        <div class="fld"><span>Gold kept as savings<small>Bars, coins, and jewellery you don't wear</small></span><span class="two"><input type="number" id="gSave" min="0" step="any" placeholder="0" aria-label="Weight of gold kept as savings in grams"> g <select id="gSaveK" aria-label="Karat"><option value="24">24K</option><option value="22">22K</option><option value="21" selected>21K</option><option value="18">18K</option></select></span></div>
+        <div class="fld"><span>Gold jewellery you wear regularly</span><span class="two"><input type="number" id="gWear" min="0" step="any" placeholder="0" aria-label="Weight of worn gold jewellery in grams"> g <select id="gWearK" aria-label="Karat"><option value="24">24K</option><option value="22">22K</option><option value="21" selected>21K</option><option value="18">18K</option></select></span></div>
+        <label class="fld"><span>Or gold by value instead<small>Savings gold only. Used in place of the weights above if filled</small></span><input type="number" id="gVal" min="0" step="any" placeholder="AED"></label>
+        <div class="fld"><span>Silver kept as savings</span><span class="two"><input type="number" id="sSave" min="0" step="any" placeholder="0" aria-label="Weight of silver kept as savings in grams"> g</span></div>
+        <div class="fld"><span>Silver jewellery you wear regularly</span><span class="two"><input type="number" id="sWear" min="0" step="any" placeholder="0" aria-label="Weight of worn silver jewellery in grams"> g</span></div>
+        <div class="opts" role="radiogroup" aria-label="Jewellery you wear">
+          <label class="opt"><input type="radio" name="jw" value="0" checked><span>Don't count jewellery I wear regularly<small>The view of most Maliki, Shafi'i and Hanbali scholars, for normal amounts of permitted jewellery</small></span></label>
+          <label class="opt"><input type="radio" name="jw" value="1"><span>Count it<small>The Hanafi view: gold and silver are zakatable whether worn or not</small></span></label>
+        </div>
+      </fieldset>
+
+      <fieldset class="grp"><legend>Investments</legend>
+        <label class="fld"><span>Shares you trade<small>Bought to sell for profit. Market value today</small></span><input type="number" id="trade" min="0" step="any" placeholder="0"></label>
+        <label class="fld"><span>Shares held for the long term<small>Market value today, including funds and pensions you can access</small></span><input type="number" id="longt" min="0" step="any" placeholder="0"></label>
+        <div class="opts" role="radiogroup" aria-label="Long-term shares method">
+          <label class="opt"><input type="radio" name="lt" value="assets" checked><span>Company assets approach<small>Count only your share of the company's zakatable assets (cash, receivables, stock). Enter the percentage from its accounts or zakat report:</small></span></label>
+          <div class="fld" style="padding-inline-start:26px"><span class="hint">Zakatable assets as % of market value</span><span class="two"><input type="number" id="ltPct" min="0" max="100" step="any" value="25" aria-label="Zakatable assets as a percentage of market value"> %</span></div>
+          <label class="opt"><input type="radio" name="lt" value="proxy"><span>Simplified 25% estimate<small>Zakat on 25% of the market value, as the National Zakat Foundation suggests when the accounts are not known, based on AAOIFI Shari'ah Standard 35 allowing estimation</small></span></label>
+          <label class="opt"><input type="radio" name="lt" value="full"><span>Full market value<small>The cautious choice, and the view of some scholars</small></span></label>
+        </div>
+        <label class="fld"><span>Crypto<small>Treated here as trading assets at today's value. Scholars differ on crypto itself</small></span><input type="number" id="crypto" min="0" step="any" placeholder="0"></label>
+      </fieldset>
+
+      <fieldset class="grp"><legend>Business</legend>
+        <label class="fld"><span>Stock for sale<small>What it would sell for today. Not equipment or premises</small></span><input type="number" id="inv" min="0" step="any" placeholder="0"></label>
+        <label class="fld"><span>Money owed to you that you expect back<small>Loans and invoices from people able and willing to pay</small></span><input type="number" id="recS" min="0" step="any" placeholder="0"></label>
+        <label class="fld"><span>Doubtful money owed to you<small>Not counted until you get it back. Shown for your records</small></span><input type="number" id="recD" min="0" step="any" placeholder="0"></label>
+      </fieldset>
+
+      <fieldset class="grp"><legend>Take off</legend>
+        <label class="fld"><span>Debts and bills due now<small>Short-term debts you must pay now, such as this month's loan or card payments and unpaid bills. Not the whole remaining mortgage</small></span><input type="number" id="debt" min="0" step="any" placeholder="0"></label>
+      </fieldset>
+      <button class="sm" type="button" id="reset">Reset</button>
+    </div>
+
+    <div class="panel respanel">
+      <div class="verd" id="verd" aria-live="polite"><span class="label">Zakat due</span><b class="big">–</b></div>
+      <dl class="bill" id="bill"></dl>
+      <div class="grp hijri">
+        <span class="label">The hawl, one lunar year</span>
+        <p class="hint" style="margin:0">Zakat is due when your wealth has stayed above the nisab for a full Hijri year. Pick the day it first reached the nisab, or the date you pay each year.</p>
+        <input type="date" id="hawl" aria-label="Start of your zakat year">
+        <span id="hijriOut"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="game" style="margin-top:28px">
+    <div class="panel">
+      <span class="label">Good to know</span>
+      <p class="fact" style="margin:0">Zakat is 2.5% of wealth you have held for a full lunar year, once it is above the nisab. The nisab is the value of 85 g of gold or 595 g of silver. Silver gives a much lower threshold, so more people pass it. Many scholars prefer it for cash because it benefits the poor more, while others use gold because it is closer to today's value of money.</p>
+      <p class="fact" style="margin:0">Gold is valued by its pure content: 21K jewellery is 21/24 gold, so 100 g of 21K counts as 87.5 g of pure gold. Your home, car, furniture and work tools are not zakatable. If you pay on a Gregorian date instead of a Hijri one, some scholars suggest 2.577% to make up the 11 extra days.</p>
+      <p class="fact" style="margin:0">This is a calculator, not a fatwa. For your own situation, especially business, shares, debts or crypto, ask a scholar you trust or the official fatwa service in the UAE.</p>
+    </div>
+    <div class="panel">
+      <span class="label">Paying zakat in the UAE</span>
+      <ul class="links">
+        <li><a href="https://www.zakatfund.gov.ae/" rel="noopener">Zakat Fund (صندوق الزكاة) ↗</a>, the federal body that collects and distributes zakat</li>
+        <li><a href="https://u.ae/en/information-and-services/charity-and-humanitarian-work/ways-of-doing-charity-in-the-uae/paying-zakat" rel="noopener">How to pay zakat, on u.ae ↗</a>, the UAE government portal</li>
+        <li><a href="https://www.awqaf.gov.ae/" rel="noopener">General Authority of Islamic Affairs, Endowments and Zakat ↗</a>, for fatwas and guidance</li>
+        <li><a href="../gold/">Gold calculator →</a> for today's rates by karat and what your pieces are worth</li>
+      </ul>
+      <span class="label" style="margin-top:6px">Sources</span>
+      <ul class="links">
+        <li><a href="https://muftiwp.gov.my/en/artikel/irsyad-fatwa/irsyad-fatwa-umum-cat/1980-irsyad-fatwa-series-38-zakah-for-women-s-adornments" rel="noopener">Mufti of the Federal Territories, Malaysia: zakat on worn jewellery ↗</a>, the Hanafi and majority views and the 85 g nisab</li>
+        <li><a href="https://nzf.org.uk/knowledge/zakat-on-share-investments-determining-a-proxy-for-calculation/" rel="noopener">National Zakat Foundation: the 25% proxy for shares ↗</a>, citing AAOIFI Shari'ah Standard 35</li>
+        <li>Gold and silver spot prices from gold-api.com, saved to this site daily, converted at 3.6725 AED to the dollar.</li>
+      </ul>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var AR = !!(window.LabAr && LabAr.on);
+  function L(en, ar) { return AR ? ar : en; }
+  var OZ = 31.1034768, PEG = 3.6725, RATE = 0.025, NG = 85, NS = 595;
+  var basis = 'gold', KEY = 'zakatCalc';
+  var IDS = ['cash', 'rent', 'gSave', 'gSaveK', 'gWear', 'gWearK', 'gVal', 'sSave', 'sWear', 'trade', 'longt', 'ltPct', 'crypto', 'inv', 'recS', 'recD', 'debt'];
+  function num(id) { var v = parseFloat($(id).value); return isFinite(v) && v > 0 ? v : 0; }
+  function aed(v) { var s = Math.round(v).toLocaleString('en'); return L('AED ' + s, s + ' درهم'); }
+
+  // Pure calculation, exposed for testing. All money in AED, weights in grams.
+  function calc(x) {
+    var gold = x.gVal > 0 ? x.gVal : x.gSave * x.gSaveK / 24 * x.pg;
+    var goldWorn = x.jw ? x.gWear * x.gWearK / 24 * x.pg : 0;
+    var silver = x.sSave * x.ps, silverWorn = x.jw ? x.sWear * x.ps : 0;
+    var ltShare = x.lt === 'full' ? 1 : x.lt === 'proxy' ? 0.25 : Math.min(100, Math.max(0, x.ltPct)) / 100;
+    var lines = [
+      ['cash', x.cash], ['rent', x.rent], ['gold', gold], ['goldWorn', goldWorn], ['silver', silver], ['silverWorn', silverWorn],
+      ['trade', x.trade], ['longt', x.longt * ltShare], ['crypto', x.crypto], ['inv', x.inv], ['recS', x.recS]
+    ];
+    var assets = lines.reduce(function (a, l) { return a + l[1]; }, 0);
+    var net = Math.max(0, assets - x.debt);
+    var nisab = x.basis === 'silver' ? NS * x.ps : NG * x.pg;
+    var meets = nisab > 0 && net >= nisab;
+    return { lines: lines, assets: assets, debt: x.debt, net: net, nisab: nisab, meets: meets, zakat: meets ? net * RATE : 0, ltShare: ltShare };
+  }
+  window.__zakatCalc = calc;
+
+  function read() {
+    var jw = document.querySelector('input[name=jw]:checked').value === '1', lt = document.querySelector('input[name=lt]:checked').value;
+    return { cash: num('cash'), rent: num('rent'), gSave: num('gSave'), gSaveK: +$('gSaveK').value, gWear: num('gWear'), gWearK: +$('gWearK').value, gVal: num('gVal'), sSave: num('sSave'), sWear: num('sWear'),
+      trade: num('trade'), longt: num('longt'), ltPct: parseFloat($('ltPct').value) || 0, crypto: num('crypto'), inv: num('inv'), recS: num('recS'), recD: num('recD'), debt: num('debt'),
+      jw: jw, lt: lt, pg: num('pGold'), ps: num('pSilver'), basis: basis };
+  }
+  var NAMES = {
+    cash: ['Cash and bank', 'النقد والحسابات البنكية'], rent: ['Rental income held', 'إيجارات محفوظة'], gold: ['Gold savings', 'ذهب مدخر'], goldWorn: ['Gold jewellery worn', 'حلي ذهب مستعملة'],
+    silver: ['Silver savings', 'فضة مدخرة'], silverWorn: ['Silver jewellery worn', 'حلي فضة مستعملة'], trade: ['Traded shares', 'أسهم للمتاجرة'], longt: ['Long-term shares (zakatable part)', 'أسهم طويلة الأجل (الجزء الخاضع)'],
+    crypto: ['Crypto', 'عملات مشفرة'], inv: ['Business stock', 'عروض التجارة'], recS: ['Money owed to you', 'ديون مرجوة لك']
+  };
+  function render() {
+    var x = read(), r = calc(x);
+    $('nisabV').textContent = r.nisab ? aed(r.nisab) : '–';
+    $('nisabL').textContent = basis === 'silver' ? L('595 g of silver', '595 غرامًا من الفضة') : L('85 g of gold', '85 غرامًا من الذهب');
+    var v = '<span class="label">' + L('Zakat due', 'الزكاة المستحقة') + '</span>';
+    if (!r.nisab) v += '<b class="big">–</b><p>' + L('Enter a gold or silver price to set the nisab.', 'أدخل سعر الذهب أو الفضة لتحديد النصاب.') + '</p>';
+    else if (r.net === 0) v += '<b class="big">–</b><p>' + L('Fill in what you own to see the result.', 'أدخل ما تملكه لترى النتيجة.') + '</p>';
+    else if (r.meets) v += '<b class="big">' + aed(r.zakat) + '</b><p>' + L('Your net zakatable wealth of ' + aed(r.net) + ' is above the nisab of ' + aed(r.nisab) + '. Zakat is 2.5% of it, if it has stayed above the nisab for a full lunar year.', 'صافي أموالك الخاضعة للزكاة ' + aed(r.net) + '، وهو فوق النصاب البالغ ' + aed(r.nisab) + '. فالزكاة 2.5% منه إذا بقي فوق النصاب حولًا قمريًا كاملًا.') + '</p>';
+    else v += '<b class="big">' + aed(0) + '</b><p>' + L('Your net zakatable wealth of ' + aed(r.net) + ' is below the nisab of ' + aed(r.nisab) + ', so no zakat is due on it.', 'صافي أموالك الخاضعة للزكاة ' + aed(r.net) + '، وهو دون النصاب البالغ ' + aed(r.nisab) + '، فلا زكاة عليه.') + '</p>';
+    $('verd').innerHTML = v;
+    var b = '';
+    r.lines.forEach(function (l) { if (l[1] > 0) b += '<dt>' + L(NAMES[l[0]][0], NAMES[l[0]][1]) + '</dt><dd>' + aed(l[1]) + '</dd>'; });
+    if (r.assets > 0 || r.debt > 0) {
+      b += '<hr><dt>' + L('Total zakatable assets', 'مجموع الأموال الخاضعة') + '</dt><dd>' + aed(r.assets) + '</dd>';
+      if (r.debt) b += '<dt>' + L('Less debts due now', 'ناقص الديون الحالّة') + '</dt><dd class="neg">−' + aed(r.debt) + '</dd>';
+      b += '<dt><b>' + L('Net', 'الصافي') + '</b></dt><dd><b>' + aed(r.net) + '</b></dd><dt>' + L('Nisab', 'النصاب') + '</dt><dd>' + aed(r.nisab) + '</dd><dt><b>' + L('Zakat at 2.5%', 'الزكاة بنسبة 2.5%') + '</b></dt><dd><b>' + aed(r.zakat) + '</b></dd>';
+      var notes = [];
+      if (x.recD) notes.push(L('Doubtful debts of ' + aed(x.recD) + ' are left out until you receive them.', 'الديون المشكوك فيها (' + aed(x.recD) + ') غير محسوبة حتى تستلمها.'));
+      if (!x.jw && (x.gWear || x.sWear)) notes.push(L('Worn jewellery is left out, following the majority view.', 'الحلي المستعملة غير محسوبة، على رأي الجمهور.'));
+      if (x.gVal) notes.push(L('Gold savings use the value you typed, not the weights.', 'الذهب المدخر محسوب بالقيمة التي أدخلتها لا بالوزن.'));
+      if (notes.length) b += '<dt style="grid-column:1/-1">' + notes.join(' ') + '</dt>';
+    }
+    $('bill').innerHTML = b;
+    save();
+  }
+  function save() { try { var o = {}; IDS.forEach(function (id) { o[id] = $(id).value; }); o.jw = document.querySelector('input[name=jw]:checked').value; o.lt = document.querySelector('input[name=lt]:checked').value; o.basis = basis; o.hawl = $('hawl').value; localStorage.setItem(KEY, JSON.stringify(o)); } catch (e) {} }
+  function load() {
+    try { var o = JSON.parse(localStorage.getItem(KEY) || 'null'); if (!o) return;
+      IDS.forEach(function (id) { if (o[id] != null) $(id).value = o[id]; });
+      [].forEach.call(document.querySelectorAll('input[name=jw]'), function (r) { r.checked = r.value === o.jw; });
+      [].forEach.call(document.querySelectorAll('input[name=lt]'), function (r) { r.checked = r.value === o.lt; });
+      if (o.basis) setBasis(o.basis, true); if (o.hawl) $('hawl').value = o.hawl;
+    } catch (e) {}
+  }
+  function setBasis(b, quiet) { basis = b; $('nGold').setAttribute('aria-pressed', b === 'gold'); $('nSilver').setAttribute('aria-pressed', b === 'silver'); if (!quiet) render(); }
+  $('nGold').onclick = function () { setBasis('gold'); };
+  $('nSilver').onclick = function () { setBasis('silver'); };
+  $('form').addEventListener('input', render); $('form').addEventListener('change', render);
+  $('pGold').addEventListener('input', render); $('pSilver').addEventListener('input', render);
+  $('reset').onclick = function () { IDS.forEach(function (id) { var e = $(id); if (e.tagName === 'SELECT') e.value = id === 'gSaveK' || id === 'gWearK' ? '21' : e.value; else e.value = id === 'ltPct' ? '25' : ''; }); render(); };
+
+  // ---- Hijri hawl
+  var hijF = new Intl.DateTimeFormat((AR ? 'ar' : 'en') + '-u-ca-islamic-umalqura-nu-latn', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+  var hijP = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura-nu-latn', { day: 'numeric', month: 'numeric', year: 'numeric', timeZone: 'UTC' });
+  var greg = new Intl.DateTimeFormat(AR ? 'ar-u-nu-latn' : 'en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+  function hparts(ms) { var o = {}; hijP.formatToParts(new Date(ms)).forEach(function (p) { o[p.type] = p.value; }); return { d: +o.day, m: +o.month, y: parseInt(o.year, 10) }; }
+  function hawlEnd(ms) { // the same Hijri day one Hijri year later
+    var h = hparts(ms);
+    for (var i = 340; i < 370; i++) { var t = ms + i * 864e5, g = hparts(t); if (g.y === h.y + 1 && g.m === h.m && g.d >= Math.min(h.d, 29)) return t; }
+    return ms + 354 * 864e5;
+  }
+  window.__zakatHawlEnd = hawlEnd;
+  function hijri() {
+    var now = new Date(), today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+    var h = '<span>' + L('Today is ', 'اليوم ') + '<b>' + hijF.format(new Date(today)) + '</b></span>';
+    var v = $('hawl').value;
+    if (v) {
+      var s = Date.parse(v + 'T00:00:00Z'), e = hawlEnd(s), left = Math.round((e - today) / 864e5);
+      h += '<span>' + L('Your year started ', 'بدأ حولك في ') + hijF.format(new Date(s)) + '</span>';
+      h += '<span>' + L('Zakat is due on ', 'تجب الزكاة في ') + '<b>' + hijF.format(new Date(e)) + '</b> (' + greg.format(new Date(e)) + ')' + '</span>';
+      h += '<span class="hint">' + (left > 0 ? L('In ' + left + (left === 1 ? ' day.' : ' days.'), 'بعد ' + (left === 1 ? 'يوم واحد' : left === 2 ? 'يومين' : left <= 10 ? left + ' أيام' : left + ' يومًا') + '.') : left === 0 ? L('That is today.', 'وهو اليوم.') : L('That date has passed. If your wealth stayed above the nisab, zakat is due now.', 'مضى هذا التاريخ. إن بقي مالك فوق النصاب فالزكاة واجبة الآن.')) + '</span>';
+    }
+    $('hijriOut').innerHTML = h;
+  }
+  $('hawl').addEventListener('change', function () { hijri(); save(); });
+
+  // ---- prices
+  var silverDefault = 6.3;
+  fetch('../assets/gold.json', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (j) {
+    var dt = new Date(j.updated).toLocaleDateString(AR ? 'ar-u-nu-latn' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    if (!$('pGold').value) $('pGold').value = (j.xau_usd_oz * PEG / OZ).toFixed(2);
+    $('pGoldSrc').textContent = L('Spot price as of ' + dt + '. Edit to match your dealer.', 'سعر السوق في ' + dt + '. عدّله ليطابق سعر محلك.');
+    if (j.xag_usd_oz && !$('pSilver').value) { $('pSilver').value = (j.xag_usd_oz * PEG / OZ).toFixed(2); $('pSilverSrc').textContent = L('Spot price as of ' + dt + '. Edit if needed.', 'سعر السوق في ' + dt + '. عدّله إن لزم.'); }
+    render();
+  }).catch(function () {
+    $('pGoldSrc').textContent = L('Couldn\'t load today\'s price. Type the 24K rate.', 'تعذّر تحميل سعر اليوم. اكتب سعر عيار 24.');
+    if (!$('pSilver').value) { $('pSilver').value = silverDefault; $('pSilverSrc').textContent = L('A rough default. Type today\'s price.', 'قيمة تقريبية. اكتب سعر اليوم.'); }
+    render();
+  });
+  load(); render(); hijri();
+})();
+</script>
+</body>
+</html>
