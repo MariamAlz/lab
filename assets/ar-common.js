@@ -237,3 +237,10 @@ LabAr.add({
  "UAE stations in a dozen languages, with favourites, a sleep timer and lock-screen controls.": "محطات الإمارات بأكثر من عشر لغات، مع المفضلة ومؤقت النوم والتحكم من شاشة القفل.",
  "Listen →": "استمع ←"
 });
+/* index cards for newer tools */
+LabAr.add({
+ "Guide · Security": "دليل · أمان",
+ "Smart home hardening": "تحصين المنزل الذكي",
+ "Step-by-step lock-down for your router, cameras, speakers, TV, robot vacuum and more, with a score you can track and print.": "خطوات واضحة لتأمين الراوتر والكاميرات والسماعات والتلفزيون والمكنسة الروبوتية وغيرها، مع نتيجة تتابعها وتطبعها.",
+ "Harden my home →": "حصّن منزلي ←"
+});

@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Smart Home Hardening · Mariam's Lab</title>
+<meta name="description" content="Step-by-step hardening for your router, cameras, doorbell, speakers, TV, robot vacuum, smart lock, baby monitor, plugs, printer and NAS, with a score you can track and print.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/smart-home/">
+<meta property="og:title" content="Smart Home Hardening · Mariam's Lab"><meta property="og:description" content="Lock down every connected device at home, one tick at a time."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.sm { font: inherit; font-size: 0.84rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 13px; cursor: pointer; }
+.sm:hover { border-color: var(--accent); }
+.sm.pri { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.pick { display: flex; flex-wrap: wrap; gap: 8px; }
+.dev { font: inherit; font-size: 0.88rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; cursor: pointer; display: inline-flex; gap: 8px; align-items: center; }
+.dev[aria-pressed="true"] { border-color: var(--sat-b); background: rgba(79,211,189,.12); }
+.dev i { font-style: normal; font-size: 1.05rem; }
+.box { padding: 16px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); display: grid; gap: 10px; }
+.box p { margin: 0; }
+.dhead { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.dhead h2 { font-size: 1.15rem; display: flex; gap: 8px; align-items: center; }
+.cnt { font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted); }
+.cnt.full { color: var(--sat-b); }
+.why { font-size: 0.86rem; color: var(--muted); }
+.it { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; cursor: pointer; font-size: 0.92rem; }
+.it:has(input:checked) { border-color: var(--sat-b); background: rgba(79,211,189,.07); }
+.it:has(input:checked) b { text-decoration: line-through; text-decoration-color: rgba(79,211,189,.6); }
+.it input { width: 18px; height: 18px; margin: 2px 0 0; accent-color: var(--sat-b); }
+.it small { display: block; color: var(--muted); font-size: 0.83rem; margin-top: 3px; }
+.pr { font-family: var(--font-mono); font-size: 0.66rem; padding: 1px 7px; border-radius: 999px; margin-inline-start: 6px; vertical-align: 1px; white-space: nowrap; }
+.pr.h { color: var(--sat-c); border: 1px solid var(--sat-c); } .pr.m { color: var(--accent); border: 1px solid var(--accent); } .pr.l { color: var(--muted); border: 1px solid var(--line); }
+html.ar .pr, html.ar .cnt { font-family: inherit; }
+.meter { height: 10px; border-radius: 999px; background: var(--line); overflow: hidden; }
+.meter i { display: block; height: 100%; width: 0; transition: width .3s; background: var(--sat-c); }
+.fld { display: grid; gap: 4px; font-size: 0.82rem; color: var(--muted); }
+.fld input { font: inherit; font-size: 0.95rem; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; width: 100%; min-width: 0; }
+.flags { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 0.88rem; }
+.flags li { padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line); }
+.flags li.bad { border-color: var(--sat-c); } .flags li.ok { border-color: var(--sat-b); }
+.ideas { display: flex; flex-wrap: wrap; gap: 6px; }
+.ideas code { font-family: var(--font-mono); font-size: 0.8rem; padding: 3px 8px; border-radius: 6px; background: var(--bg); border: 1px solid var(--line); }
+.hint { font-size: 0.8rem; color: var(--muted); margin: 0; }
+.sticky { position: sticky; top: 76px; }
+@media (max-width: 860px) { .sticky { position: static; } }
+@media print {
+  .labbar, .labfoot, .btns, .pick, .noprint { display: none !important; }
+  body { background: #fff; color: #000; } body::before { display: none; }
+  .box, .it { border-color: #999; background: none; break-inside: avoid; }
+  .it small, .why, .hint, .cnt { color: #333; }
+  .game { display: block; } .labmain { padding: 0; } .sticky { position: static; }
+}
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Guide · Security</span>
+    <h1 style="font-size:var(--step-3)">Smart home hardening.</h1>
+    <p>Every camera, speaker and plug on your Wi-Fi is a small computer that can be guessed into, forgotten about, or quietly share more than you think. Pick the devices you have and work down the list. Start with the red steps. Your ticks stay in this browser. Nothing is uploaded.</p>
+  </div>
+  <div class="box noprint" style="margin-bottom:22px">
+    <span class="label">What do you have at home?</span>
+    <div class="pick" id="pick"></div>
+    <p class="hint">The router is where everything starts, so it's always on the list.</p>
+  </div>
+  <div class="game">
+    <div class="panel" id="lists"></div>
+    <div class="panel" style="align-content:start">
+      <div class="box">
+        <span class="label">Your home score</span>
+        <div class="stats">
+          <div><b id="sScore">0%</b><span>Score</span></div>
+          <div><b id="sDone">0</b><span>Steps done</span></div>
+          <div><b id="sDev">0</b><span>Devices</span></div>
+        </div>
+        <div class="meter"><i id="meter"></i></div>
+        <p class="why" id="next"></p>
+        <div class="btns"><button class="sm pri" type="button" id="print">Print my checklist</button><button class="sm" type="button" id="reset">Clear my ticks</button></div>
+      </div>
+      <div class="box" id="ssid">
+        <span class="label">Don't name your Wi-Fi after your home</span>
+        <p>Your network name is broadcast to the street, the corridor and every phone that walks past. "Villa 23" or "The Hassan Family" tells a stranger which network belongs to which door, and that the family inside uses it.</p>
+        <label class="fld"><span>Check a network name</span><input type="text" id="ssidIn" maxlength="32" autocomplete="off" spellcheck="false" placeholder="e.g. Flat 1204"></label>
+        <ul class="flags" id="ssidOut"></ul>
+        <p class="hint">Neutral ideas:</p>
+        <div class="ideas"><code>Falcon-5G</code><code>Blue Lantern</code><code>Sidr Tree</code><code>Kettle Net</code></div>
+        <p class="hint">Hiding the name doesn't add real security, and your phone then calls out for it everywhere you go.</p>
+      </div>
+      <p class="fact">Why a separate network helps: devices on the same Wi-Fi can usually see each other. If a cheap plug or camera is taken over, a separate guest or IoT network keeps it away from the laptops and phones where your banking and photos live.</p>
+      <p class="hint">General guidance. Menu names differ by brand, so check your device's manual or app. If your internet provider manages your router, ask them about settings you can't change.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  // [id, priority h/m/l, step, how]
+  var DEV = [
+    ['router', '⌂', 'Router and Wi-Fi', 'The front door for everything else.', [
+      ['admin', 'h', 'Change the router admin password', 'This is the password for the router\'s settings page, not the Wi-Fi password. The address is usually on a sticker under the router. Look under Administration or System.'],
+      ['fw', 'h', 'Update the firmware and turn on automatic updates', 'Look for Firmware or Software update in the settings. If the router is years old and gets no updates, plan to replace it.'],
+      ['wpa3', 'h', 'Use WPA3, or WPA2/WPA3 mixed mode', 'Under Wireless security. Avoid WEP, WPA and TKIP. Use mixed mode only if an older device can\'t join with WPA3.'],
+      ['wps', 'h', 'Turn off WPS', 'The push-button and PIN pairing feature. Its PIN mode can be guessed in hours.'],
+      ['remote', 'h', 'Turn off remote management from the internet', 'Often called Remote access, WAN access or Remote management. You can still manage the router from home.'],
+      ['upnp', 'm', 'Turn off UPnP', 'It lets any device open a door from the internet into your home on its own. Turn it back on only if a game console or app truly needs it.'],
+      ['iot', 'm', 'Make a separate guest or IoT network', 'Put cameras, plugs, speakers and TVs on it. Keep phones and laptops on the main network.'],
+      ['wifipw', 'm', 'Use a long Wi-Fi password', 'At least 12 characters. A few random words is easy to type and hard to guess.'],
+      ['ssid', 'l', 'Give the network a neutral name', 'No family name, flat or villa number. See the box on this page.'],
+      ['list', 'l', 'Check the list of connected devices', 'Remove anything you don\'t recognise, then change the Wi-Fi password.']
+    ]],
+    ['camera', '◉', 'Wi-Fi cameras', 'Indoor and outdoor cameras.', [
+      ['pw', 'h', 'Change the default password', 'Use a unique password for the camera and for the vendor app account.'],
+      ['2fa', 'h', 'Turn on two-step login for the vendor account', 'Anyone in that account can watch your cameras. Use an authenticator app if offered.'],
+      ['fw', 'h', 'Update the firmware and turn on automatic updates', 'Usually in the app under Device settings.'],
+      ['share', 'h', 'Review who has shared access', 'Remove old family members, previous tenants, installers and anyone you no longer want watching.'],
+      ['zones', 'm', 'Set privacy zones', 'Mask neighbours\' windows, the street and areas you don\'t need, like bedrooms. Point cameras at your own property and check local privacy rules.'],
+      ['local', 'm', 'Choose local storage or encrypted cloud', 'An SD card or home hub keeps footage at home. If you use cloud storage, turn on end-to-end encryption if the vendor offers it.'],
+      ['indoor', 'm', 'Pause indoor cameras when you are home', 'Use a schedule, a home and away mode, or a privacy shutter.'],
+      ['net', 'm', 'Move cameras to the IoT network', 'Keeps them away from your phones and laptops.'],
+      ['proto', 'l', 'Turn off features you don\'t use', 'For example RTSP or ONVIF streaming, and remote access if you only watch at home.']
+    ]],
+    ['doorbell', '◎', 'Video doorbell', 'It watches the street as well as your door.', [
+      ['pw', 'h', 'Use a unique password and two-step login', 'For the doorbell app account and anyone it is shared with.'],
+      ['fw', 'h', 'Update the firmware and turn on automatic updates', 'Usually in the app under Device settings.'],
+      ['share', 'h', 'Review shared users', 'Remove anyone who no longer needs to see who comes to your door.'],
+      ['zones', 'm', 'Set motion zones and privacy zones', 'Exclude the street, the corridor and neighbours\' doors.'],
+      ['audio', 'm', 'Turn off audio recording if you don\'t need it', 'Recording conversations of passers-by can also raise privacy issues.'],
+      ['lock', 'm', 'Check what shows on your lock screen', 'Turn off visitor snapshots on the lock screen if others use or see your phone.'],
+      ['away', 'l', 'Don\'t use quick replies that say you are away', 'Say "We can\'t come to the door" instead of "We\'re on holiday".']
+    ]],
+    ['speaker', '♪', 'Smart speaker', 'Voice assistants and smart displays.', [
+      ['mute', 'm', 'Use the mute button for private conversations', 'The light shows the microphone is off.'],
+      ['hist', 'h', 'Delete voice history and turn on auto-delete', 'Look in the app\'s privacy settings. Set the shortest auto-delete period offered.'],
+      ['buy', 'h', 'Turn off voice purchasing or add a PIN', 'Otherwise anyone in the room, or a TV advert, can try to order things.'],
+      ['voice', 'm', 'Set up voice recognition', 'So guests can\'t hear your calendar, messages or contacts.'],
+      ['skills', 'm', 'Review linked skills and services', 'Remove ones you don\'t use. Each one may get some of your data.'],
+      ['drop', 'm', 'Turn off drop-in or intercom features you don\'t use', 'They can let others listen in without you answering.'],
+      ['net', 'l', 'Move it to the IoT network', 'Keeps it away from your phones and laptops.']
+    ]],
+    ['tv', '▭', 'Smart TV', 'It may report what you watch.', [
+      ['acr', 'h', 'Turn off automatic content recognition (ACR)', 'It identifies what is on screen, even from other inputs, and reports it for ads. It goes by names like viewing information, viewing data or content recognition, in the privacy menu.'],
+      ['ads', 'm', 'Turn off ad tracking and reset the advertising ID', 'Look for interest-based ads or personalised ads.'],
+      ['fw', 'm', 'Update the software', 'Turn on automatic updates.'],
+      ['accts', 'm', 'Sign out of accounts you don\'t use, and use profile PINs', 'Guests and kids shouldn\'t see your history or buy things.'],
+      ['cam', 'm', 'Turn off or cover any built-in camera or microphone', 'Turn off voice control in settings if you don\'t use it.'],
+      ['apps', 'l', 'Remove apps you don\'t use', 'Fewer apps means fewer things to update and trust.'],
+      ['browse', 'l', 'Don\'t log in to banking or email on the TV browser', 'TV browsers are often out of date.']
+    ]],
+    ['vacuum', '◌', 'Robot vacuum', 'Its map is a floor plan of your home.', [
+      ['map', 'h', 'Check map upload and cloud settings', 'Its map shows your rooms and layout. Turn off cloud map saving if you don\'t need it, and don\'t share map screenshots.'],
+      ['cam', 'h', 'Turn off camera photo or video uploads', 'Models with cameras may upload images of obstacles, which can include people. Turn off remote video if you don\'t use it.'],
+      ['2fa', 'm', 'Use a unique password and two-step login for the app', 'Anyone in that account can see the map.'],
+      ['fw', 'm', 'Update the firmware', 'Usually in the app under Device settings.'],
+      ['data', 'm', 'Turn off data sharing for product improvement', 'Look in the app\'s privacy settings.'],
+      ['reset', 'l', 'Delete maps and factory reset before selling or moving', 'Also remove the device from your account.']
+    ]],
+    ['lock', '⚿', 'Smart lock', 'A digital key to your front door.', [
+      ['2fa', 'h', 'Use a unique password and two-step login for the app', 'This account can open your door.'],
+      ['codes', 'h', 'Review guest codes and remove old ones', 'Delete codes for past cleaners, guests and contractors. Use time-limited codes.'],
+      ['fw', 'h', 'Update the firmware', 'Usually in the app under Device settings.'],
+      ['voice', 'm', 'Turn off unlock by voice, or require a PIN', 'A voice assistant shouldn\'t open your door for anyone who asks.'],
+      ['auto', 'm', 'Turn on auto-lock', 'So the door locks itself if you forget.'],
+      ['log', 'l', 'Check the activity log now and then', 'Look for unlocks you don\'t recognise.'],
+      ['key', 'l', 'Keep a physical backup and spare batteries', 'And know where the emergency power contacts are.']
+    ]],
+    ['baby', '☾', 'Baby monitor', 'A camera and microphone in a child\'s room.', [
+      ['pw', 'h', 'Change the default password', 'Use a unique password for the monitor and the app account.'],
+      ['fw', 'h', 'Update the firmware', 'And turn on automatic updates if offered.'],
+      ['2fa', 'h', 'Turn on two-step login for the app', 'Use an authenticator app if offered.'],
+      ['remote', 'm', 'Turn off remote access if you only use it at home', 'Or choose a monitor that works only on your local network.'],
+      ['share', 'm', 'Review shared users', 'Remove carers and relatives who no longer need access.'],
+      ['net', 'm', 'Move it to the IoT network', 'Keeps it away from your phones and laptops.'],
+      ['odd', 'l', 'Act on strange sounds or movements', 'If the camera moves or speaks by itself, unplug it, change the passwords and reset it.']
+    ]],
+    ['plugs', '⚡', 'Smart plugs and bulbs', 'Cheap, many, and rarely updated.', [
+      ['net', 'h', 'Put them on the IoT network', 'These are often the least secure devices in a home.'],
+      ['2fa', 'm', 'Use a unique password and two-step login for the app', 'One account usually controls them all.'],
+      ['fw', 'm', 'Update the firmware', 'Usually in the app under Device settings.'],
+      ['links', 'l', 'Remove integrations you don\'t use', 'Old links to voice assistants or automation services.'],
+      ['bin', 'l', 'Reset them before you throw them away', 'A bulb can keep your Wi-Fi password inside it.']
+    ]],
+    ['printer', '⎙', 'Printer', 'It has its own web page and stores what you print.', [
+      ['admin', 'h', 'Set an admin password on the printer\'s web page', 'Type the printer\'s IP address into a browser on your home network.'],
+      ['fw', 'h', 'Update the firmware', 'Many printers can update themselves; turn it on.'],
+      ['direct', 'm', 'Turn off Wi-Fi Direct if you don\'t use it', 'It creates its own network that nearby people can join.'],
+      ['cloud', 'm', 'Turn off cloud and email printing you don\'t use', 'Each one is another way in.'],
+      ['wipe', 'l', 'Wipe its storage before selling or recycling', 'Some printers keep copies of scanned documents.']
+    ]],
+    ['nas', '▤', 'NAS or home server', 'Your photos and backups in one box.', [
+      ['fw', 'h', 'Update and turn on automatic security updates', 'For the system and its apps.'],
+      ['admin', 'h', 'Disable the default admin account', 'Create your own admin user with a strong password.'],
+      ['2fa', 'h', 'Turn on two-step login', 'Especially for admin users.'],
+      ['remote', 'h', 'Don\'t open it to the internet', 'Turn off port forwarding, UPnP and vendor remote-access features you don\'t need. Use a VPN to reach it from outside.'],
+      ['backup', 'm', 'Keep a separate offline backup', 'Ransomware can encrypt everything on a NAS. Snapshots and an unplugged copy save you.'],
+      ['smb', 'm', 'Turn off SMB1 and guest access', 'Old file sharing protocols are easy to attack.']
+    ]]
+  ];
+  var KEY = 'smarthome.v1', st = { on: { router: 1 }, t: {} };
+  try { var d = JSON.parse(localStorage.getItem(KEY) || 'null'); if (d) { st.on = d.on || st.on; st.t = d.t || {}; st.on.router = 1; } } catch (e) {}
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} }
+  var W = { h: 3, m: 2, l: 1 }, PR = { h: 'Do first', m: 'Important', l: 'Good habit' };
+  $('pick').innerHTML = DEV.map(function (d) { return '<button class="dev" type="button" data-d="' + d[0] + '" aria-pressed="' + (st.on[d[0]] ? 'true' : 'false') + '"' + (d[0] === 'router' ? ' disabled' : '') + '><i aria-hidden="true">' + d[1] + '</i><span>' + esc(d[2]) + '</span></button>'; }).join('');
+  $('pick').addEventListener('click', function (e) {
+    var b = e.target.closest('.dev'); if (!b || b.disabled) return; var k = b.getAttribute('data-d');
+    if (st.on[k]) delete st.on[k]; else st.on[k] = 1; b.setAttribute('aria-pressed', st.on[k] ? 'true' : 'false'); save(); lists();
+  });
+  function lists() {
+    $('lists').innerHTML = DEV.filter(function (d) { return st.on[d[0]]; }).map(function (d) {
+      return '<section class="box" data-sec="' + d[0] + '"><div class="dhead"><h2><span aria-hidden="true">' + d[1] + '</span><span>' + esc(d[2]) + '</span></h2><span class="cnt" data-cnt="' + d[0] + '"></span></div><p class="why">' + esc(d[3]) + '</p>' +
+        d[4].map(function (s) { var id = d[0] + '.' + s[0]; return '<label class="it"><input type="checkbox" data-t="' + id + '"' + (st.t[id] ? ' checked' : '') + '><span><b>' + esc(s[2]) + '</b><span class="pr ' + s[1] + '">' + PR[s[1]] + '</span><small>' + esc(s[3]) + '</small></span></label>'; }).join('') + '</section>';
+    }).join('');
+    score();
+  }
+  document.addEventListener('change', function (e) { var t = e.target; if (!t.hasAttribute('data-t')) return; st.t[t.getAttribute('data-t')] = t.checked; save(); score(); });
+  function score() {
+    var got = 0, tot = 0, n = 0, all = 0, devs = 0, next = null;
+    DEV.forEach(function (d) {
+      if (!st.on[d[0]]) return; devs++; var dn = 0;
+      d[4].forEach(function (s) { var id = d[0] + '.' + s[0]; tot += W[s[1]]; all++; if (st.t[id]) { got += W[s[1]]; n++; dn++; } else if (!next || W[s[1]] > W[next[0][1]]) next = [s, d]; });
+      var c = document.querySelector('[data-cnt="' + d[0] + '"]'); if (c) { c.textContent = dn + '/' + d[4].length; c.className = 'cnt' + (dn === d[4].length ? ' full' : ''); }
+    });
+    var pct = tot ? Math.round(100 * got / tot) : 0;
+    $('sScore').textContent = pct + '%'; $('sDone').textContent = n + '/' + all; $('sDev').textContent = devs;
+    $('meter').style.width = pct + '%'; $('meter').style.background = pct >= 75 ? 'var(--sat-b)' : pct >= 40 ? 'var(--accent)' : 'var(--sat-c)';
+    $('next').textContent = next ? 'Next: ' + next[0][2] + ' (' + next[1][2] + ')' : 'Every step is ticked. Check again after you add a device or replace the router.';
+  }
+  // Wi-Fi name check
+  var DEFAULTS = /^(tp-?link|huawei|zte|netgear|linksys|d-?link|asus|tenda|mercusys|xiaomi|redmi|nokia|sagemcom|technicolor|arris|fritz|eand|etisalat|du[-_ ]|homebox|vodafone|airtel|wifi|wi-fi|default|router|home[-_ ]?\d|android|iphone)/i;
+  function check() {
+    var v = $('ssidIn').value.trim(), out = [];
+    if (!v) { $('ssidOut').innerHTML = ''; return; }
+    if (/\b(villa|flat|apt|apartment|room|floor|bldg|building|tower|house|home|unit|block|door|plot)\b\s*#?\s*\d+/i.test(v) || /\b\d{2,5}\s*(villa|flat|apt|floor)\b/i.test(v) || /^\s*#?\d{2,5}\s*$/.test(v) || /\b[A-Z]?\d{3,5}[A-Z]?\b/.test(v) && !DEFAULTS.test(v)) out.push(['bad', 'It looks like a flat, villa or room number. That links the network to your door.']);
+    if (/\b(family|famil|home of|house of|residence|bait|beit|bayt)\b|'s\b|’s\b|^al[- ]?[a-z]+|\bal[- ][a-z]+|\bbin [a-z]+/i.test(v)) out.push(['bad', 'It looks like a family or personal name. That tells people who lives there.']);
+    if (/[؀-ۿ]/.test(v) && /(عائلة|بيت|آل |فيلا|شقة|منزل)/.test(v)) out.push(['bad', 'It mentions a family, house, villa or flat. That links the network to your door.']);
+    if (DEFAULTS.test(v) || /[_-][0-9A-F]{4,6}$/i.test(v)) out.push(['bad', 'It looks like a factory default name. It tells people your router model, and hints that the password may be the default too.']);
+    if (/(5g|2\.4|guest)$/i.test(v) && !out.length) out.push(['ok', 'Band or guest labels are fine.']);
+    if (!out.length) out.push(['ok', 'Looks neutral. Nothing in it points to you or your home.']);
+    $('ssidOut').innerHTML = out.map(function (o) { return '<li class="' + o[0] + '">' + esc(o[1]) + '</li>'; }).join('');
+  }
+  $('ssidIn').addEventListener('input', check);
+  $('print').onclick = function () { window.print(); };
+  $('reset').onclick = function () { if (confirm('Clear all ticks on this page?')) { st.t = {}; save(); lists(); } };
+  lists();
+})();
+</script>
+</body>
+</html>
