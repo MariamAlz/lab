@@ -35,9 +35,16 @@ def main():
         time.sleep(0.5)
     trains = []
     try:
-        for name, l1, l2 in tles(get("https://celestrak.org/NORAD/elements/gp.php?GROUP=last-30-days&FORMAT=tle")):
-            if name.startswith("STARLINK"):
-                trains.append({"name": name, "launch": l1[9:14].strip(), "tle1": l1, "tle2": l2})
+        # Newly launched Starlinks fly low (still raising their orbits) in a tight line.
+        # Keep the satellites from the 4 most recent launches that are still below ~450 km.
+        sl = list(tles(get("https://celestrak.org/NORAD/elements/gp.php?GROUP=starlink&FORMAT=tle")))
+        print(len(sl), "Starlink elements")
+        low = [(n, l1, l2) for n, l1, l2 in sl if float(l2[52:63]) > 15.45]
+        launches = sorted({l1[9:14] for n, l1, l2 in low}, reverse=True)[:4]
+        for n, l1, l2 in low:
+            if l1[9:14] in launches:
+                trains.append({"name": n, "launch": l1[9:14].strip(), "tle1": l1, "tle2": l2})
+        print("recent launches", launches)
     except Exception as e:
         print("failed starlink", e)
     if not any(s["key"] == "ISS" for s in out):
