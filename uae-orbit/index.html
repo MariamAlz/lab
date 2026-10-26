@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>UAE in Orbit · Mariam's Lab</title>
+<meta name="description" content="Where the UAE's satellites are right now: KhalifaSat, MBZ-SAT, the Al Yah and Thuraya satellites and more, live on a map, with the next passes over Abu Dhabi.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/uae-orbit/">
+<meta property="og:title" content="UAE in Orbit · Mariam's Lab"><meta property="og:description" content="The UAE's satellites, live."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.mapbox { position: relative; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); background: #0a1838; }
+.mapbox canvas { width: 100%; aspect-ratio: 2 / 1; display: block; cursor: pointer; }
+.ctrls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.when { font-family: var(--font-mono); font-size: 0.85rem; color: var(--muted); }
+.list { display: grid; gap: 6px; padding: 0; margin: 0; list-style: none; max-height: 430px; overflow: auto; }
+.list li { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line); cursor: pointer; font-size: 0.9rem; }
+.list li:hover, .list li:focus-visible, .list li.on { border-color: var(--accent); outline: none; }
+.list li i { width: 10px; height: 10px; border-radius: 50%; }
+.list li span:last-child { font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); text-align: end; }
+.card { display: grid; gap: 6px; padding: 14px; border-radius: 12px; border: 1px solid var(--accent); background: var(--surface); }
+.card h3 { font-size: 1.15rem; font-weight: 800; }
+.card p { color: var(--muted); font-size: 0.9rem; }
+.card dl { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; margin: 4px 0 0; font-size: 0.85rem; }
+.card dt { color: var(--muted); } .card dd { margin: 0; font-family: var(--font-mono); text-align: end; }
+.credit { font-size: 0.8rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Experiment · Space · Live</span>
+    <h1 style="font-size:var(--step-3)">UAE in orbit.</h1>
+    <p>Every satellite the UAE owns that's still in orbit, where it is this second, and where it's heading. The low ones circle the Earth every hour and a half; the high ones hang over the same spot on the equator.</p>
+  </div>
+  <div class="game">
+    <div>
+      <div class="mapbox"><canvas id="cv" aria-label="World map with the UAE's satellites. The list beside it has the same information."></canvas></div>
+      <div class="ctrls">
+        <button class="sm" type="button" id="live" aria-pressed="true">Live</button>
+        <button class="sm" type="button" id="fast" aria-pressed="false">60× speed</button>
+        <span class="when" id="when"></span>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="card" id="card"><h3>Pick a satellite</h3><p>Tap one on the map or in the list.</p></div>
+      <ul class="list" id="list" aria-label="Satellites"></ul>
+      <p class="fact">The low satellites (KhalifaSat, MBZ-SAT and the small student ones) image the Earth or test new technology. The high ones, 36,000 km up, carry TV, internet and satellite phone calls across the region. Positions come from public orbital elements refreshed every six hours.</p>
+      <p class="credit" id="credit">Orbital elements: CelesTrak. Map: Natural Earth.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script src="../assets/vendor/satellite.min.js"></script>
+<script src="../assets/sky.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var AD = { lat: 24.4539, lon: 54.3773 };
+  var ABOUT = [
+    [/KHALIFASAT/, 'KhalifaSat', 'The first satellite built entirely by Emirati engineers, at the Mohammed bin Rashid Space Centre. It photographs the Earth in high resolution.'],
+    [/MBZ/, 'MBZ-SAT', 'A high-resolution Earth-imaging satellite designed and built in the UAE by the Mohammed bin Rashid Space Centre.'],
+    [/DUBAISAT-1/, 'DubaiSat-1', 'The UAE\'s first Earth-observation satellite, launched in 2009.'],
+    [/DUBAISAT-2/, 'DubaiSat-2', 'An Earth-imaging satellite launched in 2013, with Emirati engineers working on its design.'],
+    [/NAYIF/, 'Nayif-1', 'The first Emirati nanosatellite, built by university students.'],
+    [/MEZNSAT/, 'MeznSat', 'A student-built CubeSat that measures greenhouse gases over the UAE.'],
+    [/DMSAT/, 'DMSat-1', 'A small satellite from Dubai Municipality that monitors air quality and greenhouse gases.'],
+    [/THURAYA/, null, 'A Thuraya satellite: it relays satellite-phone calls and data across Europe, Africa, the Middle East and Asia.'],
+    [/YAHSAT|AL YAH/, null, 'A Yahsat (Al Yah) satellite carrying TV, broadband and government communications.']
+  ];
+  var COL = ['#E9B467', '#4FD3BD', '#84A0FF', '#F08AB3', '#EEF0FA', '#b7e07a', '#ffb38a', '#c9a7ff'];
+  var sats = [], land = [], sel = null, live = true, simT = Date.now(), lastReal = Date.now(), speed = 1;
+  var cv = $('cv'), g = cv.getContext('2d'), dpr = 1, W = 0, H = 0;
+
+  function fit() { dpr = Math.min(window.devicePixelRatio || 1, 2); var r = cv.getBoundingClientRect(); W = cv.width = Math.round(r.width * dpr); H = cv.height = Math.round(r.height * dpr); }
+  function X(lon) { return (lon + 180) / 360 * W; } function Y(lat) { return (90 - lat) / 180 * H; }
+  function pos(s, t) {
+    var d = new Date(t), pv = satellite.propagate(s.rec, d); if (!pv || !pv.position) return null;
+    var gm = satellite.gstime(d), geo = satellite.eciToGeodetic(pv.position, gm), v = pv.velocity;
+    return { lat: satellite.degreesLat(geo.latitude), lon: satellite.degreesLong(geo.longitude), alt: geo.height, speed: Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z), eci: pv.position, gm: gm };
+  }
+  function elev(s, t) {
+    var p = pos(s, t); if (!p) return -90;
+    var obs = { latitude: satellite.degreesToRadians(AD.lat), longitude: satellite.degreesToRadians(AD.lon), height: 0.01 };
+    var la = satellite.ecfToLookAngles(obs, satellite.eciToEcf(p.eci, p.gm)); return la.elevation * 180 / Math.PI;
+  }
+  function nextPass(s, from) {
+    if (s.geo) return null; var t = from, prev = elev(s, t);
+    for (var k = 0; k < 2880; k++) { t += 30000; var e = elev(s, t); if (e > 10 && prev <= 10) { var peak = e, tp = t; while (true) { var e2 = elev(s, tp + 30000); if (e2 < peak) break; peak = e2; tp += 30000; } return { t: t, max: peak }; } prev = e; }
+    return null;
+  }
+  function about(s) { for (var i = 0; i < ABOUT.length; i++) if (ABOUT[i][0].test(s.name)) return ABOUT[i]; return [null, null, 'A satellite registered to the UAE.']; }
+  function pretty(s) { var a = about(s); return a[1] || s.name.replace(/\b([A-Z])([A-Z]+)\b/g, function (m, p, q) { return p + q.toLowerCase(); }); }
+  function fmt(t) { try { return new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Dubai', weekday: 'short', hour: '2-digit', minute: '2-digit' }).format(t); } catch (e) { return new Date(t).toUTCString(); } }
+
+  function draw(t) {
+    g.clearRect(0, 0, W, H); g.fillStyle = '#0a1838'; g.fillRect(0, 0, W, H);
+    g.fillStyle = '#26365e'; g.strokeStyle = '#3a4c7a'; g.lineWidth = 0.6 * dpr;
+    land.forEach(function (p) { g.beginPath(); p.forEach(function (c, i) { if (i) g.lineTo(X(c[0]), Y(c[1])); else g.moveTo(X(c[0]), Y(c[1])); }); g.closePath(); g.fill(); g.stroke(); });
+    // night side
+    var sb = Sky.bodies(t)[0], gmst = Sky.lst(t, 0), subLon = ((sb.ra - gmst + 540) % 360) - 180, subLat = sb.dec;
+    g.fillStyle = 'rgba(2,4,12,0.45)';
+    for (var px = 0; px < W; px += 3 * dpr) {
+      var lon = px / W * 360 - 180, tl = -Math.atan(Math.cos((lon - subLon) * Math.PI / 180) / Math.tan(subLat * Math.PI / 180)) * 180 / Math.PI;
+      if (subLat >= 0) g.fillRect(px, Y(tl), 3 * dpr, H - Y(tl)); else g.fillRect(px, 0, 3 * dpr, Y(tl));
+    }
+    g.fillStyle = '#FFD27A'; g.beginPath(); g.arc(X(subLon), Y(subLat), 5 * dpr, 0, 7); g.fill();
+    // Abu Dhabi
+    g.fillStyle = '#EEF0FA'; g.fillRect(X(AD.lon) - 2 * dpr, Y(AD.lat) - 2 * dpr, 4 * dpr, 4 * dpr);
+    sats.forEach(function (s) {
+      var p = pos(s, t); s.now = p; if (!p) return;
+      var on = s === sel;
+      if (!s.geo && (on || !sel)) {
+        g.strokeStyle = on ? s.col : s.col + '55'; g.lineWidth = (on ? 1.8 : 1) * dpr; g.beginPath(); var last = null;
+        for (var m = 0; m <= 95; m += 1) { var q = pos(s, t + m * 60000); if (!q) break; var x = X(q.lon), y = Y(q.lat); if (last && Math.abs(x - last) > W / 2) g.moveTo(x, y); else if (m) g.lineTo(x, y); else g.moveTo(x, y); last = x; }
+        g.stroke();
+      }
+      if (on) { // footprint: where it's above the horizon
+        var R = 6371, ang = Math.acos(R / (R + p.alt)) * 180 / Math.PI; g.strokeStyle = s.col; g.setLineDash([3 * dpr, 4 * dpr]); g.beginPath();
+        for (var a = 0; a <= 360; a += 6) { var br = a * Math.PI / 180, la1 = p.lat * Math.PI / 180, d = ang * Math.PI / 180, la2 = Math.asin(Math.sin(la1) * Math.cos(d) + Math.cos(la1) * Math.sin(d) * Math.cos(br)), lo2 = p.lon + Math.atan2(Math.sin(br) * Math.sin(d) * Math.cos(la1), Math.cos(d) - Math.sin(la1) * Math.sin(la2)) * 180 / Math.PI; lo2 = ((lo2 + 540) % 360) - 180; if (a) g.lineTo(X(lo2), Y(la2 * 180 / Math.PI)); else g.moveTo(X(lo2), Y(la2 * 180 / Math.PI)); }
+        g.stroke(); g.setLineDash([]);
+      }
+      g.fillStyle = s.col; g.strokeStyle = '#fff'; g.lineWidth = (on ? 2 : 1) * dpr; g.beginPath(); g.arc(X(p.lon), Y(p.lat), (on ? 6 : 4) * dpr, 0, 7); g.fill(); g.stroke();
+      if (on || s.geo === false && !sel) { g.fillStyle = '#EEF0FA'; g.font = (11 * dpr) + 'px "Instrument Sans", sans-serif'; g.fillText(pretty(s), X(p.lon) + 8 * dpr, Y(p.lat) - 6 * dpr); }
+    });
+  }
+  function list() {
+    $('list').innerHTML = sats.map(function (s, i) { return '<li tabindex="0" data-i="' + i + '" class="' + (s === sel ? 'on' : '') + '"><i style="background:' + s.col + '"></i><span>' + pretty(s) + '</span><span>' + (s.geo ? 'high · fixed' : 'low · ' + Math.round(s.period) + ' min') + '</span></li>'; }).join('');
+  }
+  function card() {
+    var s = sel; if (!s) return; var p = s.now || pos(s, simT), a = about(s), np = nextPass(s, simT);
+    $('card').innerHTML = '<h3>' + pretty(s) + '</h3><p>' + a[2] + '</p><dl>' +
+      (p ? '<dt>Height</dt><dd>' + Math.round(p.alt).toLocaleString('en') + ' km</dd><dt>Speed</dt><dd>' + p.speed.toFixed(2) + ' km/s</dd><dt>Over</dt><dd>' + Math.abs(p.lat).toFixed(1) + '°' + (p.lat >= 0 ? 'N' : 'S') + ' ' + Math.abs(p.lon).toFixed(1) + '°' + (p.lon >= 0 ? 'E' : 'W') + '</dd>' : '') +
+      (s.geo ? '<dt>From Abu Dhabi</dt><dd>' + Math.round(elev(s, simT)) + '° above the horizon</dd>' : '<dt>Once round</dt><dd>' + Math.round(s.period) + ' min</dd><dt>Next pass over Abu Dhabi</dt><dd>' + (np ? fmt(np.t) + ', up to ' + Math.round(np.max) + '°' : 'none in 24 h') + '</dd>') +
+      '<dt>Launched</dt><dd>' + (s.launch || '—') + '</dd><dt>Catalogue no.</dt><dd>' + s.norad + '</dd></dl>';
+  }
+  function pick(s) { sel = s; list(); card(); draw(simT); }
+  $('list').onclick = $('list').onkeydown = function (e) { if (e.type === 'keydown' && e.key !== 'Enter' && e.key !== ' ') return; var li = e.target.closest('li'); if (!li) return; e.preventDefault(); pick(sats[+li.dataset.i]); };
+  cv.addEventListener('click', function (e) {
+    var r = cv.getBoundingClientRect(), x = (e.clientX - r.left) * dpr, y = (e.clientY - r.top) * dpr, best = null, bd = 18 * dpr;
+    sats.forEach(function (s) { if (!s.now) return; var d = Math.hypot(X(s.now.lon) - x, Y(s.now.lat) - y); if (d < bd) { bd = d; best = s; } });
+    pick(best);
+    if (!best) $('card').innerHTML = '<h3>Pick a satellite</h3><p>Tap one on the map or in the list.</p>';
+  });
+  $('live').onclick = function () { live = true; speed = 1; simT = Date.now(); this.setAttribute('aria-pressed', 'true'); $('fast').setAttribute('aria-pressed', 'false'); };
+  $('fast').onclick = function () { live = false; speed = 60; this.setAttribute('aria-pressed', 'true'); $('live').setAttribute('aria-pressed', 'false'); };
+  var lastCard = 0;
+  function tick() {
+    var now = Date.now(); simT = live ? now : simT + (now - lastReal) * speed; lastReal = now;
+    draw(simT); $('when').textContent = (live ? 'Live · ' : '60× · ') + fmt(simT) + ' UAE time';
+    if (sel && now - lastCard > 2000) { lastCard = now; card(); }
+    setTimeout(function () { requestAnimationFrame(tick); }, live ? 1000 : 50);
+  }
+  Promise.all([fetch('../assets/uae-sats.json').then(function (r) { return r.json(); }), fetch('../assets/land110.json').then(function (r) { return r.json(); })]).then(function (r) {
+    land = r[1];
+    sats = r[0].sats.map(function (s, i) {
+      var rec = satellite.twoline2satrec(s.tle1, s.tle2), mm = rec.no * 1440 / (2 * Math.PI);
+      return { name: s.name, norad: s.norad, launch: s.launch, rec: rec, period: 1440 / mm, geo: mm < 1.5, col: COL[i % COL.length] };
+    }).filter(function (s) { return pos(s, Date.now()); });
+    sats.sort(function (a, b) { return a.geo - b.geo || a.name.localeCompare(b.name); });
+    sats.forEach(function (s, i) { s.col = COL[i % COL.length]; });
+    $('credit').textContent = 'Orbital elements: CelesTrak, updated ' + r[0].updated.slice(0, 16).replace('T', ' ') + ' UTC. Map: Natural Earth.';
+    list(); tick();
+  });
+  window.addEventListener('resize', function () { fit(); draw(simT); });
+  fit();
+})();
+</script>
+</body>
+</html>

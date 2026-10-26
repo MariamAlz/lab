@@ -20,7 +20,17 @@ def get(url):
 
 
 def main():
-    cat = list(csv.DictReader(io.StringIO(get("https://celestrak.org/pub/satcat.csv"))))
+    cat = None
+    for url in ("https://celestrak.org/pub/satcat.csv", "https://celestrak.org/satcat/satcat.csv",
+                "https://celestrak.org/satcat/records.php?GROUP=active&FORMAT=csv"):
+        try:
+            cat = list(csv.DictReader(io.StringIO(get(url))))
+            print("catalogue from", url, len(cat), "rows")
+            break
+        except Exception as e:  # the catalogue has moved before; try the next place
+            print("failed", url, e)
+    if not cat:
+        raise SystemExit("No satellite catalogue")
     uae = [r for r in cat if r.get("OWNER") == "UAE" and r.get("OBJECT_TYPE") == "PAY" and not r.get("DECAY_DATE")]
     print(len(uae), "UAE payloads on orbit:", [(r["OBJECT_NAME"], r["NORAD_CAT_ID"], r.get("OPS_STATUS_CODE")) for r in uae])
     out = []
