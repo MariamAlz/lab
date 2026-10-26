@@ -357,3 +357,10 @@ LabAr.add({
  "Pick a root like ك ت ب and see the real words its patterns make, then guess the root of a word.": "اختر جذرًا مثل ك ت ب وشاهد الكلمات الحقيقية التي تصنعها أوزانه، ثم خمّن جذر كلمة.",
  "Explore roots →": "استكشف الجذور ←"
 });
+/* index cards for newer tools */
+LabAr.add({
+ "Tool · Vision": "أداة · رؤية حاسوبية",
+ "Safe to post": "آمن للنشر",
+ "Find and cover faces, plates, documents and addresses in a photo, then save a clean copy without location data.": "اكتشف الوجوه ولوحات السيارات والمستندات والعناوين في الصورة وغطِّها، ثم احفظ نسخة نظيفة بلا بيانات الموقع.",
+ "Check a photo →": "افحص صورة ←"
+});

@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Safe to Post · Mariam's Lab</title>
+<meta name="description" content="Hide faces, number plates, documents and addresses in a photo before you post it. Detection runs in your browser, nothing is uploaded, and the saved copy has its metadata removed.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/safe-to-post/">
+<meta property="og:title" content="Safe to Post · Mariam's Lab"><meta property="og:description" content="Cover faces, plates and addresses before you post a photo."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.btns { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.sm { font: inherit; font-size: 0.84rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 13px; cursor: pointer; text-decoration: none; display: inline-block; }
+.sm:hover { border-color: var(--accent); }
+.sm.pri { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.sm[aria-pressed="true"] { background: var(--sat-b); color: var(--bg); border-color: var(--sat-b); }
+.sm:disabled { opacity: .45; cursor: default; }
+.stage { position: relative; border: 1px dashed var(--line); border-radius: var(--radius); background: rgba(7,10,24,.82); min-height: 260px; display: grid; place-items: center; overflow: hidden; }
+.stage.drag { border-color: var(--accent); }
+.stage canvas { display: block; max-width: 100%; max-height: 78vh; width: auto; height: auto; touch-action: none; cursor: crosshair; }
+.stage .empty { text-align: center; color: var(--muted); padding: 24px; font-size: 0.92rem; display: grid; gap: 12px; justify-items: center; }
+.msg { font-size: 0.86rem; color: var(--muted); margin: 0; min-height: 1.3em; }
+.msg.warn { color: var(--accent); }
+.items { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.items li { display: grid; grid-template-columns: 20px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 7px 10px; border: 1px solid var(--line); border-radius: 10px; font-size: 0.88rem; }
+.items li.off { opacity: .6; }
+.items input { accent-color: var(--sat-b); margin: 0; width: 16px; height: 16px; }
+.items small { color: var(--muted); font-family: var(--font-mono); font-size: 0.74rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
+.items button { font: inherit; background: none; border: 0; color: var(--muted); cursor: pointer; font-size: 1.1rem; line-height: 1; padding: 2px 6px; }
+.box { padding: 16px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); display: grid; gap: 10px; }
+.box p { margin: 0; }
+.warnbox { border-color: var(--accent); }
+.chk { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.chk label { display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 8px; align-items: start; font-size: 0.88rem; cursor: pointer; }
+.chk input { accent-color: var(--sat-b); margin: 3px 0 0; }
+.chk small { display: block; color: var(--muted); font-size: 0.8rem; }
+.meta { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 0.86rem; }
+.meta li::before { content: '✕ '; color: var(--sat-c); }
+.meta li.ok::before { content: '✓ '; color: var(--sat-b); }
+.meta li.hd { color: var(--muted); } .meta li.hd::before { content: ''; }
+.hint { font-size: 0.8rem; color: var(--muted); margin: 0; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+.seg button { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 0; padding: 6px 12px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--sat-b); color: var(--bg); }
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Vision</span>
+    <h1 style="font-size:var(--step-3)">Safe to post.</h1>
+    <p>Before you share a photo, cover what a stranger shouldn't see: faces, number plates, documents, addresses and screens. This page finds the obvious ones for you, lets you add or remove boxes, and saves a clean copy with the location and camera data removed. Your photo never leaves this browser. Nothing is uploaded.</p>
+  </div>
+  <div class="game">
+    <div class="panel">
+      <div class="stage" id="stage">
+        <div class="empty" id="empty">
+          <span>Drop a photo here, paste one, or choose a file.</span>
+          <div class="btns" style="justify-content:center"><label class="sm pri" style="cursor:pointer">Choose a photo<input type="file" id="file" accept="image/*" hidden></label><button class="sm" type="button" id="sample">Try a sample image</button></div>
+        </div>
+        <canvas id="cv" hidden></canvas>
+      </div>
+      <p class="msg" id="msg"></p>
+      <div class="btns">
+        <span class="hint">Cover with:</span>
+        <div class="seg" role="group" aria-label="Cover style"><button type="button" data-st="solid" aria-pressed="true">Solid box</button><button type="button" data-st="pixel" aria-pressed="false">Big pixels</button><button type="button" data-st="emoji" aria-pressed="false">Emoji</button></div>
+      </div>
+      <p class="hint">Drag on the photo to add a box. Tap a box to switch it on or off. Dashed boxes stay visible.</p>
+      <ul class="items" id="items"></ul>
+      <div class="btns">
+        <button class="sm" type="button" id="redetect" disabled>Detect again</button>
+        <button class="sm" type="button" id="allon" disabled>Cover everything found</button>
+        <button class="sm" type="button" id="new" disabled>Use another photo</button>
+      </div>
+    </div>
+    <div class="panel" style="align-content:start">
+      <div class="box">
+        <span class="label">Save a clean copy</span>
+        <div class="btns"><button class="sm pri" type="button" id="save" disabled>Save safe copy</button><button class="sm" type="button" id="share" hidden>Share</button></div>
+        <ul class="meta" id="meta"><li class="ok">The saved copy is redrawn from scratch, so location, camera and date data are not carried over.</li></ul>
+        <p class="hint">Saved as a JPEG at the same size, up to 3,000 pixels on the long side.</p>
+      </div>
+      <div class="box warnbox">
+        <span class="label">Why there is no blur</span>
+        <p>Light blur and small pixel blocks can be partly undone, and blurred text can be guessed by blurring likely words and comparing. A solid box removes the pixels for good. Big pixels here use very large blocks, at most five across a face and one per line of text, which is much harder to reverse. A solid box is still the safest.</p>
+      </div>
+      <div class="box">
+        <span class="label">Also check for</span>
+        <ul class="chk">
+          <li><label><input type="checkbox"><span>Reflections<small>Sunglasses, mirrors, windows, car paint and shiny screens can show you, your street or your screen.</small></span></label></li>
+          <li><label><input type="checkbox"><span>Badges and lanyards<small>Your name, employer and sometimes a barcode that opens doors.</small></span></label></li>
+          <li><label><input type="checkbox"><span>Boarding passes and tickets<small>The barcode holds your name and booking reference, which can be enough to change your flight.</small></span></label></li>
+          <li><label><input type="checkbox"><span>House or villa numbers and street signs<small>Including the number on the gate behind you.</small></span></label></li>
+          <li><label><input type="checkbox"><span>School logos and uniforms<small>They tell people where your children are every weekday.</small></span></label></li>
+          <li><label><input type="checkbox"><span>The view from your window<small>A skyline or landmark can pin your building in minutes.</small></span></label></li>
+          <li><label><input type="checkbox"><span>Screens<small>Laptops, phone notifications, TVs and video calls in the background.</small></span></label></li>
+          <li><label><input type="checkbox"><span>Parcels, letters and documents<small>Address labels, bills, contracts and IDs on the table.</small></span></label></li>
+          <li><label><input type="checkbox"><span>Keys<small>A clear photo of a key is enough to cut a copy.</small></span></label></li>
+          <li><label><input type="checkbox"><span>When you post<small>Posting after you leave a place is safer than posting while you are there.</small></span></label></li>
+        </ul>
+      </div>
+      <p class="fact">How it works: faces are found by MediaPipe's face detector and text by Tesseract, both running in your browser. Lines that are mostly digits are treated as plates, IDs or phone numbers. The first run downloads about 10 MB of models, then your browser keeps them.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  var MP = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35';
+  var MODEL = 'https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite';
+  var TESS = 'https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/';
+  var TCORE = 'https://cdn.jsdelivr.net/npm/tesseract.js-core@6.0.0';
+  var TLANG = 'https://cdn.jsdelivr.net/npm/@tesseract.js-data/eng@1.0.0/4.0.0_best_int';
+  var KIND = { face: ['Face', '#F08AB3', '🙂'], plate: ['Number or plate', '#E9B467', '🔒'], doc: ['Document', '#E9B467', '🔒'], addr: ['Address', '#E9B467', '🏠'], contact: ['Contact details', '#E9B467', '🔒'], text: ['Text', '#84A0FF', '🔒'], manual: ['Your box', '#4FD3BD', '⭐'] };
+  var MAXSIDE = 3000;
+  var cv = $('cv'), cx = cv.getContext('2d'), base = document.createElement('canvas'), bx = base.getContext('2d', { willReadFrequently: true });
+  var boxes = [], style = 'solid', loaded = false, job = 0, faceDet = null, ocr = null;
+
+  function msg(s, warn) { $('msg').textContent = s; $('msg').className = 'msg' + (warn ? ' warn' : ''); }
+  function timeout(p, ms) { return Promise.race([p, new Promise(function (_, rej) { setTimeout(function () { rej(new Error('timeout')); }, ms); })]); }
+
+  // ---- loading a photo
+  function fromFile(f) {
+    if (!f) return;
+    if (!/^image\//.test(f.type) && !/\.(jpe?g|png|webp|gif|bmp|heic)$/i.test(f.name || '')) { msg('That file isn\'t an image.', true); return; }
+    var r = new FileReader(); r.onload = function () { readMeta(new Uint8Array(r.result), f.type); }; r.readAsArrayBuffer(f);
+    var url = URL.createObjectURL(f), img = new Image();
+    img.onload = function () { URL.revokeObjectURL(url); setImage(img); };
+    img.onerror = function () { URL.revokeObjectURL(url); msg('This browser can\'t open that image. HEIC photos may need converting to JPEG first.', true); };
+    img.src = url;
+  }
+  function setImage(img) {
+    var w = img.naturalWidth || img.width, h = img.naturalHeight || img.height, s = Math.min(1, MAXSIDE / Math.max(w, h));
+    base.width = cv.width = Math.round(w * s); base.height = cv.height = Math.round(h * s);
+    bx.drawImage(img, 0, 0, base.width, base.height);
+    boxes = []; loaded = true; $('empty').hidden = true; cv.hidden = false;
+    ['save', 'redetect', 'allon', 'new'].forEach(function (k) { $(k).disabled = false; });
+    draw(); list(); detect();
+  }
+  function readMeta(u, type) {
+    var found = [];
+    try {
+      if (u[0] === 0xFF && u[1] === 0xD8) {
+        var i = 2;
+        while (i < u.length - 4) {
+          if (u[i] !== 0xFF) break;
+          var mk = u[i + 1], len = (u[i + 2] << 8) | u[i + 3];
+          if (mk === 0xE1 && u[i + 4] === 0x45 && u[i + 5] === 0x78 && u[i + 6] === 0x69 && u[i + 7] === 0x66) {
+            var t = i + 10, le = u[t] === 0x49, r16 = function (o) { return le ? u[t + o] | (u[t + o + 1] << 8) : (u[t + o] << 8) | u[t + o + 1]; }, r32 = function (o) { return le ? (u[t + o] | (u[t + o + 1] << 8) | (u[t + o + 2] << 16)) + u[t + o + 3] * 16777216 : u[t + o] * 16777216 + ((u[t + o + 1] << 16) | (u[t + o + 2] << 8) | u[t + o + 3]); };
+            var ifd = r32(4), n = r16(ifd), tags = {};
+            for (var k = 0; k < n; k++) tags[r16(ifd + 2 + k * 12)] = 1;
+            if (tags[0x8825]) found.push('GPS location');
+            if (tags[0x010F] || tags[0x0110]) found.push('Camera make and model');
+            if (tags[0x0132] || tags[0x8769]) found.push('Date and time taken');
+            if (!found.length) found.push('Other camera data');
+            break;
+          }
+          if (mk === 0xDA) break;
+          i += 2 + len;
+        }
+      }
+    } catch (e) {}
+    $('meta').innerHTML = (found.length ? '<li class="hd">Your original contains:</li>' : '') + found.map(function (f) { return '<li>' + esc(f) + '</li>'; }).join('') +
+      '<li class="ok">The saved copy is redrawn from scratch, so location, camera and date data are not carried over.</li>';
+  }
+
+  // ---- drawing
+  function cover(ctx, b, src) {
+    var x = Math.max(0, Math.round(b.x)), y = Math.max(0, Math.round(b.y)), w = Math.min(Math.round(b.w), ctx.canvas.width - x), h = Math.min(Math.round(b.h), ctx.canvas.height - y);
+    if (w < 2 || h < 2) return;
+    if (style === 'pixel') {
+      var bs = b.kind === 'face' || b.kind === 'manual' ? Math.max(8, Math.ceil(Math.min(w, h) / 5)) : Math.max(10, h), cols = Math.max(1, Math.ceil(w / bs)), rows = Math.max(1, Math.ceil(h / bs));
+      var t = document.createElement('canvas'); t.width = cols; t.height = rows; var tc = t.getContext('2d');
+      tc.imageSmoothingEnabled = true; tc.imageSmoothingQuality = 'high'; tc.drawImage(src, x, y, w, h, 0, 0, cols, rows);
+      ctx.save(); ctx.imageSmoothingEnabled = false; ctx.drawImage(t, 0, 0, cols, rows, x, y, cols * bs, rows * bs); ctx.restore();
+    } else if (style === 'emoji') {
+      ctx.fillStyle = '#E9B467'; ctx.fillRect(x, y, w, h);
+      var fs = Math.min(w, h) * 0.8; ctx.font = fs + 'px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(KIND[b.kind][2], x + w / 2, y + h / 2 + fs * 0.05);
+    } else { ctx.fillStyle = '#000'; ctx.fillRect(x, y, w, h); }
+  }
+  function paint(ctx, overlay) {
+    ctx.drawImage(base, 0, 0);
+    boxes.forEach(function (b) { if (b.on) { ctx.save(); ctx.beginPath(); ctx.rect(b.x, b.y, b.w, b.h); ctx.clip(); cover(ctx, b, base); ctx.restore(); } });
+    if (!overlay) return;
+    var lw = Math.max(2, cv.width / 400), fsz = Math.max(12, cv.width / 70);
+    boxes.forEach(function (b, i) {
+      ctx.save(); ctx.lineWidth = lw; ctx.strokeStyle = KIND[b.kind][1]; ctx.setLineDash(b.on ? [] : [lw * 4, lw * 3]);
+      if (i === hover) ctx.lineWidth = lw * 2;
+      ctx.strokeRect(b.x, b.y, b.w, b.h);
+      ctx.font = '600 ' + fsz + 'px "Instrument Sans",system-ui,sans-serif'; ctx.textBaseline = 'bottom'; ctx.textAlign = 'left';
+      var lab = (i + 1) + '';
+      var tw = ctx.measureText(lab).width + fsz * 0.6, ty = b.y > fsz * 1.4 ? b.y : b.y + fsz * 1.4;
+      ctx.fillStyle = KIND[b.kind][1]; ctx.fillRect(b.x, ty - fsz * 1.3, tw, fsz * 1.3);
+      ctx.fillStyle = '#070A18'; ctx.fillText(lab, b.x + fsz * 0.3, ty - fsz * 0.12);
+      ctx.restore();
+    });
+  }
+  var hover = -1, drag = null;
+  function draw() { if (!loaded) return; paint(cx, true); if (drag && drag.box) { cx.save(); cx.setLineDash([6, 4]); cx.lineWidth = Math.max(2, cv.width / 400); cx.strokeStyle = '#4FD3BD'; cx.strokeRect(drag.box.x, drag.box.y, drag.box.w, drag.box.h); cx.restore(); } }
+  function list() {
+    $('items').innerHTML = boxes.length ? boxes.map(function (b, i) {
+      return '<li class="' + (b.on ? '' : 'off') + '"><input type="checkbox" data-i="' + i + '" aria-label="Cover this"' + (b.on ? ' checked' : '') + '><span><span>' + (i + 1) + '. </span><span>' + esc(KIND[b.kind][0]) + '</span>' + (b.text ? '<small data-noar>' + esc(b.text) + '</small>' : '') + '</span><button type="button" data-del="' + i + '" aria-label="Remove box">×</button></li>';
+    }).join('') : '';
+  }
+  $('items').addEventListener('change', function (e) { var i = e.target.getAttribute('data-i'); if (i == null) return; boxes[+i].on = e.target.checked; draw(); list(); });
+  $('items').addEventListener('click', function (e) { var d = e.target.closest('[data-del]'); if (!d) return; boxes.splice(+d.getAttribute('data-del'), 1); draw(); list(); });
+  $('items').addEventListener('mouseover', function (e) { var li = e.target.closest('li'); var n = li ? [].indexOf.call($('items').children, li) : -1; if (n !== hover) { hover = n; draw(); } });
+  $('items').addEventListener('mouseleave', function () { hover = -1; draw(); });
+
+  function pt(e) { var r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) * cv.width / r.width, y: (e.clientY - r.top) * cv.height / r.height }; }
+  function hit(p) { for (var i = boxes.length - 1; i >= 0; i--) { var b = boxes[i]; if (p.x >= b.x && p.x <= b.x + b.w && p.y >= b.y && p.y <= b.y + b.h) return i; } return -1; }
+  cv.addEventListener('pointerdown', function (e) { if (!loaded) return; e.preventDefault(); cv.setPointerCapture(e.pointerId); drag = { p: pt(e), hit: hit(pt(e)), box: null }; });
+  cv.addEventListener('pointermove', function (e) {
+    if (!drag) return; var q = pt(e), d = Math.abs(q.x - drag.p.x) + Math.abs(q.y - drag.p.y), r = cv.getBoundingClientRect(), thr = 6 * cv.width / r.width;
+    if (d > thr) { drag.box = { x: Math.min(q.x, drag.p.x), y: Math.min(q.y, drag.p.y), w: Math.abs(q.x - drag.p.x), h: Math.abs(q.y - drag.p.y) }; draw(); }
+  });
+  cv.addEventListener('pointerup', function () {
+    if (!drag) return;
+    var r = cv.getBoundingClientRect(), min = 10 * cv.width / r.width;
+    if (drag.box && drag.box.w > min && drag.box.h > min) { drag.box.kind = 'manual'; drag.box.on = true; boxes.push(drag.box); }
+    else if (!drag.box && drag.hit >= 0) boxes[drag.hit].on = !boxes[drag.hit].on;
+    drag = null; draw(); list();
+  });
+  cv.addEventListener('pointercancel', function () { drag = null; draw(); });
+
+  // ---- detection
+  function iou(a, b) { var x = Math.max(0, Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x)), y = Math.max(0, Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y)), i = x * y; return i / (a.w * a.h + b.w * b.h - i); }
+  function addBox(b) {
+    for (var i = 0; i < boxes.length; i++) if (boxes[i].kind === b.kind && iou(boxes[i], b) > 0.3) { if (b.w * b.h > boxes[i].w * boxes[i].h) { b.on = boxes[i].on; boxes[i] = b; } return false; }
+    boxes.push(b); return true;
+  }
+  function getFaces() {
+    if (faceDet) return Promise.resolve(faceDet);
+    return import(MP + '/vision_bundle.mjs').then(function (m) {
+      return m.FilesetResolver.forVisionTasks(MP + '/wasm').then(function (fs) {
+        return m.FaceDetector.createFromOptions(fs, { baseOptions: { modelAssetPath: MODEL, delegate: 'CPU' }, runningMode: 'IMAGE', minDetectionConfidence: 0.5 });
+      });
+    }).then(function (d) { faceDet = d; return d; });
+  }
+  function faces(my) {
+    return timeout(getFaces(), 60000).then(function (det) {
+      if (my !== job) return 0;
+      var W = base.width, H = base.height, found = 0, tiles = [[0, 0, W, H]];
+      if (Math.max(W, H) > 700) { var tw = W * 0.6, th = H * 0.6; [[0, 0], [W - tw, 0], [0, H - th], [W - tw, H - th]].forEach(function (o) { tiles.push([o[0], o[1], tw, th]); }); }
+      var t = document.createElement('canvas'), tc = t.getContext('2d');
+      tiles.forEach(function (tl) {
+        var s = Math.min(1, 1024 / Math.max(tl[2], tl[3])); t.width = Math.round(tl[2] * s); t.height = Math.round(tl[3] * s);
+        tc.drawImage(base, tl[0], tl[1], tl[2], tl[3], 0, 0, t.width, t.height);
+        var r = det.detect(t);
+        (r.detections || []).forEach(function (d) {
+          var bb = d.boundingBox; if (!bb) return;
+          var x = tl[0] + bb.originX / s, y = tl[1] + bb.originY / s, w = bb.width / s, h = bb.height / s, px = w * 0.18, py = h * 0.25;
+          if (addBox({ kind: 'face', on: true, x: Math.max(0, x - px), y: Math.max(0, y - py * 1.3), w: w + 2 * px, h: h + py * 2.1 })) found++;
+        });
+      });
+      return found;
+    });
+  }
+  function loadScript(src) { return new Promise(function (res, rej) { if (window.Tesseract) return res(); var s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = function () { rej(new Error('load')); }; document.head.appendChild(s); }); }
+  function getOcr() {
+    if (ocr) return Promise.resolve(ocr);
+    return loadScript(TESS + 'tesseract.min.js').then(function () {
+      return Tesseract.createWorker('eng', 1, { workerPath: TESS + 'worker.min.js', corePath: TCORE, langPath: TLANG });
+    }).then(function (w) {
+      // sparse text mode suits photos: it looks for scattered words, not a page of paragraphs
+      return w.setParameters({ tessedit_pageseg_mode: '11' }).then(function () { ocr = w; return w; });
+    });
+  }
+  var DOC = /\b(passport|emirates|identity|id card|national|nationality|date of birth|birth|licen[cs]e|boarding|gate|seat|flight|pnr|booking|ticket|invoice|account|iban|card|visa|residence|permit|bank|statement|salary)\b/i;
+  var ADDR = /\b(villa|flat|apt|apartment|building|bldg|tower|street|st\.?|road|rd\.?|avenue|ave|p\.?\s?o\.?\s?box|area|community|block|floor|unit|district|dubai|abu dhabi|sharjah|ajman|fujairah|ras al khaimah|umm al quwain|al ain)\b/i;
+  function classify(t) {
+    var s = t.replace(/\s+/g, ' ').trim(), al = s.replace(/[^A-Za-z0-9]/g, ''), dg = (s.match(/\d/g) || []).length;
+    if (al.length < 3) return null;
+    if (/[\w.+-]+@[\w-]+\.\w+|https?:\/\/|www\.|@\w{3,}|\+?\d[\d\s-]{8,}\d/.test(s)) return 'contact';
+    if (DOC.test(s)) return 'doc';
+    if (ADDR.test(s)) return 'addr';
+    if (dg >= 3 && dg / al.length >= 0.4) return 'plate';
+    return 'text';
+  }
+  function text(my) {
+    return timeout(getOcr(), 120000).then(function (w) {
+      if (my !== job) return 0;
+      var s = Math.min(1, 2000 / Math.max(base.width, base.height)), t = document.createElement('canvas');
+      t.width = Math.round(base.width * s); t.height = Math.round(base.height * s); t.getContext('2d').drawImage(base, 0, 0, t.width, t.height);
+      return timeout(w.recognize(t, {}, { blocks: true }), 120000).then(function (r) {
+        if (my !== job) return 0;
+        var n = 0, lines = [];
+        (r.data.blocks || []).forEach(function (b) { (b.paragraphs || []).forEach(function (p) { (p.lines || []).forEach(function (l) { lines.push(l); }); }); });
+        lines.forEach(function (l) {
+          var words = (l.words || []).filter(function (w) { return w.confidence > 45 && /[A-Za-z0-9]/.test(w.text); });
+          if (!words.length) return;
+          var txt = words.map(function (w) { return w.text; }).join(' '), k = classify(txt); if (!k) return;
+          var conf = words.reduce(function (a, w) { return a + w.confidence; }, 0) / words.length;
+          if (k === 'text' && (conf < 70 || txt.replace(/[^A-Za-z]/g, '').length < 4)) return;
+          var x0 = 1e9, y0 = 1e9, x1 = 0, y1 = 0; words.forEach(function (w) { x0 = Math.min(x0, w.bbox.x0); y0 = Math.min(y0, w.bbox.y0); x1 = Math.max(x1, w.bbox.x1); y1 = Math.max(y1, w.bbox.y1); });
+          var pd = (y1 - y0) * 0.25;
+          if (addBox({ kind: k, on: k !== 'text', text: txt.slice(0, 60), x: (x0 - pd) / s, y: (y0 - pd) / s, w: (x1 - x0 + 2 * pd) / s, h: (y1 - y0 + 2 * pd) / s })) n++;
+        });
+        return n;
+      });
+    });
+  }
+  function detect() {
+    var my = ++job, fN = null, tN = null, fail = [];
+    msg('Looking for faces and text… The first run downloads the models.');
+    function done() {
+      if (my !== job || fN === null || tN === null) return;
+      draw(); list();
+      var parts = [];
+      if (fN >= 0) parts.push(fN === 0 ? 'No faces found.' : fN === 1 ? 'Found 1 face.' : 'Found ' + fN + ' faces.');
+      if (tN >= 0) parts.push(tN === 0 ? 'No text found.' : tN === 1 ? 'Found 1 text area.' : 'Found ' + tN + ' text areas.');
+      if (fail.length) { msg(fail.join(' ') + ' You can still draw boxes by hand.', true); return; }
+      msg(parts.join(' ') + ' Check the photo yourself too: detection misses things.');
+    }
+    faces(my).then(function (n) { fN = n; draw(); list(); done(); }, function () { fN = -1; fail.push('Face detection couldn\'t load.'); done(); });
+    text(my).then(function (n) { tN = n; draw(); list(); done(); }, function () { tN = -1; fail.push('Text detection couldn\'t load.'); done(); });
+  }
+
+  // ---- export
+  function render(cb) { var o = document.createElement('canvas'); o.width = base.width; o.height = base.height; paint(o.getContext('2d'), false); o.toBlob(cb, 'image/jpeg', 0.92); }
+  $('save').onclick = function () {
+    if (!boxes.some(function (b) { return b.on; })) msg('Nothing is covered yet. Saving a clean copy anyway, without its metadata.', true);
+    render(function (blob) {
+      if (!blob) { msg('Saving failed in this browser.', true); return; }
+      var u = URL.createObjectURL(blob), a = document.createElement('a'); a.href = u; a.download = 'safe-to-post.jpg'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(u); }, 4000);
+      if (boxes.some(function (b) { return b.on; })) msg('Saved safe-to-post.jpg. Open it and look once more before you post.');
+    });
+  };
+  if (navigator.canShare) {
+    $('share').hidden = false;
+    $('share').onclick = function () { render(function (blob) { var f = new File([blob], 'safe-to-post.jpg', { type: 'image/jpeg' }); if (navigator.canShare({ files: [f] })) navigator.share({ files: [f] }).catch(function () {}); else msg('Sharing files isn\'t supported here. Use Save instead.', true); }); };
+  }
+  [].forEach.call(document.querySelectorAll('[data-st]'), function (b) { b.onclick = function () { style = b.getAttribute('data-st'); [].forEach.call(document.querySelectorAll('[data-st]'), function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); }); draw(); }; });
+  $('redetect').onclick = function () { boxes = boxes.filter(function (b) { return b.kind === 'manual'; }); draw(); list(); detect(); };
+  $('allon').onclick = function () { boxes.forEach(function (b) { b.on = true; }); draw(); list(); };
+  $('new').onclick = function () { job++; loaded = false; boxes = []; cv.hidden = true; $('empty').hidden = false; list(); msg(''); ['save', 'redetect', 'allon', 'new'].forEach(function (k) { $(k).disabled = true; }); $('file').click(); };
+  $('file').onchange = function () { fromFile(this.files[0]); this.value = ''; };
+  var st = $('stage');
+  st.addEventListener('dragover', function (e) { e.preventDefault(); st.classList.add('drag'); });
+  st.addEventListener('dragleave', function () { st.classList.remove('drag'); });
+  st.addEventListener('drop', function (e) { e.preventDefault(); st.classList.remove('drag'); fromFile(e.dataTransfer.files[0]); });
+  document.addEventListener('paste', function (e) { var it = [].filter.call((e.clipboardData && e.clipboardData.items) || [], function (x) { return /^image\//.test(x.type); })[0]; if (it) fromFile(it.getAsFile()); });
+  $('sample').onclick = function () {
+    // a made-up scene: a parcel label, a number plate and a boarding pass
+    var c = document.createElement('canvas'); c.width = 1200; c.height = 800; var g = c.getContext('2d');
+    var gr = g.createLinearGradient(0, 0, 0, 800); gr.addColorStop(0, '#c9b79c'); gr.addColorStop(1, '#8c7a62'); g.fillStyle = gr; g.fillRect(0, 0, 1200, 800);
+    g.fillStyle = '#5b4a3a'; g.fillRect(0, 560, 1200, 240);
+    g.save(); g.translate(120, 90); g.fillStyle = '#e9dcc4'; g.fillRect(0, 0, 470, 300); g.fillStyle = '#fff'; g.fillRect(30, 30, 410, 170);
+    g.fillStyle = '#111'; g.font = 'bold 30px Arial'; g.fillText('DELIVER TO', 50, 75); g.font = '28px Arial'; g.fillText('Villa 23, Street 5', 50, 120); g.fillText('Al Barsha 2, Dubai', 50, 160); g.restore();
+    g.fillStyle = '#f4f4f4'; g.fillRect(680, 120, 420, 220); g.fillStyle = '#1b3a6b'; g.fillRect(680, 120, 420, 50);
+    g.fillStyle = '#fff'; g.font = 'bold 28px Arial'; g.fillText('BOARDING PASS', 700, 156); g.fillStyle = '#111'; g.font = '26px Arial'; g.fillText('GATE B12   SEAT 14C', 700, 220); g.fillText('FLIGHT EK 0421', 700, 270);
+    g.fillStyle = '#fff'; g.fillRect(420, 600, 360, 110); g.strokeStyle = '#000'; g.lineWidth = 4; g.strokeRect(420, 600, 360, 110);
+    g.fillStyle = '#000'; g.font = 'bold 70px Arial'; g.fillText('K 48213', 450, 685);
+    var im = new Image(); im.onload = function () { $('meta').innerHTML = '<li class="ok">The saved copy is redrawn from scratch, so location, camera and date data are not carried over.</li>'; setImage(im); }; im.src = c.toDataURL('image/png');
+  };
+})();
+</script>
+</body>
+</html>
