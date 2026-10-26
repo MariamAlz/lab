@@ -223,3 +223,10 @@ LabAr.add({
  "Today's durr in the old Gulf count from Suhail, a year wheel, and when the season stars really rise where you are.": "در اليوم في حساب أهل الخليج من طلوع سهيل، ودائرة السنة، ومتى تطلع نجوم المواسم فعلًا في مكانك.",
  "Find today's durr →": "اعرف در اليوم ←"
 });
+/* index cards for newer tools */
+LabAr.add({
+ "Tool · Running": "أداة · جري",
+ "Race pace in the heat": "وتيرة السباق في الحر",
+ "Predict your race times, then slow the goal pace for race-morning heat and humidity.": "توقّع أزمنة سباقاتك، ثم عدّل وتيرتك المستهدفة حسب حرارة صباح السباق ورطوبته.",
+ "Plan →": "خطّط ←"
+});

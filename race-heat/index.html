@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Race Pace in the Heat · Mariam's Lab</title>
+<meta name="description" content="Predict your 5K, 10K, half and marathon times from a recent race, then adjust the goal pace for race-morning heat and humidity using the forecast for Dubai, Abu Dhabi or your own spot.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/race-heat/">
+<meta property="og:title" content="Race Pace in the Heat · Mariam's Lab"><meta property="og:description" content="Race predictions, heat-adjusted goal pace, splits and training paces."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm[aria-pressed="true"], .sm.go { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.picks { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; font-size: 0.88rem; color: var(--muted); }
+.row label { display: grid; gap: 4px; }
+.fld { font: inherit; font-size: 0.95rem; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 7px 10px; min-width: 0; }
+input.fld { width: 120px; }
+input.fld.n { width: 80px; }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 0; }
+.tbl { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+.tbl th, .tbl td { padding: 7px 6px; border-bottom: 1px solid var(--line); text-align: start; }
+.tbl th { font: 500 0.72rem var(--font-mono); color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.tbl td.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tbl td small { color: var(--muted); display: block; font-size: 0.76rem; }
+.scroll { overflow-x: auto; min-width: 0; }
+#bestBox { min-width: 0; }
+.verdict { padding: 18px; border-radius: var(--radius); border: 1px solid var(--line); background: rgba(7,10,24,.82); display: grid; gap: 6px; }
+.verdict b.big { font-family: var(--font-display); font-size: clamp(1.4rem, 4.5vw, 2.1rem); font-weight: 800; line-height: 1.1; }
+.verdict p { margin: 0; color: var(--muted); font-size: 0.9rem; }
+.hrs { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(34px, 1fr); gap: 2px; overflow-x: auto; padding-bottom: 6px; }
+.hrs div { height: 60px; border-radius: 5px; display: flex; flex-direction: column; justify-content: space-between; align-items: center; font: 500 0.62rem var(--font-mono); color: rgba(0,0,0,.78); padding: 3px 0; }
+.hrs div.on { outline: 2px solid var(--ink); outline-offset: 1px; }
+.legend { display: flex; gap: 10px; flex-wrap: wrap; font-size: 0.75rem; color: var(--muted); }
+.legend span::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-inline-end: 4px; vertical-align: -1px; background: var(--c); }
+.warn { border: 1px solid color-mix(in srgb, var(--sat-c) 50%, transparent); background: color-mix(in srgb, var(--sat-c) 10%, transparent); border-radius: 12px; padding: 12px 14px; font-size: 0.88rem; }
+.hint { font-size: 0.8rem; color: var(--muted); }
+html.ar .tbl td.num { direction: ltr; text-align: end; }
+html.ar .hrs { direction: ltr; }
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Running · UAE · Live</span>
+    <h1 style="font-size:var(--step-3)">Race pace in the heat.</h1>
+    <p>Put in a recent race and see what you could run at other distances. Then pick your race morning. The forecast temperature and dew point tell you how much to slow your goal pace, so you don't blow up at kilometre 30 on a humid Dubai morning.</p>
+  </div>
+  <div class="game">
+    <div class="panel">
+      <span class="label">1 · Your recent race</span>
+      <div class="picks" role="group" aria-label="Input"><button class="sm" type="button" id="mRace" aria-pressed="true">Race result</button><button class="sm" type="button" id="mVo2" aria-pressed="false">VO2max estimate</button></div>
+      <div class="row" id="raceIn">
+        <label>Distance <select class="fld" id="dist"></select></label>
+        <label>Time (h:mm:ss) <input class="fld" id="time" value="52:30" inputmode="numeric" autocomplete="off"></label>
+      </div>
+      <div class="row" id="vo2In" hidden>
+        <label>VO2max (ml/kg/min) <input class="fld n" id="vo2" type="number" min="20" max="90" step="0.5" value="45"></label>
+        <span class="hint">A watch estimate works. It is treated as a VDOT, which is a rough match.</span>
+      </div>
+      <div class="row"><label>Riegel exponent <input class="fld n" id="rexp" type="number" min="1" max="1.2" step="0.01" value="1.06"></label><span class="hint">1.06 is the classic value. Use 1.08 or more if you rarely run long.</span></div>
+      <p class="msg" id="inMsg" role="status"></p>
+      <div class="stats">
+        <div><b id="sVdot">–</b><span>VDOT</span></div>
+        <div><b id="sMar">–</b><span>marathon (VDOT)</span></div>
+        <div><b id="sThr">–</b><span>threshold pace /km</span></div>
+      </div>
+      <div class="scroll"><table class="tbl"><thead><tr><th>Race</th><th>Riegel</th><th>VDOT</th><th>Pace /km</th></tr></thead><tbody id="pred"></tbody></table></div>
+      <span class="label">Training paces</span>
+      <div class="scroll"><table class="tbl"><thead><tr><th>Type</th><th>Pace /km</th><th>What it's for</th></tr></thead><tbody id="train"></tbody></table></div>
+      <p class="hint" style="margin:0">Paces in cool weather. In UAE summer, run easy days by feel or heart rate, not by pace.</p>
+    </div>
+    <div class="panel">
+      <span class="label">2 · Race morning</span>
+      <div class="picks" id="where" role="group" aria-label="Race"></div>
+      <div class="row">
+        <label>Race <select class="fld" id="goal"><option value="5000">5K</option><option value="10000">10K</option><option value="21097.5">Half marathon</option><option value="42195" selected>Marathon</option></select></label>
+        <label>Goal from <select class="fld" id="basis"><option value="v">VDOT</option><option value="r">Riegel</option><option value="a">Average of both</option></select></label>
+      </div>
+      <div class="row">
+        <label>Race date <input class="fld" id="date" type="date"></label>
+        <label>Start time <input class="fld" id="start" type="time" value="06:00"></label>
+        <button class="sm go" type="button" id="fetch">Get forecast</button>
+      </div>
+      <div class="row">
+        <label>Temperature °C <input class="fld n" id="tC" type="number" step="0.5" value="22"></label>
+        <label>Dew point °C <input class="fld n" id="dC" type="number" step="0.5" value="15"></label>
+        <span class="hint" id="wSrc">Typed by hand. Use the forecast or edit these.</span>
+      </div>
+      <p class="msg" id="msg" role="status"></p>
+      <div class="verdict" id="verdict"></div>
+      <div id="bestBox" hidden>
+        <span class="label">If you can choose the start</span>
+        <div class="hrs" id="hrs" style="margin-top:8px"></div>
+        <div class="legend"><span style="--c:#4fd3bd">No change</span><span style="--c:#c9e264">Up to 2%</span><span style="--c:#ffc857">2–4.5%</span><span style="--c:#ff8a4c">4.5–8%</span><span style="--c:#ff4f6d">Over 8%</span></div>
+        <p class="msg" id="best"></p>
+      </div>
+      <span class="label">Splits at the adjusted pace</span>
+      <div class="scroll"><table class="tbl"><thead><tr><th>At</th><th>Clock</th><th>Pace /km</th></tr></thead><tbody id="splits"></tbody></table></div>
+      <div class="warn"><b>Drink and salt.</b> In warm races, drink to thirst at every water station and don't skip the early ones. For races over about 90 minutes, take electrolytes or a sports drink as well as water, because you lose a lot of salt in sweat. Practise this in training first. Stop and get help if you feel dizzy, confused or stop sweating.</div>
+    </div>
+  </div>
+  <div class="game" style="margin-top:24px">
+    <div class="panel">
+      <p class="fact" style="margin:0"><b>Two ways to predict.</b> The Riegel formula says time grows a bit faster than distance: T2 = T1 × (D2 ÷ D1)<sup>1.06</sup>. VDOT comes from Jack Daniels and Jimmy Gilbert. It turns your race into an oxygen cost, then asks what pace you could hold for each new distance. Both assume you have trained for that distance. A 5K runner who never runs long will be slower in a marathon than either says.</p>
+      <p class="fact" style="margin:0"><b>The heat rule.</b> Add the air temperature and the dew point, both in °F. At 100 or less, there's no need to change your pace. From 101 to 180, slow down by 0.5% up to 10%. Above 180, don't race hard. This is a coaches' rule of thumb popularised by running coach Mark Hadley, not a lab result, so use it as a guide.</p>
+    </div>
+    <div class="panel">
+      <p class="fact" style="margin:0"><b>Why dew point?</b> Dew point tells you how much water is in the air. Sweat only cools you when it evaporates, and in humid air it drips off instead. A 24°C morning with a 22°C dew point on the coast is much harder than a dry 30°C afternoon in Al Ain.</p>
+      <p class="fact" style="margin:0">Forecasts come from Open-Meteo and reach about 16 days ahead. For races further out, type in the expected values by hand. These numbers are an estimate, not medical advice. If you have a heart condition or are new to racing in heat, check with a doctor first.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var DISTS = [['1 mile', 1609.344], ['3K', 3000], ['5K', 5000], ['10K', 10000], ['15K', 15000], ['Half marathon', 21097.5], ['Marathon', 42195]];
+  var TARGETS = [['5K', 5000], ['10K', 10000], ['Half marathon', 21097.5], ['Marathon', 42195]];
+  // race venues: name, lat, lon, usual start
+  var PLACES = [['Dubai Marathon', 25.1310, 55.2010, '06:30'], ['Abu Dhabi Marathon', 24.4160, 54.4530, '06:00'], ['RAK Half Marathon', 25.6870, 55.7800, '06:30'], ['Al Ain', 24.2075, 55.7447, '06:00']];
+  DISTS.forEach(function (d, i) { var o = document.createElement('option'); o.value = d[1]; o.textContent = d[0]; if (i === 3) o.selected = true; $('dist').appendChild(o); });
+
+  // ---- maths
+  function riegel(t1, d1, d2, e) { return t1 * Math.pow(d2 / d1, e); }
+  // Daniels-Gilbert: oxygen cost of running at v (m/min), and the fraction of VO2max sustainable for t minutes
+  function vo2At(v) { return -4.60 + 0.182258 * v + 0.000104 * v * v; }
+  function pctMax(t) { return 0.8 + 0.1894393 * Math.exp(-0.012778 * t) + 0.2989558 * Math.exp(-0.1932605 * t); }
+  function vdotOf(dist, sec) { var t = sec / 60; return vo2At(dist / t) / pctMax(t); }
+  function timeFor(vdot, dist) { // bisection on minutes
+    var lo = dist / 600, hi = dist / 50;
+    for (var i = 0; i < 80; i++) { var m = (lo + hi) / 2; if (vdotOf(dist, m * 60) > vdot) lo = m; else hi = m; }
+    return (lo + hi) / 2 * 60;
+  }
+  function velAt(vo2) { var a = 0.000104, b = 0.182258, c = -4.60 - vo2; return (-b + Math.sqrt(b * b - 4 * a * c)) / (2 * a); } // m/min
+  function paceFromV(v) { return 60000 / v; } // sec per km
+  // temp + dew point (°F) rule of thumb, interpolated inside each band
+  var BANDS = [[100, 0, 0], [110, 0, 0.5], [120, 0.5, 1], [130, 1, 2], [140, 2, 3], [150, 3, 4.5], [160, 4.5, 6], [170, 6, 8], [180, 8, 10]];
+  function heatPct(sumF) {
+    if (sumF <= 100) return 0;
+    for (var i = 1; i < BANDS.length; i++) if (sumF <= BANDS[i][0]) { var b = BANDS[i]; return b[1] + (b[2] - b[1]) * (sumF - BANDS[i - 1][0]) / 10; }
+    return 10 + (sumF - 180) * 0.2;
+  }
+  function f(c) { return c * 9 / 5 + 32; }
+  function parseT(s) {
+    var p = String(s).trim().split(':').map(Number); if (!p.length || p.some(function (x) { return !isFinite(x) || x < 0; })) return NaN;
+    if (p.length === 1) return p[0] * 60; if (p.length === 2) return p[0] * 60 + p[1]; if (p.length === 3) return p[0] * 3600 + p[1] * 60 + p[2]; return NaN;
+  }
+  function fmt(sec) { sec = Math.round(sec); var h = Math.floor(sec / 3600), m = Math.floor(sec % 3600 / 60), s = sec % 60; return (h ? h + ':' + (m < 10 ? '0' : '') : '') + m + ':' + (s < 10 ? '0' : '') + s; }
+  function fmtP(sec) { sec = Math.round(sec); return Math.floor(sec / 60) + ':' + (sec % 60 < 10 ? '0' : '') + sec % 60; }
+  window.__race = { riegel: riegel, vdotOf: vdotOf, timeFor: timeFor, heatPct: heatPct, velAt: velAt };
+
+  // ---- state
+  var mode = 'race', S = null, hourly = null;
+  function base() {
+    var vd, d1 = +$('dist').value, t1 = parseT($('time').value), e = +$('rexp').value || 1.06;
+    if (mode === 'vo2') { vd = +$('vo2').value; if (!(vd >= 20 && vd <= 90)) return null; d1 = 5000; t1 = timeFor(vd, 5000); }
+    else { if (!(t1 > 0)) return null; if (d1 / t1 > 7 || d1 / t1 < 1) return null; vd = vdotOf(d1, t1); }
+    return { vd: vd, d1: d1, t1: t1, e: e };
+  }
+  function predict(b, d) { var r = riegel(b.t1, b.d1, d, b.e), v = timeFor(b.vd, d); return { r: r, v: v }; }
+  function goalTime() {
+    var d = +$('goal').value, p = predict(S, d), k = $('basis').value;
+    return k === 'r' ? p.r : k === 'v' ? p.v : (p.r + p.v) / 2;
+  }
+  function calc() {
+    S = base();
+    if (!S) { $('inMsg').textContent = mode === 'vo2' ? 'Enter a VO2max between 20 and 90.' : 'Enter a time like 52:30 or 1:45:00.'; $('pred').innerHTML = ''; $('train').innerHTML = ''; $('verdict').innerHTML = ''; $('splits').innerHTML = ''; return; }
+    $('inMsg').textContent = '';
+    $('sVdot').textContent = S.vd.toFixed(1);
+    $('sMar').textContent = fmt(timeFor(S.vd, 42195));
+    $('sThr').textContent = fmtP(paceFromV(velAt(0.88 * S.vd)));
+    $('pred').innerHTML = TARGETS.map(function (t) {
+      var p = predict(S, t[1]);
+      return '<tr><td>' + t[0] + '</td><td class="num">' + fmt(p.r) + '</td><td class="num">' + fmt(p.v) + '</td><td class="num">' + fmtP(p.v / t[1] * 1000) + '</td></tr>';
+    }).join('');
+    var mp = timeFor(S.vd, 42195) / 42.195;
+    var T = [
+      ['Easy', fmtP(paceFromV(velAt(0.74 * S.vd))) + ' – ' + fmtP(paceFromV(velAt(0.65 * S.vd))), 'Most of your running. Chatty pace.'],
+      ['Marathon', fmtP(mp), 'Long steady runs at goal effort.'],
+      ['Threshold', fmtP(paceFromV(velAt(0.88 * S.vd))), 'Comfortably hard. 20 minutes, or 5 × 6 minutes.'],
+      ['Interval', fmtP(paceFromV(velAt(0.975 * S.vd))), 'Hard. 3 to 5 minute repeats with jog breaks.'],
+      ['Repetition', fmtP(paceFromV(velAt(1.045 * S.vd))), 'Fast and relaxed. 200 to 400 m with full rest.']
+    ];
+    $('train').innerHTML = T.map(function (r) { return '<tr><td>' + r[0] + '</td><td class="num">' + r[1] + '</td><td>' + r[2] + '</td></tr>'; }).join('');
+    heat();
+  }
+  function lerp(arr, x) { var i = Math.floor(x); if (i < 0) return arr[0]; if (i >= arr.length - 1) return arr[arr.length - 1]; return arr[i] + (arr[i + 1] - arr[i]) * (x - i); }
+  // average adjustment over the race, given the start hour index and a duration guess
+  function raceAdj(h0, dur) {
+    var n = 0, s = 0, sum0 = 0;
+    for (var m = 0; m <= dur / 60; m += 10) { var x = h0 + m / 60, T = lerp(hourly.t, x), D = lerp(hourly.d, x), sf = f(T) + f(D); s += heatPct(sf); sum0 += sf; n++; }
+    return { pct: s / n, sumF: sum0 / n };
+  }
+  function color(p) { return p <= 0 ? '#4fd3bd' : p <= 2 ? '#c9e264' : p <= 4.5 ? '#ffc857' : p <= 8 ? '#ff8a4c' : '#ff4f6d'; }
+  function heat() {
+    if (!S) return;
+    var g = goalTime(), d = +$('goal').value, pct, sumF, src = 'hand';
+    var st = $('start').value || '06:00', sh = +st.slice(0, 2) + (+st.slice(3, 5)) / 60;
+    if (hourly && hourly.date === $('date').value) {
+      var r = raceAdj(sh, g * 1.05 / 60); pct = r.pct; sumF = r.sumF; src = 'fc';
+      $('tC').value = lerp(hourly.t, sh).toFixed(1); $('dC').value = lerp(hourly.d, sh).toFixed(1);
+    } else {
+      var tc = +$('tC').value, dc = +$('dC').value; sumF = f(tc) + f(dc); pct = heatPct(sumF);
+    }
+    var adj = g * (1 + pct / 100), pace = adj / d * 1000, over = sumF > 180;
+    var name = TARGETS.filter(function (t) { return t[1] === d; })[0][0];
+    $('verdict').innerHTML = '<span class="label">' + name + ' goal</span>' +
+      '<b class="big">' + fmt(adj) + '</b>' +
+      '<p>' + fmtP(pace) + ' per km, up from ' + fmtP(g / d * 1000) + '</p>' +
+      '<p>Temp + dew point: ' + Math.round(sumF) + '°F. Slow down about ' + pct.toFixed(1) + '%.</p>' +
+      (src === 'fc' ? '<p>Averaged over the hours you will be running.</p>' : '') +
+      (over ? '<p style="color:var(--sat-c)">Too hot and humid to race hard. Run for fun, by feel, or pick another day.</p>' : '');
+    // splits
+    var marks = d <= 10000 ? Array.from({ length: Math.floor(d / 1000) }, function (_, i) { return (i + 1) * 1000; }) : [5000, 10000, 15000, 20000, 21097.5, 25000, 30000, 35000, 40000].filter(function (m) { return m < d; });
+    if (marks[marks.length - 1] !== d) marks.push(d);
+    $('splits').innerHTML = marks.map(function (m) {
+      var lab = m === 21097.5 ? 'Half' : m === d ? 'Finish' : (m / 1000) + ' km';
+      return '<tr><td>' + lab + '</td><td class="num">' + fmt(pace * m / 1000) + '</td><td class="num">' + fmtP(pace) + '</td></tr>';
+    }).join('');
+    best(g);
+    try { localStorage.setItem('raceHeat', JSON.stringify({ t: $('time').value, d: $('dist').value, g: $('goal').value, e: $('rexp').value })); } catch (e) {}
+  }
+  function best(g) {
+    if (!hourly || hourly.date !== $('date').value) { $('bestBox').hidden = true; return; }
+    $('bestBox').hidden = false;
+    var st = +($('start').value || '06:00').slice(0, 2), list = [], h = '';
+    for (var k = 4; k <= 20; k++) {
+      if (k + g / 3600 > 24) break;
+      var r = raceAdj(k, g / 60); list.push([k, r.pct]);
+      h += '<div style="background:' + color(r.pct) + '" class="' + (k === st ? 'on' : '') + '" title="' + r.pct.toFixed(1) + '%"><span>' + (k < 10 ? '0' : '') + k + '</span><span>' + r.pct.toFixed(1) + '</span></div>';
+    }
+    $('hrs').innerHTML = h;
+    var b = list.slice().sort(function (a, c) { return a[1] - c[1]; })[0];
+    if (b) $('best').textContent = 'Best start that day: ' + (b[0] < 10 ? '0' : '') + b[0] + ':00 (about ' + b[1].toFixed(1) + '% slower than cool weather). Numbers in each box are the slow-down in %.';
+  }
+
+  // ---- forecast
+  function iso(d) { return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+  var place = null;
+  function fetchFc() {
+    if (!place) { $('msg').textContent = 'Pick a race or use your location first.'; return; }
+    var dt = $('date').value, days = (new Date(dt + 'T12:00') - new Date(iso(new Date()) + 'T12:00')) / 864e5;
+    if (!dt || days < 0) { $('msg').textContent = 'Pick a race date from today on.'; return; }
+    if (days > 15) { hourly = null; $('msg').textContent = 'Forecasts only reach about 16 days ahead. Type the expected temperature and dew point by hand, or check again closer to race day.'; $('wSrc').textContent = 'Typed by hand. Use the forecast or edit these.'; heat(); return; }
+    $('msg').textContent = 'Fetching the forecast for ' + place[0] + '…';
+    var u = 'https://api.open-meteo.com/v1/forecast?latitude=' + place[1] + '&longitude=' + place[2] + '&hourly=temperature_2m,dew_point_2m&timezone=auto&start_date=' + dt + '&end_date=' + dt;
+    fetch(u).then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(function (j) {
+      hourly = { date: dt, t: j.hourly.temperature_2m, d: j.hourly.dew_point_2m };
+      $('msg').textContent = 'Forecast for ' + place[0] + ' on ' + dt + '.';
+      $('wSrc').textContent = 'From the forecast at your start time.';
+      heat();
+    }).catch(function () { hourly = null; $('msg').textContent = 'Could not get the forecast. Type the values by hand.'; heat(); });
+  }
+  PLACES.forEach(function (p) {
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'sm'; b.textContent = p[0]; b.setAttribute('aria-pressed', 'false');
+    b.onclick = function () { pick(b); place = p; $('start').value = p[3]; hourly = null; fetchFc(); };
+    $('where').appendChild(b);
+  });
+  var me = document.createElement('button'); me.type = 'button'; me.className = 'sm'; me.textContent = '📍 Use my location'; me.setAttribute('aria-pressed', 'false');
+  me.onclick = function () {
+    if (!navigator.geolocation) { $('msg').textContent = 'Your browser can\'t share a location.'; return; }
+    $('msg').textContent = 'Asking for your location…';
+    navigator.geolocation.getCurrentPosition(function (p) { pick(me); place = ['your location', p.coords.latitude.toFixed(3), p.coords.longitude.toFixed(3)]; hourly = null; fetchFc(); }, function () { $('msg').textContent = 'Location was not shared. Pick a race instead.'; }, { maximumAge: 6e5, timeout: 10000 });
+  };
+  $('where').appendChild(me);
+  function pick(b) { [].forEach.call(document.querySelectorAll('#where .sm'), function (x) { x.setAttribute('aria-pressed', x === b); }); }
+
+  $('mRace').onclick = function () { mode = 'race'; $('mRace').setAttribute('aria-pressed', 'true'); $('mVo2').setAttribute('aria-pressed', 'false'); $('raceIn').hidden = false; $('vo2In').hidden = true; calc(); };
+  $('mVo2').onclick = function () { mode = 'vo2'; $('mVo2').setAttribute('aria-pressed', 'true'); $('mRace').setAttribute('aria-pressed', 'false'); $('raceIn').hidden = true; $('vo2In').hidden = false; calc(); };
+  ['dist', 'time', 'vo2', 'rexp'].forEach(function (id) { $(id).addEventListener('input', calc); });
+  ['goal', 'basis', 'start'].forEach(function (id) { $(id).addEventListener('input', heat); });
+  ['tC', 'dC'].forEach(function (id) { $(id).addEventListener('input', function () { hourly = null; $('wSrc').textContent = 'Typed by hand. Use the forecast or edit these.'; heat(); }); });
+  $('date').addEventListener('change', function () { hourly = null; if (place) fetchFc(); else heat(); });
+  $('fetch').onclick = fetchFc;
+  var d0 = new Date(); d0.setDate(d0.getDate() + 3); $('date').value = iso(d0);
+  try { var sv = JSON.parse(localStorage.getItem('raceHeat') || 'null'); if (sv) { $('time').value = sv.t; $('dist').value = sv.d; $('goal').value = sv.g; $('rexp').value = sv.e; } } catch (e) {}
+  calc();
+})();
+</script>
+</body>
+</html>
