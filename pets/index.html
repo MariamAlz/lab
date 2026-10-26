@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pet Care Companion · Mariam's Lab</title>
+<meta name="description" content="For cats, dogs, birds, rabbits, fish and tortoises: age in human years, how much to feed, poisonous plants and foods, heat safety for UAE summers, body language, and a chase game for your cat.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/pets/">
+<meta property="og:title" content="Pet Care Companion · Mariam's Lab"><meta property="og:description" content="Age, food, poisons, heat safety and body language for your pet, plus a game for your cat."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.pets { display: flex; gap: 8px; flex-wrap: wrap; }
+.pets button { font: inherit; display: grid; justify-items: center; gap: 2px; min-width: 76px; padding: 10px 12px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; font-size: 0.82rem; }
+.pets button span { font-size: 1.6rem; line-height: 1; }
+.pets button[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(255,200,87,.3); }
+.sm { font: inherit; font-size: 0.85rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 13px; cursor: pointer; }
+.sm[aria-pressed="true"], .sm.pri { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.btns { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: 0.9rem; }
+.row input, .row select { font: inherit; color: var(--ink); background: rgba(7,10,24,.6); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; max-width: 11em; }
+.row input[type=number] { width: 6em; font-family: var(--font-mono); }
+.big { font-family: var(--font-display); font-size: clamp(1.6rem, 5vw, 2.4rem); font-weight: 800; line-height: 1.1; }
+.out { padding: 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); display: grid; gap: 4px; font-size: 0.92rem; }
+.out small { color: var(--muted); }
+h2.sub { font-size: 1.15rem; margin: 0; }
+section.blk { margin-top: 26px; }
+.search { width: 100%; font: inherit; color: var(--ink); background: rgba(7,10,24,.7); border: 1px solid var(--line); border-radius: 999px; padding: 10px 16px; }
+.tox { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; max-height: 420px; overflow: auto; }
+.tox li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 10px; font-size: 0.88rem; }
+.tox small { grid-column: 1 / -1; color: var(--muted); font-size: 0.8rem; }
+.lvl { font-family: var(--font-mono); font-size: 0.75rem; padding: 2px 8px; border-radius: 99px; align-self: start; }
+.l3 { background: rgba(255,79,109,.2); color: #ff8aa0; } .l2 { background: rgba(255,200,87,.18); color: var(--accent); } .l1 { background: rgba(79,211,189,.15); color: var(--sat-b); } .l0 { background: rgba(255,255,255,.06); color: var(--muted); }
+.signs { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+.signs div { padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); font-size: 0.88rem; display: grid; gap: 4px; }
+.signs b { font-size: 0.95rem; }
+.signs span { color: var(--muted); }
+.arena { position: relative; height: min(70vh, 560px); min-height: 360px; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); background: #0d1a14; touch-action: none; user-select: none; -webkit-user-select: none; }
+.arena canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.arena .score { position: absolute; top: 10px; left: 12px; font-family: var(--font-mono); font-size: 0.85rem; color: rgba(255,255,255,.8); pointer-events: none; }
+.arena .fs { position: absolute; top: 8px; right: 8px; }
+.arena:fullscreen { height: 100vh; border-radius: 0; }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Pets · UAE</span>
+    <h1 style="font-size:var(--step-3)">Pet care companion.</h1>
+    <p>Everything you look up about your pet, in one place: their age in human years, how much to feed them, what's poisonous in a UAE home, when it's too hot to go out, and what their body language means. There's also a game for your cat to play on the screen.</p>
+  </div>
+  <div class="pets" id="pets" role="group" aria-label="Your pet"></div>
+
+  <div class="game" style="margin-top:18px">
+    <div class="panel" style="display:grid;gap:10px;align-content:start">
+      <h2 class="sub">Age in human years</h2>
+      <label class="row"><span>Age</span><span><input type="number" id="ageY" min="0" max="60" step="1" value="3"> y <input type="number" id="ageM" min="0" max="11" step="1" value="0" style="width:4em"> m</span></label>
+      <label class="row" id="sizeRow"><span>Size</span><select id="size"><option value="s">Small (under 10 kg)</option><option value="m" selected>Medium (10–25 kg)</option><option value="l">Large (25–45 kg)</option><option value="g">Giant (over 45 kg)</option></select></label>
+      <label class="row" id="kindRow" hidden><span>Kind</span><select id="kind"></select></label>
+      <div class="out" id="ageOut"></div>
+    </div>
+    <div class="panel" style="display:grid;gap:10px;align-content:start">
+      <h2 class="sub">How much to feed</h2>
+      <div id="feedIn" style="display:grid;gap:10px"></div>
+      <div class="out" id="feedOut"></div>
+    </div>
+  </div>
+
+  <section class="blk">
+    <h2 class="sub">Is it safe for my pet?</h2>
+    <p style="color:var(--muted);font-size:.9rem;margin:6px 0 10px">Plants and foods common in UAE homes and gardens. Search or scroll. If your pet has eaten something dangerous, call your vet or an emergency vet clinic straight away. Don't wait for symptoms.</p>
+    <input class="search" id="q" placeholder="Search, e.g. oleander, grapes, lily, dates" aria-label="Search plants and foods">
+    <div class="btns" style="margin:10px 0" role="group" aria-label="Filter"><button class="sm" type="button" data-f="all" aria-pressed="true">All</button><button class="sm" type="button" data-f="plant" aria-pressed="false">Plants</button><button class="sm" type="button" data-f="food" aria-pressed="false">Foods</button><button class="sm" type="button" data-f="home" aria-pressed="false">Around the home</button></div>
+    <ul class="tox" id="tox"></ul>
+  </section>
+
+  <section class="blk">
+    <div class="game">
+      <div class="panel" style="display:grid;gap:10px;align-content:start">
+        <h2 class="sub">Heat check right now</h2>
+        <div class="btns"><button class="sm" type="button" id="loc">📍 Use my location</button><span id="heatPlace" style="color:var(--muted);font-size:.85rem">Dubai</span></div>
+        <div class="out" id="heat">Checking the weather…</div>
+      </div>
+      <div class="panel" style="display:grid;gap:10px;align-content:start">
+        <h2 class="sub">Heatstroke signs</h2>
+        <p class="fact" style="margin:0" id="heatSigns"></p>
+        <p class="fact" style="margin:0">Never leave a pet in a parked car. In UAE summer the inside can pass 60°C within 20 minutes, even with the windows cracked open.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="blk">
+    <h2 class="sub" id="signsTitle">What they're telling you</h2>
+    <div class="signs" id="signs" style="margin-top:10px"></div>
+  </section>
+
+  <section class="blk" id="gameBlk">
+    <h2 class="sub">A game for your cat</h2>
+    <p style="color:var(--muted);font-size:.9rem;margin:6px 0 10px">Put the phone or tablet flat on the floor, turn the volume up and let your cat chase. Fullscreen works best. Keep the screen at low brightness, and stop if your cat gets frustrated. Finish with a real toy they can catch.</p>
+    <div class="btns" role="group" aria-label="Prey" style="margin-bottom:10px"><button class="sm" type="button" data-p="mouse" aria-pressed="true">🐭 Mouse</button><button class="sm" type="button" data-p="fish" aria-pressed="false">🐟 Fish</button><button class="sm" type="button" data-p="bug" aria-pressed="false">🪲 Beetle</button><button class="sm" type="button" data-p="dot" aria-pressed="false">🔴 Red dot</button></div>
+    <div class="arena" id="arena"><canvas id="gc"></canvas><span class="score" id="score">Catches: 0</span><button class="sm fs" type="button" id="fs" style="background:rgba(0,0,0,.4)">Fullscreen</button></div>
+  </section>
+  <p class="fact" style="margin-top:22px">Feeding amounts use the standard veterinary energy formula (70 × weight in kg^0.75, times a factor for life stage and activity) and are a starting point. Your vet can tune them using your pet's body condition. Ages follow common veterinary charts. This page is general guidance, not veterinary advice.</p>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  var PETS = [['cat', '🐈', 'Cat'], ['dog', '🐕', 'Dog'], ['bird', '🦜', 'Bird'], ['rabbit', '🐇', 'Rabbit'], ['fish', '🐠', 'Fish'], ['tortoise', '🐢', 'Tortoise']];
+  var pet = 'cat';
+  try { var sp = localStorage.getItem('petKind'); if (sp) pet = sp; } catch (e) {}
+  PETS.forEach(function (p) { var b = document.createElement('button'); b.type = 'button'; b.dataset.k = p[0]; b.innerHTML = '<span>' + p[1] + '</span>' + p[2]; b.onclick = function () { pet = p[0]; try { localStorage.setItem('petKind', pet); } catch (e) {} all(); }; $('pets').appendChild(b); });
+
+  // ---------- age ----------
+  var KINDS = {
+    bird: [['Budgie', 7], ['Cockatiel', 18], ['Lovebird', 12], ['African grey', 50], ['Canary', 10], ['Amazon parrot', 45], ['Macaw', 55]],
+    fish: [['Goldfish', 12], ['Betta', 3.5], ['Guppy', 2.5], ['Koi', 30], ['Neon tetra', 6], ['Angelfish', 10]],
+    tortoise: [['Sulcata tortoise', 80], ['Leopard tortoise', 60], ['Red-eared slider (turtle)', 30], ['Hermann\'s tortoise', 60]]
+  };
+  function human() {
+    var y = (+$('ageY').value || 0) + (+$('ageM').value || 0) / 12, h;
+    if (pet === 'cat') h = y <= 1 ? y * 15 : y <= 2 ? 15 + (y - 1) * 9 : 24 + (y - 2) * 4;
+    else if (pet === 'dog') { var per = { s: 4, m: 5, l: 6, g: 7.5 }[$('size').value]; h = y <= 1 ? y * 15 : y <= 2 ? 15 + (y - 1) * 9 : 24 + (y - 2) * per; }
+    else if (pet === 'rabbit') h = y <= 1 ? y * 21 : 21 + (y - 1) * 6;
+    else { var k = KINDS[pet][+$('kind').value || 0], life = k[1], pct = Math.min(1.3, y / life); h = pct * 80; return '<span class="big">' + Math.round(pct * 100) + '%</span><span>of a typical ' + k[0].toLowerCase() + ' life of about ' + life + ' years. Roughly like a person of ' + Math.round(h) + '.</span><small>' + (pct > 0.8 ? 'A senior: more frequent check-ups help.' : pct < 0.15 ? 'Still young.' : 'In the prime of life.') + '</small>'; }
+    var stage = pet === 'cat' ? (y < 1 ? 'Kitten' : y < 7 ? 'Adult' : y < 11 ? 'Mature' : 'Senior') : pet === 'dog' ? (y < 1 ? 'Puppy' : y < { s: 10, m: 8, l: 7, g: 6 }[$('size').value] ? 'Adult' : 'Senior') : (y < 1 ? 'Young' : y < 5 ? 'Adult' : 'Senior');
+    return '<span class="big">' + Math.round(h) + ' human years</span><span>' + stage + '.</span><small>' + (stage === 'Senior' ? 'Seniors do best with check-ups every 6 months.' : 'Yearly check-ups and vaccines keep them on track.') + '</small>';
+  }
+  // ---------- feeding ----------
+  function feedForm() {
+    var f = '';
+    if (pet === 'cat' || pet === 'dog') {
+      f = '<label class="row"><span>Weight (kg)</span><input type="number" id="w" min="0.3" max="100" step="0.1" value="' + (pet === 'cat' ? 4.5 : 15) + '"></label>' +
+        '<label class="row"><span>Life stage</span><select id="st">' + (pet === 'cat' ? '<option value="1.2">Neutered adult</option><option value="1.4">Intact adult</option><option value="1.0">Indoor, lazy</option><option value="0.8">Needs to lose weight</option><option value="2.5">Kitten</option><option value="1.1">Senior</option>' : '<option value="1.6">Neutered adult</option><option value="1.8">Intact adult</option><option value="1.2">Inactive or senior</option><option value="1.0">Needs to lose weight</option><option value="2.5">Very active or working</option><option value="3">Puppy under 4 months</option><option value="2">Puppy over 4 months</option>') + '</select></label>' +
+        '<label class="row"><span>Dry food energy (kcal per kg, on the bag)</span><input type="number" id="kd" min="2000" max="5000" step="50" value="' + (pet === 'cat' ? 3800 : 3600) + '"></label>' +
+        '<label class="row"><span>Share from wet food</span><select id="wet"><option value="0">None</option><option value="0.25">A quarter</option><option value="0.5">Half</option><option value="1">All</option></select></label>';
+    } else if (pet === 'rabbit') f = '<label class="row"><span>Weight (kg)</span><input type="number" id="w" min="0.5" max="10" step="0.1" value="2"></label>';
+    else f = '<label class="row"><span>How many</span><input type="number" id="n" min="1" max="50" step="1" value="1"></label>';
+    $('feedIn').innerHTML = f;
+    [].forEach.call($('feedIn').querySelectorAll('input,select'), function (el) { el.oninput = feed; });
+  }
+  function feed() {
+    var h;
+    if (pet === 'cat' || pet === 'dog') {
+      var w = +$('w').value || 1, rer = 70 * Math.pow(w, 0.75), k = rer * +$('st').value, wet = +$('wet').value, dry = k * (1 - wet) / (+$('kd').value || 3600) * 1000, wetG = k * wet / 900 * 1000, water = w * (pet === 'cat' ? 50 : 55);
+      h = '<span class="big">' + Math.round(k) + ' kcal a day</span><span>' + (dry > 0 ? 'About <b>' + Math.round(dry) + ' g</b> of dry food' : '') + (dry > 0 && wetG > 0 ? ' plus ' : '') + (wetG > 0 ? 'about <b>' + Math.round(wetG) + ' g</b> of wet food (at 90 kcal per 100 g)' : '') + ', split into ' + (pet === 'cat' ? '2 to 4 small meals' : '2 meals') + '.</span><span>Water: about <b>' + Math.round(water) + ' ml</b> a day, more in summer. ' + (pet === 'cat' ? 'Cats drink more from a fountain or a wide bowl away from their food.' : 'Carry water on every walk.') + '</span><small>Treats should stay under 10% of the daily calories.</small>';
+    } else if (pet === 'rabbit') {
+      var wr = +$('w').value || 2;
+      h = '<span class="big">Unlimited hay</span><span>Hay should be about 80% of the diet. Add about <b>' + Math.round(wr * 100) + ' g</b> of leafy greens a day (romaine, coriander, parsley, mint), and no more than <b>' + Math.round(wr * 25) + ' g</b> of plain pellets. Fresh water all day, about ' + Math.round(wr * 100) + ' ml.</span><small>Fruit and carrots are treats only, a teaspoon or two.</small>';
+    } else if (pet === 'bird') h = '<span class="big">Pellets first</span><span>For most parrots, pellets should make up 60 to 70% of the diet, with fresh vegetables daily and seeds as treats. Budgies and canaries do well on a quality seed mix plus greens. Change water every day; birds drink 5 to 10% of their weight.</span><small>Never give avocado, chocolate, caffeine or salty snacks.</small>';
+    else if (pet === 'fish') h = '<span class="big">Less than you think</span><span>Feed only what they finish in about 2 minutes, once or twice a day. Overfeeding is the most common way fish die, because leftovers foul the water. Skip one day a week.</span><small>In summer, keep the tank out of direct sun and check the temperature: AC failures can overheat a tank fast.</small>';
+    else h = '<span class="big">Greens and fibre</span><span>Tortoises such as sulcatas need mostly grasses, hay and weeds, plus leafy greens and a calcium supplement. Turtles (sliders) eat pellets, greens and some protein. A shallow water dish for soaking, changed daily.</span><small>Avoid fruit-heavy diets and dog or cat food. Tortoises need shade and burrows outdoors in summer.</small>';
+    $('feedOut').innerHTML = h;
+  }
+  // ---------- toxicity ----------
+  // [name, type, severity per pet {c,d,b,r,f,t} 0 none 1 mild 2 moderate 3 severe, note]
+  var TOX = [
+    ['Oleander', 'plant', 'cdbrt', 3, 'Very common in UAE gardens and road verges. Every part affects the heart, even a few leaves.'],
+    ['Lilies (true lilies, day lilies)', 'plant', 'c', 3, 'Deadly to cats: even pollen licked off fur can cause kidney failure. Mild stomach upset in other pets.'],
+    ['Sago palm', 'plant', 'cdr', 3, 'Popular in UAE landscaping. The seeds are most toxic and cause liver failure.'],
+    ['Desert rose (Adenium)', 'plant', 'cdbr', 3, 'Common UAE pot plant. The sap affects the heart.'],
+    ['Aloe vera', 'plant', 'cdr', 1, 'The gel is mostly safe; the outer leaf latex causes vomiting and diarrhoea.'],
+    ['Pothos / money plant', 'plant', 'cdbr', 1, 'Mouth irritation and drooling from calcium oxalate crystals.'],
+    ['Peace lily', 'plant', 'cdbr', 1, 'Not a true lily. Mouth irritation and drooling.'],
+    ['Dieffenbachia', 'plant', 'cdbr', 2, 'Mouth swelling and trouble swallowing.'],
+    ['Snake plant', 'plant', 'cdr', 1, 'Nausea and vomiting if chewed.'],
+    ['ZZ plant', 'plant', 'cdr', 1, 'Mouth irritation and vomiting.'],
+    ['Bougainvillea', 'plant', 'cd', 1, 'Mild stomach upset; thorns can scratch.'],
+    ['Frangipani (plumeria)', 'plant', 'cd', 1, 'The milky sap irritates mouth and stomach.'],
+    ['Lantana', 'plant', 'cdr', 2, 'Berries and leaves can damage the liver, mainly in dogs and livestock.'],
+    ['Castor bean plant', 'plant', 'cdbr', 3, 'Grows wild in parts of the UAE. The seeds contain ricin.'],
+    ['Calotropis (Sodom apple)', 'plant', 'cdr', 3, 'A common UAE desert shrub with milky sap that affects the heart.'],
+    ['Date palm (dates)', 'food', 'd', 1, 'Pits can block the gut; too many dates cause diarrhoea. Safe in tiny amounts without the pit.'],
+    ['Basil, mint, coriander', 'plant', '', 0, 'Safe for cats, dogs and rabbits in normal amounts. Rabbits enjoy them.'],
+    ['Spider plant', 'plant', '', 0, 'Safe, though cats love chewing it.'],
+    ['Areca palm', 'plant', '', 0, 'A safe palm for homes with pets.'],
+    ['Chocolate', 'food', 'cdbr', 3, 'Theobromine. Dark and baking chocolate are the most dangerous.'],
+    ['Grapes and raisins', 'food', 'dc', 3, 'Can cause sudden kidney failure in dogs, even in small amounts.'],
+    ['Onions, garlic, leeks', 'food', 'cdbr', 2, 'Damage red blood cells, raw or cooked, including in powders and sauces. Cats are most sensitive.'],
+    ['Xylitol (sugar-free gum, some peanut butters)', 'food', 'd', 3, 'Causes a crash in blood sugar and liver failure in dogs.'],
+    ['Avocado', 'food', 'brd', 3, 'Deadly for birds and rabbits. Mild for dogs (and the pit can choke).'],
+    ['Coffee, tea, energy drinks', 'food', 'cdbr', 3, 'Caffeine overstimulates the heart and nerves.'],
+    ['Macadamia nuts', 'food', 'd', 2, 'Weakness and fever in dogs.'],
+    ['Cooked bones', 'food', 'cd', 2, 'Splinter and can pierce the gut. Common after BBQs and mandi.'],
+    ['Milk', 'food', 'c', 1, 'Most adult cats are lactose intolerant and get diarrhoea.'],
+    ['Salty snacks', 'food', 'cdb', 2, 'Salt poisoning is a real risk for birds even in small amounts.'],
+    ['Alcohol', 'food', 'cdbr', 3, 'Even small amounts are dangerous.'],
+    ['Raw dough with yeast', 'food', 'cd', 2, 'Expands in the stomach and produces alcohol.'],
+    ['Apple seeds, cherry and apricot pits', 'food', 'cdbr', 2, 'Contain cyanide compounds. The fruit flesh is fine as a treat.'],
+    ['Paracetamol / ibuprofen', 'home', 'cdbr', 3, 'Never give human painkillers. One paracetamol tablet can kill a cat.'],
+    ['Non-stick pan fumes (PTFE) and aerosol sprays', 'home', 'b', 3, 'Overheated non-stick pans release fumes that can kill a bird within minutes. Keep birds out of the kitchen.'],
+    ['Bakhoor and incense smoke', 'home', 'bc', 2, 'Birds and cats have sensitive lungs. Burn it away from them in a ventilated room.'],
+    ['Essential oils (tea tree, eucalyptus, citrus) and diffusers', 'home', 'cb', 2, 'Cats can\'t break these down well. Tea tree oil is especially dangerous.'],
+    ['Pest and cockroach bait, rat poison', 'home', 'cdbr', 3, 'Building pest control is common in the UAE. Ask when they spray and keep pets away.'],
+    ['Antifreeze and car coolant', 'home', 'cd', 3, 'Tastes sweet. A teaspoon can be fatal to a cat.'],
+    ['Permethrin dog flea products', 'home', 'c', 3, 'Dog flea treatments can kill cats. Use cat-specific products only.'],
+    ['Strings, hair ties, tinsel', 'home', 'c', 2, 'Cats swallow them and they tangle in the gut.'],
+    ['Batteries (button cells)', 'home', 'cdbr', 3, 'Burn through the throat or stomach within hours.']
+  ];
+  var tf = 'all';
+  var CODE = { cat: 'c', dog: 'd', bird: 'b', rabbit: 'r', fish: 'f', tortoise: 't' }, WORD = ['Safe', 'Mild', 'Harmful', 'Dangerous'];
+  function tox() {
+    var q = $('q').value.toLowerCase().trim(), c = CODE[pet];
+    if (pet === 'fish') { $('tox').innerHTML = '<li><b>For fish, the danger is in the water</b><span class="lvl l3">Watch out</span><small>Tap water chlorine (always use a water conditioner), soap or hand cream on your hands, aerosol sprays and bakhoor smoke near an open tank, and overheating when the AC is off. Plants and foods in your home won\'t reach them.</small></li>'; return; }
+    var rows = TOX.filter(function (t) { return (tf === 'all' || t[1] === tf) && (!q || (t[0] + ' ' + t[4]).toLowerCase().indexOf(q) >= 0); }).map(function (t) { var lv = t[2].indexOf(c) >= 0 ? t[3] : t[3] === 0 ? 0 : -1; return [t, lv]; });
+    rows.sort(function (a, b) { return b[1] - a[1]; });
+    $('tox').innerHTML = rows.length ? rows.map(function (r) { var t = r[0], lv = r[1]; return '<li><b>' + esc(t[0]) + '</b><span class="lvl l' + Math.max(0, lv) + '">' + (lv < 0 ? 'Not known to harm a ' + pet : WORD[lv]) + '</span><small>' + esc(t[4]) + '</small></li>'; }).join('') : '<li>Not in this list. If in doubt, ask your vet before letting your pet near it.</li>';
+  }
+  $('q').oninput = tox;
+  [].forEach.call(document.querySelectorAll('[data-f]'), function (b) { b.onclick = function () { tf = b.dataset.f; [].forEach.call(document.querySelectorAll('[data-f]'), function (x) { x.setAttribute('aria-pressed', x === b); }); tox(); }; });
+  // ---------- heat ----------
+  var weather = null, place = { lat: 25.2048, lon: 55.2708, name: 'Dubai' };
+  function loadWeather() {
+    fetch('https://api.open-meteo.com/v1/forecast?latitude=' + place.lat + '&longitude=' + place.lon + '&current=temperature_2m,relative_humidity_2m,apparent_temperature,uv_index,is_day&timezone=auto').then(function (r) { return r.json(); }).then(function (j) { weather = j.current; heat(); }).catch(function () { $('heat').textContent = 'Couldn\'t reach the weather service.'; });
+  }
+  function heat() {
+    var hs = { cat: 'Panting (cats rarely pant), drooling, restlessness, wobbly walking, bright red gums.', dog: 'Heavy panting, thick drool, bright red or pale gums, vomiting, stumbling, collapse. Flat-faced breeds (pugs, bulldogs, Persians) overheat fastest.', bird: 'Holding wings away from the body, panting with the beak open, sitting fluffed at the bottom of the cage.', rabbit: 'Lying flat and stretched out, fast breathing, hot ears, drooling. Rabbits suffer from 28°C and up.', fish: 'Gasping at the surface: warm water holds less oxygen. Most tropical fish struggle above 30°C.', tortoise: 'Foaming at the mouth, lethargy, trying to dig in. They need deep shade and a burrow outdoors.' }[pet];
+    $('heatSigns').textContent = hs + ' Move them somewhere cool, offer water, wet them with cool (not ice-cold) water and call a vet.';
+    if (!weather) return;
+    var t = weather.temperature_2m, f = weather.apparent_temperature, lim = { cat: [30, 35], dog: [27, 32], bird: [30, 35], rabbit: [26, 29], fish: [30, 34], tortoise: [36, 40] }[pet], lvl = t < lim[0] ? 0 : t < lim[1] ? 1 : 2;
+    var msg = pet === 'dog' ? ['Fine for a walk. Bring water.', 'Short walks only, on grass or in shade. Check the pavement with your hand for 7 seconds.', 'Too hot to walk. Wait for early morning or late evening, and keep play indoors.'][lvl]
+      : pet === 'cat' || pet === 'rabbit' || pet === 'bird' ? ['Comfortable, with AC or shade indoors.', 'Keep them in an air-conditioned room, away from sunny windows and balconies.', 'Keep the AC on and check on them. A power or AC failure is an emergency for small pets.'][lvl]
+      : pet === 'fish' ? ['Normal. Keep the tank out of direct sun.', 'Watch the tank temperature. Turn off tank lights to reduce heat.', 'Risky if the AC fails. A fan across the water surface cools it a few degrees.'][lvl]
+      : ['Fine outside with shade and water.', 'Make sure there\'s deep shade and a burrow, and soak them in shallow water.', 'Bring them into a cooler space or make sure their burrow is deep and shaded.'][lvl];
+    $('heat').innerHTML = '<span class="big" style="color:' + ['var(--sat-b)', 'var(--accent)', 'var(--sat-c)'][lvl] + '">' + Math.round(t) + '°C outside</span><span>Feels like ' + Math.round(f) + '°C, humidity ' + Math.round(weather.relative_humidity_2m) + '%.</span><span>' + msg + '</span>';
+  }
+  $('loc').onclick = function () { if (!navigator.geolocation) return; navigator.geolocation.getCurrentPosition(function (p) { place = { lat: p.coords.latitude.toFixed(3), lon: p.coords.longitude.toFixed(3), name: 'Your location' }; $('heatPlace').textContent = place.name; loadWeather(); }, function () {}); };
+  // ---------- body language ----------
+  var SIGNS = {
+    cat: [['Tail straight up', 'Happy and friendly, a greeting.'], ['Tail puffed up', 'Frightened. Give space.'], ['Tail thrashing or thumping', 'Annoyed or overstimulated. Stop petting.'], ['Slow blink', 'Trust and affection. Slow-blink back.'], ['Showing the belly', 'Relaxed and trusting. It\'s usually not an invitation to rub it.'], ['Ears flat to the side', 'Scared or angry.'], ['Kneading', 'Comfort, a habit from kittenhood.'], ['Chattering at birds', 'Excited hunting frustration.'], ['Short meow', 'Hello, or "pay attention to me". Adult cats meow mainly at people.'], ['Long, low yowl', 'Distress, pain, or in older cats sometimes confusion. Worth a vet visit if new.'], ['Purring', 'Usually contentment, but cats also purr when in pain or stressed.'], ['Hiding a lot', 'Can be a sign of illness in cats, who hide pain well.']],
+    dog: [['Loose, wide tail wag', 'Relaxed and happy.'], ['Stiff, high, fast wag', 'Alert or aroused. Not always friendly.'], ['Tail tucked', 'Scared or anxious.'], ['Play bow', 'An invitation to play.'], ['Yawning or lip licking', 'Often stress, not tiredness.'], ['Whale eye (whites showing)', 'Uncomfortable. Give space.'], ['Rolling over', 'Trust, or appeasement if tense.'], ['Raised hackles', 'Aroused: excited, scared or ready to defend.'], ['Growling', 'A warning. Never punish it, or the dog may skip the warning next time.']],
+    bird: [['Fluffed up briefly', 'Settling or relaxing.'], ['Fluffed up for long', 'Possibly ill. Birds hide illness, so call a vet.'], ['Eye pinning (pupils flashing)', 'Excited, interested or aggressive.'], ['Beak grinding', 'Content and sleepy.'], ['Head bobbing', 'Wants attention, or regurgitating as affection.'], ['Tail bobbing with breathing', 'Can mean breathing trouble.']],
+    rabbit: [['Binky (jump and twist)', 'Pure joy.'], ['Flop onto the side', 'Very relaxed and safe.'], ['Thumping a back foot', 'Alarm: something scared them.'], ['Teeth purring (soft grinding)', 'Content.'], ['Loud teeth grinding', 'Pain. See a vet.'], ['Not eating or no droppings for 12 hours', 'An emergency (gut stasis). Call a vet now.']],
+    fish: [['Gasping at the surface', 'Low oxygen or dirty water. Test the water.'], ['Clamped fins', 'Stress or illness.'], ['White spots', 'Likely ich, a common parasite.'], ['Hiding and not eating', 'Stress, bullying or poor water.']],
+    tortoise: [['Hissing and pulling in', 'Startled, the air leaving the shell.'], ['Puffy or closed eyes', 'Possible vitamin A deficiency or infection.'], ['Bubbles from the nose', 'Possible respiratory infection.'], ['Not eating in cool months', 'Some species slow down. Ask a reptile vet before letting one hibernate.']]
+  };
+  function signs() { $('signsTitle').textContent = 'What your ' + pet + ' is telling you'; $('signs').innerHTML = SIGNS[pet].map(function (s) { return '<div><b>' + esc(s[0]) + '</b><span>' + esc(s[1]) + '</span></div>'; }).join(''); }
+  function all() {
+    [].forEach.call($('pets').children, function (b) { b.setAttribute('aria-pressed', b.dataset.k === pet); });
+    $('sizeRow').hidden = pet !== 'dog'; $('kindRow').hidden = !KINDS[pet];
+    if (KINDS[pet]) $('kind').innerHTML = KINDS[pet].map(function (k, i) { return '<option value="' + i + '">' + k[0] + '</option>'; }).join('');
+    $('ageOut').innerHTML = human(); feedForm(); feed(); tox(); heat(); signs();
+    $('gameBlk').hidden = pet !== 'cat';
+  }
+  ['ageY', 'ageM', 'size', 'kind'].forEach(function (k) { $(k).oninput = function () { $('ageOut').innerHTML = human(); }; });
+
+  // ---------- cat game ----------
+  var gc = $('gc'), g = gc.getContext('2d'), prey = 'mouse', P = null, W = 0, H = 0, catches = 0, ac = null, splat = [];
+  function size() { var r = $('arena').getBoundingClientRect(), d = Math.min(2, devicePixelRatio || 1); W = r.width; H = r.height; gc.width = W * d; gc.height = H * d; g.setTransform(d, 0, 0, d, 0, 0); }
+  function spawn() { var e = Math.floor(Math.random() * 4); P = { x: e === 0 ? -20 : e === 1 ? W + 20 : Math.random() * W, y: e === 2 ? -20 : e === 3 ? H + 20 : Math.random() * H, a: Math.random() * 6.28, v: 0, tx: Math.random() * W, ty: Math.random() * H, pause: 0, wig: 0 }; }
+  function squeak(hi) {
+    try { if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)(); var t = ac.currentTime, o = ac.createOscillator(), gn = ac.createGain(); o.type = prey === 'fish' ? 'sine' : 'square'; var f = prey === 'bug' ? 1600 : prey === 'fish' ? 500 : 2600; o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(f * (hi ? 1.8 : 1.3), t + 0.06); o.frequency.exponentialRampToValueAtTime(f * 0.9, t + 0.12); gn.gain.setValueAtTime(0.0001, t); gn.gain.exponentialRampToValueAtTime(0.08, t + 0.01); gn.gain.exponentialRampToValueAtTime(0.0001, t + 0.14); o.connect(gn); gn.connect(ac.destination); o.start(t); o.stop(t + 0.15); } catch (e) {}
+  }
+  function step() {
+    requestAnimationFrame(step); if ($('gameBlk').hidden || !W) return;
+    if (!P) spawn();
+    // background
+    g.fillStyle = prey === 'fish' ? '#0b2a3a' : prey === 'dot' ? '#1a1712' : '#16261c'; g.fillRect(0, 0, W, H);
+    if (prey === 'fish') { g.strokeStyle = 'rgba(255,255,255,.04)'; for (var i = 0; i < 6; i++) { g.beginPath(); g.arc((i * 137 + Date.now() / 60) % (W + 100) - 50, (i * 97) % H, 30 + i * 8, 0, 7); g.stroke(); } }
+    // movement: dart, pause, wiggle, like real prey
+    if (P.pause > 0) { P.pause--; P.v *= 0.8; if (Math.random() < 0.05) P.wig = 6; }
+    else {
+      var dx = P.tx - P.x, dy = P.ty - P.y, d = Math.hypot(dx, dy);
+      if (d < 20) { P.tx = Math.random() * W; P.ty = Math.random() * H; if (Math.random() < 0.6) P.pause = 20 + Math.random() * 70; if (Math.random() < 0.25) squeak(); }
+      var want = Math.atan2(dy, dx), da = ((want - P.a + 9.42) % 6.28) - 3.14; P.a += da * (prey === 'fish' ? 0.04 : 0.12) + (Math.random() - 0.5) * (prey === 'bug' ? 0.4 : 0.15);
+      var top = prey === 'dot' ? 9 : prey === 'mouse' ? 6.5 : prey === 'fish' ? 3.2 : 3.6; P.v += (top - P.v) * 0.08;
+    }
+    P.x += Math.cos(P.a) * P.v; P.y += Math.sin(P.a) * P.v;
+    P.x = Math.max(-30, Math.min(W + 30, P.x)); P.y = Math.max(-30, Math.min(H + 30, P.y));
+    if (P.wig > 0) P.wig--;
+    draw();
+    splat = splat.filter(function (s) { s.t--; g.globalAlpha = s.t / 30; g.fillStyle = '#ffc857'; g.font = '700 20px "Instrument Sans"'; g.textAlign = 'center'; g.fillText('✦', s.x, s.y - (30 - s.t)); g.globalAlpha = 1; return s.t > 0; });
+  }
+  function draw() {
+    g.save(); g.translate(P.x, P.y); g.rotate(P.a + (P.wig ? Math.sin(P.wig * 2) * 0.3 : 0));
+    var tw = Math.sin(Date.now() / 60) * (P.v > 1 ? 0.5 : 0.15);
+    if (prey === 'mouse') {
+      g.strokeStyle = '#c9b8a6'; g.lineWidth = 3; g.beginPath(); g.moveTo(-26, 0); g.quadraticCurveTo(-50, 14 * tw, -70, -6 * tw); g.stroke();
+      g.fillStyle = '#9c8b7a'; g.beginPath(); g.ellipse(0, 0, 30, 18, 0, 0, 7); g.fill();
+      g.beginPath(); g.ellipse(26, 0, 14, 10, 0, 0, 7); g.fill();
+      g.fillStyle = '#e8b4b8'; g.beginPath(); g.arc(18, -12, 7, 0, 7); g.arc(18, 12, 7, 0, 7); g.fill();
+      g.fillStyle = '#111'; g.beginPath(); g.arc(32, -5, 2.5, 0, 7); g.arc(32, 5, 2.5, 0, 7); g.fill(); g.fillStyle = '#e8b4b8'; g.beginPath(); g.arc(40, 0, 3, 0, 7); g.fill();
+    } else if (prey === 'fish') {
+      g.fillStyle = '#ff9a3c'; g.beginPath(); g.moveTo(-28, 0); g.lineTo(-48, -16 + tw * 10); g.lineTo(-48, 16 + tw * 10); g.closePath(); g.fill();
+      g.beginPath(); g.ellipse(0, 0, 32, 16, 0, 0, 7); g.fill(); g.fillStyle = '#fff'; g.fillRect(-6, -15, 6, 30); g.fillStyle = '#111'; g.beginPath(); g.arc(20, -4, 3, 0, 7); g.fill();
+    } else if (prey === 'bug') {
+      g.strokeStyle = '#222'; g.lineWidth = 2; for (var k = -1; k <= 1; k++) { g.beginPath(); g.moveTo(k * 8, 0); g.lineTo(k * 8 + 4 * Math.sin(Date.now() / 40 + k), -18); g.moveTo(k * 8, 0); g.lineTo(k * 8 - 4 * Math.sin(Date.now() / 40 + k), 18); g.stroke(); }
+      g.fillStyle = '#2f5d3a'; g.beginPath(); g.ellipse(0, 0, 18, 12, 0, 0, 7); g.fill(); g.fillStyle = '#1b1b1b'; g.beginPath(); g.arc(16, 0, 7, 0, 7); g.fill();
+      g.strokeStyle = 'rgba(255,255,255,.25)'; g.beginPath(); g.moveTo(-16, 0); g.lineTo(14, 0); g.stroke();
+    } else { var gr = g.createRadialGradient(0, 0, 1, 0, 0, 16); gr.addColorStop(0, '#fff'); gr.addColorStop(0.3, '#ff2a2a'); gr.addColorStop(1, 'rgba(255,0,0,0)'); g.fillStyle = gr; g.beginPath(); g.arc(0, 0, 16, 0, 7); g.fill(); }
+    g.restore();
+  }
+  function hit(e) {
+    var r = gc.getBoundingClientRect(), pts = e.touches ? [].slice.call(e.touches) : [e];
+    pts.forEach(function (t) { var x = t.clientX - r.left, y = t.clientY - r.top; if (P && Math.hypot(x - P.x, y - P.y) < 55) { catches++; $('score').textContent = 'Catches: ' + catches; splat.push({ x: P.x, y: P.y, t: 30 }); squeak(true); if (navigator.vibrate) navigator.vibrate(30); P.pause = 0; P.a += Math.PI; P.v = 12; P.tx = Math.random() * W; P.ty = Math.random() * H; if (catches % 5 === 0) setTimeout(spawn, 600); } });
+  }
+  gc.addEventListener('pointerdown', hit); gc.addEventListener('touchstart', function (e) { e.preventDefault(); hit(e); }, { passive: false });
+  [].forEach.call(document.querySelectorAll('[data-p]'), function (b) { b.onclick = function () { prey = b.dataset.p; [].forEach.call(document.querySelectorAll('[data-p]'), function (x) { x.setAttribute('aria-pressed', x === b); }); spawn(); }; });
+  $('fs').onclick = function () { var a = $('arena'); if (document.fullscreenElement) document.exitFullscreen(); else if (a.requestFullscreen) a.requestFullscreen().then(size).catch(function () {}); else if (a.webkitRequestFullscreen) a.webkitRequestFullscreen(); };
+  window.addEventListener('resize', size); document.addEventListener('fullscreenchange', function () { setTimeout(size, 100); });
+  all(); size(); loadWeather(); requestAnimationFrame(step);
+})();
+</script>
+</body>
+</html>
