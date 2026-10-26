@@ -462,3 +462,10 @@ LabAr.add({
  "Fit your medicines between iftar and suhoor, then check the plan with your doctor.": "نظّم أدويتك بين الإفطار والسحور، ثم راجع الخطة مع طبيبك.",
  "Plan →": "خطّط ←"
 });
+/* index cards for newer tools */
+LabAr.add({
+ "Tool · Weather · Work": "أداة · الطقس · العمل",
+ "Safe hours to work outside": "ساعات العمل الآمنة في الخارج",
+ "Hour-by-hour heat index and estimated WBGT, work and rest times, water per hour, the midday break and the best slots today and tomorrow.": "مؤشر الحرارة وWBGT التقديري ساعة بساعة، مع أوقات العمل والراحة، وكمية الماء في الساعة، واستراحة منتصف النهار، وأفضل الفترات اليوم وغدًا.",
+ "Plan →": "خطّط ←"
+});

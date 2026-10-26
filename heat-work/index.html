@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Safe Hours Outside · Mariam's Lab</title>
+<meta name="description" content="Safe hours to work outside in the UAE heat. Hour-by-hour heat index and estimated WBGT, work and rest times, water per hour, the midday break, and the best slots today and tomorrow.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/heat-work/">
+<meta property="og:title" content="Safe Hours Outside · Mariam's Lab"><meta property="og:description" content="Hour-by-hour heat risk for outdoor work, with rest and water guidance."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;600&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm:hover { border-color: var(--muted); }
+.sm[aria-pressed="true"] { background: var(--accent); color: #1a1205; border-color: var(--accent); }
+.pills { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 0; }
+.box { padding: 16px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); display: grid; gap: 12px; min-width: 0; }
+.txt { font: inherit; color: var(--ink); background: rgba(7,10,24,.6); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; min-width: 0; }
+.opts { display: flex; gap: 8px 14px; flex-wrap: wrap; align-items: center; font-size: 0.86rem; color: var(--muted); }
+.opts label { display: inline-flex; gap: 6px; align-items: center; }
+.now { padding: 18px 20px; border-radius: var(--radius); border: 1px solid var(--line); border-inline-start: 5px solid var(--muted); background: rgba(7,10,24,.82); display: grid; gap: 6px; }
+.now b.big { font-family: var(--font-display); font-size: clamp(1.4rem, 4.5vw, 2.2rem); font-weight: 800; line-height: 1.1; }
+.now p { margin: 0; color: var(--muted); }
+.stats b { font-size: clamp(1.1rem, 4.6vw, 1.5rem); white-space: nowrap; }
+.best { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.best li { padding: 10px 12px; border: 1px solid var(--line); border-inline-start: 4px solid var(--c, var(--line)); border-radius: 10px; display: grid; gap: 2px; font-size: 0.9rem; }
+.best li b { font-family: var(--font-display); font-size: 1.2rem; }
+.best li small { color: var(--muted); font-size: 0.8rem; }
+.hrs { display: grid; gap: 3px; }
+.hr { display: grid; grid-template-columns: 3.4em 6px minmax(0, 1fr) auto; gap: 4px 10px; align-items: center; padding: 6px 8px; border-radius: 8px; font-size: 0.84rem; }
+.hr:nth-child(odd) { background: rgba(128,128,128,.06); }
+.hr.cur { outline: 1px solid var(--ink); }
+.hr .t { font-family: var(--font-mono); font-size: 0.8rem; }
+.hr .bar { align-self: stretch; border-radius: 3px; background: var(--c); }
+.hr .lv b { color: var(--c); font-weight: 600; }
+.hr .lv small { display: block; color: var(--muted); font-size: 0.76rem; }
+.hr .num { font-family: var(--font-mono); font-size: 0.78rem; text-align: end; color: var(--muted); white-space: nowrap; }
+.hr .num span { color: var(--ink); }
+.hr.brk .lv small.mb { color: var(--accent); }
+.hr.past { opacity: .45; }
+.lg { display: flex; gap: 10px; flex-wrap: wrap; font-size: 0.74rem; color: var(--muted); }
+.lg span::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-inline-end: 4px; vertical-align: -1px; background: var(--c); }
+.mbk { padding: 12px 14px; border: 1px dashed var(--accent); border-radius: 12px; font-size: 0.88rem; display: grid; gap: 4px; }
+.mbk b { color: var(--accent); }
+.ill { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+.ill div { padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; font-size: 0.86rem; display: grid; gap: 6px; align-content: start; }
+.ill h3 { margin: 0; font-size: 1rem; }
+.ill ul { margin: 0; padding-inline-start: 1.1em; display: grid; gap: 2px; }
+.ill .em { border-color: var(--sat-c); }
+.ill .em h3 { color: var(--sat-c); }
+.tbl { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+.tbl th, .tbl td { padding: 5px 6px; border-bottom: 1px solid var(--line); text-align: start; }
+.tbl th { color: var(--muted); font-weight: 500; }
+.tbl td:first-child, .tbl td:last-child { white-space: nowrap; }
+.tbl i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; background: var(--c); margin-inline-end: 6px; }
+[hidden] { display: none !important; }
+@media (max-width: 520px) { .hr { grid-template-columns: 3em 5px minmax(0, 1fr); } .hr .num { grid-column: 3; text-align: start; } }
+html.ar .now b.big, html.ar .stats b { unicode-bidi: plaintext; }
+html.ar .hr .t, html.ar .hr .num, html.ar .best li b { direction: ltr; unicode-bidi: isolate; }
+html.ar .hr .num { text-align: start; }
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Weather · Work · Live</span>
+    <h1 style="font-size:var(--step-3)">Safe hours to work outside.</h1>
+    <p>For anyone planning outdoor work in the UAE: building sites, gardens, deliveries, car washing, events. It takes the hourly forecast for your area and turns it into heat risk, how long to work and rest each hour, and how much water to drink. It also finds the best hours today and tomorrow.</p>
+  </div>
+  <div class="pills" id="where"><button class="sm" type="button" id="me">📍 Use my location</button></div>
+  <p class="msg" id="msg" role="status"></p>
+  <div class="opts" style="margin-top:10px">
+    <span class="pills" id="sun"><button class="sm" type="button" data-s="sun" aria-pressed="true">Work in the sun</button><button class="sm" type="button" data-s="shade" aria-pressed="false">Work in the shade</button></span>
+    <label>Work between <select class="txt" id="h0"></select> and <select class="txt" id="h1"></select></label>
+    <label>Block of <select class="txt" id="blk"><option value="2">2 hours</option><option value="3" selected>3 hours</option><option value="4">4 hours</option></select></label>
+  </div>
+
+  <div class="game" style="margin-top:16px">
+    <div class="panel">
+      <div class="now" id="now"><b class="big">Loading…</b></div>
+      <div class="stats">
+        <div><b id="sT">—</b><span>air temperature</span></div>
+        <div><b id="sHI">—</b><span>heat index</span></div>
+        <div><b id="sW">—</b><span>WBGT (estimated)</span></div>
+      </div>
+      <div class="box">
+        <span class="label">Best slots</span>
+        <ul class="best" id="best"></ul>
+      </div>
+      <div class="box">
+        <span class="label">Hour by hour</span>
+        <div class="pills" id="day"><button class="sm" type="button" data-d="0" aria-pressed="true">Today</button><button class="sm" type="button" data-d="1" aria-pressed="false">Tomorrow</button></div>
+        <div class="lg" id="lg"></div>
+        <div class="hrs" id="hrs"></div>
+        <label class="opts"><input type="checkbox" id="all"> Show all 24 hours</label>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="mbk" id="mbk"></div>
+      <div class="box">
+        <span class="label">Risk levels · moderate work</span>
+        <table class="tbl"><thead><tr><th>WBGT</th><th>Work / rest each hour</th><th>Water</th></tr></thead><tbody id="tbl"></tbody></table>
+        <p class="msg" style="min-height:0">For workers used to the heat. In the first week of hot work, or for heavy work like digging or carrying, step up one level. Drink a cup (about 250 ml) every 15 to 20 minutes rather than a lot at once, and not more than about 1.5 litres an hour.</p>
+      </div>
+      <div class="ill">
+        <div><h3>Heat exhaustion</h3><ul><li>Heavy sweating, cold clammy skin</li><li>Dizziness, headache, feeling sick</li><li>Muscle cramps, weakness, fast pulse</li></ul><b>What to do</b><ul><li>Stop work and move to shade or AC</li><li>Loosen clothes, cool with wet cloths</li><li>Sip water or an electrolyte drink</li><li>No better in 30 to 60 minutes? Get medical help</li></ul></div>
+        <div class="em"><h3>Heat stroke · emergency</h3><ul><li>Confused, slurred speech, acting strangely</li><li>Hot skin, may stop sweating</li><li>Fainting, fits, collapse</li></ul><b>What to do</b><ul><li>Call 998 for an ambulance now</li><li>Cool them fast: shade, water on skin, fan, ice packs at neck, armpits and groin</li><li>Don't give drinks if they aren't fully awake</li><li>Stay with them until help arrives</li></ul></div>
+      </div>
+      <p class="fact" style="margin:0"><b>Why WBGT and not the temperature?</b> Your body cools by sweating, and sweat only works if it can evaporate. The wet bulb globe temperature (WBGT) adds humidity, sun and air together into one number, which is why occupational heat rules use it. The heat index only adds humidity, and it assumes shade.</p>
+      <p class="fact" style="margin:0" id="how">How it's worked out: the heat index uses the NOAA (Rothfusz) formula. WBGT is <b>estimated</b>, not measured. In the shade it is 0.7 × wet-bulb + 0.3 × air temperature (Stull's wet-bulb formula). In the sun it moves towards the Australian Bureau of Meteorology approximation, 0.567 × air temperature + 0.393 × vapour pressure + 3.94, in proportion to the forecast sunshine. Wind is not included, so a strong breeze can make it feel a little easier. Work/rest and water follow general occupational heat guidance (the kind used by safety bodies and the military). Forecasts from Open-Meteo. This is a planning aid, not medical or legal advice. Follow your employer's heat plan and MOHRE rules.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var PLACES = [['Abu Dhabi', 24.4539, 54.3773], ['Dubai', 25.2048, 55.2708], ['Sharjah', 25.3463, 55.4209], ['Al Ain', 24.2075, 55.7447], ['Ajman', 25.4052, 55.5136], ['Umm Al Quwain', 25.5647, 55.5552], ['Ras Al Khaimah', 25.7895, 55.9432], ['Fujairah', 25.1288, 56.3265], ['Liwa', 23.1333, 53.7667], ['Ruwais', 24.1103, 52.7306]];
+  var LV = [
+    { max: 25, name: 'Lower risk', col: '#4fd3bd', wr: 'Normal work, regular breaks', water: '0.5 L an hour', range: 'under 25°C' },
+    { max: 28, name: 'Moderate', col: '#c9e264', wr: '50 min work, 10 min rest', water: '0.75 L an hour', range: '25 to 27.9°C' },
+    { max: 30, name: 'High', col: '#ffc857', wr: '45 min work, 15 min rest', water: '0.75 L an hour', range: '28 to 29.9°C' },
+    { max: 32, name: 'Very high', col: '#ff8a4c', wr: '30 min work, 30 min rest', water: '1 L an hour', range: '30 to 31.9°C' },
+    { max: 99, name: 'Extreme', col: '#ff4f6d', wr: 'Stop heavy work. Light essential work only, 15 min on, 45 min rest', water: '1 L an hour', range: '32°C and above' }
+  ];
+  var S = { sun: 'sun', h0: 5, h1: 19, blk: 3, day: 0, place: 1 }, rows = null, placeName = '';
+  try { var o = JSON.parse(localStorage.getItem('heatWork') || 'null'); if (o) for (var k in o) S[k] = o[k]; } catch (e) {}
+  function save() { try { localStorage.setItem('heatWork', JSON.stringify(S)); } catch (e) {} }
+
+  // ---- heat maths ----
+  function heatIndex(T, RH) { // NOAA / Rothfusz, input and output in °C
+    var F = T * 9 / 5 + 32, hi = 0.5 * (F + 61 + (F - 68) * 1.2 + RH * 0.094);
+    if ((hi + F) / 2 >= 80) {
+      hi = -42.379 + 2.04901523 * F + 10.14333127 * RH - 0.22475541 * F * RH - 0.00683783 * F * F - 0.05481717 * RH * RH + 0.00122874 * F * F * RH + 0.00085282 * F * RH * RH - 0.00000199 * F * F * RH * RH;
+      if (RH < 13 && F >= 80 && F <= 112) hi -= ((13 - RH) / 4) * Math.sqrt((17 - Math.abs(F - 95)) / 17);
+      else if (RH > 85 && F >= 80 && F <= 87) hi += ((RH - 85) / 10) * ((87 - F) / 5);
+    }
+    return (hi - 32) * 5 / 9;
+  }
+  function wetBulb(T, RH) { return T * Math.atan(0.151977 * Math.sqrt(RH + 8.313659)) + Math.atan(T + RH) - Math.atan(RH - 1.676331) + 0.00391838 * Math.pow(RH, 1.5) * Math.atan(0.023101 * RH) - 4.686035; }
+  function wbgtShade(T, RH) { return 0.7 * wetBulb(T, RH) + 0.3 * T; }
+  function wbgtBoM(T, RH) { var e = RH / 100 * 6.105 * Math.exp(17.27 * T / (237.7 + T)); return 0.567 * T + 0.393 * e + 3.94; }
+  function wbgt(T, RH, sw, inSun) { var s = wbgtShade(T, RH); if (!inSun) return s; return s + Math.max(0, wbgtBoM(T, RH) - s) * Math.min(1, Math.max(0, sw || 0) / 800); }
+  function lvl(w) { for (var i = 0; i < LV.length; i++) if (w < LV[i].max) return i; return 4; }
+  // MOHRE midday break, 12:30 to 15:00, 15 June to 15 September
+  function breakSeason(d) { var m = +d.slice(5, 7), dd = +d.slice(8, 10); return (m === 6 && dd >= 15) || m === 7 || m === 8 || (m === 9 && dd <= 15); }
+  function inBreak(t) { var h = +t.slice(11, 13); return breakSeason(t) && h >= 12 && h <= 14; }
+
+  function fill() {
+    var h0 = $('h0'), h1 = $('h1'), o = '';
+    for (var h = 0; h <= 23; h++) o += '<option value="' + h + '">' + ('0' + h).slice(-2) + ':00</option>';
+    h0.innerHTML = o; h1.innerHTML = o + '<option value="24">24:00</option>';
+    h0.value = S.h0; h1.value = S.h1; $('blk').value = S.blk;
+    $('lg').innerHTML = LV.map(function (l) { return '<span style="--c:' + l.col + '">' + l.name + '</span>'; }).join('');
+    $('tbl').innerHTML = LV.map(function (l) { return '<tr><td><i style="--c:' + l.col + '"></i>' + l.range + '</td><td>' + l.wr + '</td><td>' + l.water + '</td></tr>'; }).join('');
+  }
+
+  function get(u) { return fetch(u).then(function (r) { if (!r.ok) throw 0; return r.json(); }); }
+  function load(lat, lon, name) {
+    placeName = name; $('msg').textContent = 'Fetching the forecast for ' + name + '…';
+    get('https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon + '&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m,uv_index,shortwave_radiation&timezone=auto&forecast_days=2').then(function (d) {
+      var H = d.hourly; rows = [];
+      var nowLocal = new Date(Date.now() + (d.utc_offset_seconds || 0) * 1000).toISOString().slice(0, 13);
+      H.time.forEach(function (t, i) { rows.push({ t: t, T: H.temperature_2m[i], rh: H.relative_humidity_2m[i], wind: H.wind_speed_10m[i], uv: H.uv_index ? H.uv_index[i] : null, sw: H.shortwave_radiation ? H.shortwave_radiation[i] : 0 }); });
+      rows.nowKey = nowLocal; rows.days = [H.time[0].slice(0, 10), H.time[H.time.length - 1].slice(0, 10)];
+      $('msg').textContent = name + ' · forecast from Open-Meteo';
+      render();
+    }).catch(function () { $('msg').textContent = 'Couldn\'t reach the forecast service. Check your connection and try again.'; $('now').innerHTML = '<b class="big">No data</b>'; });
+  }
+
+  function hm(t) { return t.slice(11, 16); }
+  function render() {
+    if (!rows) return;
+    var inSun = S.sun === 'sun';
+    rows.forEach(function (r) { r.hi = heatIndex(r.T, r.rh); r.w = wbgt(r.T, r.rh, r.sw, inSun); r.l = lvl(r.w); });
+    var k = Math.max(0, rows.findIndex(function (r) { return r.t.slice(0, 13) === rows.nowKey; })), n = rows[k], L = LV[n.l];
+    var nb = $('now'); nb.style.borderInlineStartColor = L.col;
+    nb.innerHTML = '<span class="label">Right now · ' + hm(n.t) + '</span><b class="big" style="color:' + L.col + '">' + L.name + '</b><p>' + L.wr + '. ' + L.water + '.</p>' + (inBreak(n.t) ? '<p style="color:var(--accent)">Midday break is on: no outdoor work in the sun until 15:00.</p>' : '');
+    $('sT').textContent = Math.round(n.T) + '°C'; $('sHI').textContent = Math.round(n.hi) + '°C'; $('sW').textContent = n.w.toFixed(1) + '°C';
+    // best slots per day
+    var lenB = +S.blk;
+    $('best').innerHTML = rows.days.map(function (day, di) {
+      var cand = rows.filter(function (r, i) { var h = +r.t.slice(11, 13); return r.t.slice(0, 10) === day && i >= k && h >= +S.h0 && h < +S.h1; });
+      var best = null;
+      for (var i = 0; i + lenB <= cand.length; i++) {
+        var win = cand.slice(i, i + lenB), ok = true;
+        for (var j = 1; j < win.length; j++) if (+win[j].t.slice(11, 13) !== +win[j - 1].t.slice(11, 13) + 1) ok = false;
+        if (!ok || win.some(function (r) { return inBreak(r.t); })) continue;
+        var mx = Math.max.apply(null, win.map(function (r) { return r.w; })), mean = win.reduce(function (s, r) { return s + r.w; }, 0) / win.length;
+        if (!best || mx < best.mx - 0.05 || (Math.abs(mx - best.mx) <= 0.05 && mean < best.mean)) best = { mx: mx, mean: mean, a: win[0].t, b: win[win.length - 1].t };
+      }
+      var lab = di === 0 ? 'Today' : 'Tomorrow';
+      if (!best) return '<li><span>' + lab + '</span><small>' + (di === 0 ? 'No ' + lenB + '-hour block left in your work hours today.' : 'No ' + lenB + '-hour block fits your work hours.') + '</small></li>';
+      var bl = LV[lvl(best.mx)], end = ('0' + (+best.b.slice(11, 13) + 1)).slice(-2) + ':00';
+      return '<li style="--c:' + bl.col + '"><span>' + lab + '</span><b>' + hm(best.a) + '–' + end + '</b><small>' + bl.name + ' · WBGT up to ' + best.mx.toFixed(1) + '°C · ' + bl.wr + '</small></li>';
+    }).join('');
+    // hour list
+    var day = rows.days[S.day] || rows.days[0];
+    $('hrs').innerHTML = rows.map(function (r, i) {
+      if (r.t.slice(0, 10) !== day) return '';
+      var hh0 = +r.t.slice(11, 13); if (!S.all && (hh0 < +S.h0 || hh0 >= +S.h1)) return '';
+      var l = LV[r.l], br = inBreak(r.t), h = +r.t.slice(11, 13), off = h < +S.h0 || h >= +S.h1;
+      return '<div class="hr' + (i === k ? ' cur' : '') + (i < k ? ' past' : '') + (br ? ' brk' : '') + '" style="--c:' + l.col + '"><span class="t">' + hm(r.t) + '</span><span class="bar"></span>' +
+        '<span class="lv"><b>' + l.name + '</b><small>' + l.wr + ' · ' + l.water + '</small>' + (br ? '<small class="mb">' + (h === 12 ? 'Midday break from 12:30' : 'Midday break: no work in the sun') + '</small>' : '') + (off ? '<small>Outside your work hours</small>' : '') + '</span>' +
+        '<span class="num"><span>' + Math.round(r.T) + '°C</span> · ' + Math.round(r.rh) + '% · HI ' + Math.round(r.hi) + ' · WBGT <span>' + r.w.toFixed(1) + '</span></span></div>';
+    }).join('');
+    // midday break box
+    var today = rows.days[0], on = breakSeason(today);
+    $('mbk').innerHTML = '<b>' + (on ? 'Midday break is in force today' : 'Midday break: not in force today') + '</b><span>Outdoor work in direct sun is not allowed from 12:30 to 15:00, from 15 June to 15 September. Employers must give shade and water. Check MOHRE for this year\'s dates and exemptions.</span>';
+  }
+
+  // ---- controls ----
+  PLACES.forEach(function (p, i) {
+    var b = document.createElement('button'); b.className = 'sm'; b.type = 'button'; b.textContent = p[0]; b.setAttribute('aria-pressed', 'false'); b.setAttribute('data-p', i);
+    b.onclick = function () { pick(b); S.place = i; save(); load(p[1], p[2], p[0]); };
+    $('where').appendChild(b);
+  });
+  function pick(b) { [].forEach.call(document.querySelectorAll('#where .sm'), function (x) { x.setAttribute('aria-pressed', x === b); }); }
+  function press(wrap, attr, v) { [].forEach.call($(wrap).querySelectorAll('button'), function (b) { b.setAttribute('aria-pressed', b.getAttribute(attr) === String(v)); }); }
+  $('me').onclick = function () {
+    if (!navigator.geolocation) { $('msg').textContent = 'Your browser can\'t share a location.'; return; }
+    $('msg').textContent = 'Asking for your location…';
+    navigator.geolocation.getCurrentPosition(function (p) { pick($('me')); load(p.coords.latitude.toFixed(3), p.coords.longitude.toFixed(3), 'Your location'); }, function () { $('msg').textContent = 'Location was not shared. Pick a city instead.'; }, { maximumAge: 6e5, timeout: 10000 });
+  };
+  [].forEach.call($('sun').querySelectorAll('button'), function (b) { b.onclick = function () { S.sun = b.getAttribute('data-s'); press('sun', 'data-s', S.sun); save(); render(); }; });
+  [].forEach.call($('day').querySelectorAll('button'), function (b) { b.onclick = function () { S.day = +b.getAttribute('data-d'); press('day', 'data-d', S.day); save(); render(); }; });
+  $('all').checked = !!S.all; $('all').onchange = function () { S.all = $('all').checked; save(); render(); };
+  ['h0', 'h1', 'blk'].forEach(function (id) { $(id).onchange = function () { S[id] = +$(id).value; if (S.h1 <= S.h0) { S.h1 = Math.min(24, S.h0 + 1); $('h1').value = S.h1; } save(); render(); }; });
+  fill(); press('sun', 'data-s', S.sun); press('day', 'data-d', S.day);
+  var b0 = document.querySelector('#where [data-p="' + (PLACES[S.place] ? S.place : 1) + '"]'); b0.click();
+  window.__hw = { heatIndex: heatIndex, wbgt: wbgt, wbgtShade: wbgtShade, wbgtBoM: wbgtBoM, breakSeason: breakSeason };
+})();
+</script>
+</body>
+</html>
