@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Orbit Sandbox · Mariam's Lab</title>
+<meta name="description" content="Throw satellites around the Earth with real gravity. Find a low orbit, a GPS orbit, a geostationary orbit, or escape altogether.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/orbit/">
+<meta property="og:title" content="Orbit Sandbox · Mariam's Lab"><meta property="og:description" content="Throw satellites around the Earth with real gravity."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.board { aspect-ratio: 1 / 1; cursor: crosshair; }
+.ctrls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm:hover { border-color: var(--muted); }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.sm:disabled { opacity: .45; cursor: default; }
+.warp { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--muted); }
+.warp input { accent-color: var(--accent); width: 130px; }
+.warp output { font-family: var(--font-mono); color: var(--ink); min-width: 5ch; }
+.info { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; margin: 0; padding: 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); font-size: 0.9rem; }
+.info dt { color: var(--muted); } .info dd { margin: 0; font-family: var(--font-mono); text-align: end; }
+.kind { font-weight: 700; font-family: var(--font-display) !important; font-size: 1.05rem; }
+.chal { display: grid; gap: 6px; padding: 0; margin: 0; list-style: none; }
+.chal li { display: flex; justify-content: space-between; gap: 10px; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--line); font-size: 0.9rem; }
+.chal li span { color: var(--muted); font-size: 0.82rem; text-align: end; }
+@media (max-width: 480px) { .chal li { display: grid; gap: 2px; } .chal li span { text-align: start; } }
+.chal li.done { border-color: var(--sat-b); }
+.chal li.done b::before { content: '✓ '; color: var(--sat-b); }
+.burn { display: flex; flex-wrap: wrap; gap: 8px; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Experiment · Space · Physics</span>
+    <h1 style="font-size:var(--step-3)">Orbit sandbox.</h1>
+    <p>An orbit is just falling sideways fast enough to keep missing the ground. Press anywhere above the Earth, drag to aim, and let go. The gravity is real, and so are the sizes.</p>
+  </div>
+  <div class="game">
+    <div>
+      <div class="board"><canvas id="cv" aria-label="Orbit sandbox. Use the preset buttons to launch satellites without a pointer."></canvas></div>
+      <div class="ctrls">
+        <span class="warp"><label for="warp">Speed</label><input type="range" id="warp" min="0" max="100" value="45"><output id="warpOut"></output></span>
+        <button class="sm" type="button" id="pause" aria-pressed="false">Pause</button>
+        <button class="sm" type="button" id="zin" aria-label="Zoom in">＋</button>
+        <button class="sm" type="button" id="zout" aria-label="Zoom out">－</button>
+        <button class="sm" type="button" id="clear">Clear</button>
+      </div>
+      <div class="ctrls" aria-label="Presets">
+        <span class="label">Launch a real one</span>
+        <button class="sm" type="button" data-p="iss">ISS</button>
+        <button class="sm" type="button" data-p="gps">GPS</button>
+        <button class="sm" type="button" data-p="geo">Geostationary</button>
+        <button class="sm" type="button" data-p="molniya">Molniya</button>
+      </div>
+    </div>
+    <div class="panel">
+      <dl class="info" id="info"><dt>Status</dt><dd class="kind">Nothing in orbit yet</dd></dl>
+      <div class="burn">
+        <button class="sm" type="button" id="pro" disabled>Burn forward +100 m/s</button>
+        <button class="sm" type="button" id="retro" disabled>Burn back −100 m/s</button>
+      </div>
+      <ol class="chal" id="chal"></ol>
+      <p class="muted" style="color:var(--muted);font-size:.85rem">The presets are there to look at. Challenges only count for orbits you throw yourself.</p>
+      <p class="fact">GPS satellites fly at about 20,200 km and go round twice a day. A geostationary one, at 35,786 km, takes exactly one day, so it seems to hang still over one spot. Every orbit here follows the same rule, Newton's gravity, worked out step by step.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var MU = 3.986004418e14, RE = 6.371e6, SID = 86164.1;
+  var cv = $('cv'), g = cv.getContext('2d'), W = 0, dpr = 1;
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var COLS = ['#E9B467', '#4FD3BD', '#84A0FF', '#F08AB3', '#EEF0FA'];
+  var sats = [], sel = null, view = 9 * RE, viewT = 9 * RE, paused = false, simT = 0, aim = null, nCol = 0;
+  var CH = [
+    { id: 'leo', t: 'Low Earth orbit', d: 'round, between 300 and 600 km', ok: function (o) { return o.closed && o.rp - RE > 3e5 && o.ra - RE < 6e5; } },
+    { id: 'gps', t: 'A GPS orbit', d: 'nearly round, twice a day', ok: function (o) { return o.closed && o.e < 0.05 && Math.abs(o.T - SID / 2) < 600; } },
+    { id: 'geo', t: 'Geostationary', d: 'round, once a day, turning with Earth', ok: function (o) { return o.closed && o.e < 0.03 && Math.abs(o.T - SID) < 900 && o.h > 0; } },
+    { id: 'esc', t: 'Escape', d: 'leave Earth for good', ok: function (o) { return !o.closed; } }
+  ];
+  var done = {};
+  try { done = JSON.parse(localStorage.getItem('orbitDone') || '{}'); } catch (e) {}
+
+  function fit() {
+    var r = cv.getBoundingClientRect(); dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = r.width; cv.width = Math.round(W * dpr); cv.height = Math.round(W * dpr);
+  }
+  function k() { return (W / 2) / view; } // px per metre
+  function toScreen(x, y) { return [W / 2 + x * k(), W / 2 - y * k()]; }
+  function toWorld(px, py) { return [(px - W / 2) / k(), -(py - W / 2) / k()]; }
+
+  function elements(s) {
+    var x = s.r[0], y = s.r[1], vx = s.v[0], vy = s.v[1], r = Math.hypot(x, y), v2 = vx * vx + vy * vy;
+    var E = v2 / 2 - MU / r, h = x * vy - y * vx, e = Math.sqrt(Math.max(0, 1 + 2 * E * h * h / (MU * MU)));
+    var o = { r: r, v: Math.sqrt(v2), E: E, h: h, e: e, closed: E < 0 };
+    if (o.closed) { o.a = -MU / (2 * E); o.rp = o.a * (1 - e); o.ra = o.a * (1 + e); o.T = 2 * Math.PI * Math.sqrt(o.a * o.a * o.a / MU); }
+    else { o.rp = h * h / MU / (1 + e); }
+    o.hits = o.rp < RE;
+    return o;
+  }
+  function accel(x, y) { var r2 = x * x + y * y, r = Math.sqrt(r2), f = -MU / (r2 * r); return [f * x, f * y]; }
+  function step(s, dt) { // velocity Verlet
+    var a = accel(s.r[0], s.r[1]);
+    s.r[0] += s.v[0] * dt + 0.5 * a[0] * dt * dt; s.r[1] += s.v[1] * dt + 0.5 * a[1] * dt * dt;
+    var b = accel(s.r[0], s.r[1]);
+    s.v[0] += 0.5 * (a[0] + b[0]) * dt; s.v[1] += 0.5 * (a[1] + b[1]) * dt;
+  }
+  function advance(s, T) {
+    var t = 0;
+    while (t < T && s.alive) {
+      var r = Math.hypot(s.r[0], s.r[1]), v = Math.hypot(s.v[0], s.v[1]), dt = Math.min(T - t, 0.004 * r / Math.max(v, 1), 30);
+      step(s, dt); t += dt;
+      if (Math.hypot(s.r[0], s.r[1]) < RE) { s.alive = false; s.crash = true; }
+      if (Math.hypot(s.r[0], s.r[1]) > 60 * RE) s.alive = false;
+    }
+  }
+  function predict(r, v) { // path for the next orbit or so
+    var s = { r: r.slice(), v: v.slice(), alive: true }, o = elements(s), T = o.closed ? Math.min(o.T, 3 * SID) : 2 * SID, pts = [], n = 220;
+    for (var i = 0; i < n && s.alive; i++) { advance(s, T / n); pts.push(s.r.slice()); }
+    return { pts: pts, crash: s.crash };
+  }
+  function launch(r, v, name) {
+    var s = { preset: !!name, r: r, v: v, alive: true, trail: [], col: COLS[nCol++ % COLS.length], name: name || 'Satellite ' + (sats.length + 1), born: simT };
+    sats.push(s); if (sats.length > 8) sats.shift();
+    sel = s; var o = elements(s); fitView(o); if (!s.preset) check(o); info();
+  }
+  function fitView(o) { var reach = o.closed ? o.ra : Math.max(o.r * 3, 12 * RE); viewT = Math.max(2.2 * RE, Math.min(55 * RE, reach * 1.18)); }
+  function check(o) {
+    CH.forEach(function (c) { if (!done[c.id] && !o.hits && c.ok(o)) { done[c.id] = 1; try { localStorage.setItem('orbitDone', JSON.stringify(done)); } catch (e) {} } });
+    chal();
+  }
+  function chal() {
+    $('chal').innerHTML = '<li style="border:0;padding:0"><span class="label">Challenges</span></li>' + CH.map(function (c) { return '<li class="' + (done[c.id] ? 'done' : '') + '"><b>' + c.t + '</b><span>' + c.d + '</span></li>'; }).join('');
+  }
+  function km(m) { return Math.round(m / 1000).toLocaleString('en') + ' km'; }
+  function dur(s) { var h = Math.floor(s / 3600), m = Math.round((s % 3600) / 60); if (m === 60) { h++; m = 0; } return h ? h + ' h ' + m + ' min' : m + ' min'; }
+  function info() {
+    var s = sel;
+    $('pro').disabled = $('retro').disabled = !(s && s.alive);
+    if (!s) { $('info').innerHTML = '<dt>Status</dt><dd class="kind">Nothing in orbit yet</dd>'; return; }
+    var o = elements(s), kind;
+    if (s.crash) kind = 'Crashed'; else if (!s.alive) kind = 'Gone'; else if (!o.closed) kind = 'Escaping'; else if (o.hits) kind = 'Falling back'; else if (o.e < 0.02) kind = 'Round orbit'; else kind = 'Elliptical orbit';
+    var rows = [['', s.name], ['Status', kind], ['Height', km(o.r - RE)], ['Speed', (o.v / 1000).toFixed(2) + ' km/s']];
+    if (s.alive && o.closed && !o.hits) rows.push(['Lowest', km(o.rp - RE)], ['Highest', km(o.ra - RE)], ['Once round', dur(o.T)], ['Direction', o.h > 0 ? 'with Earth' : 'against Earth']);
+    if (s.alive && !o.closed) rows.push(['Escape speed here', (Math.sqrt(2 * MU / o.r) / 1000).toFixed(2) + ' km/s']);
+    $('info').innerHTML = rows.map(function (r, i) { return i === 0 ? '<dt style="color:' + s.col + ';font-weight:600">' + r[1] + '</dt><dd></dd>' : '<dt>' + r[0] + '</dt><dd' + (i === 1 ? ' class="kind"' : '') + '>' + r[1] + '</dd>'; }).join('');
+  }
+  function burn(dv) {
+    var s = sel; if (!s || !s.alive) return; var v = Math.hypot(s.v[0], s.v[1]);
+    s.v[0] += s.v[0] / v * dv; s.v[1] += s.v[1] / v * dv; s.trail = []; var o = elements(s); fitView(o); if (!s.preset) check(o); info();
+  }
+  $('pro').onclick = function () { burn(100); };
+  $('retro').onclick = function () { burn(-100); };
+
+  // presets (start at the right of Earth, moving up = anticlockwise, the way Earth turns seen from above the North Pole)
+  var PRE = {
+    iss: function () { var r = RE + 420e3; return [[r, 0], [0, Math.sqrt(MU / r)], 'ISS-like']; },
+    gps: function () { var r = RE + 20200e3; return [[r, 0], [0, Math.sqrt(MU / r)], 'GPS-like']; },
+    geo: function () { var r = 42164e3; return [[r, 0], [0, Math.sqrt(MU / r)], 'Geostationary']; },
+    molniya: function () { var a = 26600e3, rp = RE + 600e3, ra = 2 * a - rp; return [[0, -rp], [Math.sqrt(MU * (2 / rp - 1 / a)), 0], 'Molniya-like']; }
+  };
+  [].forEach.call(document.querySelectorAll('[data-p]'), function (b) { b.onclick = function () { var p = PRE[b.dataset.p](); launch(p[0], p[1], p[2]); }; });
+
+  // aiming with a pointer
+  function pt(e) { var r = cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; }
+  var SPEED = 12000; // m/s for a drag the size of the board's half width
+  cv.addEventListener('pointerdown', function (e) {
+    var p = pt(e), w = toWorld(p[0], p[1]), r = Math.hypot(w[0], w[1]);
+    if (r < RE + 150e3) { var f = (RE + 150e3) / Math.max(r, 1); w = r < 1 ? [RE + 150e3, 0] : [w[0] * f, w[1] * f]; }
+    aim = { start: w, p0: toScreen(w[0], w[1]), p1: toScreen(w[0], w[1]) }; cv.setPointerCapture(e.pointerId);
+  });
+  cv.addEventListener('pointermove', function (e) { if (aim) aim.p1 = pt(e); });
+  cv.addEventListener('pointerup', function () {
+    if (!aim) return; var v = aimV(); if (Math.hypot(v[0], v[1]) > 50) launch(aim.start.slice(), v); aim = null;
+  });
+  cv.addEventListener('pointercancel', function () { aim = null; });
+  function aimV() { var dx = aim.p1[0] - aim.p0[0], dy = aim.p1[1] - aim.p0[1]; return [dx / (W / 2) * SPEED, -dy / (W / 2) * SPEED]; }
+  cv.addEventListener('wheel', function (e) { e.preventDefault(); viewT = Math.max(1.5 * RE, Math.min(60 * RE, viewT * (e.deltaY > 0 ? 1.15 : 1 / 1.15))); }, { passive: false });
+  $('zin').onclick = function () { viewT = Math.max(1.5 * RE, viewT / 1.4); };
+  $('zout').onclick = function () { viewT = Math.min(60 * RE, viewT * 1.4); };
+  $('clear').onclick = function () { sats = []; sel = null; info(); };
+  $('pause').onclick = function () { paused = !paused; this.setAttribute('aria-pressed', paused); this.textContent = paused ? 'Play' : 'Pause'; };
+  function warp() { return Math.round(Math.pow(10, 1 + $('warp').value / 100 * 3)); } // 10x to 10,000x
+  function warpLabel() { var w = warp(); $('warpOut').textContent = w >= 1000 ? (w / 1000).toFixed(w < 10000 ? 1 : 0) + 'k×' : w + '×'; }
+  $('warp').oninput = warpLabel; warpLabel();
+
+  // stars, fixed
+  var stars = []; for (var i = 0; i < 140; i++) stars.push([Math.random(), Math.random(), Math.random()]);
+
+  function draw() {
+    var c = g; c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, W, W);
+    stars.forEach(function (s) { c.fillStyle = 'rgba(238,240,250,' + (0.15 + s[2] * 0.4) + ')'; c.fillRect(s[0] * W, s[1] * W, 1.2, 1.2); });
+    // reference rings
+    var ks = k();
+    [[RE + 420e3, 'ISS'], [RE + 20200e3, 'GPS'], [42164e3, 'GEO']].forEach(function (r) {
+      var px = r[0] * ks; if (px < W * 0.72 && px > 40) {
+        c.strokeStyle = 'rgba(167,173,203,0.18)'; c.setLineDash([3, 6]); c.beginPath(); c.arc(W / 2, W / 2, px, 0, 7); c.stroke(); c.setLineDash([]);
+        c.fillStyle = 'rgba(167,173,203,0.55)'; c.font = '10px "JetBrains Mono", monospace'; c.fillText(r[1], W / 2 + px * 0.707 + 4, W / 2 - px * 0.707 - 4);
+      }
+    });
+    // Earth, with a meridian marker turning once per sidereal day
+    var er = RE * ks, gr = c.createRadialGradient(W / 2 - er * 0.3, W / 2 - er * 0.3, er * 0.1, W / 2, W / 2, er);
+    gr.addColorStop(0, '#3a6fd0'); gr.addColorStop(1, '#0d2a63'); c.fillStyle = gr; c.beginPath(); c.arc(W / 2, W / 2, er, 0, 7); c.fill();
+    c.strokeStyle = 'rgba(79,211,189,0.5)'; c.lineWidth = 1; c.beginPath(); c.arc(W / 2, W / 2, er + 0.5, 0, 7); c.stroke();
+    var th = simT / SID * 2 * Math.PI; c.strokeStyle = 'rgba(233,180,103,0.8)'; c.lineWidth = 2;
+    c.beginPath(); c.moveTo(W / 2, W / 2); c.lineTo(W / 2 + Math.cos(th) * er, W / 2 - Math.sin(th) * er); c.stroke();
+    c.fillStyle = '#E9B467'; c.beginPath(); c.arc(W / 2 + Math.cos(th) * er, W / 2 - Math.sin(th) * er, 3, 0, 7); c.fill();
+    // trails and satellites
+    sats.forEach(function (s) {
+      if (s.trail.length > 1) {
+        c.strokeStyle = s.col; c.lineWidth = s === sel ? 1.8 : 1.1; c.globalAlpha = 0.75; c.beginPath();
+        s.trail.forEach(function (p, i) { var q = toScreen(p[0], p[1]); if (i) c.lineTo(q[0], q[1]); else c.moveTo(q[0], q[1]); }); c.stroke(); c.globalAlpha = 1;
+      }
+      var q = toScreen(s.r[0], s.r[1]);
+      if (s.alive) { c.fillStyle = s.col; c.beginPath(); c.arc(q[0], q[1], s === sel ? 5 : 3.5, 0, 7); c.fill(); if (s === sel) { c.strokeStyle = s.col; c.beginPath(); c.arc(q[0], q[1], 9, 0, 7); c.stroke(); } }
+      else if (s.crash) { c.strokeStyle = '#F08AB3'; c.lineWidth = 2; c.beginPath(); c.moveTo(q[0] - 5, q[1] - 5); c.lineTo(q[0] + 5, q[1] + 5); c.moveTo(q[0] + 5, q[1] - 5); c.lineTo(q[0] - 5, q[1] + 5); c.stroke(); }
+    });
+    // aiming
+    if (aim) {
+      var v = aimV(), sp = Math.hypot(v[0], v[1]), pr = predict(aim.start, v);
+      c.strokeStyle = pr.crash ? 'rgba(240,138,179,0.8)' : 'rgba(238,240,250,0.7)'; c.setLineDash([4, 5]); c.lineWidth = 1.2; c.beginPath();
+      c.moveTo(aim.p0[0], aim.p0[1]); pr.pts.forEach(function (p) { var q = toScreen(p[0], p[1]); c.lineTo(q[0], q[1]); }); c.stroke(); c.setLineDash([]);
+      c.strokeStyle = '#E9B467'; c.lineWidth = 2; c.beginPath(); c.moveTo(aim.p0[0], aim.p0[1]); c.lineTo(aim.p1[0], aim.p1[1]); c.stroke();
+      c.fillStyle = '#E9B467'; c.beginPath(); c.arc(aim.p0[0], aim.p0[1], 4, 0, 7); c.fill();
+      var r = Math.hypot(aim.start[0], aim.start[1]), circ = Math.sqrt(MU / r), esc = Math.sqrt(2 * MU / r);
+      c.font = '12px "JetBrains Mono", monospace'; c.fillStyle = '#EEF0FA';
+      var lbl = (sp / 1000).toFixed(2) + ' km/s · round needs ' + (circ / 1000).toFixed(2) + ', escape ' + (esc / 1000).toFixed(2);
+      var tw = c.measureText(lbl).width, lx = Math.max(8, Math.min(W - tw - 8, aim.p1[0] + 12)), ly = Math.max(16, aim.p1[1] - 12);
+      c.fillStyle = 'rgba(7,10,24,0.8)'; c.fillRect(lx - 4, ly - 13, tw + 8, 18); c.fillStyle = '#EEF0FA'; c.fillText(lbl, lx, ly);
+    }
+    if (!sats.length && !aim) {
+      c.fillStyle = 'rgba(238,240,250,0.75)'; c.font = '14px "Instrument Sans", sans-serif'; c.textAlign = 'center';
+      c.fillText('Press above the Earth, drag sideways, let go', W / 2, W * 0.12); c.textAlign = 'start';
+    }
+  }
+
+  var lastT = performance.now(), lastInfo = 0;
+  function frame(now) {
+    var dt = Math.min(0.05, (now - lastT) / 1000); lastT = now;
+    view += (viewT - view) * (reduce ? 1 : Math.min(1, dt * 4));
+    if (!paused) {
+      var T = dt * warp(); simT += T;
+      sats.forEach(function (s) {
+        if (!s.alive) return; advance(s, T);
+        s.trail.push(s.r.slice()); if (s.trail.length > 900) s.trail.shift();
+        if (s === sel && !s.alive) info();
+      });
+    }
+    if (now - lastInfo > 250) { lastInfo = now; if (sel && sel.alive) info(); }
+    draw(); requestAnimationFrame(frame);
+  }
+  window.addEventListener('resize', fit);
+  fit(); chal(); info(); requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
