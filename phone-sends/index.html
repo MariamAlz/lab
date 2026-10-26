@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>What Your Phone Sends · Mariam's Lab</title>
+<meta name="description" content="See, live, what any website can learn about your phone or computer without asking, what it can learn once you tap Allow, and how to block each one.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/phone-sends/">
+<meta property="og:title" content="What Your Phone Sends · Mariam's Lab"><meta property="og:description" content="What every website can see about your device, live, and how to hide it."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.fp { padding: 20px; border-radius: var(--radius); border: 1px solid var(--line); background: rgba(7, 10, 24, 0.82); }
+.fp b.h { display: block; font-family: var(--font-mono); font-size: clamp(1.2rem, 4vw, 1.9rem); color: var(--accent); word-break: break-all; }
+.fp p { color: var(--muted); font-size: 0.9rem; margin-top: 6px; }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 18px; }
+.item { padding: 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); display: grid; gap: 6px; align-content: start; }
+.item h3 { font-size: 1rem; font-weight: 700; display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.item h3 small { font-family: var(--font-mono); font-size: 0.7rem; font-weight: 400; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
+.item .v { font-family: var(--font-mono); font-size: 0.85rem; color: var(--ink); word-break: break-word; }
+.item p { color: var(--muted); font-size: 0.84rem; }
+.item details { font-size: 0.82rem; color: var(--muted); }
+.item summary { cursor: pointer; color: var(--sat-a); }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; justify-self: start; }
+.sm:hover { border-color: var(--muted); }
+.ask { border-color: color-mix(in srgb, var(--sat-c) 45%, var(--line)); }
+.motion { width: 100%; height: 80px; display: block; border-radius: 8px; background: rgba(7, 10, 24, 0.6); }
+h2.sub { font-size: var(--step-1); font-weight: 800; margin-top: 34px; }
+.sub + p { color: var(--muted); margin-top: 4px; max-width: 70ch; }
+.perm { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.perm li { font-size: 0.8rem; padding: 3px 10px; border-radius: 99px; border: 1px solid var(--line); }
+.ok { color: var(--sat-b); } .bad { color: var(--sat-c); } .meh { color: var(--accent); }
+@media (max-width: 700px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Privacy</span>
+    <h1 style="font-size:var(--step-3)">What your phone sends.</h1>
+    <p>Every website you open can quietly read dozens of small facts about your device. None of them is secret on its own, but together they can recognise you again without cookies. Here they are, read live from your device, with how to block each one. This page keeps nothing and sends nothing.</p>
+  </div>
+  <div class="fp">
+    <span class="label">Your device's fingerprint on this browser</span>
+    <b class="h" id="fp">…</b>
+    <p id="fpTxt">A code made from the facts below. If it stays the same when you come back tomorrow, in a private tab, or after clearing cookies, sites can use it to recognise you.</p>
+  </div>
+
+  <h2 class="sub">Seen without asking</h2>
+  <p>Any site and any advert can read these the moment the page loads. No pop-up, no permission.</p>
+  <div class="grid" id="free"></div>
+
+  <h2 class="sub">Seen after you tap "Allow"</h2>
+  <p>These need your permission. Try them: the data stays on this page and disappears when you leave.</p>
+  <ul class="perm" id="perm"></ul>
+  <div class="grid" id="ask"></div>
+  <p class="fact" style="margin-top:22px">Strongest everyday protection: Safari's "Advanced Tracking and Fingerprinting Protection" (Settings → Apps → Safari → Advanced) or Firefox with "Strict" tracking protection, or the Brave browser, which randomise or hide many of these values. A private tab clears cookies but not your fingerprint.</p>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var N = navigator, parts = [];
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function item(where, id, title, risk, val, why, block) {
+    var d = document.createElement('div'); d.className = 'item' + (where === 'ask' ? ' ask' : ''); d.id = id;
+    d.innerHTML = '<h3>' + title + '<small class="' + (risk === 'high' ? 'bad' : risk === 'medium' ? 'meh' : 'ok') + '">' + risk + '</small></h3><div class="v">' + val + '</div><p>' + why + '</p>' + (block ? '<details><summary>How to hide it</summary>' + block + '</details>' : '');
+    $(where).appendChild(d); return d;
+  }
+  function sha(s) { return crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)).then(function (h) { return Array.from(new Uint8Array(h)).map(function (x) { return ('0' + x.toString(16)).slice(-2); }).join(''); }); }
+
+  // ---- free facts ----
+  var tz = Intl.DateTimeFormat().resolvedOptions().timeZone, ua = N.userAgent;
+  function device() {
+    var m = ua.match(/iPhone|iPad|Android [\d.]+|Windows NT [\d.]+|Mac OS X [\d_]+|CrOS|Linux/); var b = ua.match(/(Edg|OPR|SamsungBrowser|Firefox|CriOS|Chrome|Version)\/([\d.]+)/);
+    var br = b ? ({ Edg: 'Edge', OPR: 'Opera', SamsungBrowser: 'Samsung Internet', CriOS: 'Chrome', Version: 'Safari' }[b[1]] || b[1]) + ' ' + b[2].split('.')[0] : 'unknown browser';
+    return (m ? m[0].replace(/_/g, '.') : 'unknown system') + ' · ' + br;
+  }
+  parts.push(ua);
+  item('free', 'ua', 'Phone or computer, and browser', 'low', esc(device()), 'Sent with every single request, even before the page loads. Sites use it to fit the layout, and trackers use it as a first clue.', 'You can\'t stop sending it, but Safari and Brave make many devices report the same value.');
+  if (N.userAgentData && N.userAgentData.getHighEntropyValues) N.userAgentData.getHighEntropyValues(['model', 'platformVersion', 'fullVersionList']).then(function (h) {
+    if (h.model) { $('ua').querySelector('.v').innerHTML += '<br>Model: ' + esc(h.model); parts.push(h.model); }
+  });
+  var langs = (N.languages || [N.language]).join(', '); parts.push(langs, tz);
+  item('free', 'lang', 'Your languages and time zone', 'medium', esc(langs) + '<br>' + esc(tz) + ' · UTC' + (function () { var o = -new Date().getTimezoneOffset() / 60; return (o >= 0 ? '+' : '') + o; })(), 'Narrows down where you live and which languages you read. Arabic plus English plus Asia/Dubai is a small crowd worldwide.', 'Only a VPN plus changing the device language and time zone hides this, which most people won\'t want.');
+  var scr = screen.width + ' × ' + screen.height + ' at ' + (window.devicePixelRatio || 1) + '×, ' + screen.colorDepth + '-bit colour'; parts.push(scr);
+  item('free', 'scr', 'Screen size and sharpness', 'medium', esc(scr) + '<br>Window: ' + innerWidth + ' × ' + innerHeight, 'Often enough to tell which phone model you have. Combined with the browser, it narrows you down a lot.', 'Safari\'s fingerprinting protection reports common values instead.');
+  var hw = (N.hardwareConcurrency || '?') + ' processor cores' + (N.deviceMemory ? ', about ' + N.deviceMemory + ' GB memory' : '') + (N.maxTouchPoints ? ', touch screen (' + N.maxTouchPoints + ' points)' : ', no touch screen'); parts.push(hw);
+  item('free', 'hw', 'Processor and memory', 'low', esc(hw), 'Tells a site roughly how powerful and how new your device is. Advertisers use it to guess what you can afford.', 'Brave and Firefox (resist fingerprinting) report fake round numbers.');
+  var gpu = 'not available';
+  try { var gl = document.createElement('canvas').getContext('webgl'); var ext = gl && gl.getExtension('WEBGL_debug_renderer_info'); if (gl) gpu = ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER); } catch (e) {}
+  parts.push(gpu);
+  item('free', 'gpu', 'Graphics chip', 'high', esc(gpu), 'The exact graphics chip is one of the strongest single clues. On laptops it can name the model; on phones it names the chip family.', 'Firefox with resist-fingerprinting and Brave hide the real name. Safari shows a generic "Apple GPU".');
+  var cvh = (function () { try { var c = document.createElement('canvas'); c.width = 240; c.height = 60; var x = c.getContext('2d'); x.textBaseline = 'top'; x.font = '16px Arial'; x.fillStyle = '#f60'; x.fillRect(100, 1, 62, 20); x.fillStyle = '#069'; x.fillText('Mariam\'s Lab 😀 مرحبا', 2, 15); x.fillStyle = 'rgba(102,204,0,0.7)'; x.fillText('Mariam\'s Lab 😀 مرحبا', 4, 17); return c.toDataURL(); } catch (e) { return ''; } })();
+  var canvasItem = item('free', 'cv', 'Hidden drawing test', 'high', '…', 'The site draws text and an emoji off-screen and reads back the pixels. Tiny differences in fonts, graphics and smoothing make the result nearly unique to your device.', 'Brave, Firefox (strict) and Safari add tiny random noise so the drawing changes every visit.');
+  sha(cvh).then(function (h) { canvasItem.querySelector('.v').textContent = 'Drawing code: ' + h.slice(0, 16); });
+  parts.push(cvh);
+  var prefs = [matchMedia('(prefers-color-scheme: dark)').matches ? 'dark mode' : 'light mode', matchMedia('(prefers-reduced-motion: reduce)').matches ? 'reduced motion on' : 'normal motion', matchMedia('(prefers-contrast: more)').matches ? 'high contrast' : null, matchMedia('(forced-colors: active)').matches ? 'forced colours' : null].filter(Boolean).join(', ');
+  parts.push(prefs);
+  item('free', 'prefs', 'Display and accessibility settings', 'low', esc(prefs), 'Lets pages adapt to you, which is good. It also adds a little to your fingerprint, and accessibility settings can hint at personal needs.', 'Nothing to block; just be aware it is visible.');
+  var cn = N.connection; var net = cn ? [cn.effectiveType && cn.effectiveType.toUpperCase() + '-like speed', cn.downlink ? '~' + cn.downlink + ' Mbps' : '', cn.rtt ? cn.rtt + ' ms delay' : '', cn.saveData ? 'data saver on' : ''].filter(Boolean).join(', ') : 'hidden by this browser';
+  item('free', 'net', 'Connection quality', 'low', esc(net), 'Chrome tells sites roughly how fast your connection is. Combined with the time of day, it can hint whether you are at home on Wi-Fi or out on mobile data.', 'Safari and Firefox don\'t share this.');
+  var batItem = item('free', 'bat', 'Battery', 'medium', N.getBattery ? 'reading…' : 'hidden by this browser', 'Some browsers share your exact battery level and whether you are charging. Studies showed sites could link visits by the level and how fast it drops.', 'Safari and Firefox removed this. Chrome still shares it.');
+  if (N.getBattery) N.getBattery().then(function (b) { batItem.querySelector('.v').textContent = Math.round(b.level * 100) + '%, ' + (b.charging ? 'charging' : 'not charging') + (isFinite(b.dischargingTime) ? ', about ' + Math.round(b.dischargingTime / 60) + ' min left' : ''); }).catch(function () { batItem.querySelector('.v').textContent = 'blocked'; });
+  var stItem = item('free', 'store', 'Free storage', 'low', N.storage && N.storage.estimate ? 'reading…' : 'hidden by this browser', 'The space a site may use is tied to your free disk space, which hints at your device size and how full it is.', 'Private tabs report a smaller, fake value.');
+  if (N.storage && N.storage.estimate) N.storage.estimate().then(function (e) { stItem.querySelector('.v').textContent = 'Quota offered: ' + (e.quota / 1e9).toFixed(1) + ' GB'; });
+  var mediaItem = item('free', 'media', 'Cameras and microphones', 'medium', 'counting…', 'Before asking you anything, a site can count how many cameras, microphones and speakers you have. That count is another clue.', 'Safari returns a fixed answer until you allow a camera. Others vary.');
+  if (N.mediaDevices && N.mediaDevices.enumerateDevices) N.mediaDevices.enumerateDevices().then(function (ds) { var c = { videoinput: 0, audioinput: 0, audiooutput: 0 }; ds.forEach(function (d) { c[d.kind]++; }); mediaItem.querySelector('.v').textContent = c.videoinput + ' camera(s), ' + c.audioinput + ' microphone(s), ' + c.audiooutput + ' speaker(s)'; parts.push(JSON.stringify(c)); }).catch(function () { mediaItem.querySelector('.v').textContent = 'blocked'; });
+  else mediaItem.querySelector('.v').textContent = 'hidden by this browser';
+
+  setTimeout(function () { sha(parts.join('|')).then(function (h) { $('fp').textContent = h.slice(0, 8) + ' ' + h.slice(8, 16) + ' ' + h.slice(16, 24); }); }, 600);
+
+  // ---- permissions ----
+  var PERMS = [['geolocation', 'Location'], ['camera', 'Camera'], ['microphone', 'Microphone'], ['notifications', 'Notifications'], ['clipboard-read', 'Clipboard']];
+  if (N.permissions) PERMS.forEach(function (p) {
+    N.permissions.query({ name: p[0] }).then(function (s) { var li = document.createElement('li'); li.innerHTML = p[1] + ': <span class="' + (s.state === 'granted' ? 'bad' : s.state === 'denied' ? 'ok' : 'meh') + '">' + ({ granted: 'allowed', denied: 'blocked', prompt: 'will ask' })[s.state] + '</span>'; $('perm').appendChild(li); }).catch(function () {});
+  });
+
+  var mo = item('ask', 'motion', 'Motion sensors', 'high', '<canvas class="motion" id="mcv"></canvas><button class="sm" type="button" id="mgo">Show my motion</button>', 'Shake or tilt your phone. Researchers have used these tiny movements to tell whether you are walking or driving, and even to guess PINs from how the phone tilts as you tap. On Android, Chrome shares them with no prompt at all.', 'iPhone: Safari asks first, so say no unless the site needs it. Android Chrome: Settings → Site settings → Motion sensors → Don\'t allow.');
+  $('mgo').onclick = function () {
+    var btn = this, c = $('mcv'), x = c.getContext('2d'), hist = [];
+    function start() {
+      btn.textContent = 'Listening… move your phone';
+      window.addEventListener('devicemotion', function (e) {
+        var a = e.accelerationIncludingGravity || {}; hist.push([a.x || 0, a.y || 0, a.z || 0]); if (hist.length > 120) hist.shift();
+        var W = c.width = c.clientWidth * 2, H = c.height = c.clientHeight * 2; x.clearRect(0, 0, W, H);
+        ['#F08AB3', '#4FD3BD', '#84A0FF'].forEach(function (col, k) { x.beginPath(); hist.forEach(function (v, i) { var px = i / 120 * W, py = H / 2 - v[k] / 20 * H / 2; i ? x.lineTo(px, py) : x.moveTo(px, py); }); x.strokeStyle = col; x.lineWidth = 3; x.stroke(); });
+      });
+      setTimeout(function () { if (!hist.length) btn.textContent = 'No motion sensor here (try on a phone)'; }, 2500);
+    }
+    if (typeof DeviceMotionEvent !== 'undefined' && DeviceMotionEvent.requestPermission) DeviceMotionEvent.requestPermission().then(function (s) { if (s === 'granted') start(); else btn.textContent = 'You said no. Good instinct.'; }).catch(function () { btn.textContent = 'Not allowed here'; });
+    else start();
+  };
+  item('ask', 'loc', 'Precise location', 'high', '<span id="locv">Not shared.</span><br><button class="sm" type="button" id="lgo" style="margin-top:6px">Show what a site would get</button>', 'With one tap of Allow, a site gets your position to within a few metres, often your exact building, and can keep asking while the page is open.', 'iPhone: Settings → Privacy → Location Services → Safari Websites → "While Using" and turn off Precise Location. Android: long-press the Chrome icon → App info → Permissions → Location → turn off "Use precise location".');
+  $('lgo').onclick = function () {
+    if (!N.geolocation) { $('locv').textContent = 'Not available.'; return; }
+    $('locv').textContent = 'Asking…';
+    N.geolocation.getCurrentPosition(function (p) { $('locv').textContent = p.coords.latitude.toFixed(5) + ', ' + p.coords.longitude.toFixed(5) + ' (within ' + Math.round(p.coords.accuracy) + ' m). Only shown here, never sent.'; }, function () { $('locv').textContent = 'Blocked or refused. Nothing shared.'; }, { enableHighAccuracy: true, timeout: 15000 });
+  };
+  item('ask', 'clip', 'Clipboard', 'high', '<span id="clipv">Not read.</span><br><button class="sm" type="button" id="cgo" style="margin-top:6px">Let this page read my clipboard</button>', 'Whatever you copied last, a password, an address or a one-time code, can be read by a page you allow. Some apps read it silently.', 'Only allow clipboard access on sites you trust, and clear it after copying passwords (copy a single space).');
+  $('cgo').onclick = function () {
+    if (!N.clipboard || !N.clipboard.readText) { $('clipv').textContent = 'This browser doesn\'t allow it, which is good.'; return; }
+    N.clipboard.readText().then(function (t) { $('clipv').textContent = t ? '"' + (t.length > 60 ? t.slice(0, 60) + '…' : t) + '" (' + t.length + ' characters, shown only to you)' : 'Your clipboard is empty.'; }, function () { $('clipv').textContent = 'Refused. Nothing read.'; });
+  };
+  item('ask', 'cam', 'Camera and microphone', 'high', 'This page won\'t ask for them.', 'Once allowed, a site can see and hear you while the tab is open. Phones now show a green or orange dot when the camera or microphone is on: watch for it.', 'iPhone: Settings → Apps → Safari → Camera / Microphone → Ask. Android Chrome: Settings → Site settings → Camera / Microphone, and remove sites you no longer use.');
+})();
+</script>
+</body>
+</html>
