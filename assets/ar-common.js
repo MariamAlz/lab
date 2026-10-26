@@ -378,3 +378,10 @@ LabAr.add({
  "Paste an SMS, WhatsApp or email in English or Arabic to see the scam tricks highlighted, every link checked against real UAE domains, and what to do next.": "الصق رسالة نصية أو واتساب أو بريدًا بالعربية أو الإنجليزية لترى حيل الاحتيال مميّزة، مع فحص كل رابط مقابل النطاقات الإماراتية الحقيقية، وماذا تفعل بعدها.",
  "Check a message →": "افحص رسالة ←"
 });
+/* index cards for newer tools */
+LabAr.add({
+ "Game · Psychology": "لعبة · علم النفس",
+ "Brain tricks": "خدع الدماغ",
+ "Stroop, reaction time, change blindness and memory span, against typical ranges.": "ستروب وزمن الاستجابة وعمى التغيير ومدى الذاكرة، مقارنة بالنطاقات المعتادة.",
+ "Test yourself →": "اختبر نفسك ←"
+});

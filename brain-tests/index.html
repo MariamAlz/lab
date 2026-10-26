@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Brain Tricks · Mariam's Lab</title>
+<meta name="description" content="Five classic psychology tests in your browser: the Stroop effect, reaction time, change blindness, digit span and Corsi blocks, with your result against typical ranges.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/brain-tests/">
+<meta property="og:title" content="Brain Tricks · Mariam's Lab"><meta property="og:description" content="Stroop, reaction time, change blindness and memory span, against typical ranges."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm[aria-pressed="true"], .sm.go1 { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.sm:disabled { opacity: .45; cursor: default; }
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0 6px; }
+.disc { margin-top: 12px; padding: 10px 14px; border: 1px solid rgba(255,200,87,.45); background: rgba(255,200,87,.07); border-radius: 10px; font-size: 0.86rem; }
+.tst[hidden] { display: none; }
+.tst h2 { font-family: var(--font-display); font-size: clamp(1.3rem, 3.4vw, 1.8rem); margin: 14px 0 4px; }
+.tst > p { color: var(--muted); max-width: 70ch; margin: 0 0 14px; }
+.btnrow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.msg { font-size: 0.9rem; color: var(--muted); min-height: 1.3em; margin: 0; }
+.stage { position: relative; min-height: 220px; border: 1px solid var(--line); border-radius: 14px; background: rgba(7,10,24,.6); display: grid; place-items: center; text-align: center; padding: 16px; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
+.sword { font-family: var(--font-display); font-weight: 800; font-size: clamp(2.6rem, 10vw, 4.4rem); letter-spacing: .02em; }
+html.ar .sword { font-family: 'IBM Plex Sans Arabic', sans-serif; font-weight: 700; }
+.cols { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.cbtn { font: inherit; font-size: 0.9rem; color: var(--ink); background: rgba(7,10,24,.7); border: 1px solid var(--line); border-radius: 10px; padding: 12px 4px; cursor: pointer; display: grid; gap: 6px; justify-items: center; }
+.cbtn i { width: 26px; height: 26px; border-radius: 50%; background: var(--c); }
+.cbtn small { font-family: var(--font-mono); font-size: 0.7rem; color: var(--muted); }
+.pad { cursor: pointer; font-family: var(--font-display); font-size: clamp(1.2rem, 4vw, 1.7rem); font-weight: 700; min-height: 240px; transition: background .05s; }
+.pad.wait { background: #5a1f2c; }
+.pad.go { background: #1f8f6a; }
+.pad.early { background: #6b4a12; }
+.pad .half { position: absolute; top: 0; bottom: 0; width: 50%; display: grid; place-items: center; }
+.pad .half.l { left: 0; border-right: 1px dashed var(--line); } .pad .half.r { right: 0; }
+.dot { width: 70px; height: 70px; border-radius: 50%; background: #ffc857; box-shadow: 0 0 30px rgba(255,200,87,.6); }
+canvas.cb { width: 100%; height: auto; display: block; border-radius: 12px; border: 1px solid var(--line); cursor: crosshair; touch-action: manipulation; }
+.digit { font-family: var(--font-mono); font-size: clamp(3rem, 12vw, 5rem); font-weight: 500; }
+.ent { font: inherit; font-family: var(--font-mono); font-size: 1.4rem; letter-spacing: .2em; color: var(--ink); background: rgba(7,10,24,.6); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; width: 100%; max-width: 16em; box-sizing: border-box; text-align: center; direction: ltr; }
+.corsi { position: relative; width: 100%; max-width: 460px; aspect-ratio: 1 / 0.8; margin: 0 auto; background: rgba(7,10,24,.6); border: 1px solid var(--line); border-radius: 14px; direction: ltr; touch-action: manipulation; }
+.corsi button { position: absolute; width: 15%; aspect-ratio: 1; border-radius: 10px; border: 0; background: #33406a; cursor: pointer; padding: 0; transform: translate(-50%, -50%); transition: background .08s; }
+.corsi button.lit { background: #ffc857; box-shadow: 0 0 22px rgba(255,200,87,.6); }
+.corsi button.tap { background: #4fd3bd; }
+.corsi button.bad { background: #ff7a8f; }
+.res { display: grid; gap: 8px; padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.res .bigv { font-family: var(--font-display); font-size: clamp(1.6rem, 5vw, 2.3rem); font-weight: 800; line-height: 1.1; }
+.res p { margin: 0; font-size: 0.9rem; }
+.rbar { position: relative; height: 14px; border-radius: 7px; background: rgba(255,255,255,.07); margin: 10px 0 2px; }
+.rbar i { position: absolute; top: 0; bottom: 0; background: rgba(79,211,189,.35); border-radius: 7px; }
+.rbar b { position: absolute; top: -5px; width: 4px; height: 24px; margin-left: -2px; background: #ffc857; border-radius: 2px; }
+.rlab { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 0.7rem; color: var(--muted); direction: ltr; }
+.rnote { font-size: 0.8rem; color: var(--muted); }
+.hist { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.hist li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 10px; align-items: baseline; padding: 8px 12px; border: 1px solid var(--line); border-radius: 10px; font-size: 0.88rem; }
+.hist li b { font-family: var(--font-mono); font-weight: 500; }
+.hist li small { color: var(--muted); font-size: 0.76rem; }
+.stats span { font-size: 0.76rem; color: var(--muted); }
+.kb { font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); }
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Game · Psychology · Memory</span>
+    <h1 style="font-size:var(--step-3)">Brain tricks.</h1>
+    <p>Five short tests that psychologists have used for decades to study attention and memory. Each takes a minute or two. You'll see your result next to the range most adults score, and a short note on what the test shows about how the brain works.</p>
+    <p class="disc"><b>Not a diagnostic test.</b> These are for fun and curiosity. Your device, screen, tiredness and practice all change the scores. If you're worried about your memory or attention, talk to a doctor.</p>
+  </div>
+  <div class="tabs" role="tablist" id="tabs">
+    <button class="sm" type="button" data-t="stroop" aria-pressed="true">Stroop</button>
+    <button class="sm" type="button" data-t="rt" aria-pressed="false">Reaction time</button>
+    <button class="sm" type="button" data-t="cb" aria-pressed="false">Change blindness</button>
+    <button class="sm" type="button" data-t="ds" aria-pressed="false">Digit span</button>
+    <button class="sm" type="button" data-t="corsi" aria-pressed="false">Corsi blocks</button>
+    <button class="sm" type="button" data-t="hist" aria-pressed="false">My history</button>
+  </div>
+
+  <section class="tst" id="t-stroop">
+    <h2>The Stroop test.</h2>
+    <p>Pick the <b>ink colour</b> of each word, not what the word says. Some words match their colour and some don't. You'll do 24 words. Go fast, but try not to make mistakes.</p>
+    <div class="game">
+      <div class="panel" style="gap:10px">
+        <div class="stage" id="sStage"><div><div class="sword" id="sWord" data-noar>…</div><p class="msg" id="sInfo">Press start when ready.</p></div></div>
+        <div class="cols" id="sBtns"></div>
+        <div class="btnrow"><button class="sm go1" type="button" id="sGo">Start</button><span class="kb">Keys 1 2 3 4</span></div>
+      </div>
+      <div class="panel" style="gap:10px">
+        <div class="res" id="sRes" hidden></div>
+        <p class="fact" style="margin:0">Reading is so automatic for adults that you can't switch it off. When the word says one colour and the ink shows another, your brain has to block the word before it can name the ink. That extra time is the <b>interference cost</b>. J. R. Stroop described it in 1935. It's smaller in a language you read less fluently, so try it in both English and Arabic.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="tst" id="t-rt" hidden>
+    <h2>Reaction time.</h2>
+    <p>Simple: tap the box, or press space, as soon as it turns green. Choice: a dot appears on the left or the right, and you tap that side (or press the left or right arrow key). Five tries each.</p>
+    <div class="game">
+      <div class="panel" style="gap:10px">
+        <div class="btnrow" role="group" aria-label="Mode"><button class="sm" type="button" id="rSimple" aria-pressed="true">Simple</button><button class="sm" type="button" id="rChoice" aria-pressed="false">Choice</button></div>
+        <div class="stage pad" id="rPad" tabindex="0"><span id="rTxt">Tap here to start</span></div>
+        <div class="stats"><div><b id="rLast">–</b><span>last try</span></div><div><b id="rN">0 / 5</b><span>tries</span></div><div><b id="rErr">0</b><span>false starts or wrong side</span></div></div>
+      </div>
+      <div class="panel" style="gap:10px">
+        <div class="res" id="rRes" hidden></div>
+        <p class="fact" style="margin:0">Light hits your eye, the signal travels to the visual cortex, a decision is made, and a command runs down to your finger. That chain takes about a quarter of a second. Adding a choice adds decision time: Hick's law says it grows with the number of options. Touchscreens and wireless keyboards add 20 to 100 ms of their own, so compare yourself on the same device.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="tst" id="t-cb" hidden>
+    <h2>Change blindness.</h2>
+    <p>Two versions of the same scene flicker back and forth with a blank flash in between. One thing is different. Tap it when you spot it.</p>
+    <div class="game">
+      <div class="panel" style="gap:10px">
+        <canvas class="cb" id="cCan" width="600" height="380" aria-label="Flickering scene"></canvas>
+        <div class="btnrow"><button class="sm go1" type="button" id="cGo">Start a scene</button><button class="sm" type="button" id="cGive" disabled>Show me</button><span class="kb" id="cClock"></span></div>
+        <p class="msg" id="cMsg" role="status"></p>
+      </div>
+      <div class="panel" style="gap:10px">
+        <div class="res" id="cRes" hidden></div>
+        <p class="fact" style="margin:0">Without the blank flash, the change would jump out, because your eyes are wired to notice motion. The flash hides that signal, so you have to compare the scenes from memory. It turns out we store far less of what we see than it feels like. Ronald Rensink and colleagues showed in 1997 that people often need many cycles, sometimes a minute or more, to find a large change. The scenes here are drawn fresh by your browser each time.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="tst" id="t-ds" hidden>
+    <h2>Digit span.</h2>
+    <p>Digits appear one at a time. Then type them back. Forward means in the same order. Backward means in reverse, which is much harder. The list grows by one each time you get it right. Two misses at the same length ends the test.</p>
+    <div class="game">
+      <div class="panel" style="gap:10px">
+        <div class="btnrow" role="group" aria-label="Direction"><button class="sm" type="button" id="dF" aria-pressed="true">Forward</button><button class="sm" type="button" id="dB" aria-pressed="false">Backward</button></div>
+        <div class="stage" id="dStage"><div style="display:grid;gap:10px;justify-items:center;width:100%"><div class="digit" id="dDig">–</div><input class="ent" id="dIn" inputmode="numeric" autocomplete="off" hidden aria-label="Type the digits"><p class="msg" id="dMsg">Press start when ready.</p></div></div>
+        <div class="btnrow"><button class="sm go1" type="button" id="dGo">Start</button><button class="sm" type="button" id="dOk" hidden>Check</button></div>
+      </div>
+      <div class="panel" style="gap:10px">
+        <div class="res" id="dRes" hidden></div>
+        <p class="fact" style="margin:0">George Miller's famous 1956 paper called it "the magical number seven, plus or minus two". Most adults hold about 6 or 7 digits forward and 4 or 5 backward. Reversing the list needs you to hold it and work on it at the same time, which is what psychologists call working memory. Grouping digits, like a phone number, helps you hold more.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="tst" id="t-corsi" hidden>
+    <h2>Corsi blocks.</h2>
+    <p>The blocks light up one by one. Then tap them in the same order. It starts with 2 and grows by one each time you get it right. Two misses at the same length ends the test.</p>
+    <div class="game">
+      <div class="panel" style="gap:10px">
+        <div class="corsi" id="kBoard"></div>
+        <div class="btnrow"><button class="sm go1" type="button" id="kGo">Start</button></div>
+        <p class="msg" id="kMsg" role="status">Press start when ready.</p>
+      </div>
+      <div class="panel" style="gap:10px">
+        <div class="res" id="kRes" hidden></div>
+        <p class="fact" style="margin:0">This is the visual partner of digit span. Philip Corsi designed it in 1972 with nine wooden blocks on a board. It measures how many places you can keep in mind, without words to help. Adults usually manage about 5 or 6. Most people find it a little shorter than their digit span, because we can't silently repeat locations the way we repeat numbers.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="tst" id="t-hist" hidden>
+    <h2>My history.</h2>
+    <p>Your results are saved in this browser only. Nothing is sent anywhere.</p>
+    <ul class="hist" id="hList"></ul>
+    <div class="btnrow" style="margin-top:12px"><button class="sm" type="button" id="hClear">Clear history</button></div>
+  </section>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var AR = !!(window.LabAr && LabAr.on);
+  var now = function () { return performance.now(); };
+  function mean(a) { return a.reduce(function (s, x) { return s + x; }, 0) / (a.length || 1); }
+  function median(a) { var b = a.slice().sort(function (x, y) { return x - y; }), m = b.length >> 1; return b.length % 2 ? b[m] : (b[m - 1] + b[m]) / 2; }
+  function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  var wait = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
+
+  // ---------- tabs ----------
+  var cur = 'stroop';
+  $('tabs').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-t]'); if (!b) return; cur = b.dataset.t;
+    [].forEach.call($('tabs').children, function (x) { x.setAttribute('aria-pressed', x === b); });
+    [].forEach.call(document.querySelectorAll('.tst'), function (s) { s.hidden = s.id !== 't-' + cur; });
+    if (cur === 'hist') hRender();
+  });
+
+  // ---------- history ----------
+  var KEY = 'brainTests';
+  function hLoad() { try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) { return []; } }
+  function hAdd(k, v, extra) { var h = hLoad(); h.push({ k: k, v: v, x: extra || '', at: Date.now() }); try { localStorage.setItem(KEY, JSON.stringify(h.slice(-200))); } catch (e) {} }
+  var NAMES = { stroop: 'Stroop interference', rts: 'Simple reaction time', rtc: 'Choice reaction time', cb: 'Change blindness', dsf: 'Digit span forward', dsb: 'Digit span backward', corsi: 'Corsi span' };
+  var UNIT = { stroop: ' ms', rts: ' ms', rtc: ' ms', cb: ' s', dsf: '', dsb: '', corsi: '' };
+  var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  function hRender() {
+    var h = hLoad().slice().reverse();
+    if (!h.length) { $('hList').innerHTML = '<li><span>No results yet. Try a test.</span></li>'; return; }
+    var best = {};
+    hLoad().forEach(function (r) { var lower = /^(stroop|rts|rtc|cb)$/.test(r.k); if (best[r.k] == null || (lower ? r.v < best[r.k] : r.v > best[r.k])) best[r.k] = r.v; });
+    $('hList').innerHTML = h.map(function (r) {
+      var d = new Date(r.at);
+      return '<li><span>' + (NAMES[r.k] || r.k) + (r.v === best[r.k] ? ' <small>best</small>' : '') + '</span><b>' + fmtV(r.k, r.v) + '</b><small><span>' + d.getDate() + '</span> <span>' + MON[d.getMonth()] + '</span></small></li>';
+    }).join('');
+  }
+  function fmtV(k, v) { return k === 'cb' ? v.toFixed(1) + ' s' : Math.round(v) + UNIT[k]; }
+  $('hClear').onclick = function () { if (confirm('Clear all saved results?')) { try { localStorage.removeItem(KEY); } catch (e) {} hRender(); } };
+
+  // result card: value, verdict, a bar with the typical range shaded
+  function result(el, o) {
+    var span = o.max - o.min, p = function (v) { return Math.max(0, Math.min(100, (v - o.min) / span * 100)); };
+    var verdict = o.val < o.lo ? o.below : o.val > o.hi ? o.above : o.mid;
+    el.hidden = false;
+    el.innerHTML = '<span class="label">' + o.title + '</span><div class="bigv">' + o.show + '</div><p>' + verdict + '</p>' +
+      '<div class="rbar ltr"><i style="left:' + p(o.lo) + '%;width:' + (p(o.hi) - p(o.lo)) + '%"></i><b style="left:' + p(o.val) + '%"></b></div>' +
+      '<div class="rlab"><span>' + o.min + o.u + '</span><span>' + o.max + o.u + '</span></div>' +
+      '<p class="rnote">' + o.typ + '</p>' + (o.more ? '<p class="rnote">' + o.more + '</p>' : '');
+  }
+
+  // ---------- Stroop ----------
+  var COLS = [{ en: 'RED', ar: 'أحمر', c: '#ff4d4d', n: 'Red' }, { en: 'GREEN', ar: 'أخضر', c: '#3ad06b', n: 'Green' }, { en: 'BLUE', ar: 'أزرق', c: '#4d8dff', n: 'Blue' }, { en: 'YELLOW', ar: 'أصفر', c: '#ffd23d', n: 'Yellow' }];
+  $('sBtns').innerHTML = COLS.map(function (c, i) { return '<button type="button" class="cbtn" data-c="' + i + '" style="--c:' + c.c + '"><i></i><span>' + c.n + '</span><small>' + (i + 1) + '</small></button>'; }).join('');
+  var sx = null;
+  function sTrial() {
+    var t = sx.trials[sx.i];
+    $('sWord').textContent = '+'; $('sWord').style.color = 'var(--muted)';
+    sx.ready = false;
+    setTimeout(function () {
+      if (!sx || !sx.run) return;
+      $('sWord').textContent = AR ? COLS[t.w].ar : COLS[t.w].en; $('sWord').style.color = COLS[t.c].c;
+      sx.t0 = now(); sx.ready = true;
+    }, 400 + Math.random() * 300);
+    $('sInfo').textContent = 'Word ' + (sx.i + 1) + ' of ' + sx.trials.length;
+  }
+  function sAnswer(ci) {
+    if (!sx || !sx.run || !sx.ready) return;
+    var t = sx.trials[sx.i], rt = now() - sx.t0; sx.ready = false;
+    t.rt = rt; t.ok = ci === t.c; sx.i++;
+    if (!t.ok) { $('sWord').textContent = '✗'; $('sWord').style.color = '#ff7a8f'; }
+    if (sx.i >= sx.trials.length) return sDone();
+    setTimeout(sTrial, t.ok ? 0 : 400);
+  }
+  function stroopScore(trials) {
+    var ok = trials.filter(function (t) { return t.ok && t.rt > 150 && t.rt < 4000; });
+    var con = ok.filter(function (t) { return t.w === t.c; }).map(function (t) { return t.rt; }), inc = ok.filter(function (t) { return t.w !== t.c; }).map(function (t) { return t.rt; });
+    return { con: median(con), inc: median(inc), cost: median(inc) - median(con), err: trials.filter(function (t) { return !t.ok; }).length };
+  }
+  function sDone() {
+    sx.run = false; $('sWord').textContent = '✓'; $('sWord').style.color = '#4fd3bd'; $('sInfo').textContent = 'Done. Press start to go again.'; $('sGo').disabled = false;
+    var r = stroopScore(sx.trials);
+    if (!isFinite(r.cost)) { $('sInfo').textContent = 'Too many mistakes to score. Try again.'; return; }
+    hAdd('stroop', r.cost);
+    result($('sRes'), { title: 'Your interference cost', show: Math.round(r.cost) + ' ms', val: r.cost, min: -100, max: 400, lo: 50, hi: 150, u: ' ms',
+      below: 'Smaller than typical. Reading in this language may be less automatic for you, or you found a good strategy.', mid: 'In the typical range.', above: 'Larger than typical. Clicking with a mouse or tapping adds extra decision time, and a second go is usually faster.',
+      typ: 'Typical: about 50 to 150 ms slower on mismatched words when answering with keys or taps (MacLeod, 1991 review). Saying the colours out loud gives bigger costs.',
+      more: 'Matching words: ' + Math.round(r.con) + ' ms. Mismatched words: ' + Math.round(r.inc) + ' ms. Mistakes: ' + r.err + ' of ' + sx.trials.length + '.' });
+  }
+  $('sGo').onclick = function () {
+    var tr = [];
+    for (var k = 0; k < 12; k++) { var c = k % 4; tr.push({ w: c, c: c }); var w = (c + 1 + Math.floor(Math.random() * 3)) % 4; tr.push({ w: w, c: c }); }
+    sx = { trials: shuffle(tr), i: 0, run: true }; $('sGo').disabled = true; $('sRes').hidden = true; sTrial();
+  };
+  $('sBtns').addEventListener('click', function (e) { var b = e.target.closest('[data-c]'); if (b) sAnswer(+b.dataset.c); });
+
+  // ---------- Reaction time ----------
+  var rx = { mode: 's', n: 0, times: [], err: 0, state: 'idle', side: 0, timer: null };
+  function rMode(m) { rx = { mode: m, n: 0, times: [], err: 0, state: 'idle' }; $('rSimple').setAttribute('aria-pressed', m === 's'); $('rChoice').setAttribute('aria-pressed', m === 'c'); rIdle('Tap here to start'); $('rRes').hidden = true; $('rN').textContent = '0 / 5'; $('rErr').textContent = '0'; $('rLast').textContent = '–'; }
+  function rIdle(t) { $('rPad').className = 'stage pad'; $('rPad').innerHTML = '<span>' + t + '</span>'; }
+  function rArm() {
+    rx.state = 'wait'; $('rPad').className = 'stage pad wait';
+    $('rPad').innerHTML = rx.mode === 's' ? '<span>Wait for green…</span>' : '<div class="half l"></div><div class="half r"></div><span>Watch for the dot…</span>';
+    rx.timer = setTimeout(function () {
+      rx.state = 'go'; rx.t0 = now();
+      if (rx.mode === 's') { $('rPad').className = 'stage pad go'; $('rPad').innerHTML = '<span>Tap!</span>'; }
+      else { rx.side = Math.random() < 0.5 ? 0 : 1; $('rPad').innerHTML = '<div class="half l">' + (rx.side ? '' : '<div class="dot"></div>') + '</div><div class="half r">' + (rx.side ? '<div class="dot"></div>' : '') + '</div>'; }
+    }, 1200 + Math.random() * 2800);
+  }
+  function rHit(side) {
+    if (rx.state === 'idle' || rx.state === 'shown') { if (rx.n >= 5) rMode(rx.mode); rArm(); return; }
+    if (rx.state === 'wait') { clearTimeout(rx.timer); rx.err++; $('rErr').textContent = rx.err; rx.state = 'shown'; $('rPad').className = 'stage pad early'; $('rPad').innerHTML = '<span>Too early! Tap to try again.</span>'; return; }
+    if (rx.state === 'go') {
+      var t = now() - rx.t0;
+      if (rx.mode === 'c' && side !== rx.side) { rx.err++; $('rErr').textContent = rx.err; rx.state = 'shown'; rIdle('Wrong side. Tap to try again.'); return; }
+      rx.times.push(t); rx.n++; $('rLast').textContent = Math.round(t) + ' ms'; $('rN').textContent = rx.n + ' / 5';
+      rx.state = 'shown';
+      if (rx.n >= 5) { rIdle(Math.round(t) + ' ms. All done. Tap to go again.'); rDone(); } else rIdle(Math.round(t) + ' ms. Tap for the next one.');
+    }
+  }
+  function rDone() {
+    var m = median(rx.times), s = rx.mode === 's';
+    hAdd(s ? 'rts' : 'rtc', m);
+    result($('rRes'), { title: s ? 'Your simple reaction time' : 'Your choice reaction time', show: Math.round(m) + ' ms', val: m, min: 100, max: 700, u: ' ms', lo: s ? 200 : 300, hi: s ? 300 : 450,
+      below: 'Faster than typical. Nice reflexes.', mid: 'In the typical range.', above: 'Slower than typical. Device delay, tiredness and practice all matter, so try again later.',
+      typ: s ? 'Typical: about 200 to 300 ms for adults on a keyboard or mouse, slower on most phones. It rises slowly with age, roughly 2 to 6 ms per decade.' : 'Typical: about 300 to 450 ms. A choice adds roughly 100 ms or more to the simple time.',
+      more: 'Median of 5 tries. False starts and wrong taps: ' + rx.err + '.' });
+  }
+  $('rPad').addEventListener('pointerdown', function (e) { e.preventDefault(); var r = $('rPad').getBoundingClientRect(); rHit(e.clientX - r.left < r.width / 2 ? 0 : 1); });
+  $('rSimple').onclick = function () { rMode('s'); }; $('rChoice').onclick = function () { rMode('c'); };
+
+  // ---------- Change blindness ----------
+  function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; var t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+  function makeScene(seed) {
+    var R = rng(seed), o = [], pick = function (a) { return a[Math.floor(R() * a.length)]; };
+    var WALL = ['#e8d3a8', '#d9b98a', '#f0e6d2', '#c9a27a', '#e3c9a0'], CAR = ['#d64545', '#3b6fd6', '#f0f0f0', '#2a2a2a', '#e0b030', '#3aa36a'], DOOR = ['#7a4a26', '#3d5a80', '#2f6b4f', '#8c2f39'];
+    var sc = { sky: R() < 0.5 ? ['#7fb8e6', '#d9eefb'] : ['#f2a65a', '#fbe3b8'], dune: ['#d8b07a', '#c49660'], objs: o, R: R };
+    o.push({ t: 'sun', x: 60 + R() * 480, y: 40 + R() * 30, r: 24 });
+    for (var i = 0; i < 2 + Math.floor(R() * 2); i++) o.push({ t: 'cloud', x: 40 + R() * 520, y: 40 + R() * 60, w: 60 + R() * 50 });
+    for (i = 0; i < 2 + Math.floor(R() * 3); i++) o.push({ t: 'bird', x: 80 + R() * 440, y: 60 + R() * 70 });
+    var xs = shuffleR([40, 165, 290, 415], R).slice(0, 3).sort(function (a, b) { return a - b; });
+    xs.forEach(function (x) {
+      var w = 95 + R() * 25, h = 70 + R() * 50, y = 300 - h, col = pick(WALL);
+      o.push({ t: 'house', x: x, y: y, w: w, h: h, c: col });
+      var nw = Math.floor(R() * 2) + 2;
+      for (var k = 0; k < nw; k++) o.push({ t: 'win', x: x + 10 + k * (w - 20) / nw + 4, y: y + 14, w: Math.min(20, (w - 20) / nw - 8), h: 16, c: R() < 0.3 ? '#ffd27a' : '#2f4a66' });
+      o.push({ t: 'door', x: x + w / 2 - 10, y: 300 - 32, w: 20, h: 32, c: pick(DOOR) });
+    });
+    for (i = 0; i < 2 + Math.floor(R() * 2); i++) o.push({ t: 'palm', x: 20 + R() * 560, y: 300 + R() * 20, h: 70 + R() * 40 });
+    o.push({ t: 'flag', x: 30 + R() * 540, y: 300, c: pick(['#00843d', '#ef3340', '#ffffff']) });
+    for (i = 0; i < 1 + Math.floor(R() * 2); i++) o.push({ t: 'car', x: 20 + R() * 500, y: 330 + R() * 25, c: pick(CAR) });
+    o.push({ t: 'lamp', x: 30 + R() * 540, y: 320 });
+    return sc;
+  }
+  function shuffleR(a, R) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(R() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function bbox(b) {
+    switch (b.t) {
+      case 'sun': return [b.x - b.r, b.y - b.r, b.r * 2, b.r * 2];
+      case 'cloud': return [b.x - b.w / 2, b.y - 18, b.w, 34];
+      case 'bird': return [b.x - 10, b.y - 6, 20, 10];
+      case 'house': case 'win': case 'door': return [b.x, b.y, b.w, b.h];
+      case 'palm': return [b.x - 30, b.y - b.h - 18, 60, b.h + 18];
+      case 'flag': return [b.x - 2, b.y - 90, 42, 90];
+      case 'car': return [b.x, b.y - 22, 62, 30];
+      case 'lamp': return [b.x - 8, b.y - 70, 16, 70];
+    }
+  }
+  function drawObj(x, b) {
+    x.save();
+    switch (b.t) {
+      case 'sun': x.fillStyle = '#fff2b0'; x.beginPath(); x.arc(b.x, b.y, b.r, 0, 7); x.fill(); break;
+      case 'cloud': x.fillStyle = 'rgba(255,255,255,.92)'; [[-0.3, 0, 0.28], [0, -6, 0.33], [0.3, 0, 0.26]].forEach(function (p) { x.beginPath(); x.arc(b.x + p[0] * b.w, b.y + p[1], p[2] * b.w * 0.6, 0, 7); x.fill(); }); break;
+      case 'bird': x.strokeStyle = '#2a2a3a'; x.lineWidth = 2; x.beginPath(); x.moveTo(b.x - 9, b.y - 4); x.quadraticCurveTo(b.x - 4, b.y - 7, b.x, b.y); x.quadraticCurveTo(b.x + 4, b.y - 7, b.x + 9, b.y - 4); x.stroke(); break;
+      case 'house': x.fillStyle = b.c; x.fillRect(b.x, b.y, b.w, b.h); x.fillStyle = 'rgba(0,0,0,.12)'; x.fillRect(b.x - 3, b.y - 6, b.w + 6, 7); for (var k = 0; k < b.w; k += 12) x.fillRect(b.x + k, b.y - 12, 6, 6); break;
+      case 'win': x.fillStyle = b.c; x.fillRect(b.x, b.y, b.w, b.h); x.strokeStyle = 'rgba(0,0,0,.35)'; x.strokeRect(b.x, b.y, b.w, b.h); break;
+      case 'door': x.fillStyle = b.c; x.beginPath(); x.moveTo(b.x, b.y + b.h); x.lineTo(b.x, b.y + 8); x.arc(b.x + b.w / 2, b.y + 8, b.w / 2, Math.PI, 0); x.lineTo(b.x + b.w, b.y + b.h); x.fill(); break;
+      case 'palm':
+        x.strokeStyle = '#7a5a36'; x.lineWidth = 6; x.beginPath(); x.moveTo(b.x, b.y); x.quadraticCurveTo(b.x + 8, b.y - b.h / 2, b.x + 2, b.y - b.h); x.stroke();
+        x.strokeStyle = '#2f7d3a'; x.lineWidth = 4; [-1, -0.5, 0.5, 1, 0].forEach(function (d) { x.beginPath(); x.moveTo(b.x + 2, b.y - b.h); x.quadraticCurveTo(b.x + 2 + d * 16, b.y - b.h - 16, b.x + 2 + d * 28, b.y - b.h + 8 + (d === 0 ? -24 : 0)); x.stroke(); });
+        break;
+      case 'flag': x.fillStyle = '#9aa0a8'; x.fillRect(b.x, b.y - 90, 3, 90); x.fillStyle = b.c; x.fillRect(b.x + 3, b.y - 88, 36, 22); break;
+      case 'car': x.fillStyle = b.c; x.beginPath(); x.moveTo(b.x, b.y); x.lineTo(b.x, b.y - 12); x.lineTo(b.x + 14, b.y - 12); x.lineTo(b.x + 22, b.y - 22); x.lineTo(b.x + 44, b.y - 22); x.lineTo(b.x + 52, b.y - 12); x.lineTo(b.x + 62, b.y - 10); x.lineTo(b.x + 62, b.y); x.fill();
+        x.fillStyle = '#9fc6e6'; x.fillRect(b.x + 24, b.y - 19, 8, 7); x.fillRect(b.x + 35, b.y - 19, 8, 7);
+        x.fillStyle = '#1a1a1a'; [b.x + 14, b.x + 48].forEach(function (wx) { x.beginPath(); x.arc(wx, b.y, 6, 0, 7); x.fill(); }); break;
+      case 'lamp': x.fillStyle = '#555c66'; x.fillRect(b.x - 1.5, b.y - 70, 3, 70); x.fillRect(b.x - 1.5, b.y - 70, 12, 3); x.fillStyle = '#ffe9a6'; x.fillRect(b.x + 6, b.y - 67, 6, 4); break;
+    }
+    x.restore();
+  }
+  function drawScene(x, sc, objs) {
+    var g = x.createLinearGradient(0, 0, 0, 300); g.addColorStop(0, sc.sky[0]); g.addColorStop(1, sc.sky[1]); x.fillStyle = g; x.fillRect(0, 0, 600, 380);
+    x.fillStyle = sc.dune[0]; x.beginPath(); x.moveTo(0, 290); x.bezierCurveTo(150, 250, 300, 310, 600, 270); x.lineTo(600, 380); x.lineTo(0, 380); x.fill();
+    var under = objs.filter(function (b) { return b.t !== 'car'; }), cars = objs.filter(function (b) { return b.t === 'car'; });
+    under.forEach(function (b) { drawObj(x, b); });
+    x.fillStyle = sc.dune[1]; x.fillRect(0, 318, 600, 62); x.fillStyle = '#4a4a50'; x.fillRect(0, 336, 600, 28);
+    x.strokeStyle = '#d8d8d8'; x.setLineDash([16, 14]); x.beginPath(); x.moveTo(0, 350); x.lineTo(600, 350); x.stroke(); x.setLineDash([]);
+    cars.forEach(function (b) { drawObj(x, b); });
+  }
+  function makeChange(sc, R) {
+    var cand = sc.objs.map(function (b, i) { return i; }).filter(function (i) { return sc.objs[i].t !== 'house' || R() < 0.3; });
+    var i = cand[Math.floor(R() * cand.length)], b = sc.objs[i], nb = JSON.parse(JSON.stringify(b)), kind;
+    if (b.c && R() < 0.5) {
+      var alt = { win: ['#ffd27a', '#2f4a66'], door: ['#7a4a26', '#3d5a80', '#2f6b4f', '#8c2f39'], car: ['#d64545', '#3b6fd6', '#f0f0f0', '#e0b030', '#3aa36a'], flag: ['#00843d', '#ef3340', '#ffffff'], house: ['#e8d3a8', '#c9a27a', '#f0e6d2'] }[b.t] || ['#888'];
+      nb.c = alt.filter(function (c) { return c !== b.c; })[0]; kind = 'colour';
+    } else if (b.t === 'sun' || b.t === 'cloud' || b.t === 'car' || b.t === 'bird') { nb.x += (R() < 0.5 ? -1 : 1) * (40 + R() * 30); nb.x = Math.max(30, Math.min(540, nb.x)); kind = 'moved'; }
+    else { nb = null; kind = 'gone'; }
+    var A = sc.objs, B = A.slice(); if (nb) B[i] = nb; else B.splice(i, 1);
+    var b1 = bbox(b), b2 = nb ? bbox(nb) : b1, x0 = Math.min(b1[0], b2[0]), y0 = Math.min(b1[1], b2[1]);
+    return { A: A, B: B, box: [x0 - 14, y0 - 14, Math.max(b1[0] + b1[2], b2[0] + b2[2]) - x0 + 28, Math.max(b1[1] + b1[3], b2[1] + b2[3]) - y0 + 28], kind: kind, what: b.t };
+  }
+  var cx = null, cCtx = $('cCan').getContext('2d');
+  function cStop() { if (cx) { clearTimeout(cx.timer); clearInterval(cx.clock); cx.on = false; } }
+  function cIntro() {
+    var sc = makeScene(7); drawScene(cCtx, sc, sc.objs);
+    cCtx.fillStyle = 'rgba(7,10,24,.6)'; cCtx.fillRect(0, 0, 600, 380); cCtx.fillStyle = '#fff'; cCtx.font = '600 22px Instrument Sans, sans-serif'; cCtx.textAlign = 'center'; cCtx.fillText('Press "Start a scene"', 300, 196);
+  }
+  $('cGo').onclick = function () {
+    cStop();
+    var seed = (Math.random() * 1e9) | 0, sc = makeScene(seed), ch = makeChange(sc, sc.R), c = document.createElement('canvas'); c.width = 600; c.height = 380;
+    var a = document.createElement('canvas'); a.width = 600; a.height = 380; drawScene(a.getContext('2d'), sc, ch.A); drawScene(c.getContext('2d'), sc, ch.B);
+    cx = { a: a, b: c, ch: ch, on: true, t0: now(), phase: 0, miss: 0 };
+    var seq = [[a, 240], [null, 80], [c, 240], [null, 80]];
+    (function step() { if (!cx.on) return; var s = seq[cx.phase % 4]; if (s[0]) cCtx.drawImage(s[0], 0, 0); else { cCtx.fillStyle = '#808080'; cCtx.fillRect(0, 0, 600, 380); } cx.phase++; cx.timer = setTimeout(step, s[1]); })();
+    cx.clock = setInterval(function () { $('cClock').textContent = ((now() - cx.t0) / 1000).toFixed(0) + ' s'; }, 250);
+    $('cGive').disabled = false; $('cMsg').textContent = 'Tap the part of the picture that changes.'; $('cRes').hidden = true;
+  };
+  function cReveal(found) {
+    var t = (now() - cx.t0) / 1000; cStop(); $('cGive').disabled = true;
+    cCtx.drawImage(cx.b, 0, 0); var bx = cx.ch.box;
+    cCtx.strokeStyle = found ? '#4fd3bd' : '#ff7a8f'; cCtx.lineWidth = 4; cCtx.strokeRect(bx[0], bx[1], bx[2], bx[3]);
+    var WHAT = { sun: 'the sun', cloud: 'a cloud', bird: 'a bird', house: 'a house', win: 'a window', door: 'a door', palm: 'a palm tree', flag: 'the flag', car: 'a car', lamp: 'a street lamp' };
+    $('cMsg').textContent = (found ? 'Found it: ' : 'Here it is: ') + WHAT[cx.ch.what] + ' ' + { colour: 'changed colour.', moved: 'moved.', gone: 'disappeared.' }[cx.ch.kind];
+    if (found) {
+      hAdd('cb', t);
+      result($('cRes'), { title: 'Time to spot the change', show: t.toFixed(1) + ' s', val: t, min: 0, max: 60, lo: 5, hi: 25, u: ' s',
+        below: 'Quicker than most. You may have been watching the right spot.', mid: 'In the typical range.', above: 'Slower than most, which is completely normal for this test. Some changes take people over a minute.',
+        typ: 'Typical: roughly 5 to 25 seconds, depending on how important the changed object is to the scene (Rensink, O\'Regan and Clark, 1997).',
+        more: cx.miss ? 'Wrong taps before finding it: ' + cx.miss + '.' : '' });
+    }
+  }
+  $('cGive').onclick = function () { if (cx && cx.on) cReveal(false); };
+  $('cCan').addEventListener('pointerdown', function (e) {
+    if (!cx || !cx.on) return;
+    var r = $('cCan').getBoundingClientRect(), px = (e.clientX - r.left) * 600 / r.width, py = (e.clientY - r.top) * 380 / r.height, b = cx.ch.box;
+    if (px >= b[0] && px <= b[0] + b[2] && py >= b[1] && py <= b[1] + b[3]) cReveal(true);
+    else { cx.miss++; $('cMsg').textContent = 'Not there. Keep looking.'; }
+  });
+
+  // ---------- Digit span ----------
+  var dx = null, dMode = 'f';
+  function dSet(m) { dMode = m; $('dF').setAttribute('aria-pressed', m === 'f'); $('dB').setAttribute('aria-pressed', m === 'b'); }
+  $('dF').onclick = function () { if (!dx || !dx.run) dSet('f'); }; $('dB').onclick = function () { if (!dx || !dx.run) dSet('b'); };
+  async function dShow() {
+    var seq = [], len = dx.len; for (var i = 0; i < len; i++) { var d; do { d = Math.floor(Math.random() * 10); } while (seq.length && d === seq[seq.length - 1]); seq.push(d); }
+    dx.seq = seq; $('dIn').hidden = true; $('dOk').hidden = true; $('dMsg').textContent = 'Watch. ' + len + ' digits.';
+    await wait(700);
+    for (i = 0; i < len; i++) { $('dDig').textContent = seq[i]; await wait(800); $('dDig').textContent = ''; await wait(200); if (!dx.run) return; }
+    $('dDig').textContent = '?'; $('dIn').value = ''; $('dIn').hidden = false; $('dOk').hidden = false; $('dIn').focus();
+    $('dMsg').textContent = dMode === 'f' ? 'Type them in the same order.' : 'Type them in reverse order.';
+  }
+  function dCheck() {
+    if (!dx || !dx.run || $('dIn').hidden) return;
+    var want = (dMode === 'f' ? dx.seq : dx.seq.slice().reverse()).join(''), got = $('dIn').value.replace(/\D/g, '');
+    if (got === want) { dx.best = dx.len; dx.len++; dx.miss = 0; $('dMsg').textContent = 'Correct!'; }
+    else { dx.miss++; $('dMsg').textContent = 'Not quite. It was ' + want.split('').join(' ') + '.'; }
+    $('dIn').hidden = true; $('dOk').hidden = true;
+    if (dx.miss >= 2 || dx.len > 12) return dDone();
+    setTimeout(dShow, 1300);
+  }
+  function dDone() {
+    dx.run = false; $('dGo').disabled = false; $('dDig').textContent = dx.best || '–';
+    var f = dMode === 'f'; hAdd(f ? 'dsf' : 'dsb', dx.best);
+    result($('dRes'), { title: f ? 'Your forward digit span' : 'Your backward digit span', show: dx.best + ' digits', val: dx.best, min: 0, max: 12, u: '', lo: f ? 5 : 4, hi: f ? 8 : 6,
+      below: 'Below the typical range. Distraction or a noisy room makes a big difference, so try again somewhere quiet.', mid: 'In the typical range.', above: 'Above the typical range. You may be grouping digits into chunks without noticing.',
+      typ: f ? 'Typical: about 5 to 8 digits forward for adults, with 6 or 7 most common (Miller, 1956; standard memory test norms).' : 'Typical: about 4 to 6 digits backward for adults, usually one or two fewer than forward.' });
+  }
+  $('dGo').onclick = function () { dx = { len: 3, best: 0, miss: 0, run: true }; $('dGo').disabled = true; $('dRes').hidden = true; dShow(); };
+  $('dOk').onclick = dCheck;
+  $('dIn').addEventListener('keydown', function (e) { if (e.key === 'Enter') dCheck(); });
+
+  // ---------- Corsi ----------
+  var POS = [[18, 22], [52, 14], [84, 26], [30, 48], [64, 42], [12, 74], [44, 78], [76, 66], [90, 86]];
+  $('kBoard').innerHTML = POS.map(function (p, i) { return '<button type="button" data-k="' + i + '" style="left:' + p[0] + '%;top:' + p[1] + '%" aria-label="Block ' + (i + 1) + '"></button>'; }).join('');
+  var kx = null, KB = $('kBoard').children;
+  async function kShow() {
+    kx.input = false; kx.got = []; var seq = [];
+    while (seq.length < kx.len) { var k = Math.floor(Math.random() * 9); if (seq.indexOf(k) < 0) seq.push(k); }
+    kx.seq = seq; $('kMsg').textContent = 'Watch the sequence of ' + kx.len + '.';
+    [].forEach.call(KB, function (b) { b.className = ''; });
+    await wait(700);
+    for (var i = 0; i < seq.length; i++) { KB[seq[i]].className = 'lit'; await wait(700); KB[seq[i]].className = ''; await wait(250); if (!kx.run) return; }
+    kx.input = true; $('kMsg').textContent = 'Now tap them in the same order.';
+  }
+  $('kBoard').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-k]'); if (!b || !kx || !kx.input) return;
+    var k = +b.dataset.k, want = kx.seq[kx.got.length];
+    kx.got.push(k);
+    if (k !== want) { b.className = 'bad'; kx.input = false; kx.miss++; $('kMsg').textContent = 'Wrong block.'; return kNext(); }
+    b.className = 'tap'; setTimeout(function () { if (b.className === 'tap') b.className = ''; }, 250);
+    if (kx.got.length === kx.seq.length) { kx.input = false; kx.best = kx.len; kx.len++; kx.miss = 0; $('kMsg').textContent = 'Correct!'; kNext(); }
+  });
+  function kNext() { if (kx.miss >= 2 || kx.len > 9) return kDone(); setTimeout(kShow, 1100); }
+  function kDone() {
+    kx.run = false; $('kGo').disabled = false; hAdd('corsi', kx.best);
+    $('kMsg').textContent = 'Test over. Your span: ' + kx.best + '.';
+    result($('kRes'), { title: 'Your Corsi span', show: kx.best + ' blocks', val: kx.best, min: 0, max: 9, u: '', lo: 5, hi: 7,
+      below: 'Below the typical range. It\'s often lower on a small phone screen, so try a bigger one.', mid: 'In the typical range.', above: 'Above the typical range. Some people trace a path or a shape to help.',
+      typ: 'Typical: about 5 to 7 blocks for adults, with 5 or 6 most common (Kessels and colleagues, 2000).' });
+  }
+  $('kGo').onclick = function () { kx = { len: 2, best: 0, miss: 0, run: true }; $('kGo').disabled = true; $('kRes').hidden = true; kShow(); };
+
+  // ---------- keyboard ----------
+  document.addEventListener('keydown', function (e) {
+    if (e.target.tagName === 'INPUT') return;
+    if (cur === 'stroop' && /^[1-4]$/.test(e.key)) { sAnswer(+e.key - 1); e.preventDefault(); }
+    if (cur === 'stroop' && sx && sx.run) { var m = { r: 0, g: 1, b: 2, y: 3 }[e.key.toLowerCase()]; if (m != null) sAnswer(m); }
+    if (cur === 'rt') {
+      if (e.key === ' ' && rx.mode === 's') { e.preventDefault(); rHit(0); }
+      if (rx.mode === 'c' && (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === ' ')) { e.preventDefault(); rHit(e.key === 'ArrowRight' ? 1 : 0); }
+    }
+  });
+
+  window.BrainTests = { stroopScore: stroopScore, makeScene: makeScene, makeChange: makeChange };
+  function first() { cIntro(); }
+  if (document.readyState === 'complete') first(); else window.addEventListener('load', first);
+})();
+</script>
+</body>
+</html>
