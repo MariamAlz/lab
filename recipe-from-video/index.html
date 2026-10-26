@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Recipe From a Video · Mariam's Lab</title>
+<meta name="description" content="Turn a saved TikTok, Reel or Short cooking video into a written recipe with ingredients and steps. Speech recognition runs on your own device.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/recipe-from-video/">
+<meta property="og:title" content="Recipe From a Video · Mariam's Lab"><meta property="og:description" content="Cooking video in, written recipe out, on your own device."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.drop { display: grid; place-items: center; gap: 8px; text-align: center; min-height: 160px; padding: 20px; border: 1px dashed var(--line); border-radius: var(--radius); background: rgba(7,10,24,.6); cursor: pointer; }
+.drop.on { border-color: var(--accent); }
+.drop b { font-family: var(--font-display); font-size: 1.2rem; }
+.drop span { color: var(--muted); font-size: 0.88rem; }
+.btns { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.sm { font: inherit; font-size: 0.85rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 13px; cursor: pointer; }
+.sm[aria-pressed="true"], .sm.pri { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+textarea, input[type=text] { width: 100%; font: inherit; font-size: 0.92rem; color: var(--ink); background: rgba(7,10,24,.6); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+textarea { min-height: 110px; resize: vertical; }
+.prog { height: 8px; border-radius: 99px; background: var(--line); overflow: hidden; }
+.prog i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .3s; }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 0; }
+.rcp { padding: 22px; border-radius: var(--radius); border: 1px solid var(--line); background: rgba(7,10,24,.85); display: grid; gap: 14px; }
+.rcp h2 { margin: 0; font-family: var(--font-display); font-size: clamp(1.4rem, 4vw, 2rem); }
+.ings { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.ings li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; align-items: baseline; font-size: 0.95rem; }
+.ings label { display: contents; cursor: pointer; }
+.ings input:checked + span { text-decoration: line-through; color: var(--muted); }
+.ings .q { font-family: var(--font-mono); color: var(--accent); }
+.steps { margin: 0; padding-inline-start: 1.3em; display: grid; gap: 8px; font-size: 0.95rem; }
+.steps mark { background: rgba(255,200,87,.18); color: var(--accent); border-radius: 4px; padding: 0 3px; }
+.serv { display: flex; gap: 8px; align-items: center; font-size: 0.9rem; }
+.serv button { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; font-size: 1rem; }
+[dir=rtl] { font-family: 'IBM Plex Sans Arabic', sans-serif; }
+.saved { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.saved li { display: flex; justify-content: space-between; gap: 8px; align-items: center; padding: 8px 12px; border: 1px solid var(--line); border-radius: 10px; font-size: 0.88rem; }
+.saved button { font: inherit; font-size: 0.8rem; background: none; border: 0; color: var(--muted); cursor: pointer; }
+[hidden] { display: none !important; }
+@media print { .labbar, .labfoot, .sec-head, .noprint { display: none !important; } .rcp { border: 0; background: #fff; color: #000; } .ings .q, .steps mark { color: #000; } }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">AI · Language · Kitchen</span>
+    <h1 style="font-size:var(--step-3)">Recipe from a video.</h1>
+    <p>Cooking videos move fast and never write anything down. Save one from TikTok, Instagram or YouTube to your phone, drop it here, and a speech recognition model running on your own device listens to it. Then this page pulls out the ingredients, amounts, times and steps into a recipe you can keep, scale and print.</p>
+  </div>
+  <div class="game noprint">
+    <div class="panel" style="display:grid;gap:12px;min-width:0">
+      <label class="drop" id="drop"><input type="file" id="file" accept="video/*,audio/*" hidden><b>Drop the video here</b><span>or tap to choose it. On TikTok: Share → Save video.</span></label>
+      <div class="btns" role="group" aria-label="Language spoken"><span class="label" style="margin-inline-end:4px">Spoken in</span><button class="sm" type="button" data-l="english" aria-pressed="true">English</button><button class="sm" type="button" data-l="arabic" aria-pressed="false">Arabic</button><button class="sm" type="button" data-l="" aria-pressed="false">Detect</button></div>
+      <div class="prog" id="prog" hidden><i id="bar"></i></div>
+      <p class="msg" id="msg" role="status"></p>
+      <span class="label" style="margin-top:6px">Or paste the caption or what they say</span>
+      <textarea id="txt" placeholder="Paste the video caption, or a transcript, then press Make recipe. Many creators put the full recipe in the caption."></textarea>
+      <div class="btns"><button class="sm pri" type="button" id="make">Make recipe</button><button class="sm" type="button" id="sample">Try a sample</button></div>
+    </div>
+    <div class="panel" style="display:grid;gap:10px;align-content:start">
+      <span class="label">How it works</span>
+      <p class="fact" style="margin:0">The first time, your browser downloads Whisper, an open speech recognition model (about 80 MB), and keeps it for next time. The video never leaves your phone. A minute of video takes around a minute to transcribe on a phone, and faster on a laptop.</p>
+      <p class="fact" style="margin:0">Videos with only music and on-screen text have no speech to hear. For those, paste the caption instead. The recipe is worked out with simple rules, not a chatbot, so check the amounts before you cook. Everything stays editable.</p>
+      <span class="label" style="margin-top:6px">Saved recipes</span>
+      <ul class="saved" id="saved"><li style="color:var(--muted)">None yet.</li></ul>
+    </div>
+  </div>
+  <div id="out" style="margin-top:20px" hidden></div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script type="module">
+'use strict';
+const $ = (id) => document.getElementById(id);
+let lang = 'english', asr = null, cur = null;
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+// ---------- vocabulary ----------
+const NUMW = { a: 1, an: 1, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12, half: 0.5, quarter: 0.25, 'a half': 0.5, 'a quarter': 0.25, couple: 2, 'a couple of': 2, few: 3,
+  'واحد': 1, 'واحدة': 1, 'اثنين': 2, 'ثنتين': 2, 'ثلاث': 3, 'ثلاثة': 3, 'أربع': 4, 'اربع': 4, 'أربعة': 4, 'خمس': 5, 'خمسة': 5, 'ست': 6, 'نص': 0.5, 'نصف': 0.5, 'ربع': 0.25 };
+const UNITS = [
+  ['cup', /^(cups?|c\.?)$/i], ['tbsp', /^(tablespoons?|tbsps?|tbs|tbl|T)$/], ['tsp', /^(teaspoons?|tsps?|t)$/], ['g', /^(g|grams?|gr|gms?)$/i], ['kg', /^(kg|kilos?|kilograms?)$/i], ['ml', /^(ml|millilit(?:er|re)s?)$/i], ['l', /^(l|lit(?:er|re)s?)$/i],
+  ['oz', /^(oz|ounces?)$/i], ['lb', /^(lbs?|pounds?)$/i], ['pinch', /^(pinch|pinches)$/i], ['clove', /^(cloves?)$/i], ['can', /^(cans?|tins?)$/i], ['slice', /^(slices?)$/i], ['piece', /^(pieces?|pcs?)$/i], ['handful', /^(handfuls?)$/i], ['stick', /^(sticks?)$/i], ['bunch', /^(bunch|bunches)$/i],
+  ['كوب', /^(كوب|أكواب|اكواب|كاسة|كاس)$/], ['ملعقة كبيرة', /^(ملعقة كبيرة|ملاعق كبيرة|ملعقه كبيره)$/], ['ملعقة صغيرة', /^(ملعقة صغيرة|ملاعق صغيرة|ملعقه صغيره)$/], ['ملعقة', /^(ملعقة|ملاعق|ملعقه)$/], ['غرام', /^(غرام|جرام|غ|جم)$/], ['كيلو', /^(كيلو|كغ)$/], ['مل', /^(مل|ملي)$/], ['لتر', /^(لتر|ليتر)$/], ['رشة', /^(رشة|رشه)$/], ['فص', /^(فص|فصوص)$/], ['حبة', /^(حبة|حبات|حبه)$/], ['علبة', /^(علبة|علب|علبه)$/]
+];
+const FOOD = ('flour sugar salt pepper butter oil olive egg eggs milk cream water yeast baking soda powder vanilla chocolate cocoa honey rice chicken beef lamb mutton meat mince fish shrimp prawns salmon tuna onion onions garlic ginger tomato tomatoes potato potatoes carrot carrots cucumber lettuce spinach parsley coriander cilantro mint dill basil thyme oregano rosemary cumin turmeric paprika chili chilli cinnamon cardamom saffron cloves nutmeg bay lemon lime orange apple banana dates date pistachio pistachios almonds walnuts cashews nuts sesame tahini yogurt yoghurt labneh cheese mozzarella cheddar parmesan feta halloumi bread pasta noodles spaghetti oats corn beans chickpeas lentils peas mushroom mushrooms pepper peppers capsicum zucchini eggplant aubergine cabbage cauliflower broccoli avocado mayonnaise mayo ketchup mustard vinegar soy sauce stock broth bouillon cornstarch cornflour gelatin condensed evaporated sprinkles icing jam syrup maple rosewater ghee bulgur freekeh vermicelli semolina coconut raisins cranberries strawberries blueberries berries mango pineapple sumac zaatar za\'atar spices spice bezar loomi biscuits cookies cracker crackers tortilla tortillas pita').split(' ');
+const FOODAR = 'طحين دقيق سكر ملح فلفل زبدة زيت زيتون بيض بيضة حليب كريمة قشطة ماء خميرة بيكنج باودر فانيلا شوكولاتة كاكاو عسل رز أرز دجاج لحم غنم سمك روبيان بصل ثوم زنجبيل طماطم بطاطس جزر خيار خس سبانخ بقدونس كزبرة نعناع شبت ريحان زعتر كمون كركم بابريكا شطة قرفة هيل زعفران قرنفل جوزة ليمون برتقال تفاح موز تمر تمور فستق لوز جوز كاجو سمسم طحينة لبن زبادي لبنة جبن جبنة موزاريلا شيدر حلوم خبز معكرونة شعيرية شوفان ذرة فاصوليا حمص عدس بازلاء فطر مشروم فلفل كوسا باذنجان ملفوف زهرة قرنبيط بروكلي أفوكادو مايونيز كاتشب خردل خل صويا مرق نشا جيلاتين مكثف قطر دبس ماء ورد سمن برغل فريكة سميد جوز هند زبيب فراولة مانجو أناناس سماق بسكويت تورتيلا مرقة بهارات'.split(' ');
+const VERB = /\b(add|mix|stir|whisk|beat|fold|bake|fry|saut[eé]|cook|boil|simmer|chop|dice|slice|mince|grate|pour|heat|preheat|put|place|combine|season|serve|blend|knead|roll|cut|spread|sprinkle|marinate|grill|roast|toast|melt|drain|cover|let|leave|rest|refrigerate|chill|freeze|garnish|top|transfer|remove|flip|press|squeeze|brush|coat|layer|wrap|stuff|shape|form|divide|cool|soak|rinse|wash|peel|crack|toss)\b|(?:^|[\s،,.]|\bو)(?:أضف|أضيفي|اضيفي|ضيفي|ضيف|نضيف|نحط|حطي|حط|اخلط|اخلطي|نخلط|قلب|قلبي|نقلب|اخفق|اخفقي|اخبز|اخبزي|نخبز|اقلي|نقلي|اطبخ|اطبخي|نطبخ|اسلق|نسلق|قطع|قطعي|نقطع|صب|صبي|نصب|سخن|سخني|نسخن|ضع|ضعي|تبل|تبلي|قدم|قدمي|نقدم|اعجن|اعجني|نعجن|افرد|افردي|رش|رشي|اتركي|اترك|نترك|غطي|غط|برد|بردي|اشوي|نشوي|حمص|حمصي|ذوب|ذوبي|صفي|اعصري|ادهني|زيني|نزين|نفرد|نرش)(?=[\s،,.]|$)/i;
+const TIME = /(\d+(?:\.\d+)?\s*(?:-|to|–)?\s*\d*\s*(?:minutes?|mins?|hours?|hrs?|seconds?|secs?|دقيقة|دقائق|دقايق|ساعة|ساعات|ثانية))|(\d{2,3}\s*(?:°\s*[cf]?|degrees?(?:\s*(?:celsius|fahrenheit|c|f)\b)?|درجة))/gi;
+
+// ---------- parsing ----------
+function num(tok) {
+  if (!tok) return null; tok = tok.toLowerCase();
+  const frac = { '½': 0.5, '¼': 0.25, '¾': 0.75, '⅓': 1 / 3, '⅔': 2 / 3 };
+  let m = tok.match(/^(\d+)\s*([½¼¾⅓⅔])$/); if (m) return +m[1] + frac[m[2]];
+  if (frac[tok] != null) return frac[tok];
+  m = tok.match(/^(\d+)\/(\d+)$/); if (m) return m[1] / m[2];
+  if (/^[\d٠-٩]+(?:[.,][\d٠-٩]+)?$/.test(tok)) return parseFloat(tok.replace(/[٠-٩]/g, (d) => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(',', '.'));
+  return NUMW[tok] != null ? NUMW[tok] : null;
+}
+function unitOf(w, w2) {
+  const two = w2 ? w + ' ' + w2 : null;
+  for (const [u, re] of UNITS) { if (two && re.test(two)) return [u, 2]; }
+  for (const [u, re] of UNITS) { if (re.test(w)) return [u, 1]; }
+  return null;
+}
+function isFood(s) { const l = s.toLowerCase(); return FOOD.some((f) => new RegExp('\\b' + f + '\\b').test(l)) || FOODAR.some((f) => l.indexOf(f) >= 0); }
+function clauses(text) {
+  return text.replace(/\r/g, '').split(/\n+|(?<=[.!?؟])\s+|[;•▪●✅✔️➡️👉🔸🔹]+/).map((s) => s.trim()).filter(Boolean);
+}
+function parseIng(cl, strict) {
+  // break "2 cups flour, 1 tsp salt and 3 eggs" into pieces
+  const parts = cl.split(/,|،|\band\b|\bو(?=\s*[\d٠-٩½¼¾]|\s*(?:نص|ربع|ملعقة|كوب|رشة))|\bplus\b|\bthen\b/i).map((s) => s.trim()).filter(Boolean);
+  const out = [];
+  for (let p of parts) {
+    p = p.replace(/^(?:[-*–]\s*|(?:you(?:'ll)? (?:need|want)|we need|i(?:'m| am)? (?:using|use|add(?:ed|ing)?)|add|then|now|and|so|next|نحتاج|راح نحتاج|نضيف|أضف|ضيفي|حطي|نحط)\s+)/i, '').trim();
+    if (!isFood(p)) continue;
+    let w = p.split(/\s+/), i = 0, q = null, q2 = null, u = null;
+    if (strict) { const k = w.findIndex((x) => num(x) != null && !/^(a|an)$/i.test(x)); if (k < 0) continue; w = w.slice(k); }
+    if (/^a\s+(half|quarter|couple)/i.test(w.join(' '))) { q = NUMW['a ' + w[1].toLowerCase()] || NUMW[w[1].toLowerCase()]; i = w[1].toLowerCase() === 'couple' ? 3 : 2; }
+    else if (num(w[0]) != null) { q = num(w[0]); i = 1; if (w[1] && /^[½¼¾⅓⅔]$|^\d\/\d$/.test(w[1])) { q += num(w[1]); i = 2; } if (w[i] && /^(-|to|–|او|أو)$/i.test(w[i]) && num(w[i + 1]) != null) { q2 = num(w[i + 1]); i += 2; } }
+    else if (w[0] && unitOf(w[0], w[1])) { q = 1; }
+    if (q != null && w[i]) { const uu = unitOf(w[i], w[i + 1]); if (uu) { u = uu[0]; i += uu[1]; } }
+    if (strict && (q == null || !u)) continue;
+    let name = w.slice(i).join(' ').replace(/^(?:of|من)\s+/i, '').replace(/[.:!]+$/, '').replace(/\s+(?:until|for|and|then|so|حتى|ثم)\b.*$/i, '').trim();
+    if (!name || name.length > 50 || name.split(/\s+/).length > 6) continue;
+    out.push({ q, q2, u, name });
+  }
+  return out;
+}
+const HEAD_ING = /^(?:ingredients?|you(?:'ll)? need|what you need|المكونات|المقادير|نحتاج)\s*[:：]?$/i, HEAD_STEP = /^(?:method|steps?|instructions?|directions?|how to make it|الطريقة|طريقة التحضير|التحضير|الخطوات)\s*[:：]?$/i;
+function parse(text, title) {
+  const cls = clauses(text), ings = [], steps = [], seen = {};
+  let serves = (text.match(/(?:serves|servings?|for)\s+(\d+)\s*(?:people|persons|servings)?/i) || text.match(/(?:يكفي|لـ?\s*)(\d+)\s*(?:أشخاص|اشخاص|شخص)/) || [])[1];
+  let section = '';
+  const add = (f) => { const k = f.name.toLowerCase(); if (seen[k]) { if (seen[k].q == null && f.q != null) Object.assign(seen[k], f); return; } seen[k] = f; ings.push(f); };
+  for (const c of cls) {
+    if (HEAD_ING.test(c)) { section = 'i'; continue; } if (HEAD_STEP.test(c)) { section = 's'; continue; }
+    const hasVerb = VERB.test(c), need = /\b(?:you(?:'ll)? need|we need|ingredients)\b|نحتاج|المكونات/i.test(c);
+    if (section === 'i' || need || (!hasVerb && section !== 's' && /^[\s\-*•]*[\d٠-٩½¼¾]/.test(c))) { parseIng(c.replace(/^.*?(?:need|ingredients|نحتاج|المكونات)\s*[:：]?\s*/i, '')).forEach(add); if (!hasVerb || section === 'i') continue; }
+    if (hasVerb) { parseIng(c, true).forEach(add); steps.push(c.replace(/^\d+[.)]\s*/, '')); }
+  }
+  const ar = /[؀-ۿ]/.test(text) && (text.match(/[؀-ۿ]/g).length > text.length * 0.3);
+  return { title: title || guessTitle(text, ar), serves: +serves || 4, base: +serves || 4, ings, steps, ar, raw: text };
+}
+function guessTitle(t, ar) {
+  const m = t.match(/(?:how to make|recipe for|making|easy|best|homemade)\s+([^.,!\n]{3,40})/i) || t.match(/(?:طريقة|طريقه|وصفة)\s+([^.,!\n]{3,30})/);
+  if (m) return m[1].trim().replace(/^عمل\s+/, '').replace(/^\w/, (c) => c.toUpperCase());
+  const f = clauses(t)[0] || ''; return f.length < 50 && !VERB.test(f) ? f : (ar ? 'وصفتي' : 'My recipe');
+}
+
+// ---------- rendering ----------
+function fmtQ(q) {
+  if (q == null) return '';
+  const w = Math.floor(q + 1e-9), f = q - w, fr = [[0.25, '¼'], [1 / 3, '⅓'], [0.5, '½'], [2 / 3, '⅔'], [0.75, '¾']].find((x) => Math.abs(f - x[0]) < 0.04);
+  if (f < 0.04) return String(w); if (fr) return (w ? w : '') + fr[1];
+  return (Math.round(q * 10) / 10).toString();
+}
+const PL = { cup: 'cups', clove: 'cloves', can: 'cans', slice: 'slices', piece: 'pieces', handful: 'handfuls', stick: 'sticks', pinch: 'pinches', bunch: 'bunches' };
+function unitTxt(u, q) { return u && q > 1 && PL[u] ? PL[u] : u; }
+function render() {
+  const r = cur, k = r.serves / r.base;
+  const ing = r.ings.length ? r.ings.map((x, i) => '<li><label><input type="checkbox"><span><span class="q">' + esc([fmtQ(x.q != null ? x.q * k : null) + (x.q2 != null ? '–' + fmtQ(x.q2 * k) : ''), unitTxt(x.u, (x.q2 || x.q || 0) * k)].filter(Boolean).join(' ')) + '</span> ' + esc(x.name) + '</span></label></li>').join('') : '<li style="color:var(--muted)">No ingredients recognised. Add them in the edit box below.</li>';
+  const st = r.steps.length ? r.steps.map((s) => '<li>' + esc(s).replace(TIME, '<mark>$&</mark>') + '</li>').join('') : '<li style="color:var(--muted)">No steps recognised.</li>';
+  $('out').innerHTML = '<div class="rcp" dir="' + (r.ar ? 'rtl' : 'ltr') + '"><h2 contenteditable="true" id="ttl" spellcheck="false">' + esc(r.title) + '</h2>' +
+    '<div class="serv noprint" dir="ltr"><span>Serves</span><button type="button" id="sm">−</button><b id="sv">' + r.serves + '</b><button type="button" id="sp">+</button><span style="color:var(--muted);font-size:.8rem">amounts scale automatically</span></div>' +
+    '<div class="game" style="gap:20px"><div><span class="label">' + (r.ar ? 'المكونات' : 'Ingredients') + '</span><ul class="ings" style="margin-top:8px">' + ing + '</ul></div><div><span class="label">' + (r.ar ? 'الطريقة' : 'Method') + '</span><ol class="steps" style="margin-top:8px">' + st + '</ol></div></div>' +
+    '<div class="btns noprint" dir="ltr"><button class="sm pri" type="button" id="save">Save recipe</button><button class="sm" type="button" id="copy">Copy as text</button><button class="sm" type="button" onclick="print()">Print</button><button class="sm" type="button" id="edit">Edit</button></div>' +
+    '<div id="editor" class="noprint" hidden style="display:grid;gap:8px"><span class="label">Ingredients, one per line</span><textarea id="eI"></textarea><span class="label">Steps, one per line</span><textarea id="eS" style="min-height:160px"></textarea><div class="btns"><button class="sm pri" type="button" id="apply">Update</button></div></div></div>';
+  $('out').hidden = false;
+  $('sm').onclick = () => { if (r.serves > 1) { r.serves--; render(); } };
+  $('sp').onclick = () => { r.serves++; render(); };
+  $('ttl').oninput = function () { r.title = this.textContent; };
+  $('copy').onclick = () => { navigator.clipboard.writeText(asText()).then(() => { $('copy').textContent = 'Copied'; }, () => { $('copy').textContent = 'Couldn\'t copy'; }); };
+  $('save').onclick = () => { const all = load(); const i = all.findIndex((x) => x.id === r.id); r.id = r.id || Date.now(); if (i >= 0) all[i] = r; else all.unshift(r); store(all); $('save').textContent = 'Saved'; list(); };
+  $('edit').onclick = () => { const e = $('editor'); e.hidden = !e.hidden; $('eI').value = r.ings.map((x) => [fmtQ(x.q) + (x.q2 != null ? '-' + fmtQ(x.q2) : ''), x.u, x.name].filter(Boolean).join(' ')).join('\n'); $('eS').value = r.steps.join('\n'); };
+  $('apply').onclick = () => {
+    r.ings = $('eI').value.split('\n').map((l) => l.trim()).filter(Boolean).map((l) => { const p = parseIng(l)[0]; return p || { q: null, u: null, name: l }; });
+    r.steps = $('eS').value.split('\n').map((l) => l.trim()).filter(Boolean); r.serves = r.base; render();
+  };
+  $('out').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function asText() { const r = cur, k = r.serves / r.base; return r.title + '\nServes ' + r.serves + '\n\nIngredients\n' + r.ings.map((x) => '- ' + [fmtQ(x.q != null ? x.q * k : null), x.u, x.name].filter(Boolean).join(' ')).join('\n') + '\n\nMethod\n' + r.steps.map((s, i) => (i + 1) + '. ' + s).join('\n'); }
+function load() { try { return JSON.parse(localStorage.getItem('videoRecipes') || '[]'); } catch (e) { return []; } }
+function store(a) { try { localStorage.setItem('videoRecipes', JSON.stringify(a.slice(0, 60))); } catch (e) {} }
+function list() {
+  const a = load();
+  $('saved').innerHTML = a.length ? a.map((r, i) => '<li><a href="#" data-i="' + i + '">' + esc(r.title) + '</a><button type="button" data-del="' + i + '" aria-label="Delete">✕</button></li>').join('') : '<li style="color:var(--muted)">None yet.</li>';
+}
+$('saved').addEventListener('click', (e) => {
+  const a = load(), o = e.target.closest('[data-i]'), d = e.target.closest('[data-del]');
+  if (o) { e.preventDefault(); cur = a[+o.dataset.i]; render(); }
+  if (d) { a.splice(+d.dataset.del, 1); store(a); list(); }
+});
+
+// ---------- speech recognition ----------
+function status(t, p) { $('msg').textContent = t; $('prog').hidden = p == null; if (p != null) $('bar').style.width = Math.round(p * 100) + '%'; }
+async function audioFrom(file) {
+  const buf = await file.arrayBuffer();
+  const AC = window.AudioContext || window.webkitAudioContext, ac = new AC({ sampleRate: 16000 });
+  const ab = await ac.decodeAudioData(buf);
+  let data = ab.getChannelData(0);
+  if (ab.numberOfChannels > 1) { const r = ab.getChannelData(1); data = data.map((v, i) => (v + r[i]) / 2); }
+  ac.close(); return data;
+}
+async function getASR() {
+  if (asr) return asr;
+  status('Loading the speech model (first time only, about 80 MB)…', 0);
+  const T = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.5.1');
+  const files = {};
+  asr = await T.pipeline('automatic-speech-recognition', 'Xenova/whisper-base', {
+    progress_callback: (p) => { if (p.status === 'progress' && p.total) { files[p.file] = [p.loaded, p.total]; let l = 0, t = 0; Object.values(files).forEach((f) => { l += f[0]; t += f[1]; }); status('Downloading the speech model… ' + Math.round(l / 1e6) + ' of ' + Math.round(t / 1e6) + ' MB', l / t); } }
+  });
+  return asr;
+}
+async function fromFile(file) {
+  if (!file) return;
+  try {
+    status('Reading the sound from the video…', 0.02);
+    const audio = await audioFrom(file);
+    const secs = audio.length / 16000;
+    if (secs < 2) throw new Error('short');
+    const peak = audio.reduce((m, v) => Math.max(m, Math.abs(v)), 0); if (peak < 0.01) throw new Error('silent');
+    const model = await getASR();
+    status('Listening to ' + Math.round(secs) + ' seconds of video… this can take about as long as the video.', 0.5);
+    const opts = { chunk_length_s: 30, stride_length_s: 5, task: 'transcribe' }; if (lang) opts.language = lang;
+    const out = await model(audio, opts);
+    const text = (out.text || '').trim();
+    status(text ? 'Done. Check the recipe below, and edit anything it got wrong.' : 'No speech found. If the recipe is shown as text in the video, paste the caption instead.', null);
+    $('txt').value = text;
+    if (text) { cur = parse(text, file.name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').replace(/^(video|vid|IMG|snaptik|ssstik|tiktok)\s*\d*$/i, '') || null); render(); }
+  } catch (e) {
+    console.warn(e);
+    status(e.message === 'silent' ? 'The video has no sound.' : e.message === 'short' ? 'That clip is too short.' : /decode|Unable|EncodingError/i.test(String(e && (e.message || e.name))) ? 'Your browser couldn\'t read the sound from this file. Try saving it again, or paste the caption.' : 'Something went wrong loading the speech model. Check your connection and try again.', null);
+  }
+}
+const dr = $('drop');
+$('file').onchange = function () { fromFile(this.files[0]); this.value = ''; };
+dr.addEventListener('dragover', (e) => { e.preventDefault(); dr.classList.add('on'); });
+dr.addEventListener('dragleave', () => dr.classList.remove('on'));
+dr.addEventListener('drop', (e) => { e.preventDefault(); dr.classList.remove('on'); fromFile(e.dataTransfer.files[0]); });
+document.querySelectorAll('[data-l]').forEach((b) => { b.onclick = () => { lang = b.dataset.l; document.querySelectorAll('[data-l]').forEach((x) => x.setAttribute('aria-pressed', x === b)); }; });
+$('make').onclick = () => { const t = $('txt').value.trim(); if (!t) { status('Paste some text first, or drop a video.', null); return; } cur = parse(t); render(); };
+$('sample').onclick = () => {
+  $('txt').value = "Okay so today we're making the easiest chicken machboos, this serves 4. You'll need 2 cups of basmati rice, 1 kg chicken, 2 onions, 3 cloves garlic, 2 tomatoes, 1 tablespoon machboos spices, 1 teaspoon turmeric, a pinch of saffron and 1 dried lime. First heat 3 tablespoons of oil and fry the onions until golden, about 10 minutes. Add the garlic and the spices and stir for a minute. Then add the chicken and the tomatoes and cover with 4 cups of water. Let it simmer for 40 minutes. Take the chicken out and roast it at 200 degrees for 15 minutes so it gets crispy. Add the washed rice to the stock and cook on low for 20 minutes. Serve the rice with the chicken on top and some daqqus on the side.";
+  cur = parse($('txt').value); render();
+};
+window.RECIPE_PARSE = parse;
+list();
+</script>
+</body>
+</html>
