@@ -30,9 +30,10 @@
   function tr(s) {
     if (!AR || s == null) return s;
     var n = norm(String(s)); if (!n || !/[A-Za-z]/.test(n)) return s;
+    var hasAr = /[\u0600-\u06FF]/.test(n);
     if (dict[n] != null) return keepSpace(s, dict[n]);
     for (var i = 0; i < pats.length; i++) { var m = n.match(pats[i][0]); if (m) { var r = pats[i][1]; return keepSpace(s, typeof r === 'function' ? r.apply(null, m) : n.replace(pats[i][0], r)); } }
-    if (debug && !arVals.has(n)) missing.add(n);
+    if (debug && !hasAr && !arVals.has(n)) missing.add(n);
     return s;
   }
   function keepSpace(orig, out) { var a = orig.match(/^\s*/)[0], b = orig.match(/\s*$/)[0]; return a + out + b; }

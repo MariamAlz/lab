@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>What Your Photo Gives Away · Mariam's Lab</title>
+<meta name="description" content="Drop a photo and see the hidden details inside it: GPS location, time, camera serial numbers, owner name, edit history and a hidden preview. Then strip it all out, in your browser.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/photo-metadata/">
+<meta property="og:title" content="What Your Photo Gives Away · Mariam's Lab"><meta property="og:description" content="See the location, device and hidden preview inside a photo, then clean it."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="stylesheet" href="../assets/vendor/leaflet/leaflet.css">
+<style>
+.privacy { display: flex; gap: 10px; align-items: center; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--sat-b); color: var(--ink); font-size: 0.92rem; margin-bottom: 18px; background: rgba(79,211,189,.08); }
+.privacy b { color: var(--sat-b); }
+.btns { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.sm { font: inherit; font-size: 0.85rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 7px 14px; cursor: pointer; text-decoration: none; display: inline-block; }
+.sm.pri { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.sm[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+.sm:disabled { opacity: .5; cursor: default; }
+.drop { border: 1px dashed var(--line); border-radius: 14px; padding: 26px 16px; text-align: center; color: var(--muted); font-size: 0.9rem; display: grid; gap: 10px; justify-items: center; }
+.drop.over { border-color: var(--accent); color: var(--ink); }
+.pane { padding: 18px; border-radius: var(--radius); border: 1px solid var(--line); background: rgba(7,10,24,.82); display: grid; gap: 12px; min-width: 0; }
+.pane h2 { font-size: 1.2rem; margin: 0; word-break: break-word; }
+.checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.checks li { display: grid; grid-template-columns: 1.4em minmax(0, 1fr); gap: 8px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; font-size: 0.92rem; }
+.checks small { display: block; color: var(--muted); font-size: 0.82rem; word-break: break-word; }
+.kv { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 14px; font-size: 0.9rem; margin: 0; }
+.kv dt { color: var(--muted); } .kv dd { margin: 0; font-family: var(--font-mono); font-size: 0.82rem; word-break: break-word; }
+@media (max-width: 480px) { .kv { grid-template-columns: minmax(0, 1fr); gap: 2px; } .kv dd { margin-bottom: 8px; } }
+.ok { color: var(--sat-b); } .bad { color: var(--sat-c); } .meh { color: var(--accent); } .na { color: var(--muted); }
+.mapbox { height: 260px; border-radius: 12px; border: 1px solid var(--line); overflow: hidden; background: #0b1020; }
+.pics { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+.pics figure { margin: 0; display: grid; gap: 4px; font-size: 0.78rem; color: var(--muted); }
+.pics img { width: 100%; max-height: 220px; object-fit: contain; border-radius: 8px; border: 1px solid var(--line); background: #000; }
+.flist { display: flex; gap: 6px; flex-wrap: wrap; }
+.flist .sm { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-inline-end: 6px; background: var(--c, var(--muted)); }
+.diff { width: 100%; border-collapse: collapse; font-size: 0.82rem; table-layout: fixed; }
+.diff th, .diff td { text-align: start; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; word-break: break-word; }
+.diff th { color: var(--muted); font-weight: 500; }
+.diff td:nth-child(2) { font-family: var(--font-mono); }
+.diff .gone { color: var(--sat-b); }
+.diff td:nth-child(3) { word-break: normal; }
+@media (max-width: 480px) { .diff th, .diff td { padding: 6px 4px; } }
+.diff .kept { color: var(--accent); }
+.opts { display: grid; gap: 8px; font-size: 0.88rem; }
+.opts label { display: flex; gap: 8px; align-items: flex-start; }
+.opts select { font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 4px 8px; }
+details.more2 summary { cursor: pointer; color: var(--muted); font-size: 0.88rem; }
+.tips { margin: 0; padding-inline-start: 1.1em; display: grid; gap: 6px; font-size: 0.88rem; color: var(--muted); }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 0; }
+html.ar .kv dd, html.ar .diff td[data-noar], html.ar [data-noar] .kv dd { direction: ltr; text-align: right; unicode-bidi: plaintext; }
+[hidden] { display: none !important; }
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Privacy · Photos</span>
+    <h1 style="font-size:var(--step-3)">What your photo gives away.</h1>
+    <p>Most photos carry hidden notes from the camera: where you stood, when, which phone or camera took it, sometimes its serial number and your name. Some even keep a tiny preview of the picture from before you cropped it. Drop a photo to see what's inside, then save a clean copy before you share it.</p>
+  </div>
+  <div class="privacy" role="note"><span aria-hidden="true">🔒</span><span><b>Your photos never leave this device.</b> They are read and cleaned inside this browser tab. Nothing is uploaded.</span></div>
+  <div class="game">
+    <div class="panel" style="align-content:start">
+      <div class="drop" id="drop">
+        <span>Drop photos here, or</span>
+        <div class="btns" style="justify-content:center"><label class="sm pri" style="cursor:pointer">Choose photos<input type="file" id="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,image/avif,.heic,.heif,.jpg,.jpeg,.png,.webp" multiple hidden></label><button class="sm" type="button" id="demo">Try a sample photo</button></div>
+        <span style="font-size:.8rem">JPEG, PNG, WebP or HEIC. Several at once is fine.</span>
+      </div>
+      <div class="flist" id="flist" hidden></div>
+      <div class="pane" id="batch" hidden>
+        <span class="label">Clean them all</span>
+        <div class="opts">
+          <label><input type="checkbox" id="keepTag"> <span>Keep only the rotation tag instead of rotating the pixels. Leave this off unless your editor shows clean photos sideways.</span></label>
+          <label>Quality <select id="q"><option value="0.95">High (0.95)</option><option value="0.9" selected>Normal (0.9)</option><option value="0.8">Smaller (0.8)</option></select></label>
+        </div>
+        <div class="btns"><button class="sm pri" type="button" id="cleanAll">Clean all and download</button></div>
+        <p class="msg" id="bmsg" role="status"></p>
+      </div>
+      <div class="pane" id="rep" hidden></div>
+    </div>
+    <div class="panel" style="align-content:start">
+      <div class="stats"><div><b id="sN">0</b><span>photos checked</span></div><div><b id="sG">0</b><span>with a location</span></div><div><b id="sR">0</b><span>serious risks</span></div></div>
+      <div class="pane">
+        <span class="label">Before you share a photo</span>
+        <ul class="tips">
+          <li>Big platforms such as Instagram, X and Facebook remove location when they publish, but they still receive it. Email, WhatsApp "document" mode, AirDrop, Telegram files, cloud links and forums usually send the original untouched.</li>
+          <li>On iPhone, tap <b>Options</b> on the share sheet and switch off <b>Location</b>. On Android, look for "Remove location data" in the share or camera settings.</li>
+          <li>To stop it at the source, turn off location tags in the camera app's settings.</li>
+          <li>Cropping does not always remove the cropped part. Some editors leave the old preview inside the file. Clean the file after cropping.</li>
+          <li>Screenshots carry less metadata, but they can show your status bar, battery, carrier and time.</li>
+        </ul>
+      </div>
+      <p class="fact" style="margin:0"><b>How cleaning works.</b> The photo is drawn onto a blank canvas and saved again. A canvas only holds pixels, so every hidden block (EXIF, GPS, XMP, IPTC, maker notes, the embedded preview) is left behind. The catch is that a JPEG is compressed a second time, so the clean copy can be slightly softer.</p>
+      <p class="fact" style="margin:0"><b>The hidden preview.</b> JPEG files from cameras and phones usually include a 160-pixel thumbnail so galleries load fast. Older editing tools updated the main picture but not the thumbnail. People have shared cropped photos where the thumbnail still showed the part they cut out.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script src="meta.js"></script>
+<script src="../assets/vendor/leaflet/leaflet.js"></script>
+<script src="../assets/vendor/jszip.min.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var PM = window.PhotoMeta, files = [], cur = -1, map = null;
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  var ic = { ok: '✓', bad: '✕', meh: '!', na: '·' };
+  function list(f) { return '<ul class="checks">' + f.map(function (x) { return '<li><span class="' + x[0] + '">' + ic[x[0]] + '</span><span>' + esc(x[1]) + '<small' + (x[3] ? ' data-noar' : '') + '>' + esc(x[2]) + '</small></span></li>'; }).join('') + '</ul>'; }
+  function kv(rows) { rows = rows.filter(function (r) { return r[1] != null && r[1] !== ''; }); return rows.length ? '<dl class="kv">' + rows.map(function (r) { return '<dt>' + esc(r[0]) + '</dt><dd data-noar>' + esc(r[1]) + '</dd>'; }).join('') + '</dl>' : '<p class="msg">Nothing here.</p>'; }
+  function kb(n) { return n > 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.round(n / 1024) + ' KB'; }
+  var ORI = { 1: 'Normal', 3: 'Upside down', 6: 'Rotated 90° (portrait)', 8: 'Rotated 270° (portrait)', 2: 'Mirrored', 4: 'Mirrored, upside down', 5: 'Mirrored, rotated', 7: 'Mirrored, rotated' };
+
+  // ---- risk summary ----
+  function risks(m, f) {
+    var r = [], e = m.exif, x = m.xmpFields, mn = m.makerNote || { fields: {} };
+    if (m.gps) r.push(['bad', 'It shows exactly where it was taken', m.gps.lat.toFixed(5) + ', ' + m.gps.lon.toFixed(5) + (m.gps.err ? ' (±' + Math.round(m.gps.err) + ' m)' : '') + '. Photos taken at home can lead someone to your door.']);
+    if (m.thumb) { var ta = f.thumbAspect, ia = f.w && f.h ? f.w / f.h : 0, differ = ta && ia && Math.abs(ta / ia - 1) > 0.04 && Math.abs(ta * ia - 1) > 0.04;
+      r.push(differ ? ['bad', 'A hidden preview with a different shape', 'The embedded thumbnail is not the same shape as the photo. It may show what you cropped out. Look at it below.'] : ['meh', 'A hidden preview image', 'A small copy of the picture is stored inside the file. It usually matches, but check it.']); }
+    var serial = e.BodySerialNumber || e.CameraSerialNumber || x['aux:SerialNumber'] || x['exifEX:BodySerialNumber'] || mn.fields.SerialNumber || mn.fields.InternalSerialNumber;
+    if (serial || e.LensSerialNumber || x['aux:LensSerialNumber']) r.push(['meh', 'Camera or lens serial numbers', 'Serial ' + (serial || e.LensSerialNumber || x['aux:LensSerialNumber']) + '. Anyone can match it to other photos from the same camera posted online.']);
+    var who = e.CameraOwnerName || e.Artist || e.XPAuthor || x['dc:creator'] || x['aux:OwnerName'] || m.iptc['By-line'] || mn.fields.OwnerName || e.Copyright || m.iptc.CopyrightNotice;
+    if (who) r.push(['meh', 'A name is written inside', '"' + who + '". Fine for a photographer\'s portfolio, not for an anonymous post.']);
+    var place = [x['photoshop:City'], x['photoshop:State'], x['photoshop:Country'], x['Iptc4xmpCore:Location'], m.iptc.City, m.iptc.Sublocation, m.iptc.Country].filter(Boolean);
+    if (place.length) r.push(['meh', 'A place name is written inside', place.join(', '), 1]);
+    var when = e.DateTimeOriginal || e.DateTime || x['xmp:CreateDate'] || x['photoshop:DateCreated'] || (m.gps && m.gps.time);
+    if (when) r.push(['na', 'The date and time', fmtDate(when) + (e.OffsetTimeOriginal ? ' (UTC' + e.OffsetTimeOriginal + ')' : '') + '. Combined with a routine, this can show when you are usually somewhere.']);
+    if (e.Make || e.Model) r.push(['na', 'The device', [e.Make, e.Model].filter(Boolean).join(' ') + (e.LensModel ? ', ' + e.LensModel : '') + '.', 1]);
+    if (e.Software || m.history.length || x['xmp:CreatorTool']) r.push(['na', 'How it was edited', (e.Software || x['xmp:CreatorTool'] || '') + (m.history.length ? ', with ' + m.history.length + ' recorded editing steps' : '') + '.', !m.history.length]);
+    if (!r.length) r.push(['ok', 'No hidden details found', 'This file has no location, device or name data that this tool can read.']);
+    return r;
+  }
+  function fmtDate(s) { var m = String(s).match(/^(\d{4})[:-](\d\d)[:-](\d\d)[ T](\d\d):(\d\d)/); if (!m) return s; var d = new Date(+m[1], m[2] - 1, +m[3], +m[4], +m[5]); return d.toLocaleDateString(window.LabAr && LabAr.on ? 'ar-AE-u-nu-latn' : 'en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) + (window.LabAr && LabAr.on ? '، ' : ', ') + m[4] + ':' + m[5]; }
+
+  // ---- loading ----
+  function addFiles(list) {
+    var start = files.length;
+    [].forEach.call(list, function (file) { files.push({ file: file, name: file.name || 'photo', size: file.size }); });
+    Promise.all(files.slice(start).map(load)).then(function () { draw(); show(start); });
+  }
+  function load(f) {
+    return f.file.arrayBuffer().then(function (buf) {
+      f.meta = PM.parse(buf);
+      if (!f.meta.format) f.meta.format = (f.file.type || '').replace('image/', '').toUpperCase() || 'Unknown';
+      f.url = URL.createObjectURL(f.file);
+      var p = [decodable(f.url).then(function (img) { f.w = img ? img.naturalWidth : 0; f.h = img ? img.naturalHeight : 0; f.decodes = !!img; })];
+      if (f.meta.thumb) { f.thumbUrl = URL.createObjectURL(new Blob([f.meta.thumb], { type: 'image/jpeg' })); p.push(decodable(f.thumbUrl).then(function (img) { if (img) f.thumbAspect = img.naturalWidth / img.naturalHeight; })); }
+      return Promise.all(p).then(function () { f.risks = risks(f.meta, f); });
+    });
+  }
+  function decodable(url) { return new Promise(function (res) { var i = new Image(); i.onload = function () { res(i); }; i.onerror = function () { res(null); }; i.src = url; }); }
+  function draw() {
+    $('flist').hidden = files.length < 2; $('batch').hidden = !files.length;
+    $('flist').innerHTML = files.map(function (f, i) { var bad = f.risks.some(function (r) { return r[0] === 'bad'; }), meh = f.risks.some(function (r) { return r[0] === 'meh'; }); return '<button class="sm" type="button" data-noar data-i="' + i + '" aria-pressed="' + (i === cur) + '"><span class="dot" style="--c:' + (bad ? 'var(--sat-c)' : meh ? 'var(--accent)' : 'var(--sat-b)') + '"></span>' + esc(f.name) + '</button>'; }).join('');
+    $('sN').textContent = files.length;
+    $('sG').textContent = files.filter(function (f) { return f.meta.gps; }).length;
+    $('sR').textContent = files.reduce(function (a, f) { return a + f.risks.filter(function (r) { return r[0] === 'bad'; }).length; }, 0);
+    $('cleanAll').textContent = files.length > 1 ? 'Clean all ' + files.length + ' and download (zip)' : 'Clean and download';
+  }
+  $('flist').onclick = function (e) { var b = e.target.closest('[data-i]'); if (b) show(+b.dataset.i); };
+
+  function show(i) {
+    cur = i; draw(); var f = files[i], m = f.meta, e = m.exif, x = m.xmpFields, mn = m.makerNote;
+    var h = '<span class="label">' + esc(m.format) + ' · ' + kb(f.size) + (f.w ? ' · ' + f.w + '×' + f.h : '') + '</span><h2 data-noar>' + esc(f.name) + '</h2>';
+    if (!f.decodes) h += '<p class="msg">' + (/HEIC|AVIF/.test(m.format) ? 'This browser can\'t display HEIC photos, so it can\'t make a clean copy here. The details below were still read from the file. Safari on iPhone or Mac can clean HEIC; on iPhone you can also set Settings › Camera › Formats › Most Compatible to take JPEGs.' : 'This browser can\'t display this file, so it can\'t make a clean copy.') + '</p>';
+    h += '<span class="label">Risk summary</span>' + list(f.risks);
+    if (m.gps) h += '<span class="label">Where it was taken</span><div class="mapbox" id="map"></div>' + kv([['Coordinates', m.gps.lat.toFixed(6) + ', ' + m.gps.lon.toFixed(6)], ['Altitude', m.gps.alt != null ? Math.round(m.gps.alt) + ' m' : ''], ['Facing', m.gps.dir != null ? Math.round(m.gps.dir) + '°' : ''], ['Accuracy', m.gps.err ? '±' + Math.round(m.gps.err) + ' m' : ''], ['GPS time', m.gps.time], ['From', m.gps.source]]) + '<div class="btns"><a class="sm" target="_blank" rel="noopener noreferrer" href="https://www.openstreetmap.org/?mlat=' + m.gps.lat + '&mlon=' + m.gps.lon + '#map=17/' + m.gps.lat + '/' + m.gps.lon + '">Open in OpenStreetMap ↗</a></div>';
+    h += '<div class="pics">' + (f.decodes ? '<figure><img src="' + f.url + '" alt="The photo"><figcaption>The photo</figcaption></figure>' : '') + (f.thumbUrl ? '<figure><img src="' + f.thumbUrl + '" alt="Embedded thumbnail"><figcaption>Hidden preview inside the file' + (f.thumbAspect ? ' (' + (f.thumbAspect).toFixed(2) + ':1 vs ' + (f.w / f.h).toFixed(2) + ':1)' : '') + '</figcaption></figure>' : '') + '</div>';
+    h += '<span class="label">When</span>' + kv([['Taken', e.DateTimeOriginal && fmtDate(e.DateTimeOriginal)], ['Digitised', e.DateTimeDigitized && fmtDate(e.DateTimeDigitized)], ['Last changed', e.DateTime && fmtDate(e.DateTime)], ['Time zone', e.OffsetTimeOriginal || e.OffsetTime], ['XMP created', x['xmp:CreateDate']], ['XMP modified', x['xmp:ModifyDate']], ['IPTC date', m.iptc.DateCreated]]);
+    h += '<span class="label">Device</span>' + kv([['Make', e.Make], ['Model', e.Model], ['Lens', e.LensModel || x['aux:Lens'] || x['exifEX:LensModel'] || (mn && mn.fields.LensModel)], ['Lens make', e.LensMake], ['Body serial', e.BodySerialNumber || e.CameraSerialNumber || x['aux:SerialNumber'] || x['exifEX:BodySerialNumber']], ['Lens serial', e.LensSerialNumber || x['aux:LensSerialNumber']], ['Settings', [e.FNumber && 'f/' + e.FNumber, e.ExposureTime && (e.ExposureTime < 1 ? '1/' + Math.round(1 / e.ExposureTime) : e.ExposureTime) + ' s', e.ISO && 'ISO ' + e.ISO, e.FocalLength && Math.round(e.FocalLength) + ' mm'].filter(Boolean).join(' · ')], ['Orientation', ORI[e.Orientation]], ['Unique image ID', e.ImageUniqueID]]);
+    if (mn) h += '<span class="label">Maker notes</span>' + kv([['Vendor', mn.vendor], ['Size', mn.bytes + ' bytes'], ['Serial number', mn.fields.SerialNumber || mn.fields.InternalSerialNumber], ['Shutter count', mn.fields.ShutterCount], ['Owner', mn.fields.OwnerName], ['Firmware', mn.fields.Firmware], ['Note', mn.note || 'Private, maker-specific data. Can include serial numbers and settings.']]);
+    h += '<span class="label">People and words</span>' + kv([['Owner', e.CameraOwnerName], ['Artist', e.Artist || e.XPAuthor], ['Creator (XMP)', x['dc:creator']], ['By-line (IPTC)', m.iptc['By-line']], ['Copyright', e.Copyright || x['dc:rights'] || m.iptc.CopyrightNotice], ['Title', e.XPTitle || x['dc:title'] || m.iptc.ObjectName], ['Caption', e.ImageDescription || x['dc:description'] || m.iptc.Caption], ['Comment', e.UserComment || e.XPComment || m.comment], ['Keywords', e.XPKeywords || m.iptc.Keywords], ['Place', [x['photoshop:City'], m.iptc.City, x['photoshop:Country'], m.iptc.Country].filter(Boolean).join(', ')]]);
+    h += '<span class="label">Software and edit history</span>' + kv([['Software', e.Software], ['Creator tool', x['xmp:CreatorTool']], ['Computer', e.HostComputer], ['Original document', x['xmpMM:OriginalDocumentID']], ['Derived from', x['xmpMM:DerivedFrom']], ['Raw edits', x['Lightroom/Camera Raw']], ['Ancestors', x['photoshop:DocumentAncestors']]]);
+    if (m.history.length) h += '<ul class="checks" data-noar>' + m.history.map(function (s) { return '<li><span class="na">·</span><span>' + esc(s.action || 'step') + (s.changed ? ' (' + esc(s.changed) + ')' : '') + '<small>' + esc([s.when, s.software].filter(Boolean).join(' · ')) + '</small></span></li>'; }).join('') + '</ul>';
+    var all = PM.flat(m); f.flat = all;
+    h += '<details class="more2"><summary>Every field found (' + Object.keys(all).length + ')</summary><div data-noar>' + kv(Object.keys(all).map(function (k) { return [k, all[k]]; })) + '</div></details>';
+    h += '<span class="label">Clean copy</span><div class="btns"><button class="sm pri" type="button" id="clean1"' + (f.decodes ? '' : ' disabled') + '>Clean this photo</button><span class="msg" id="cmsg"></span></div><div id="diff"></div>';
+    $('rep').innerHTML = h; $('rep').hidden = false;
+    if (m.gps) { if (map) { map.remove(); map = null; } try { map = L.map('map', { scrollWheelZoom: false }).setView([m.gps.lat, m.gps.lon], 16); L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', { subdomains: 'abcd', maxZoom: 19, attribution: '© OpenStreetMap, © CARTO' }).addTo(map); L.circleMarker([m.gps.lat, m.gps.lon], { radius: 9, color: '#ff4f6d', weight: 3, fillOpacity: .5 }).addTo(map); if (m.gps.err) L.circle([m.gps.lat, m.gps.lon], { radius: m.gps.err, color: '#ff4f6d', weight: 1, fillOpacity: .1 }).addTo(map); } catch (er) { $('map').innerHTML = '<p class="msg" style="padding:12px">Map unavailable offline. Coordinates are below.</p>'; } }
+    if (f.clean) showDiff(f);
+    $('clean1').onclick = function () { $('cmsg').textContent = 'Cleaning…'; clean(f).then(function () { $('cmsg').textContent = ''; showDiff(f); download(f.clean, f.cleanName); }).catch(function (er) { $('cmsg').textContent = 'Could not clean: ' + er.message; }); };
+  }
+
+  // ---- cleaning ----
+  function outType(f) { var fm = f.meta.format; return fm === 'PNG' ? 'image/png' : fm === 'WebP' ? 'image/webp' : 'image/jpeg'; }
+  function bitmap(f, raw) {
+    if (window.createImageBitmap) return createImageBitmap(f.file, { imageOrientation: raw ? 'none' : 'from-image' }).catch(function () { return raw ? bitmap(f, false) : decodable(f.url); });
+    return decodable(f.url);
+  }
+  function clean(f) {
+    var ori = f.meta.exif.Orientation, raw = $('keepTag').checked && ori && ori !== 1;
+    return bitmap(f, raw).then(function (img) {
+      if (!img) throw new Error('this browser can\'t decode the file');
+      var w = img.width || img.naturalWidth, h = img.height || img.naturalHeight, c = document.createElement('canvas'); c.width = w; c.height = h;
+      var cx = c.getContext('2d'), type = outType(f);
+      if (type === 'image/jpeg') { cx.fillStyle = '#fff'; cx.fillRect(0, 0, w, h); }
+      cx.drawImage(img, 0, 0);
+      return new Promise(function (res) { c.toBlob(res, type, +$('q').value); }).then(function (blob) {
+        if (!blob) throw new Error('could not encode');
+        if (blob.type !== type) type = blob.type;
+        if (raw && type === 'image/jpeg') return blob.arrayBuffer().then(function (b) { return new Blob([withOrientation(new Uint8Array(b), ori)], { type: type }); });
+        return blob;
+      });
+    }).then(function (blob) {
+      f.clean = blob; f.cleanName = f.name.replace(/\.[^.]+$/, '') + '-clean.' + ({ 'image/png': 'png', 'image/webp': 'webp' }[blob.type] || 'jpg');
+      return blob.arrayBuffer().then(function (b) { f.after = PM.flat(PM.parse(b)); });
+    });
+  }
+  // Minimal EXIF with only the Orientation tag
+  function withOrientation(u8, ori) {
+    var t = [0x4D, 0x4D, 0, 42, 0, 0, 0, 8, 0, 1, 0x01, 0x12, 0, 3, 0, 0, 0, 1, 0, ori, 0, 0, 0, 0, 0, 0, 0, 0];
+    var body = [0x45, 0x78, 0x69, 0x66, 0, 0].concat(t), len = body.length + 2;
+    var seg = [0xFF, 0xE1, len >> 8, len & 255].concat(body), o = new Uint8Array(u8.length + seg.length);
+    o.set(u8.subarray(0, 2)); o.set(seg, 2); o.set(u8.subarray(2), 2 + seg.length); return o;
+  }
+  function showDiff(f) {
+    var b = f.flat, a = f.after || {}, keys = Object.keys(b), extra = Object.keys(a).filter(function (k) { return !(k in b); });
+    var gone = keys.filter(function (k) { return !(k in a); }).length;
+    $('diff').innerHTML = '<p style="margin:8px 0;font-size:.9rem"><b class="ok">' + gone + ' of ' + keys.length + ' fields removed.</b> Clean copy: ' + kb(f.clean.size) + '. <a class="sm" href="#" id="dl1">Download again</a></p>' +
+      '<table class="diff"><thead><tr><th style="width:38%">Field</th><th>Before</th><th style="width:22%">After</th></tr></thead><tbody>' +
+      keys.map(function (k) { return '<tr><td data-noar>' + esc(k) + '</td><td data-noar>' + esc(String(b[k]).slice(0, 80)) + '</td><td class="' + (k in a ? 'kept">' + esc(a[k]) : 'gone">removed') + '</td></tr>'; }).join('') +
+      extra.map(function (k) { return '<tr><td data-noar>' + esc(k) + '</td><td>–</td><td class="kept" data-noar>' + esc(a[k]) + '</td></tr>'; }).join('') + '</tbody></table>' +
+      (extra.length ? '<p class="msg">Items marked in gold in the After column are added by the browser\'s encoder (a format header, or the rotation tag you chose to keep). They don\'t identify you.</p>' : '');
+    $('dl1').onclick = function (e) { e.preventDefault(); download(f.clean, f.cleanName); };
+  }
+  function download(blob, name) { var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 2000); }
+  $('cleanAll').onclick = function () {
+    var ok = files.filter(function (f) { return f.decodes; }), skipped = files.length - ok.length, done = 0;
+    $('bmsg').textContent = 'Cleaning ' + ok.length + '…';
+    ok.reduce(function (p, f) { return p.then(function () { return clean(f).then(function () { $('bmsg').textContent = 'Cleaned ' + (++done) + ' of ' + ok.length + '…'; }); }); }, Promise.resolve()).then(function () {
+      if (!ok.length) { $('bmsg').textContent = 'None of these files can be decoded in this browser.'; return; }
+      var fin = function () { $('bmsg').textContent = 'Done. ' + ok.length + ' clean ' + (ok.length > 1 ? 'copies' : 'copy') + ' saved' + (skipped ? ', ' + skipped + ' skipped (HEIC this browser can\'t open)' : '') + '.'; if (cur >= 0) show(cur); };
+      if (ok.length === 1 || !window.JSZip) { ok.forEach(function (f) { download(f.clean, f.cleanName); }); fin(); return; }
+      var z = new JSZip(), used = {};
+      ok.forEach(function (f) { var n = f.cleanName; while (used[n]) n = n.replace(/(\.\w+)$/, '-1$1'); used[n] = 1; z.file(n, f.clean); });
+      z.generateAsync({ type: 'blob' }).then(function (zb) { download(zb, 'clean-photos.zip'); fin(); });
+    }).catch(function (er) { $('bmsg').textContent = 'Stopped: ' + er.message; });
+  };
+
+  // ---- inputs ----
+  $('file').onchange = function () { if (this.files.length) addFiles(this.files); this.value = ''; };
+  var dr = $('drop');
+  dr.addEventListener('dragover', function (e) { e.preventDefault(); dr.classList.add('over'); });
+  dr.addEventListener('dragleave', function () { dr.classList.remove('over'); });
+  dr.addEventListener('drop', function (e) { e.preventDefault(); dr.classList.remove('over'); if (e.dataTransfer.files.length) addFiles(e.dataTransfer.files); });
+  document.addEventListener('paste', function (e) { var it = [].filter.call((e.clipboardData && e.clipboardData.items) || [], function (x) { return /^image\//.test(x.type); }).map(function (x) { return x.getAsFile(); }); if (it.length) addFiles(it); });
+
+  // ---- sample photo: drawn here, with fictional EXIF written by hand ----
+  function scene(w, h, crop) {
+    var c = document.createElement('canvas'); c.width = w; c.height = h; var x = c.getContext('2d'), s = w / 800;
+    x.save(); if (crop) { x.scale(1.6, 1.6); x.translate(-160, -60); }
+    var g = x.createLinearGradient(0, 0, 0, 600 * s); g.addColorStop(0, '#f6b26b'); g.addColorStop(1, '#3d6e8f'); x.fillStyle = g; x.fillRect(0, 0, 800 * s, 600 * s);
+    x.fillStyle = '#e8d5a3'; x.fillRect(0, 430 * s, 800 * s, 170 * s);
+    x.fillStyle = '#2e4a2a'; [140, 620].forEach(function (px) { x.fillRect((px - 6) * s, 250 * s, 12 * s, 190 * s); for (var a = 0; a < 6; a++) { x.beginPath(); x.ellipse(px * s, 250 * s, 70 * s, 14 * s, a * Math.PI / 6, 0, 7); x.fill(); } });
+    x.fillStyle = '#fff'; x.font = 'bold ' + 30 * s + 'px sans-serif'; x.fillText('Villa 12, Example St', 40 * s, 520 * s);
+    x.restore(); return c;
+  }
+  function jpegBytes(c, q) { var d = atob(c.toDataURL('image/jpeg', q).split(',')[1]), u = new Uint8Array(d.length); for (var i = 0; i < d.length; i++) u[i] = d.charCodeAt(i); return u; }
+  function tiff(groups, thumb) {
+    // groups: [ifd0, exif, gps]; entries [tag, type, value]; big-endian
+    var ifd1 = thumb ? [[0x0103, 3, [6]], [0x0201, 4, [0]], [0x0202, 4, [thumb.length]]] : null;
+    groups[0].push([0x8769, 4, [0]], [0x8825, 4, [0]]);
+    var all = groups.concat(ifd1 ? [ifd1] : []), off = [], p = 8;
+    all.forEach(function (g) { g.sort(function (a, b) { return a[0] - b[0]; }); off.push(p); p += 2 + g.length * 12 + 4; });
+    var data = [], dataStart = p, bytes = [];
+    function enc(t, v) { var o = []; if (t === 2) { for (var i = 0; i < v.length; i++) o.push(v.charCodeAt(i) & 255); o.push(0); } else v.forEach(function (n) { if (t === 3) o.push(n >> 8 & 255, n & 255); else if (t === 4) o.push(n >>> 24 & 255, n >> 16 & 255, n >> 8 & 255, n & 255); else if (t === 5) { o = o.concat(enc(4, [n[0]]), enc(4, [n[1]])); } else o.push(n); }); return o; }
+    var thumbOff = 0;
+    if (thumb) { thumbOff = dataStart; }
+    var cursor = dataStart + (thumb ? thumb.length + (thumb.length & 1) : 0);
+    all.forEach(function (g, gi) {
+      bytes = bytes.concat(enc(3, [g.length]));
+      g.forEach(function (en) {
+        var v = en[2];
+        if (en[0] === 0x8769) v = [off[1]]; if (en[0] === 0x8825) v = [off[2]]; if (en[0] === 0x0201) v = [thumbOff];
+        var b = enc(en[1], v), count = en[1] === 2 ? b.length : en[1] === 5 ? v.length : v.length;
+        bytes = bytes.concat(enc(3, [en[0], en[1]]), enc(4, [count]));
+        if (b.length <= 4) { while (b.length < 4) b.push(0); bytes = bytes.concat(b); }
+        else { bytes = bytes.concat(enc(4, [cursor])); data = data.concat(b); if (b.length & 1) data.push(0); cursor += b.length + (b.length & 1); }
+      });
+      bytes = bytes.concat(enc(4, [gi === 0 && ifd1 ? off[3] : 0]));
+    });
+    var out = new Uint8Array(cursor); out.set([0x4D, 0x4D, 0, 42, 0, 0, 0, 8]); out.set(bytes, 8);
+    if (thumb) out.set(thumb, thumbOff);
+    out.set(data, dataStart + (thumb ? thumb.length + (thumb.length & 1) : 0));
+    return out;
+  }
+  function dms(v) { v = Math.abs(v); var d = Math.floor(v), m = Math.floor((v - d) * 60), s = Math.round(((v - d) * 60 - m) * 6000); return [[d, 1], [m, 1], [s, 100]]; }
+  function makeSample() {
+    var main = jpegBytes(scene(800, 450, true), 0.88), th = jpegBytes(scene(160, 120, false), 0.7);
+    var lat = 25.18712, lon = 55.24391; // a spot inside a public park, not a home
+    var t = tiff([
+      [[0x010F, 2, 'ExampleCam'], [0x0110, 2, 'Phone X Pro'], [0x0112, 3, [1]], [0x0131, 2, 'PhotoEditor 9.2'], [0x0132, 2, '2026:02:20 19:41:10'], [0x013B, 2, 'Sam Example']],
+      [[0x9003, 2, '2026:02:20 17:58:03'], [0x9011, 2, '+04:00'], [0x829D, 5, [[18, 10]]], [0x8827, 3, [64]], [0xA430, 2, 'Sam Example'], [0xA431, 2, 'SN-48151623'], [0xA434, 2, 'Back camera 6.9mm f/1.8']],
+      [[0x0001, 2, 'N'], [0x0002, 5, dms(lat)], [0x0003, 2, 'E'], [0x0004, 5, dms(lon)], [0x0006, 5, [[1400, 100]]], [0x001F, 5, [[50, 10]]], [0x001D, 2, '2026:02:20']]
+    ], th);
+    var xmp = '<x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><rdf:Description rdf:about="" xmlns:xmp="http://ns.adobe.com/xap/1.0/" xmlns:xmpMM="http://ns.adobe.com/xap/1.0/mm/" xmlns:stEvt="http://ns.adobe.com/xap/1.0/sType/ResourceEvent#" xmlns:photoshop="http://ns.adobe.com/photoshop/1.0/" xmp:CreatorTool="PhotoEditor 9.2" photoshop:City="Dubai"><xmpMM:History><rdf:Seq><rdf:li stEvt:action="created" stEvt:when="2026-02-20T17:58:03+04:00" stEvt:softwareAgent="Phone X Pro"/><rdf:li stEvt:action="cropped" stEvt:when="2026-02-20T19:40:51+04:00" stEvt:softwareAgent="PhotoEditor 9.2"/><rdf:li stEvt:action="saved" stEvt:when="2026-02-20T19:41:10+04:00" stEvt:softwareAgent="PhotoEditor 9.2" stEvt:changed="/"/></rdf:Seq></xmpMM:History></rdf:Description></rdf:RDF></x:xmpmeta>';
+    var app1 = seg(0xE1, [0x45, 0x78, 0x69, 0x66, 0, 0], t), xs = seg(0xE1, toBytes('http://ns.adobe.com/xap/1.0/\0'), toBytes(xmp));
+    var out = new Uint8Array(main.length + app1.length + xs.length); out.set([0xFF, 0xD8]); out.set(app1, 2); out.set(xs, 2 + app1.length); out.set(main.subarray(2), 2 + app1.length + xs.length);
+    return new File([out], 'sample-beach-day.jpg', { type: 'image/jpeg' });
+  }
+  function toBytes(s) { var u = unescape(encodeURIComponent(s)), o = new Uint8Array(u.length); for (var i = 0; i < u.length; i++) o[i] = u.charCodeAt(i); return o; }
+  function seg(mk, head, body) { var len = head.length + body.length + 2, o = new Uint8Array(len + 2); o.set([0xFF, mk, len >> 8, len & 255]); o.set(head, 4); o.set(body, 4 + head.length); return o; }
+  $('demo').onclick = function () { addFiles([makeSample()]); };
+})();
+</script>
+</body>
+</html>

@@ -128,3 +128,10 @@ LabAr.add({
  "Print a scan-to-join Wi-Fi card in English and Arabic, with a guest password generator. Your password never leaves the page.": "اطبع بطاقة برمز QR للاتصال بالشبكة بالعربية والإنجليزية، مع مولّد كلمة مرور للضيوف. كلمة مرورك لا تغادر الصفحة.",
  "Make a card →": "اصنع بطاقة ←"
 });
+/* index cards for newer tools */
+LabAr.add({
+ "Privacy · Photos": "الخصوصية · الصور",
+ "What your photo gives away": "ماذا تكشف صورتك",
+ "See the GPS spot, device, serial numbers and hidden preview inside a photo, then save a clean copy without them.": "اعرف موقع GPS والجهاز والأرقام التسلسلية والمعاينة الخفية داخل الصورة، ثم احفظ نسخة نظيفة منها.",
+ "Check a photo →": "افحص صورة ←"
+});
