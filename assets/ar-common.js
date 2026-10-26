@@ -202,3 +202,10 @@ LabAr.add({
  "Hour by hour for 48 hours: when outside air is cool, dry and dust-free enough to switch the AC off.": "ساعة بساعة لمدة 48 ساعة: متى يكون الهواء الخارجي باردًا وجافًا وخاليًا من الغبار لتطفئ المكيّف.",
  "Check the air →": "افحص الهواء ←"
 });
+/* index cards for newer tools */
+LabAr.add({
+ "Game · Probability": "لعبة · احتمالات",
+ "Probability puzzles": "ألغاز الاحتمالات",
+ "Play Monty Hall, test the birthday paradox, and see why your gut gets chance wrong.": "العب مونتي هول، واختبر مفارقة عيد الميلاد، واكتشف لماذا يخطئ حدسك في تقدير الصدفة.",
+ "Play →": "العب ←"
+});

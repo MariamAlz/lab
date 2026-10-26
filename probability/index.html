@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Probability Puzzles · Mariam's Lab</title>
+<meta name="description" content="Five famous probability puzzles you can play with: Monty Hall, the birthday paradox, the gambler's fallacy, the base-rate fallacy and Simpson's paradox, with simulations and charts.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/probability/">
+<meta property="og:title" content="Probability Puzzles · Mariam's Lab"><meta property="og:description" content="Play Monty Hall, test the birthday paradox, and see why your gut gets chance wrong."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm[aria-pressed="true"], .sm.go1 { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.sm:disabled { opacity: .45; cursor: default; }
+.pz { margin-top: 34px; padding-top: 22px; border-top: 1px solid var(--line); }
+.pz h2 { font-family: var(--font-display); font-size: clamp(1.3rem, 3.4vw, 1.8rem); margin: 4px 0 6px; }
+.pz > p { color: var(--muted); max-width: 70ch; margin: 0 0 14px; }
+.jump { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+.jump a { font-size: 0.8rem; border: 1px solid var(--line); border-radius: 999px; padding: 4px 11px; color: var(--ink); text-decoration: none; }
+.doors { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.door { font: inherit; color: var(--ink); background: linear-gradient(180deg, #3a2a1c, #22180f); border: 2px solid #6b4f33; border-radius: 12px 12px 4px 4px; aspect-ratio: 3 / 4; display: grid; place-items: center; cursor: pointer; position: relative; font-size: clamp(2rem, 8vw, 3.4rem); padding: 0; }
+.door small { position: absolute; top: 8px; left: 0; right: 0; text-align: center; font-size: 0.78rem; color: #e8d6b9; font-family: var(--font-mono); }
+.door.pick { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(255,200,87,.25); }
+.door.open { background: rgba(7,10,24,.7); border-color: var(--line); cursor: default; }
+.door.win { border-color: var(--sat-b); }
+.door:disabled { cursor: default; }
+.btnrow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.msg { font-size: 0.9rem; color: var(--muted); min-height: 1.3em; margin: 0; }
+.msg b { color: var(--ink); }
+.big { font-family: var(--font-display); font-size: clamp(1.4rem, 4vw, 2rem); font-weight: 800; }
+canvas.ch { width: 100%; display: block; border-radius: 10px; background: rgba(7,10,24,.55); border: 1px solid var(--line); }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: 0.9rem; }
+.row input[type=number], .row select { font: inherit; color: var(--ink); background: rgba(7,10,24,.6); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; width: 6em; font-family: var(--font-mono); }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+textarea { font: inherit; color: var(--ink); background: rgba(7,10,24,.6); border: 1px solid var(--line); border-radius: 8px; padding: 8px; width: 100%; box-sizing: border-box; min-height: 70px; resize: vertical; }
+.coins { display: flex; flex-wrap: wrap; gap: 3px; min-height: 26px; }
+.coins i { font-style: normal; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 0.7rem; font-family: var(--font-mono); font-weight: 600; color: #0b1020; }
+.coins i.h { background: var(--accent); }
+.coins i.t { background: var(--sat-b); }
+.coins i.run { outline: 2px solid var(--sat-c); outline-offset: 1px; }
+.leg { display: flex; gap: 12px; flex-wrap: wrap; font-size: 0.76rem; color: var(--muted); }
+.leg span::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-inline-end: 5px; vertical-align: -1px; background: var(--c); }
+.pairs { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 0.88rem; }
+.pairs li { padding: 6px 10px; border: 1px solid var(--line); border-radius: 8px; }
+.tbl { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+.tbl th, .tbl td { padding: 7px 6px; border-bottom: 1px solid var(--line); text-align: start; }
+.tbl td.n { font-family: var(--font-mono); text-align: end; direction: ltr; unicode-bidi: isolate; }
+html.ar .tbl td.n { text-align: left; }
+html.ar .tbl th.n { text-align: left; }
+.tbl th.n { text-align: end; }
+.tbl .best { color: var(--sat-b); font-weight: 600; }
+.stats span { font-size: 0.76rem; color: var(--muted); }
+.pz .fact { margin-top: 18px; }
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Game · Maths · Probability</span>
+    <h1 style="font-size:var(--step-3)">Probability puzzles.</h1>
+    <p>Our gut is bad at chance. These five puzzles fool almost everyone the first time, including people with maths degrees. Play each one, then let the computer run it thousands of times to see what really happens.</p>
+    <nav class="jump" aria-label="Puzzles"><a href="#monty">Monty Hall</a><a href="#bday">Birthday paradox</a><a href="#coin">Gambler's fallacy</a><a href="#base">Base-rate fallacy</a><a href="#simpson">Simpson's paradox</a></nav>
+  </div>
+
+  <section class="pz" id="monty">
+    <span class="label">Puzzle 1</span>
+    <h2>Monty Hall: stay or switch?</h2>
+    <p>A car is behind one of three doors and goats are behind the other two. You pick a door. The host, who knows where the car is, opens another door to show a goat. Should you switch?</p>
+    <div class="game">
+      <div class="panel" style="gap:12px">
+        <div class="doors" id="doors"></div>
+        <p class="msg" id="mMsg" role="status"></p>
+        <div class="btnrow"><button class="sm go1" type="button" id="mStay" hidden>Stay</button><button class="sm go1" type="button" id="mSwitch" hidden>Switch</button><button class="sm" type="button" id="mAgain" hidden>Play again</button></div>
+        <div class="stats">
+          <div><b id="mSt">0 / 0</b><span>wins when you stayed</span></div>
+          <div><b id="mSw">0 / 0</b><span>wins when you switched</span></div>
+          <div><b id="mN">0</b><span>games played</span></div>
+        </div>
+      </div>
+      <div class="panel" style="gap:10px">
+        <span class="label">Simulate 10,000 games</span>
+        <label class="row"><span>Number of doors</span><select id="mDoors"><option value="3">3</option><option value="10">10</option><option value="100">100</option></select></label>
+        <button class="sm go1" type="button" id="mSim" style="justify-self:start">Run 10,000 games</button>
+        <canvas class="ch" id="mChart" aria-label="Win rate as games are played"></canvas>
+        <div class="leg"><span style="--c:#4fd3bd">Always switch</span><span style="--c:#ff7a8f">Always stay</span></div>
+        <p class="msg" id="mSimMsg"></p>
+      </div>
+    </div>
+    <p class="fact">Switching wins 2 times in 3. Your first pick is right only 1 time in 3, and the host's choice doesn't change that. The other 2 in 3 chance all moves to the one door he leaves closed. It's clearer with 100 doors: you pick one, the host opens 98 goat doors and leaves one closed. Would you really stick with your first guess? Switching then wins 99 times in 100.</p>
+  </section>
+
+  <section class="pz" id="bday">
+    <span class="label">Puzzle 2</span>
+    <h2>The birthday paradox.</h2>
+    <p>How many people do you need in a room for a better than even chance that two share a birthday? Most people guess around 180. The answer is 23.</p>
+    <div class="game">
+      <div class="panel" style="gap:10px">
+        <label class="row"><span>People in the group</span><input type="number" id="bN" min="2" max="366" value="23"></label>
+        <input type="range" id="bR" min="2" max="80" value="23" aria-label="People in the group">
+        <div><span class="big" id="bP">50.7%</span> <span class="msg" style="display:inline">chance that at least two share a birthday</span></div>
+        <canvas class="ch" id="bChart" aria-label="Chance of a shared birthday by group size"></canvas>
+        <p class="msg" id="bPairs"></p>
+      </div>
+      <div class="panel" style="gap:10px">
+        <span class="label">Try your own group</span>
+        <textarea id="bNames" placeholder="Type names, one per line or separated by commas (your class, team or family)"></textarea>
+        <div class="btnrow"><button class="sm go1" type="button" id="bDeal">Deal random birthdays</button><button class="sm" type="button" id="bSim">Simulate 10,000 groups</button></div>
+        <p class="msg" id="bMsg" role="status"></p>
+        <ul class="pairs" id="bList"></ul>
+      </div>
+    </div>
+    <p class="fact">The trick is counting pairs, not people. With 23 people there are 253 different pairs, and each pair has a 1 in 365 chance of matching. The exact chance multiplies the odds that each new person misses everyone before them: 364/365 × 363/365 × … This ignores 29 February and assumes birthdays are spread evenly. Real birthdays cluster a little, which makes a match slightly more likely.</p>
+  </section>
+
+  <section class="pz" id="coin">
+    <span class="label">Puzzle 3</span>
+    <h2>The gambler's fallacy.</h2>
+    <p>After five heads in a row, tails feels "due". It isn't. A coin has no memory. Predict each flip and watch what you do after a streak.</p>
+    <div class="game">
+      <div class="panel" style="gap:12px">
+        <div class="btnrow"><span>Your guess for the next flip:</span><button class="sm go1" type="button" id="cH">Heads</button><button class="sm go1" type="button" id="cT">Tails</button><button class="sm" type="button" id="cAuto">Flip 100 for me</button><button class="sm" type="button" id="cReset">Reset</button></div>
+        <p class="msg" id="cMsg" role="status">Make your first guess.</p>
+        <div class="coins" id="coins" aria-label="Flips so far"></div>
+        <div class="stats">
+          <div><b id="cAcc">–</b><span>guesses right</span></div>
+          <div><b id="cRun">–</b><span>longest streak</span></div>
+          <div><b id="cAg">–</b><span>you bet against a streak of 3+</span></div>
+        </div>
+        <p class="msg" id="cCont"></p>
+      </div>
+      <div class="panel" style="gap:10px">
+        <span class="label">The reveal: how long do streaks get?</span>
+        <button class="sm go1" type="button" id="cRev" style="justify-self:start">Simulate 10,000 sets of 100 flips</button>
+        <canvas class="ch" id="cChart" aria-label="Longest streak in 100 flips"></canvas>
+        <p class="msg" id="cRevMsg"></p>
+      </div>
+    </div>
+    <p class="fact">When people write down a "random" list of 100 flips, they switch sides too often and rarely include a run longer than 4. A real coin usually gives a longest run of 6 or 7 in 100 flips. Teachers use this to spot made-up homework. The same bias makes us see "hot streaks" in sport and "due" numbers in lotteries.</p>
+  </section>
+
+  <section class="pz" id="base">
+    <span class="label">Puzzle 4</span>
+    <h2>The base-rate fallacy.</h2>
+    <p>A test for a rare disease is 90% accurate. You test positive. How worried should you be? Most people, and many doctors in studies, say about 90%. The real answer is often far lower.</p>
+    <div class="game">
+      <div class="panel" style="gap:10px">
+        <canvas class="ch" id="gChart" aria-label="1,000 people, coloured by disease and test result"></canvas>
+        <div class="leg"><span style="--c:#ff7a8f">Sick, tests positive</span><span style="--c:#ffc857">Healthy, tests positive</span><span style="--c:#8f5a68">Sick, missed by the test</span><span style="--c:#2c3550">Healthy, tests negative</span></div>
+      </div>
+      <div class="panel" style="gap:10px">
+        <label class="row"><span>How common is the disease? <b id="gPv" style="font-family:var(--font-mono)"></b></span></label>
+        <input type="range" id="gPrev" min="1" max="200" value="10" aria-label="How common is the disease">
+        <label class="row"><span>Sick people the test catches <b id="gSv" style="font-family:var(--font-mono)"></b></span></label>
+        <input type="range" id="gSens" min="50" max="100" value="90" aria-label="Sensitivity">
+        <label class="row"><span>Healthy people wrongly flagged <b id="gFv" style="font-family:var(--font-mono)"></b></span></label>
+        <input type="range" id="gFp" min="0" max="30" value="9" aria-label="False positive rate">
+        <div><span class="big" id="gOut">–</span> <span class="msg" style="display:inline">chance you're sick if you test positive</span></div>
+        <p class="msg" id="gS1"></p>
+        <p class="msg" id="gS2"></p>
+        <p class="msg" id="gS3"></p>
+      </div>
+    </div>
+    <p class="fact">Counting people instead of using percentages makes this easy. That's called natural frequencies, and the psychologist Gerd Gigerenzer showed it helps doctors get the answer right far more often. When a disease is rare, the healthy people wrongly flagged can outnumber the sick ones. That's why a positive screening test is usually followed by a second, different test.</p>
+  </section>
+
+  <section class="pz" id="simpson">
+    <span class="label">Puzzle 5</span>
+    <h2>Simpson's paradox.</h2>
+    <p>Treatment A wins for small kidney stones. It also wins for large ones. Yet treatment B looks better overall. Both can be true at once. Flip the view to see how.</p>
+    <div class="game">
+      <div class="panel" style="gap:10px">
+        <div class="btnrow" role="group" aria-label="View"><button class="sm" type="button" id="sAll" aria-pressed="true">All patients</button><button class="sm" type="button" id="sSplit" aria-pressed="false">Split by stone size</button></div>
+        <canvas class="ch" id="sChart" aria-label="Success rate by treatment"></canvas>
+        <div class="leg"><span style="--c:#4fd3bd">Treatment A (open surgery)</span><span style="--c:#ffc857">Treatment B (keyhole)</span></div>
+      </div>
+      <div class="panel" style="gap:10px">
+        <table class="tbl">
+          <thead><tr><th>Group</th><th class="n">Treatment A</th><th class="n">Treatment B</th></tr></thead>
+          <tbody>
+            <tr><td>Small stones</td><td class="n best">81 / 87 (93%)</td><td class="n">234 / 270 (87%)</td></tr>
+            <tr><td>Large stones</td><td class="n best">192 / 263 (73%)</td><td class="n">55 / 80 (69%)</td></tr>
+            <tr><td><b>All patients</b></td><td class="n">273 / 350 (78%)</td><td class="n best">289 / 350 (83%)</td></tr>
+          </tbody>
+        </table>
+        <p class="msg" id="sMsg"></p>
+      </div>
+    </div>
+    <p class="fact">The data is from a real 1986 study of kidney stone treatments (Charig and colleagues, BMJ). Doctors gave the tougher large-stone cases to treatment A more often. Large stones fail more with any treatment, so A's overall score is dragged down by the hard cases it took on. When a hidden factor decides who gets which option, the combined numbers can point the wrong way. Always ask how the groups were chosen.</p>
+  </section>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var T = function (s) { return window.LabAr ? LabAr.t(s) : s; };
+  function pct(x, d) { return (x * 100).toFixed(d == null ? 1 : d) + '%'; }
+  function cv(id, h) {
+    var c = $(id), d = window.devicePixelRatio || 1, w = Math.max(200, c.clientWidth);
+    c.width = Math.round(w * d); c.height = Math.round(h * d); c.style.height = h + 'px';
+    var x = c.getContext('2d'); x.setTransform(d, 0, 0, d, 0, 0); x.clearRect(0, 0, w, h);
+    x.font = '11px JetBrains Mono, monospace'; return { x: x, w: w, h: h };
+  }
+  var MUTED = '#8b93ad', GRID = 'rgba(255,255,255,.08)';
+
+  // ---------- Monty Hall ----------
+  var mg = null, tally = { st: [0, 0], sw: [0, 0] };
+  function mNew() { mg = { car: Math.floor(Math.random() * 3), pick: null, open: null, other: null, done: false }; mDraw(); $('mMsg').textContent = 'Pick a door.'; $('mStay').hidden = $('mSwitch').hidden = $('mAgain').hidden = true; }
+  function mDraw() {
+    var h = '';
+    for (var i = 0; i < 3; i++) {
+      var shown = mg.done || mg.open === i, cls = 'door' + (mg.pick === i ? ' pick' : '') + (shown ? ' open' : '') + (mg.done && i === mg.car ? ' win' : '');
+      h += '<button type="button" class="' + cls + '" data-d="' + i + '"' + (mg.pick != null ? ' disabled' : '') + ' aria-label="Door ' + (i + 1) + '"><small>Door ' + (i + 1) + '</small>' + (shown ? (i === mg.car ? '🚗' : '🐐') : '🚪') + '</button>';
+    }
+    $('doors').innerHTML = h;
+  }
+  $('doors').addEventListener('click', function (e) {
+    var b = e.target.closest('.door'); if (!b || mg.pick != null) return;
+    mg.pick = +b.dataset.d;
+    var goats = [0, 1, 2].filter(function (i) { return i !== mg.pick && i !== mg.car; });
+    mg.open = goats[Math.floor(Math.random() * goats.length)];
+    mg.other = [0, 1, 2].filter(function (i) { return i !== mg.pick && i !== mg.open; })[0];
+    mDraw();
+    $('mMsg').textContent = 'You picked door ' + (mg.pick + 1) + '. The host opens door ' + (mg.open + 1) + ' to show a goat. Stay, or switch to door ' + (mg.other + 1) + '?';
+    $('mStay').hidden = $('mSwitch').hidden = false;
+  });
+  function mFinish(sw) {
+    var final = sw ? mg.other : mg.pick, won = final === mg.car; mg.done = true; mg.pick = final; mDraw();
+    var t = sw ? tally.sw : tally.st; t[1]++; if (won) t[0]++;
+    $('mMsg').textContent = won ? 'You won the car! ' + (sw ? 'Switching paid off.' : 'Staying paid off this time.') : 'A goat. ' + (sw ? 'Switching lost this time.' : 'The car was behind the other door.');
+    $('mStay').hidden = $('mSwitch').hidden = true; $('mAgain').hidden = false;
+    $('mSt').textContent = tally.st[0] + ' / ' + tally.st[1]; $('mSw').textContent = tally.sw[0] + ' / ' + tally.sw[1]; $('mN').textContent = tally.st[1] + tally.sw[1];
+  }
+  $('mStay').onclick = function () { mFinish(false); };
+  $('mSwitch').onclick = function () { mFinish(true); };
+  $('mAgain').onclick = mNew;
+  // n doors: host opens every door except your pick and one other, never the car
+  function montySim(runs, n, rnd) {
+    rnd = rnd || Math.random; n = n || 3;
+    var st = 0, sw = 0, curve = [];
+    for (var k = 1; k <= runs; k++) {
+      var car = Math.floor(rnd() * n), pick = Math.floor(rnd() * n), other;
+      if (pick === car) { other = Math.floor(rnd() * (n - 1)); if (other >= pick) other++; } else other = car;
+      if (pick === car) st++; if (other === car) sw++;
+      if (k <= 50 || k % 50 === 0) curve.push([k, st / k, sw / k]);
+    }
+    return { stay: st / runs, sw: sw / runs, curve: curve };
+  }
+  var mLast = null;
+  function mChart() {
+    var c = cv('mChart', 200), x = c.x, L = 34, R = 10, Tp = 10, B = 24, W = c.w - L - R, H = c.h - Tp - B;
+    x.strokeStyle = GRID; x.fillStyle = MUTED; x.textAlign = 'right';
+    [0, 0.25, 0.5, 0.75, 1].forEach(function (v) { var y = Tp + H * (1 - v); x.beginPath(); x.moveTo(L, y); x.lineTo(L + W, y); x.stroke(); x.fillText(Math.round(v * 100) + '%', L - 4, y + 4); });
+    x.textAlign = 'center';
+    var lx = function (k) { return L + W * Math.log10(k) / 4; };
+    [1, 10, 100, 1000, 10000].forEach(function (k) { x.fillText(k >= 1000 ? (k / 1000) + 'k' : String(k), lx(k), c.h - 8); });
+    if (!mLast) { x.fillText('Press run to simulate', L + W / 2, Tp + H / 2); return; }
+    var n = mLast.n;
+    x.setLineDash([4, 4]); x.strokeStyle = 'rgba(255,255,255,.3)';
+    [1 / n, (n - 1) / n].forEach(function (v) { var y = Tp + H * (1 - v); x.beginPath(); x.moveTo(L, y); x.lineTo(L + W, y); x.stroke(); });
+    x.setLineDash([]);
+    [[2, '#4fd3bd'], [1, '#ff7a8f']].forEach(function (s) {
+      x.strokeStyle = s[1]; x.lineWidth = 2; x.beginPath();
+      mLast.curve.forEach(function (p, i) { var px = lx(p[0]), py = Tp + H * (1 - p[s[0]]); if (i) x.lineTo(px, py); else x.moveTo(px, py); });
+      x.stroke();
+    });
+    x.lineWidth = 1;
+  }
+  $('mSim').onclick = function () {
+    var n = +$('mDoors').value, r = montySim(10000, n); r.n = n; mLast = r; mChart();
+    $('mSimMsg').textContent = 'With ' + n + ' doors, switching won ' + pct(r.sw) + ' of 10,000 games and staying won ' + pct(r.stay) + '. Theory says ' + pct((n - 1) / n) + ' and ' + pct(1 / n) + '.';
+  };
+
+  // ---------- Birthday ----------
+  function birthday(n) { if (n > 365) return 1; var q = 1; for (var k = 0; k < n; k++) q *= (365 - k) / 365; return 1 - q; }
+  function bSimulate(n, runs) { var hit = 0, seen = new Uint32Array(365); for (var r = 1; r <= runs; r++) { for (var i = 0; i < n; i++) { var d = Math.floor(Math.random() * 365); if (seen[d] === r) { hit++; break; } seen[d] = r; } } return hit / runs; }
+  function bN() { return Math.max(2, Math.min(366, Math.round(+$('bN').value) || 2)); }
+  function bChart() {
+    var n = bN(), c = cv('bChart', 190), x = c.x, L = 34, R = 10, Tp = 10, B = 24, W = c.w - L - R, H = c.h - Tp - B, max = 80;
+    x.strokeStyle = GRID; x.fillStyle = MUTED; x.textAlign = 'right';
+    [0, 0.5, 1].forEach(function (v) { var y = Tp + H * (1 - v); x.beginPath(); x.moveTo(L, y); x.lineTo(L + W, y); x.stroke(); x.fillText(Math.round(v * 100) + '%', L - 4, y + 4); });
+    x.textAlign = 'center';
+    [1, 10, 23, 40, 60, 80].forEach(function (k) { x.fillText(String(k), L + W * (k - 1) / (max - 1), c.h - 8); });
+    x.strokeStyle = '#ffc857'; x.lineWidth = 2; x.beginPath();
+    for (var k = 1; k <= max; k++) { var px = L + W * (k - 1) / (max - 1), py = Tp + H * (1 - birthday(k)); if (k > 1) x.lineTo(px, py); else x.moveTo(px, py); }
+    x.stroke(); x.lineWidth = 1;
+    var m = Math.min(n, max), mx = L + W * (m - 1) / (max - 1), my = Tp + H * (1 - birthday(m));
+    x.fillStyle = '#4fd3bd'; x.beginPath(); x.arc(mx, my, 5, 0, 7); x.fill();
+    x.textAlign = mx > c.w - 80 ? 'right' : 'left'; x.fillText(n + ' people', mx + (mx > c.w - 80 ? -8 : 8), my + 14);
+  }
+  function bUpdate(fromRange) {
+    if (fromRange) $('bN').value = $('bR').value; else $('bR').value = Math.min(80, bN());
+    var n = bN(); $('bP').textContent = pct(birthday(n), birthday(n) > 0.9999 ? 2 : 1);
+    $('bPairs').textContent = n + ' people make ' + (n * (n - 1) / 2).toLocaleString('en') + ' pairs.';
+    bChart();
+  }
+  $('bR').addEventListener('input', function () { bUpdate(true); });
+  $('bN').addEventListener('input', function () { bUpdate(false); });
+  var MON = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'], MD = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  function dayName(d) { var m = 0; while (d >= MD[m]) { d -= MD[m]; m++; } return [d + 1, MON[m]]; }
+  function names() { return $('bNames').value.split(/[\n,،]+/).map(function (s) { return s.trim(); }).filter(Boolean); }
+  function esc(s) { return s.replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  $('bNames').addEventListener('input', function () { var k = names().length; if (k >= 2) { $('bN').value = k; bUpdate(false); } });
+  $('bDeal').onclick = function () {
+    var nm = names(), n = nm.length >= 2 ? nm.length : bN(), by = {};
+    if (nm.length < 2) { nm = []; for (var i = 0; i < n; i++) nm.push(T('Person') + ' ' + (i + 1)); }
+    nm.forEach(function (p) { var d = Math.floor(Math.random() * 365); (by[d] = by[d] || []).push(p); });
+    var hits = Object.keys(by).filter(function (d) { return by[d].length > 1; });
+    $('bMsg').textContent = hits.length ? 'Shared birthdays this time:' : 'No shared birthday this time. Deal again.';
+    $('bList').innerHTML = hits.map(function (d) { var dn = dayName(+d); return '<li><b>' + dn[0] + ' <span>' + dn[1] + '</span></b>: <span data-noar>' + esc(by[d].join(', ')) + '</span></li>'; }).join('');
+  };
+  $('bSim').onclick = function () {
+    var n = bN(), f = bSimulate(n, 10000);
+    $('bMsg').textContent = 'In 10,000 random groups of ' + n + ', ' + pct(f) + ' had a shared birthday. The exact answer is ' + pct(birthday(n)) + '.';
+    $('bList').innerHTML = '';
+  };
+
+  // ---------- Gambler's fallacy ----------
+  var flips = [], guesses = [];
+  function runAt(i) { var r = 1; while (i - r >= 0 && flips[i - r] === flips[i]) r++; return r; }
+  function cFlip(g) {
+    var f = Math.random() < 0.5 ? 'h' : 't', n = flips.length;
+    var prevRun = n ? runAt(n - 1) : 0, prev = n ? flips[n - 1] : null;
+    flips.push(f); guesses.push({ g: g, f: f, run: prevRun, against: prevRun >= 3 && g != null && g !== prev, streakSide: prev });
+    return f;
+  }
+  function cRender(last) {
+    var n = flips.length;
+    var mark = new Array(n), i0 = 0;
+    for (var j = 1; j <= n; j++) if (j === n || flips[j] !== flips[i0]) { for (var q = i0; q < j; q++) mark[q] = j - i0 >= 4; i0 = j; }
+    $('coins').innerHTML = flips.slice(-120).map(function (f, i) { var jj = i + Math.max(0, n - 120); return '<i class="' + f + (mark[jj] ? ' run' : '') + '">' + (f === 'h' ? 'H' : 'T') + '</i>'; }).join('');
+    var gs = guesses.filter(function (x) { return x.g; }), ok = gs.filter(function (x) { return x.g === x.f; }).length;
+    $('cAcc').textContent = gs.length ? pct(ok / gs.length, 0) : '–';
+    var longest = 0; for (var i = 0; i < n; i++) longest = Math.max(longest, runAt(i)); $('cRun').textContent = n ? String(longest) : '–';
+    var after = gs.filter(function (x) { return x.run >= 3; }), ag = after.filter(function (x) { return x.against; }).length;
+    $('cAg').textContent = after.length ? ag + ' / ' + after.length : '–';
+    var all3 = guesses.filter(function (x) { return x.run >= 3; }), cont = all3.filter(function (x) { return x.f === x.streakSide; }).length;
+    $('cCont').textContent = all3.length ? 'After a streak of 3 or more, the next flip carried on the streak ' + cont + (cont === 1 ? ' time' : ' times') + ' out of ' + all3.length + ' (' + pct(cont / all3.length, 0) + '). Over many flips this settles near 50%.' : '';
+    if (last) {
+      var r = runAt(n - 1), side = flips[n - 1] === 'h' ? T('heads') : T('tails');
+      $('cMsg').textContent = (last.g ? (last.g === last.f ? 'Right. ' : 'Wrong. ') : '') + 'It landed ' + (last.f === 'h' ? 'heads' : 'tails') + '.' + (r >= 3 ? ' That\'s ' + r + ' ' + side + ' in a row. Does the other side feel due?' : '');
+    }
+  }
+  $('cH').onclick = function () { cFlip('h'); cRender(guesses[guesses.length - 1]); };
+  $('cT').onclick = function () { cFlip('t'); cRender(guesses[guesses.length - 1]); };
+  $('cAuto').onclick = function () { for (var i = 0; i < 100; i++) cFlip(null); cRender(null); $('cMsg').textContent = 'Flipped 100 coins. Look for the long runs outlined in red.'; };
+  $('cReset').onclick = function () { flips = []; guesses = []; cRender(null); $('cMsg').textContent = 'Make your first guess.'; };
+  function longestRun(n, rnd) { rnd = rnd || Math.random; var best = 1, cur = 1, p = rnd() < 0.5; for (var i = 1; i < n; i++) { var f = rnd() < 0.5; if (f === p) { cur++; if (cur > best) best = cur; } else cur = 1; p = f; } return best; }
+  var cHist = null;
+  function cChart() {
+    var c = cv('cChart', 190), x = c.x, L = 34, R = 10, Tp = 10, B = 24, W = c.w - L - R, H = c.h - Tp - B;
+    x.fillStyle = MUTED; x.textAlign = 'center';
+    if (!cHist) { x.fillText('Press the button to simulate', L + W / 2, Tp + H / 2); return; }
+    var lo = 3, hi = 15, max = Math.max.apply(null, cHist.slice(lo, hi + 1)), bw = W / (hi - lo + 1);
+    x.strokeStyle = GRID; x.textAlign = 'right';
+    [0, 0.5, 1].forEach(function (v) { var y = Tp + H * (1 - v); x.beginPath(); x.moveTo(L, y); x.lineTo(L + W, y); x.stroke(); x.fillText(pct(v * max / 10000, 0), L - 4, y + 4); });
+    x.textAlign = 'center';
+    for (var k = lo; k <= hi; k++) {
+      var v = cHist[k] || 0, bh = H * v / max;
+      x.fillStyle = k <= 4 ? '#ff7a8f' : '#4fd3bd'; x.fillRect(L + (k - lo) * bw + 2, Tp + H - bh, bw - 4, bh);
+      x.fillStyle = MUTED; x.fillText(k === hi ? hi + '+' : String(k), L + (k - lo + 0.5) * bw, c.h - 8);
+    }
+  }
+  $('cRev').onclick = function () {
+    var h = new Array(16).fill(0), le4 = 0;
+    for (var i = 0; i < 10000; i++) { var r = longestRun(100); h[Math.min(15, r)]++; if (r <= 4) le4++; }
+    cHist = h; cChart();
+    var mode = 0; for (var k = 1; k < 16; k++) if (h[k] > h[mode]) mode = k;
+    var ge6 = h.slice(6).reduce(function (a, b) { return a + b; }, 0);
+    $('cRevMsg').textContent = 'The most common longest run was ' + mode + '. ' + pct(ge6 / 10000, 0) + ' of sets had a run of 6 or more, and only ' + pct(le4 / 10000, 1) + ' had no run longer than 4 (red bars).';
+  };
+
+  // ---------- Base rate ----------
+  function baseRate(prev, sens, fpr, N) {
+    N = N || 1000; var sick = prev * N, tp = sick * sens, fp = (N - sick) * fpr;
+    return { sick: sick, tp: tp, fn: sick - tp, fp: fp, tn: N - sick - fp, ppv: tp + fp > 0 ? tp / (tp + fp) : 0 };
+  }
+  function gUpdate() {
+    var prev = +$('gPrev').value / 1000, sens = +$('gSens').value / 100, fpr = +$('gFp').value / 100, r = baseRate(prev, sens, fpr, 1000);
+    $('gPv').textContent = (prev * 100).toFixed(1).replace(/\.0$/, '') + '%'; $('gSv').textContent = Math.round(sens * 100) + '%'; $('gFv').textContent = Math.round(fpr * 100) + '%';
+    $('gOut').textContent = pct(r.ppv, 0);
+    var R0 = function (v) { return Math.round(v); };
+    $('gS1').textContent = 'Out of 1,000 people, ' + R0(r.sick) + ' have the disease. The test catches ' + R0(r.tp) + ' of them.';
+    $('gS2').textContent = 'Of the ' + R0(1000 - r.sick) + ' healthy people, ' + R0(r.fp) + ' also test positive.';
+    $('gS3').textContent = 'So ' + R0(r.tp + r.fp) + ' people test positive, and only ' + R0(r.tp) + ' of them are sick.';
+    // icon grid: 40 x 25 people, sick ones first
+    var cols = 40, rows = 1000 / cols, c = cv('gChart', 0), w = c.w, s = w / cols, h = Math.ceil(rows * s);
+    c = cv('gChart', h); var x = c.x, tp = R0(r.tp), fn = R0(r.sick) - tp, fp = R0(r.fp);
+    for (var i = 0; i < 1000; i++) {
+      var col = i < tp ? '#ff7a8f' : i < tp + fn ? '#8f5a68' : i < tp + fn + fp ? '#ffc857' : '#2c3550';
+      var cx = (i % cols + 0.5) * s, cy = (Math.floor(i / cols) + 0.5) * s, rr = s * 0.36;
+      x.fillStyle = col; x.beginPath(); x.arc(cx, cy - rr * 0.55, rr * 0.45, 0, 7); x.fill();
+      x.beginPath(); x.moveTo(cx - rr * 0.75, cy + rr); x.quadraticCurveTo(cx, cy - rr * 0.35, cx + rr * 0.75, cy + rr); x.fill();
+    }
+  }
+  function c0w() { return $('gChart').clientWidth || 300; }
+  ['gPrev', 'gSens', 'gFp'].forEach(function (k) { $(k).addEventListener('input', gUpdate); });
+
+  // ---------- Simpson ----------
+  var SD = { small: [[81, 87], [234, 270]], large: [[192, 263], [55, 80]], all: [[273, 350], [289, 350]] }, split = false;
+  function sChart() {
+    var c = cv('sChart', 210), x = c.x, L = 34, R = 10, Tp = 16, B = 26, W = c.w - L - R, H = c.h - Tp - B;
+    var groups = split ? [['Small stones', SD.small], ['Large stones', SD.large]] : [['All patients', SD.all]];
+    var lo = 0.5, hi = 1;
+    x.strokeStyle = GRID; x.fillStyle = MUTED; x.textAlign = 'right';
+    [0.5, 0.6, 0.7, 0.8, 0.9, 1].forEach(function (v) { var y = Tp + H * (hi - v) / (hi - lo); x.beginPath(); x.moveTo(L, y); x.lineTo(L + W, y); x.stroke(); x.fillText(Math.round(v * 100) + '%', L - 4, y + 4); });
+    var gw = W / groups.length;
+    groups.forEach(function (g, gi) {
+      var bw = Math.min(70, gw / 3.2);
+      g[1].forEach(function (v, k) {
+        var rate = v[0] / v[1], bx = L + gi * gw + gw / 2 + (k ? 6 : -6 - bw), by = Tp + H * (hi - rate) / (hi - lo);
+        x.fillStyle = k ? '#ffc857' : '#4fd3bd'; x.fillRect(bx, by, bw, Tp + H - by);
+        x.fillStyle = '#e9ecf5'; x.textAlign = 'center'; x.fillText(Math.round(rate * 100) + '%', bx + bw / 2, by - 4);
+      });
+      x.fillStyle = MUTED; x.fillText(g[0], L + gi * gw + gw / 2, c.h - 8);
+    });
+  }
+  function sSet(v) {
+    split = v; $('sAll').setAttribute('aria-pressed', !v); $('sSplit').setAttribute('aria-pressed', v); sChart();
+    $('sMsg').textContent = v ? 'Split by stone size, treatment A wins in both groups. A took 263 of the hard large-stone cases. B took only 80.' : 'Looking at everyone together, treatment B succeeds more often: 83% against 78%.';
+  }
+  $('sAll').onclick = function () { sSet(false); };
+  $('sSplit').onclick = function () { sSet(true); };
+
+  window.Prob = { montySim: montySim, birthday: birthday, bSimulate: bSimulate, baseRate: baseRate, longestRun: longestRun };
+  function all() { mChart(); bUpdate(false); cChart(); gUpdate(); sChart(); }
+  var rt; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(all, 150); });
+  mNew(); cRender(null);
+  // draw charts once the Arabic dictionaries (if any) are in, so canvas labels get translated
+  function first() { sSet(false); all(); }
+  if (document.readyState === 'complete') first(); else window.addEventListener('load', first);
+})();
+</script>
+</body>
+</html>
