@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GPS Interference Now · Mariam's Lab</title>
+<meta name="description" content="A live map of GPS jamming and possible spoofing, worked out from the navigation accuracy that aircraft broadcast, plus a check of your own phone's location signal.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/gnss-watch/">
+<meta property="og:title" content="GPS Interference Now · Mariam's Lab"><meta property="og:description" content="Live GPS jamming and spoofing signs from aircraft signals, plus a check of your phone."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="stylesheet" href="../assets/vendor/leaflet/leaflet.css">
+<style>
+.leaflet-container { font-family: 'Instrument Sans', sans-serif; background: #0b1020; }
+#map { height: min(64vh, 560px); min-height: 360px; border-radius: var(--radius); border: 1px solid var(--line); }
+#map .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(.85) contrast(.9) saturate(.4); }
+.btns { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 10px 0; }
+.key { display: flex; gap: 12px; flex-wrap: wrap; font-size: 0.78rem; color: var(--muted); margin-top: 8px; }
+.key span::before { content: ''; display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-inline-end: 5px; vertical-align: -2px; background: var(--c); opacity: .8; }
+.checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.checks li { display: grid; grid-template-columns: 1.4em minmax(0, 1fr); gap: 8px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; font-size: 0.9rem; }
+.checks small { display: block; color: var(--muted); font-size: 0.8rem; }
+.ok { color: var(--sat-b); } .bad { color: var(--sat-c); } .meh { color: var(--accent); } .na { color: var(--muted); }
+.trace { width: 100%; height: 160px; border-radius: 10px; border: 1px solid var(--line); background: rgba(7,10,24,.6); }
+.hot { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 0.88rem; }
+.hot li { display: flex; justify-content: space-between; gap: 10px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 10px; cursor: pointer; }
+.hot b { font-family: var(--font-mono); }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">GNSS · Signals · Live</span>
+    <h1 style="font-size:var(--step-3)">GPS interference now.</h1>
+    <p>Satellite navigation signals reach the ground about as faint as a car headlight seen from 20,000 km away, so they're easy to drown out (jamming) or fake (spoofing). Aircraft constantly broadcast how much they trust their own position. When many planes in one area report poor accuracy at once, something on the ground is interfering. This map collects those reports live.</p>
+  </div>
+  <div class="btns" id="regions"></div>
+  <p class="msg" id="msg" role="status"></p>
+  <div id="map"></div>
+  <div class="key"><span style="--c:#4fd3bd">Normal (under 2% of planes affected)</span><span style="--c:#ffc857">Some interference (2–10%)</span><span style="--c:#ff4f6d">Heavy interference (over 10%)</span><span style="--c:#c27bff">Signs of spoofing</span></div>
+  <div class="game" style="margin-top:20px">
+    <div class="panel" style="display:grid;gap:10px;align-content:start">
+      <span class="label">Hotspots right now</span>
+      <div class="stats" id="stats"></div>
+      <ul class="hot" id="hot"><li>Collecting reports…</li></ul>
+      <p class="fact" style="margin:0">Each square is about 100 km across. A square needs at least 3 planes before it's coloured, and reports build up over 10 minutes so one faulty plane doesn't paint a whole area. Purple marks planes showing spoofing signs: a GPS height that disagrees with the barometric height, a position that jumps faster than any aircraft can fly, or a report that GPS was lost.</p>
+    </div>
+    <div class="panel" style="display:grid;gap:10px;align-content:start">
+      <span class="label">Check your own phone</span>
+      <button class="sm" type="button" id="phone" style="justify-self:start">Start the check</button>
+      <ul class="checks" id="pchk"><li><span class="na">·</span><span>Your phone reports its own accuracy and position. This watches them for a minute for signs of trouble.<small>Works best outdoors with a clear view of the sky. Your location stays on the device.</small></span></li></ul>
+      <canvas class="trace" id="trace" hidden></canvas>
+    </div>
+  </div>
+  <p class="fact" style="margin-top:20px">Aircraft data comes from community ADS-B receiver networks (adsb.lol, airplanes.live, adsb.fi), fetched by your browser. Accuracy is read from the NIC and NACp values in each broadcast, the same method used by public interference maps. It shows where interference is likely, not who causes it, and gaps on the map are places with no planes or no receivers.</p>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script src="../assets/vendor/leaflet/leaflet.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var REG = [['UAE & Gulf', 25.3, 54.8, 6], ['Strait of Hormuz', 26.4, 56.6, 7], ['Red Sea', 21, 39, 5], ['Eastern Mediterranean', 33.5, 34.5, 6], ['Black Sea', 44, 34, 5], ['Baltic', 57.5, 22, 5]];
+  var map = L.map('map', { zoomControl: true, worldCopyJump: true }).setView([REG[0][1], REG[0][2]], REG[0][3]);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 10, attribution: '© OpenStreetMap contributors' }).addTo(map);
+  var cells = L.layerGroup().addTo(map), dots = L.layerGroup().addTo(map), seen = {}, region = 0, timer = 0;
+  function get(u) { var c = new AbortController(); setTimeout(function () { c.abort(); }, 12000); return fetch(u, { signal: c.signal }).then(function (r) { if (!r.ok) throw r.status; return r.json(); }); }
+  var SRC = [
+    function (la, lo) { return get('https://api.adsb.lol/v2/point/' + la + '/' + lo + '/250'); },
+    function (la, lo) { return get('https://api.airplanes.live/v2/point/' + la + '/' + lo + '/250'); },
+    function (la, lo) { return get('https://opendata.adsb.fi/api/v2/lat/' + la + '/lon/' + lo + '/dist/250'); }
+  ], si = 0;
+  function pull() {
+    var r = REG[region], tried = 0;
+    function attempt() { return SRC[si](r[1].toFixed(2), r[2].toFixed(2)).catch(function () { si = (si + 1) % SRC.length; if (++tried >= SRC.length) throw 0; return attempt(); }); }
+    $('msg').textContent = 'Asking receivers around ' + r[0] + '…';
+    attempt().then(function (j) {
+      var now = Date.now(), ac = j.ac || j.aircraft || [];
+      ac.forEach(function (a) {
+        if (a.lat == null || a.alt_baro === 'ground') return;
+        var prev = seen[a.hex], spoof = [];
+        if (a.gpsOkBefore != null) spoof.push('reported GPS loss');
+        if (a.alt_geom != null && typeof a.alt_baro === 'number' && Math.abs(a.alt_geom - a.alt_baro) > 3000) spoof.push('GPS height ' + Math.round(Math.abs(a.alt_geom - a.alt_baro)).toLocaleString('en') + ' ft away from barometric height');
+        if (prev && now - prev.t > 5000) { var km = Math.hypot((a.lat - prev.lat) * 111, (a.lon - prev.lon) * 111 * Math.cos(a.lat * Math.PI / 180)), kmh = km / ((now - prev.t) / 3600e3); if (kmh > 2200 && km > 20) spoof.push('position jumped ' + Math.round(km) + ' km'); }
+        var bad = (a.nic != null && a.nic < 7) || (a.nac_p != null && a.nac_p < 8) || a.gpsOkBefore != null;
+        if (a.nic == null && a.nac_p == null && !spoof.length) return; // no accuracy data, can't judge
+        seen[a.hex] = { lat: a.lat, lon: a.lon, t: now, bad: bad, spoof: spoof.length ? spoof : (prev && prev.spoof && now - prev.spoofT < 600e3 ? prev.spoof : null), spoofT: spoof.length ? now : prev && prev.spoofT, cs: (a.flight || a.r || a.hex).trim(), nic: a.nic, nacp: a.nac_p };
+      });
+      Object.keys(seen).forEach(function (k) { if (now - seen[k].t > 600e3) delete seen[k]; });
+      draw();
+      $('msg').textContent = 'Updated ' + new Date().toLocaleTimeString('en-GB') + '. Refreshes every 30 seconds.';
+    }).catch(function () { $('msg').textContent = 'The receiver networks didn\'t answer. They limit how often they can be asked, so it will retry shortly.'; });
+  }
+  function draw() {
+    cells.clearLayers(); dots.clearLayers();
+    var g = {}, total = 0, badN = 0, spoofN = 0;
+    Object.keys(seen).forEach(function (k) {
+      var s = seen[k], key = Math.floor(s.lat) + ',' + Math.floor(s.lon); total++;
+      (g[key] = g[key] || { n: 0, b: 0, s: 0, lat: Math.floor(s.lat), lon: Math.floor(s.lon) }).n++;
+      if (s.bad) { g[key].b++; badN++; } if (s.spoof) { g[key].s++; spoofN++; }
+      if (s.bad || s.spoof) L.circleMarker([s.lat, s.lon], { radius: 4, weight: 1, color: s.spoof ? '#c27bff' : '#ff4f6d', fillOpacity: 0.9 }).bindPopup('<b>' + s.cs + '</b><br>' + (s.spoof ? 'Spoofing signs: ' + s.spoof.join(', ') + '<br>' : '') + 'NIC ' + (s.nic == null ? '—' : s.nic) + ' · NACp ' + (s.nacp == null ? '—' : s.nacp)).addTo(dots);
+    });
+    var hot = [];
+    Object.keys(g).forEach(function (k) {
+      var c = g[k]; if (c.n < 3) return; var p = c.b / c.n, col = c.s >= 2 ? '#c27bff' : p > 0.1 ? '#ff4f6d' : p > 0.02 ? '#ffc857' : '#4fd3bd';
+      L.rectangle([[c.lat, c.lon], [c.lat + 1, c.lon + 1]], { color: col, weight: 0.5, fillOpacity: p > 0.02 || c.s >= 2 ? 0.38 : 0.12 }).bindPopup(c.n + ' planes · ' + Math.round(p * 100) + '% with poor GPS accuracy' + (c.s ? ' · ' + c.s + ' with spoofing signs' : '')).addTo(cells);
+      if (p > 0.02 || c.s >= 2) hot.push(c);
+    });
+    hot.sort(function (a, b) { return b.b / b.n - a.b / a.n; });
+    $('stats').innerHTML = '<div><b>' + total + '</b><span>Planes reporting</span></div><div><b>' + (total ? Math.round(badN / total * 100) : 0) + '%</b><span>Poor GPS accuracy</span></div><div><b>' + spoofN + '</b><span>Spoofing signs</span></div>';
+    $('hot').innerHTML = hot.length ? hot.slice(0, 8).map(function (c) { return '<li data-ll="' + (c.lat + 0.5) + ',' + (c.lon + 0.5) + '"><span>' + c.lat + '°' + (c.lat >= 0 ? 'N' : 'S') + ' ' + c.lon + '°' + (c.lon >= 0 ? 'E' : 'W') + ' · ' + c.n + ' planes</span><b class="' + (c.b / c.n > 0.1 ? 'bad' : 'meh') + '">' + Math.round(c.b / c.n * 100) + '%' + (c.s ? ' · ' + c.s + ' spoof' : '') + '</b></li>'; }).join('') : '<li>No interference hotspots in this area right now.</li>';
+  }
+  $('hot').addEventListener('click', function (e) { var li = e.target.closest('[data-ll]'); if (li) map.setView(li.dataset.ll.split(',').map(Number), 8); });
+  REG.forEach(function (r, i) {
+    var b = document.createElement('button'); b.className = 'sm'; b.type = 'button'; b.textContent = r[0]; b.setAttribute('aria-pressed', i === region);
+    b.onclick = function () { region = i; seen = {}; map.setView([r[1], r[2]], r[3]); [].forEach.call($('regions').children, function (x) { x.setAttribute('aria-pressed', x === b); }); clearInterval(timer); pull(); timer = setInterval(pull, 30000); };
+    $('regions').appendChild(b);
+  });
+  pull(); timer = setInterval(function () { if (!document.hidden) pull(); }, 30000);
+
+  // phone check: watch reported accuracy and look for impossible jumps or clock drift
+  $('phone').onclick = function () {
+    if (!navigator.geolocation) { $('pchk').innerHTML = '<li><span class="na">·</span><span>This browser can\'t share a location.</span></li>'; return; }
+    var pts = [], start = Date.now(), cv = $('trace'), cx = cv.getContext('2d'); cv.hidden = false; $('phone').disabled = true; $('phone').textContent = 'Watching for 60 seconds…';
+    var id = navigator.geolocation.watchPosition(function (p) { pts.push({ t: Date.now(), ts: p.timestamp, lat: p.coords.latitude, lon: p.coords.longitude, acc: p.coords.accuracy, sp: p.coords.speed }); report(false); }, function (e) { $('pchk').innerHTML = '<li><span class="bad">✕</span><span>Location unavailable<small>' + (e.code === 1 ? 'Permission was refused.' : 'The phone couldn\'t get a fix. Try outdoors.') + '</small></span></li>'; }, { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 });
+    setTimeout(function () { navigator.geolocation.clearWatch(id); $('phone').disabled = false; $('phone').textContent = 'Check again'; report(true); }, 60000);
+    function report(done) {
+      if (!pts.length) return;
+      var accs = pts.map(function (p) { return p.acc; }), med = accs.slice().sort(function (a, b) { return a - b; })[Math.floor(accs.length / 2)], jumps = 0, maxJump = 0, drift = 0;
+      for (var i = 1; i < pts.length; i++) { var a = pts[i - 1], b = pts[i], km = Math.hypot((b.lat - a.lat) * 111, (b.lon - a.lon) * 111 * Math.cos(b.lat * Math.PI / 180)), h = Math.max(1, b.t - a.t) / 3600e3; if (km / h > 300 && km > 0.2) { jumps++; maxJump = Math.max(maxJump, km); } }
+      pts.forEach(function (p) { drift = Math.max(drift, Math.abs(p.t - p.ts)); });
+      var c = [];
+      c.push(med <= 20 ? ['ok', 'Accuracy looks normal', 'Your phone says it\'s within about ' + Math.round(med) + ' m. Outdoors, 3 to 15 m is typical.'] : med <= 100 ? ['meh', 'Accuracy is weak', 'About ' + Math.round(med) + ' m. Normal indoors or between tall buildings. Outdoors under open sky, it can mean interference.'] : ['bad', 'Very poor accuracy', 'About ' + Math.round(med) + ' m. The phone is probably using Wi-Fi or cell towers, not satellites. Under open sky, that can mean jamming.']);
+      c.push(jumps ? ['bad', 'Position jumped', 'The location moved ' + maxJump.toFixed(1) + ' km faster than you could travel, ' + jumps + ' time(s). Sudden jumps are a classic sign of spoofing (or of switching between GPS and Wi-Fi positioning).'] : ['ok', 'No impossible jumps', 'Your position moved smoothly.']);
+      c.push(drift > 10000 ? ['meh', 'Fix time disagrees with your clock', 'The location fix was stamped ' + Math.round(drift / 1000) + ' s away from your phone\'s clock. Spoofing can shift time as well as place, but some phones stamp fixes late.'] : ['ok', 'Fix time matches your clock', 'Location updates arrive in step with the clock.']);
+      c.push(['na', 'What a web page can\'t see', 'Browsers don\'t show satellite signal strengths or which satellites are in view. Apps like GPSTest (Android) show those, and strong but uniform signal strengths are another spoofing sign.']);
+      var ic = { ok: '✓', bad: '✕', meh: '!', na: '·' };
+      $('pchk').innerHTML = (done ? '' : '<li><span class="na">·</span><span>Watching… ' + pts.length + ' updates so far</span></li>') + c.map(function (x) { return '<li><span class="' + x[0] + '">' + ic[x[0]] + '</span><span>' + x[1] + '<small>' + x[2] + '</small></span></li>'; }).join('');
+      var r = cv.getBoundingClientRect(); cv.width = r.width; cv.height = r.height; cx.clearRect(0, 0, r.width, r.height);
+      var mx = Math.max(30, Math.max.apply(null, accs)); cx.strokeStyle = '#ffc857'; cx.lineWidth = 2; cx.beginPath();
+      pts.forEach(function (p, i) { var x = 10 + (p.t - start) / 60000 * (r.width - 20), y = r.height - 14 - p.acc / mx * (r.height - 28); if (i) cx.lineTo(x, y); else cx.moveTo(x, y); }); cx.stroke();
+      cx.fillStyle = '#8a93ad'; cx.font = '11px "JetBrains Mono"'; cx.fillText('accuracy over 60 s (max ' + Math.round(mx) + ' m)', 10, 14);
+    }
+  };
+})();
+</script>
+</body>
+</html>
