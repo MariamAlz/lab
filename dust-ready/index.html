@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dust Storm Readiness · Mariam's Lab</title>
+<meta name="description" content="Five-day dust forecast for your part of the UAE, with dust, PM10, aerosol optical depth, gusts and visibility, and a checklist for home, car, health, pets, solar panels and plans that changes with the level.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/dust-ready/">
+<meta property="og:title" content="Dust Storm Readiness · Mariam's Lab"><meta property="og:description" content="Five-day dust forecast and a checklist that changes with the level."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.where { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm[aria-pressed="true"] { background: var(--accent); color: #1a1205; border-color: var(--accent); }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 8px 0 0; }
+.verdict { margin-top: 14px; padding: 18px 20px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); display: grid; gap: 6px; }
+.verdict b { font-family: var(--font-display); font-size: clamp(1.5rem, 4.5vw, 2.3rem); font-weight: 800; line-height: 1.1; }
+.verdict p { margin: 0; color: var(--muted); }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-top: 12px; }
+.tile { padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.tile span { font-size: 0.76rem; color: var(--muted); display: block; }
+.tile b { font-family: var(--font-display); font-size: 1.45rem; display: block; }
+.tile small { font-size: 0.74rem; color: var(--muted); }
+.days { display: grid; gap: 6px; }
+.day { display: grid; grid-template-columns: 4.6em minmax(0, 1fr) 6.4em; gap: 8px; align-items: center; padding: 6px 8px; border: 1px solid transparent; border-radius: 10px; cursor: pointer; background: none; color: var(--ink); font: inherit; text-align: start; width: 100%; }
+.day[aria-pressed="true"] { border-color: var(--accent); background: rgba(233,180,103,.08); }
+.day .dn { font-size: 0.82rem; line-height: 1.2; }
+.day .dn small { display: block; color: var(--muted); font-family: var(--font-mono); font-size: 0.7rem; }
+.day .hrs { display: grid; grid-template-columns: repeat(24, minmax(0, 1fr)); gap: 1px; height: 26px; }
+.day .hrs i { border-radius: 2px; }
+.day .hrs i.now { outline: 2px solid var(--ink); outline-offset: -1px; }
+.day .pk { font-size: 0.74rem; font-weight: 600; text-align: end; }
+.axis { display: grid; grid-template-columns: 4.6em minmax(0, 1fr) 6.4em; gap: 8px; padding: 0 8px; font-family: var(--font-mono); font-size: 0.64rem; color: var(--muted); }
+.axis div { display: flex; justify-content: space-between; }
+.legend { display: flex; gap: 10px; flex-wrap: wrap; font-size: 0.75rem; color: var(--muted); }
+.legend span::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-inline-end: 4px; vertical-align: -1px; background: var(--c); }
+.cl { display: grid; gap: 14px; }
+.cl h3 { font-size: 0.95rem; margin-bottom: 6px; }
+.cl ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.cl li label { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; align-items: start; font-size: 0.9rem; cursor: pointer; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; }
+.cl li input { accent-color: var(--accent); width: 17px; height: 17px; margin: 2px 0 0; }
+.cl li.done label { opacity: .55; text-decoration: line-through; }
+.cl li small { display: block; color: var(--muted); font-size: 0.78rem; text-decoration: none; }
+.lvtag { font-family: var(--font-mono); font-size: 0.66rem; padding: 1px 6px; border-radius: 99px; margin-inline-start: 6px; vertical-align: 1px; color: #111; }
+.aod { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; font-size: 0.78rem; text-align: center; }
+.aod div { padding: 10px 4px; border-radius: 10px; color: #222; }
+.aod b { display: block; font-family: var(--font-mono); font-size: 0.9rem; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Weather · UAE · Live</span>
+    <h1 style="font-size:var(--step-3)">Dust storm readiness.</h1>
+    <p>A five-day dust forecast for your part of the UAE, hour by hour. Pick a day and the checklist below changes with the level: what to do at home, on the road, for your health, your pets, your solar panels and your plans.</p>
+  </div>
+  <div class="where" id="where"><button class="sm" type="button" id="me">📍 Use my location</button></div>
+  <p class="msg" id="msg" role="status"></p>
+  <div class="verdict" id="verdict"><b>Loading…</b></div>
+  <div class="tiles" id="tiles"></div>
+
+  <div class="game" style="margin-top:20px">
+    <div class="panel">
+      <span class="label">Next 5 days · tap a day for its checklist</span>
+      <div class="days" id="days"></div>
+      <div class="axis"><span></span><div><span>0h</span><span>6</span><span>12</span><span>18</span><span>23</span></div><span></span></div>
+      <div class="legend" id="legend"></div>
+      <span class="label" style="margin-top:8px" id="clHead">Checklist</span>
+      <div class="cl" id="cl"></div>
+      <button class="sm" type="button" id="reset" style="justify-self:start">Untick everything</button>
+    </div>
+    <div class="panel">
+      <span class="label">What is dust AOD?</span>
+      <p class="fact" style="margin:0"><b>Aerosol optical depth</b> measures how much the whole column of air above you dims sunlight, from the ground to the top of the sky. It has no units. Clear desert air is around 0.1 to 0.3. During a big shamal it can pass 2, when only a few percent of direct sunlight gets through and the sun looks like a pale disc.</p>
+      <div class="aod" id="aodScale"></div>
+      <p class="fact" style="margin:0">AOD and ground-level dust don't always agree. A dust layer can sit a kilometre up, making the sky milky while the air you breathe is fine. That's why this page looks at <b>PM10</b> (particles under 10 micrometres at breathing height) and <b>visibility</b> too. The level for each hour takes the worst of them.</p>
+      <p class="fact" style="margin:0">Satellites measure AOD from space, and you can see dust plumes crossing the Gulf on <a href="../uae-today/" style="color:var(--accent)">UAE today</a>, the lab's daily satellite view.</p>
+      <p class="fact" style="margin:0">Forecasts are from Open-Meteo (dust from the CAMS model). They are models, not readings, and dust storms can arrive faster than forecast. Follow the National Center of Meteorology and police alerts. This is general guidance, not medical advice.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var PLACES = [['Abu Dhabi', 24.4539, 54.3773], ['Dubai', 25.2048, 55.2708], ['Sharjah', 25.3463, 55.4209], ['Ajman', 25.4052, 55.5136], ['Umm Al Quwain', 25.5647, 55.5552], ['Ras Al Khaimah', 25.7895, 55.9432], ['Fujairah', 25.1288, 56.3265], ['Al Ain', 24.2075, 55.7447], ['Al Dhafra', 23.6500, 53.7000]];
+  var COL = ['#4fd3bd', '#c9e264', '#ffc857', '#ff8a4c', '#ff4f6d'], WORD = ['Clear', 'Hazy', 'Dusty', 'Dust storm', 'Severe dust'];
+  var SAY = ['Normal air. Nothing to prepare for.', 'A bit of dust in the air. Sensitive people may notice it.', 'Noticeable dust. Limit time outside and keep windows shut.', 'Thick dust and poor visibility. Stay in if you can and drive with care.', 'Very low visibility and heavy dust. Avoid driving and stay indoors.'];
+  // [min level, group, text, detail]
+  var LIST = [
+    [1, 'Home', 'Close windows and balcony doors', 'Fine dust gets in through gaps faster than you think.'],
+    [2, 'Home', 'Set the AC to recirculate', 'Check the AC filter now, and clean or change it once the dust has passed.'],
+    [2, 'Home', 'Bring in or tie down loose things on the balcony', 'Cushions, dry plants, light chairs, satellite dishes.'],
+    [3, 'Home', 'Seal gaps under doors with a rolled towel', 'Especially doors facing the wind.'],
+    [1, 'Car and driving', 'Top up the washer fluid and check the wipers', 'Dry wipers on dusty glass leave scratches.'],
+    [2, 'Car and driving', 'Leave earlier and keep a bigger gap', 'Visibility can change from one kilometre to the next.'],
+    [3, 'Car and driving', 'Under 1 km visibility: dipped headlights on, slow down, no overtaking', 'Follow the speed on the overhead signs: some roads lower the limit in poor visibility. Don\'t drive with hazard lights on; UAE police say they are for when you have stopped.'],
+    [3, 'Car and driving', 'If you can\'t see, pull well off the road, then switch on hazards', 'Don\'t stop in a lane. Get out of the car only if it is safe.'],
+    [4, 'Car and driving', 'Postpone the drive if you can', 'Pile-ups in dust and fog often start with one sudden stop.'],
+    [1, 'Health', 'If you have asthma or allergies, keep your inhaler with you', 'Dust irritates airways hours before you notice it.'],
+    [2, 'Health', 'Wear an N95 or FFP2 mask outdoors', 'Cloth and loose surgical masks stop little of the fine dust.'],
+    [2, 'Health', 'Skip outdoor exercise; keep kids\' play indoors', 'Heavy breathing pulls dust deeper into the lungs.'],
+    [3, 'Health', 'Swap contact lenses for glasses; rinse eyes with clean water', 'Rubbing scratches the eye.'],
+    [3, 'Health', 'Check on older relatives and anyone with heart or lung illness', 'Chest tightness or breathlessness that doesn\'t settle needs a doctor. In an emergency, call 999 or 998.'],
+    [2, 'Pets', 'Bring pets inside and cover outdoor water bowls', 'Birds are especially sensitive to dust.'],
+    [3, 'Pets', 'Keep walks short; wipe paws, eyes and nose after', 'Flat-faced dogs and cats struggle most.'],
+    [1, 'Solar panels', 'Expect lower output while it\'s hazy', 'Dust in the air and on the glass both cut what the panels make.'],
+    [2, 'Solar panels', 'Plan a clean after the dust settles, not during', 'Early morning, soft brush and plain water. Never cold water on hot glass, and don\'t climb on a wet roof.'],
+    [1, 'Laundry', 'Don\'t hang washing outside', 'Damp cloth catches dust like a filter.'],
+    [2, 'Laundry', 'Bring washing in now', 'Before the wind picks up, not after.'],
+    [2, 'Outdoor plans', 'Move picnics, beach days and sports indoors', 'Or shift them to a clearer day on the timeline above.'],
+    [3, 'Outdoor plans', 'Call off desert drives and camping', 'In the dunes visibility can drop to a few metres and tracks disappear.'],
+    [3, 'Outdoor plans', 'Cover the pool and outdoor furniture', 'Saves a big clean later.']
+  ];
+  var rows = [], sel = 0, done = {};
+  try { done = JSON.parse(localStorage.getItem('dustDone') || '{}'); } catch (e) {}
+
+  function lvl(h) {
+    var d = h.dust || 0, p = h.pm10 || 0, a = h.aod || 0, v = h.vis == null ? 1e5 : h.vis, g = h.gust || 0, dusty = d >= 100 || p >= 150, L = 0;
+    if (p >= 50 || d >= 50 || a >= 0.5) L = 1;
+    if (p >= 150 || d >= 150 || a >= 1) L = 2;
+    if (p >= 400 || d >= 400 || (v < 3000 && dusty)) L = 3;
+    if (p >= 800 || d >= 800 || (v < 1000 && dusty)) L = 4;
+    if (g >= 50 && L >= 1 && L < 2) L = 2;
+    return L;
+  }
+  function get(u) { return fetch(u).then(function (r) { if (!r.ok) throw 0; return r.json(); }); }
+  function load(lat, lon, name) {
+    $('msg').textContent = 'Fetching the dust forecast for ' + name + '…';
+    var a = 'https://air-quality-api.open-meteo.com/v1/air-quality?latitude=' + lat + '&longitude=' + lon + '&hourly=dust,pm10,aerosol_optical_depth&timezone=auto&forecast_days=5';
+    var w = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon + '&hourly=wind_gusts_10m,visibility,wind_speed_10m&timezone=auto&forecast_days=5';
+    Promise.all([get(a), get(w).catch(function () { return null; })]).then(function (r) {
+      var A = r[0].hourly, W = r[1] && r[1].hourly;
+      rows = A.time.map(function (t, i) { var j = W ? W.time.indexOf(t) : -1; return { t: t, dust: A.dust[i], pm10: A.pm10[i], aod: A.aerosol_optical_depth ? A.aerosol_optical_depth[i] : null, gust: j >= 0 ? W.wind_gusts_10m[j] : null, vis: j >= 0 ? W.visibility[j] : null, wind: j >= 0 ? W.wind_speed_10m[j] : null }; });
+      rows.forEach(function (h) { h.L = lvl(h); });
+      var off = r[0].utc_offset_seconds || 14400;
+      var nowLocal = new Date(Date.now() + off * 1000).toISOString().slice(0, 13);
+      var k = rows.findIndex(function (x) { return x.t.slice(0, 13) === nowLocal; }); if (k < 0) k = 0;
+      rows.nowI = k;
+      $('msg').textContent = name + (W ? '' : ' · wind and visibility unavailable, so this is dust only');
+      sel = -1; render();
+    }).catch(function () { $('msg').textContent = 'Couldn\'t reach the forecast service. Check your connection and try again.'; $('verdict').innerHTML = '<b>No data</b>'; });
+  }
+  function fmtH(t) { var h = +t.slice(11, 13); return (h % 12 || 12) + (h < 12 ? 'am' : 'pm'); }
+  function dayName(t, i) { if (i === 0) return 'Today'; if (i === 1) return 'Tomorrow'; return new Date(t.slice(0, 10) + 'T12:00').toLocaleDateString('en-GB', { weekday: 'short' }); }
+  function render() {
+    var n = rows[rows.nowI], next = rows.slice(rows.nowI, rows.nowI + 24), worst = next.reduce(function (a, b) { return b.L > a.L ? b : a; }, next[0]);
+    $('verdict').style.borderColor = COL[n.L];
+    $('verdict').innerHTML = '<span class="label">Right now</span><b style="color:' + COL[n.L] + '">' + WORD[n.L] + '</b><p>' + SAY[n.L] + (worst.L > n.L ? ' Worst in the next 24 hours: <b style="font-size:inherit;color:' + COL[worst.L] + '">' + WORD[worst.L].toLowerCase() + '</b> around ' + fmtH(worst.t) + (worst.t.slice(0, 10) !== n.t.slice(0, 10) ? ' tomorrow' : '') + '.' : '') + '</p>';
+    var t = [['Dust', n.dust == null ? '—' : Math.round(n.dust), 'µg/m³'], ['PM10', n.pm10 == null ? '—' : Math.round(n.pm10), 'µg/m³'], ['AOD', n.aod == null ? '—' : n.aod.toFixed(2), n.aod == null ? '' : n.aod < 0.3 ? 'clear sky' : n.aod < 0.6 ? 'hazy' : n.aod < 1.2 ? 'dusty' : 'very dusty'], ['Gusts', n.gust == null ? '—' : Math.round(n.gust), 'km/h'], ['Visibility', n.vis == null ? '—' : n.vis >= 10000 ? '10+' : (n.vis / 1000).toFixed(n.vis < 2000 ? 1 : 0), 'km']];
+    $('tiles').innerHTML = t.map(function (x) { return '<div class="tile"><span>' + x[0] + '</span><b>' + x[1] + '</b><small>' + x[2] + '</small></div>'; }).join('');
+    var days = [], cur = null;
+    rows.forEach(function (h, i) { var d = h.t.slice(0, 10); if (!cur || cur.d !== d) { cur = { d: d, h: [] }; days.push(cur); } h.i = i; cur.h.push(h); });
+    days = days.slice(0, 5);
+    rows.days = days;
+    if (sel < 0) { sel = 0; for (var q = 0; q < days.length; q++) { sel = q; if (selLevel() >= 2) break; } if (selLevel() < 2) sel = 0; }
+    $('days').innerHTML = days.map(function (d, di) {
+      var pk = d.h.reduce(function (a, b) { return b.L > a.L ? b : a; }, d.h[0]);
+      if (di === 0) pk = d.h.filter(function (h) { return h.i >= rows.nowI; }).reduce(function (a, b) { return b.L > a.L ? b : a; }, pk.i >= rows.nowI ? pk : d.h[d.h.length - 1]);
+      var mn = Math.min.apply(null, d.h.map(function (h) { return h.vis == null ? 1e9 : h.vis; }));
+      return '<button class="day" type="button" data-d="' + di + '" aria-pressed="' + (di === sel) + '"><span class="dn">' + dayName(d.d, di) + '<small>' + d.d.slice(8, 10) + '/' + d.d.slice(5, 7) + '</small></span><span class="hrs">' + d.h.map(function (h) { return '<i class="' + (h.i === rows.nowI ? 'now' : '') + '" style="background:' + COL[h.L] + (h.i < rows.nowI ? ';opacity:.35' : '') + '" title="' + fmtH(h.t) + ': ' + WORD[h.L] + ', dust ' + Math.round(h.dust) + ', PM10 ' + Math.round(h.pm10) + (h.vis != null ? ', visibility ' + (h.vis / 1000).toFixed(1) + ' km' : '') + '"></i>'; }).join('') + '</span><span class="pk" style="color:' + COL[pk.L] + '">' + WORD[pk.L] + (mn < 5000 ? '<br><small style="color:var(--muted);font-weight:400">vis ' + (mn / 1000).toFixed(1) + ' km</small>' : '') + '</span></button>';
+    }).join('');
+    checklist();
+  }
+  function selLevel() {
+    var d = rows.days[sel], hs = sel === 0 ? d.h.filter(function (h) { return h.i >= rows.nowI; }) : d.h;
+    if (!hs.length) hs = d.h;
+    return hs.reduce(function (a, b) { return Math.max(a, b.L); }, 0);
+  }
+  function checklist() {
+    var L = selLevel(), d = rows.days[sel];
+    $('clHead').innerHTML = 'Checklist for ' + dayName(d.d, sel).toLowerCase() + ' · <span style="color:' + COL[L] + '">' + WORD[L] + '</span>';
+    if (L === 0) { $('cl').innerHTML = '<p class="msg" style="margin:0">Clear air. Nothing to do. A good day to clean the solar panels or the AC filter after the last dusty spell.</p>'; return; }
+    var groups = {};
+    LIST.forEach(function (x, i) { if (x[0] <= L) (groups[x[1]] = groups[x[1]] || []).push([i, x]); });
+    $('cl').innerHTML = Object.keys(groups).map(function (g) {
+      return '<div><h3>' + g + '</h3><ul>' + groups[g].map(function (e) { var i = e[0], x = e[1]; return '<li class="' + (done[i] ? 'done' : '') + '"><label><input type="checkbox" data-c="' + i + '"' + (done[i] ? ' checked' : '') + '><span>' + x[2] + '<span class="lvtag" style="background:' + COL[x[0]] + '">' + WORD[x[0]].toLowerCase() + '+</span><small>' + x[3] + '</small></span></label></li>'; }).join('') + '</ul></div>';
+    }).join('');
+  }
+  $('cl').addEventListener('change', function (e) { var i = e.target.dataset.c; if (i == null) return; if (e.target.checked) done[i] = 1; else delete done[i]; try { localStorage.setItem('dustDone', JSON.stringify(done)); } catch (x) {} e.target.closest('li').classList.toggle('done', e.target.checked); });
+  $('reset').onclick = function () { done = {}; try { localStorage.removeItem('dustDone'); } catch (x) {} if (rows.days) checklist(); };
+  $('days').onclick = function (e) { var b = e.target.closest('[data-d]'); if (!b) return; sel = +b.dataset.d; [].forEach.call($('days').children, function (x) { x.setAttribute('aria-pressed', x === b); }); checklist(); };
+  $('legend').innerHTML = WORD.map(function (w, i) { return '<span style="--c:' + COL[i] + '">' + w + '</span>'; }).join('');
+  $('aodScale').innerHTML = [['0.1', 'Clear blue', '#bfe6ff'], ['0.4', 'Hazy', '#e9dfc0'], ['1.0', 'Dusty', '#e0c08a'], ['2+', 'Storm', '#c99a5b']].map(function (x) { return '<div style="background:' + x[2] + '"><b>' + x[0] + '</b>' + x[1] + '</div>'; }).join('');
+
+  PLACES.forEach(function (p, i) {
+    var b = document.createElement('button'); b.className = 'sm'; b.type = 'button'; b.textContent = p[0]; b.setAttribute('aria-pressed', 'false');
+    b.onclick = function () { pick(b); load(p[1], p[2], p[0]); try { localStorage.setItem('dustPlace', i); } catch (e) {} };
+    $('where').appendChild(b);
+  });
+  function pick(b) { [].forEach.call(document.querySelectorAll('#where .sm'), function (x) { x.setAttribute('aria-pressed', x === b); }); }
+  $('me').onclick = function () {
+    if (!navigator.geolocation) { $('msg').textContent = 'Your browser can\'t share a location.'; return; }
+    $('msg').textContent = 'Asking for your location…';
+    navigator.geolocation.getCurrentPosition(function (p) { pick($('me')); load(p.coords.latitude.toFixed(3), p.coords.longitude.toFixed(3), 'Your location'); }, function () { $('msg').textContent = 'Location was not shared. Pick an emirate instead.'; }, { maximumAge: 6e5, timeout: 10000 });
+  };
+  var i0 = 1; try { var s = localStorage.getItem('dustPlace'); if (s != null && PLACES[+s]) i0 = +s; } catch (e) {}
+  document.querySelectorAll('#where .sm')[i0 + 1].click();
+})();
+</script>
+</body>
+</html>

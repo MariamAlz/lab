@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>When to Sell Your Car · Mariam's Lab</title>
+<meta name="description" content="Estimate how your car loses value in the UAE by brand type, mileage and GCC spec, see the cliffs ahead like warranty end and 100,000 km, and compare the cost per km of keeping it versus selling.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/car-value/">
+<meta property="og:title" content="When to Sell Your Car · Mariam's Lab"><meta property="og:description" content="Depreciation, the value cliffs ahead, and keep-versus-sell cost per km."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.form2 { display: grid; gap: 12px; }
+.fl { display: grid; gap: 5px; }
+.fl > span { font-size: 0.82rem; color: var(--muted); }
+.txt { font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; min-width: 0; width: 100%; box-sizing: border-box; }
+input.txt[type=number] { font-family: var(--font-mono); }
+.two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
+.chk { display: flex; gap: 8px; align-items: center; font-size: 0.9rem; cursor: pointer; }
+.chk input { accent-color: var(--accent); width: 17px; height: 17px; margin: 0; }
+.big { padding: 16px 18px; border-radius: var(--radius); border: 1px solid var(--accent); background: var(--surface); display: grid; gap: 6px; }
+.big b { font-family: var(--font-display); font-weight: 800; font-size: clamp(1.4rem, 4vw, 2rem); line-height: 1.15; }
+.big p { margin: 0; color: var(--muted); font-size: 0.92rem; }
+.chart svg { width: 100%; height: auto; display: block; }
+.cliffs { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.cliffs li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 10px; font-size: 0.88rem; }
+.cliffs li.past { opacity: .5; }
+.cliffs small { grid-column: 1 / -1; color: var(--muted); font-size: 0.78rem; }
+.cliffs b { font-family: var(--font-mono); font-size: 0.82rem; text-align: end; }
+.cmp { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+.cmp th, .cmp td { padding: 7px 6px; border-bottom: 1px solid var(--line); text-align: end; font-family: var(--font-mono); font-size: 0.8rem; }
+.cmp th:first-child, .cmp td:first-child { text-align: start; font-family: var(--font-body); font-size: 0.86rem; color: var(--muted); }
+.cmp th { color: var(--ink); font-family: var(--font-body); font-weight: 600; }
+.cmp tr.tot td { color: var(--accent); font-weight: 600; font-size: 0.9rem; border-bottom: 0; }
+.warnbox { font-size: 0.84rem; color: var(--muted); padding: 10px 12px; border: 1px dashed var(--line); border-radius: 10px; margin: 0; }
+@media (max-width: 860px) { #carForm { order: -1; } }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Money · Car · UAE</span>
+    <h1 style="font-size:var(--step-3)">When to sell your car.</h1>
+    <p>Cars lose value on a curve, with a few cliffs along the way: the end of the warranty, 100,000 km, the five-year mark and the new model arriving. Enter your car and this shows where you are on its curve, what the next cliff costs, and whether keeping it or switching is cheaper per kilometre.</p>
+  </div>
+
+  <div class="game">
+    <div class="panel">
+      <div class="big" id="verdict"><b>…</b></div>
+      <div class="stats" id="stats"></div>
+      <span class="label">Estimated value over time</span>
+      <div class="chart" id="chart"></div>
+      <span class="label">Cliffs that cut the price</span>
+      <ul class="cliffs" id="cliffs"></ul>
+      <span class="label">Next 12 months · keep it or switch to a new one</span>
+      <table class="cmp" id="cmp"></table>
+      <p class="warnbox">These are rough estimates from typical UAE resale patterns, not a valuation. Real prices swing with condition, colour, service history, accident record and demand. Get two or three offers before you decide.</p>
+    </div>
+    <div class="panel form2" id="carForm">
+      <label class="fl"><span>Make</span><select class="txt" id="make"></select></label>
+      <div class="two">
+        <label class="fl"><span>Year you bought it (new)</span><input class="txt" type="number" id="year" min="2005" max="2026" value="2022"></label>
+        <label class="fl"><span>Price paid, AED</span><input class="txt" type="number" id="price" min="5000" step="1000" value="120000"></label>
+      </div>
+      <div class="two">
+        <label class="fl"><span>Km per year</span><input class="txt" type="number" id="km" min="1000" step="1000" value="25000"></label>
+        <label class="fl"><span>Warranty, years</span><input class="txt" type="number" id="war" min="0" max="10" value="3"></label>
+      </div>
+      <div class="two">
+        <label class="fl"><span>Odometer now (optional)</span><input class="txt" type="number" id="odo" min="0" step="1000" placeholder="km"></label>
+        <label class="fl"><span>New model expected (year)</span><input class="txt" type="number" id="refresh" min="2005" max="2040" placeholder="not sure"></label>
+      </div>
+      <label class="chk"><input type="checkbox" id="gcc" checked><span>GCC spec</span></label>
+      <p class="fact" style="margin:0" id="segNote"></p>
+      <p class="fact" style="margin:0"><b>Why GCC spec matters.</b> Cars built for the Gulf have bigger radiators, stronger AC and dust filtering, and dealers here can service them under warranty. Imported US or Japanese spec cars often carry hidden accident or flood history, so buyers pay noticeably less for them.</p>
+      <p class="fact" style="margin:0"><b>How the curve works.</b> A new car drops most in its first year, then loses a roughly steady share of its remaining value each year: an exponential decay. Each cliff is a step in what buyers will pay, smoothed over a few months. Mileage moves the whole curve: each 10,000 km above about 20,000 a year knocks off around 2%.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  // d1: first-year drop, k: yearly decay after, w: typical UAE warranty, cyc: years between model changes, mt: yearly servicing AED, fuel: L or kWh per 100 km
+  var SEG = {
+    jp: { n: 'Japanese', d1: 0.12, k: 0.085, w: 3, cyc: 6, mt: 2500, fuel: 8.5, note: 'Japanese brands hold value best in the UAE. Toyota and Lexus 4x4s are famous for it.' },
+    kr: { n: 'Korean', d1: 0.17, k: 0.11, w: 5, cyc: 5, mt: 2500, fuel: 8, note: 'Korean cars drop faster at first, but long warranties help resale while they last.' },
+    de: { n: 'German luxury', d1: 0.20, k: 0.13, w: 3, cyc: 7, mt: 6500, fuel: 10, note: 'German luxury cars lose value fast once the warranty and service plan end, because buyers fear repair bills.' },
+    us: { n: 'American', d1: 0.18, k: 0.12, w: 3, cyc: 6, mt: 3800, fuel: 13, note: 'Big American SUVs and pickups sell steadily, but high fuel use hurts them with second buyers.' },
+    cn: { n: 'Chinese', d1: 0.24, k: 0.15, w: 5, cyc: 4, mt: 2500, fuel: 8.5, note: 'Chinese brands are newer to the resale market and update models quickly, so values fall fastest. That is improving.' },
+    ev: { n: 'Electric', d1: 0.22, k: 0.14, w: 5, cyc: 4, mt: 1500, fuel: 17, ev: true, note: 'Electric cars lose value with battery worries and price cuts on new models. Battery warranties are usually 8 years.' }
+  };
+  var MAKES = { jp: ['Toyota', 'Lexus', 'Nissan', 'Mitsubishi', 'Honda', 'Mazda', 'Infiniti', 'Suzuki'], kr: ['Hyundai', 'Kia', 'Genesis'], de: ['Mercedes-Benz', 'BMW', 'Audi', 'Porsche', 'Volkswagen'], us: ['Ford', 'Chevrolet', 'GMC', 'Jeep', 'Dodge', 'Cadillac'], cn: ['MG', 'Geely', 'Chery', 'Changan', 'Haval', 'Jetour', 'Hongqi'], ev: ['Tesla', 'BYD', 'Polestar', 'Lucid', 'Zeekr', 'Other electric'] };
+  $('make').innerHTML = Object.keys(MAKES).map(function (s) { return '<optgroup label="' + SEG[s].n + '">' + MAKES[s].map(function (m) { return '<option value="' + s + '|' + m + '">' + m + '</option>'; }).join('') + '</optgroup>'; }).join('');
+  var FUEL = 2.8, KWH = 0.35;
+  function num(v) { return Math.round(v).toLocaleString('en'); }
+  function aed(v) { return 'AED ' + Math.round(v).toLocaleString('en'); }
+  function step(x) { return 1 / (1 + Math.exp(-x / 0.1)); }
+  function inp() {
+    var seg = $('make').value.split('|')[0], S = SEG[seg], y = +$('year').value || 2022;
+    var bought = new Date(y, 5, 1), now = new Date(), tNow = Math.max(0, (now - bought) / 3.15576e10);
+    var km = Math.max(1000, +$('km').value || 20000), odo = +$('odo').value;
+    if (odo > 0 && tNow > 0.25) km = odo / tNow;
+    var rf = +$('refresh').value, tRef = rf ? rf - y : null;
+    if (!tRef || tRef <= 0) { tRef = S.cyc; while (tRef < tNow + 0.2) tRef += S.cyc; tRef = { t: tNow > 8 ? 99 : tRef, guess: true }; } else tRef = { t: tRef, guess: false };
+    return { seg: seg, S: S, y: y, P: Math.max(5000, +$('price').value || 100000), km: km, war: Math.max(0, +$('war').value), gcc: $('gcc').checked, tNow: tNow, tRef: tRef, odoUsed: odo > 0 && tNow > 0.25 };
+  }
+  function cliffs(I) {
+    return [
+      { t: I.war, f: 0.96, n: 'Warranty ends', d: 'Buyers pay less once repairs are on them. Selling with a few months of warranty left helps.' },
+      { t: 100000 / I.km, f: 0.95, n: '100,000 km', d: 'A big psychological line in listings and dealer offers.' },
+      { t: 5, f: 0.97, n: 'Five years old', d: 'Many banks finance used cars only up to a certain age, and agency-repair insurance often stops around here, so fewer buyers can pay.' },
+      { t: I.tRef.t, f: 0.95, n: I.tRef.guess ? 'New model, likely around here' : 'New model arrives', d: 'A refreshed design makes the old one look dated overnight.' }
+    ].filter(function (c) { return c.t > 0.05 && c.t < 15; }).sort(function (a, b) { return a.t - b.t; });
+  }
+  function value(I, t, C) {
+    var S = I.S, v = I.P * (1 - S.d1 * Math.min(t, 1)) * Math.exp(-S.k * Math.max(t - 1, 0));
+    var extra = (I.km - 20000) * t / 10000; v *= Math.min(1.12, Math.max(0.55, Math.exp(-0.02 * extra)));
+    C.forEach(function (c) { v *= 1 - (1 - c.f) * step(t - c.t); });
+    return v * (I.gcc ? 1 : 0.85);
+  }
+  function maint(I, age) { var S = I.S; return S.mt * (1 + 0.12 * age) + (age > I.war ? S.mt * 0.3 * Math.min(4, age - I.war + 1) : 0); }
+  function fuelCost(I, km) { return km / 100 * I.S.fuel * (I.S.ev ? KWH : FUEL); }
+  function when(t, y) { var d = new Date(y, 5, 1); d.setMonth(d.getMonth() + Math.round(t * 12)); return d.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }); }
+
+  function run() {
+    var I = inp(), C = cliffs(I), t = I.tNow, V = value(I, t, C);
+    var lossNow = V - value(I, t + 1 / 12, C), lossLater = value(I, t + 1, C) - value(I, t + 1 + 1 / 12, C);
+    var next = C.filter(function (c) { return c.t > t + 0.08; })[0];
+    // best window: a couple of months before the next cliff that is less than 4 years away
+    var v;
+    if (next && next.t - t < 4) {
+      var drop = value(I, next.t - 0.25, C) - value(I, next.t + 0.25, C), base = (value(I, next.t - 0.25, C) - value(I, next.t + 0.25, C)) - (lossLater * 6);
+      v = '<span class="label">Best window to sell</span><b>Before ' + when(next.t - 0.15, I.y) + '</b><p>' + next.n + ' is coming in about ' + Math.max(1, Math.round((next.t - t) * 12)) + ' months. Around then the value drops by roughly ' + aed(drop) + ' over six months' + (base > 0 ? ', about ' + aed(base) + ' more than the normal slide' : '') + '. If you are thinking of changing anyway, list it two or three months before.</p>';
+    } else v = '<span class="label">Best window to sell</span><b>No cliff close ahead</b><p>The steepest losses are behind you. From here, keeping a reliable car is usually cheaper than switching, as long as repairs stay reasonable.</p>';
+    $('verdict').innerHTML = v;
+    $('stats').innerHTML = '<div><b>' + num(V) + '</b><span>AED, worth about now</span></div><div><b>' + num(lossNow) + '</b><span>AED lost per month now</span></div><div><b>' + num(lossLater) + '</b><span>AED per month in a year</span></div>';
+    $('segNote').textContent = SEG[I.seg].note + (I.odoUsed ? ' Using your odometer: about ' + Math.round(I.km / 1000) + 'k km a year.' : '');
+    chart(I, C, next && next.t - t < 4 ? next : null);
+    $('cliffs').innerHTML = C.map(function (c) { var past = c.t <= t; return '<li class="' + (past ? 'past' : '') + '"><span>' + c.n + '</span><b>' + when(c.t, I.y) + (past ? ' · passed' : '') + '</b><small>' + c.d + ' Roughly −' + Math.round((1 - c.f) * 100) + '%.</small></li>'; }).join('');
+    // keep vs switch, next 12 months
+    var age = t, kmY = I.km;
+    var keep = { dep: V - value(I, t + 1, C), mt: maint(I, age), ins: Math.max(1500, 0.03 * V), fuel: fuelCost(I, kmY), sw: 0 };
+    var newP = I.P * Math.pow(1.025, t), J = { S: I.S, P: newP, km: I.km, war: I.S.w, gcc: true, tRef: { t: I.S.cyc } }, CJ = cliffs(J);
+    var sw = { dep: newP - value(J, 1, CJ), mt: I.S.mt, ins: Math.max(1500, 0.035 * newP), fuel: fuelCost(I, kmY) * 0.93, sw: V * 0.07 };
+    function tot(o) { return o.dep + o.mt + o.ins + o.fuel + o.sw; }
+    function row(n, a, b) { return '<tr><td>' + n + '</td><td>' + num(a) + '</td><td>' + num(b) + '</td></tr>'; }
+    $('cmp').innerHTML = '<tr><th>AED</th><th>Keep</th><th>Switch to new</th></tr>' + row('Value lost', keep.dep, sw.dep) + row('Servicing and repairs', keep.mt, sw.mt) + row('Insurance', keep.ins, sw.ins) + row(I.S.ev ? 'Charging' : 'Fuel', keep.fuel, sw.fuel) + row('Selling below market (dealer trade-in)', 0, sw.sw) +
+      '<tr class="tot"><td>Per km, ' + Math.round(kmY / 1000) + 'k km a year</td><td>' + (tot(keep) / kmY).toFixed(2) + '</td><td>' + (tot(sw) / kmY).toFixed(2) + '</td></tr>';
+    try { localStorage.setItem('carValue', JSON.stringify(['make', 'year', 'price', 'km', 'war', 'odo', 'refresh'].map(function (k) { return $(k).value; }).concat([$('gcc').checked]))); } catch (e) {}
+  }
+  function chart(I, C, next) {
+    var W = $('chart').clientWidth < 500 ? 380 : 600, H = W < 500 ? 230 : 250, pl = 46, pr = 18, pt = 14, pb = 26, T = Math.max(10, Math.ceil(I.tNow + 4));
+    function X(t) { return pl + t / T * (W - pl - pr); } function Y(v) { return pt + (1 - v / I.P) * (H - pt - pb); }
+    var d = '', g = '';
+    for (var i = 0; i <= T * 12; i++) { var t = i / 12; d += (i ? 'L' : 'M') + X(t).toFixed(1) + ',' + Y(value(I, t, C)).toFixed(1); }
+    for (var p = 0; p <= 100; p += 25) g += '<line x1="' + pl + '" x2="' + (W - pr) + '" y1="' + Y(I.P * p / 100) + '" y2="' + Y(I.P * p / 100) + '" stroke="var(--line)"/><text x="' + (pl - 4) + '" y="' + (Y(I.P * p / 100) + 3) + '" text-anchor="end">' + (I.P * p / 100 >= 1000 ? Math.round(I.P * p / 100000) + 'k' : 0) + '</text>';
+    for (var y = 0; y <= T; y += 2) g += '<text x="' + X(y) + '" y="' + (H - 8) + '" text-anchor="middle">' + (I.y + y) + '</text>';
+    if (next) g += '<rect x="' + X(Math.max(I.tNow, next.t - 0.5)) + '" y="' + pt + '" width="' + (X(next.t) - X(Math.max(I.tNow, next.t - 0.5))) + '" height="' + (H - pt - pb) + '" fill="rgba(79,211,189,.18)"/>';
+    C.forEach(function (c) { if (c.t > T) return; var vv = value(I, c.t, C); g += '<circle cx="' + X(c.t) + '" cy="' + Y(vv) + '" r="4" fill="var(--sat-c)"/>'; });
+    g += '<path d="' + d + '" fill="none" stroke="var(--accent)" stroke-width="2.5"/>';
+    var vn = value(I, I.tNow, C);
+    g += '<line x1="' + X(I.tNow) + '" x2="' + X(I.tNow) + '" y1="' + pt + '" y2="' + (H - pb) + '" stroke="var(--ink)" stroke-dasharray="3 3"/><circle cx="' + X(I.tNow) + '" cy="' + Y(vn) + '" r="5.5" fill="var(--ink)"/><text x="' + (X(I.tNow) + 6) + '" y="' + (pt + 10) + '" fill="var(--ink)">now</text>';
+    $('chart').innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" font-family="JetBrains Mono, monospace" font-size="11" fill="var(--muted)" role="img" aria-label="Estimated car value by year">' + g + '</svg><div class="legend" style="display:flex;gap:12px;flex-wrap:wrap;font-size:0.75rem;color:var(--muted);margin-top:4px"><span><span style="color:var(--sat-c)">●</span> cliffs</span><span><span style="color:var(--sat-b)">■</span> best window</span><span>AED, by year</span></div>';
+  }
+  $('make').addEventListener('change', function () { $('war').value = SEG[$('make').value.split('|')[0]].w; });
+  ['make', 'year', 'price', 'km', 'war', 'odo', 'refresh', 'gcc'].forEach(function (k) { $(k).addEventListener('input', run); $(k).addEventListener('change', run); });
+  try { var s = JSON.parse(localStorage.getItem('carValue') || 'null'); if (s) { ['make', 'year', 'price', 'km', 'war', 'odo', 'refresh'].forEach(function (k, i) { if (s[i] != null && s[i] !== '') $(k).value = s[i]; }); $('gcc').checked = s[7] !== false; } } catch (e) {}
+  run();
+  window.addEventListener('resize', function () { clearTimeout(window.__cvT); window.__cvT = setTimeout(run, 200); });
+})();
+</script>
+</body>
+</html>

@@ -42,6 +42,16 @@
 .note { font-size: 0.82rem; color: var(--muted); }
 .ok { color: var(--sat-b); }
 [hidden] { display: none !important; }
+.fitems { display: grid; gap: 10px; }
+.fitem { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 10px; border: 1px solid var(--line); border-radius: 12px; }
+.fitem .f { min-width: 0; }
+.fitem .f input, .fitem .f select { width: 100%; box-sizing: border-box; }
+.fitem .wide { grid-column: 1 / -1; display: flex; gap: 8px; align-items: center; }
+.fitem .wide input { flex: 1 1 auto; font: inherit; color: var(--ink); background: rgba(7, 10, 24, 0.6); border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; min-width: 0; }
+.fv { padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); display: grid; gap: 6px; margin-bottom: 10px; }
+.fv h3 { font-size: 1.05rem; display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.fv .tag { font-family: var(--font-mono); font-size: 0.78rem; padding: 2px 9px; border-radius: 999px; border: 1px solid currentColor; }
+.fv.good .tag { color: var(--sat-b); } .fv.ok2 .tag { color: var(--accent); } .fv.high .tag, .fv.bad .tag { color: var(--sat-c); } .fv.low .tag { color: var(--sat-a); }
 @media (max-width: 640px) { .rates { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 </style>
 </head>
@@ -62,6 +72,7 @@
     <button class="sm" type="button" data-t="buy" aria-pressed="true">Buying jewellery</button>
     <button class="sm" type="button" data-t="worth" aria-pressed="false">What's my gold worth</button>
     <button class="sm" type="button" data-t="zakat" aria-pressed="false">Zakat on gold</button>
+    <button class="sm" type="button" data-t="fair" aria-pressed="false">Is this piece fairly priced?</button>
   </div>
 
   <div class="game">
@@ -89,6 +100,15 @@
       <p class="note">Scholars differ on everyday jewellery: the Hanafi school counts it, while most Shafi'i, Maliki and Hanbali scholars exempt jewellery worn normally. Untick to leave it out, and ask a scholar you trust if unsure.</p>
     </div>
     <div class="panel" id="zakatOut" hidden></div>
+
+    <div class="panel form" id="fair" hidden>
+      <p class="note">Type what the shop quoted for each piece. Add more pieces to compare them, or to check a whole set.</p>
+      <div class="fitems" id="fitems"></div>
+      <button class="sm" type="button" id="addF">+ Add a piece</button>
+      <label class="chk"><input type="checkbox" id="fV" checked><span>The quotes include 5% VAT</span></label>
+      <p class="note">Typical Dubai making charges, per gram of gold: plain chains AED 8–25, plain bangles 10–35, pieces set with stones 30–120, branded or designer 60–300 and up. Gold Souk prices sit at the low end; malls and brands at the high end.</p>
+    </div>
+    <div class="panel" id="fairOut" hidden></div>
   </div>
   <p class="fact" style="margin-top:22px">Rates are worked out from the international spot price, converted at the dirham's fixed peg (3.6725 to the dollar). UAE shop boards are usually within about 1% of this; type your shop's 24K rate above to match it exactly. A tola is 11.66 g. Nothing you enter leaves this page.</p>
 </div></main>
@@ -149,7 +169,57 @@
     $('zakatOut').innerHTML = '<dl class="bill"><dt>Pure gold counted</dt><dd>' + pure.toFixed(2) + ' g</dd><dt>Nisab (85 g of pure gold)</dt><dd>' + aed(NISAB * r24(), 0) + '</dd><dt>Value of your gold</dt><dd>' + aed(val, 0) + '</dd><hr><dt>' + (due ? 'Zakat due (2.5%)' : 'Below nisab') + '</dt><dd class="tot">' + (due ? aed(val * 0.025, 0) : '<span class="ok">None</span>') + '</dd></dl>' +
       (due ? '<p class="note" style="margin-top:10px">Equal to ' + (pure * 0.025).toFixed(2) + ' g of pure gold. You can pay in money or in gold.</p>' : '<p class="note" style="margin-top:10px">You need ' + (NISAB - pure).toFixed(1) + ' g more pure gold before zakat on gold applies. If you also hold savings or other assets, many scholars add them together toward the nisab.</p>');
   }
-  function all() { rates(); buy(); worth(); zakat(); try { localStorage.setItem('goldOwn', $('own').value); } catch (e) {} }
+  // ---- is this piece fairly priced? ----
+  // typical Dubai making charge, AED per gram of gold: [low, high]
+  var TYPES = { chain: ['Plain chain', 8, 25], bangle: ['Plain bangle', 10, 35], stones: ['Set with stones', 30, 120], brand: ['Branded or designer', 60, 300] };
+  function fairRowHTML(p) {
+    p = p || {};
+    return '<div class="fitem"><label class="f wide"><input type="text" placeholder="what it is (e.g. ring)" aria-label="Piece name" value="' + (p.n || '').replace(/"/g, '&quot;') + '"><button class="x" type="button" aria-label="Remove">×</button></label>' +
+      '<label class="f"><span>Shop\'s total, AED</span><span class="in"><input type="number" min="0" step="1" value="' + (p.q || '') + '" placeholder="AED"></span></label>' +
+      '<label class="f"><span>Weight on tag, g</span><span class="in"><input type="number" min="0" step="0.01" value="' + (p.w || '') + '"></span></label>' +
+      '<label class="f"><span>Karat</span><span class="in"><select>' + [24, 22, 21, 18, 14].map(function (x) { return '<option value="' + x + '"' + (x === (p.k || 21) ? ' selected' : '') + '>' + x + 'K</option>'; }).join('') + '</select></span></label>' +
+      '<label class="f"><span>Type</span><span class="in"><select>' + Object.keys(TYPES).map(function (t) { return '<option value="' + t + '"' + (t === (p.t || 'chain') ? ' selected' : '') + '>' + TYPES[t][0] + '</option>'; }).join('') + '</select></span></label>' +
+      '<label class="f wide" style="display:grid"><span style="font-size:0.82rem;color:var(--muted)">Stones in the weight, g (optional; 1 carat = 0.2 g)</span><span class="in"><input type="number" min="0" step="0.01" value="' + (p.s || '') + '" placeholder="0"></span></label></div>';
+  }
+  function fairRows() { return [].map.call($('fitems').querySelectorAll('.fitem'), function (r) { var f = r.querySelectorAll('input,select'); return { n: f[0].value.trim(), q: +f[1].value, w: +f[2].value, k: +f[3].value, t: f[4].value, s: +f[5].value }; }); }
+  function fairOne(p, vatIn) {
+    var g = Math.max(0, p.w - (p.s || 0)), rt = rate(p.k), gold = g * rt, ty = TYPES[p.t] || TYPES.chain;
+    var net = vatIn ? p.q / 1.05 : p.q, vat = vatIn ? p.q - net : p.q * 0.05, mk = net - gold, mkG = g ? mk / g : 0, mkP = gold ? mk / gold * 100 : 0;
+    var lo = ty[1], hi = ty[2], mid = (lo + hi) / 2, v;
+    if (!p.q || !g || !rt) v = null;
+    else if (mk < 0) v = ['bad', 'Below the gold value', 'The quote is less than the gold itself is worth. Check the karat stamp and the weight, or ask whether the weight includes stones.'];
+    else if (mkG < lo) v = ['low', 'Unusually cheap', 'Making charge below the usual range. Great if genuine; check the karat stamp and the scale.'];
+    else if (mkG <= mid) v = ['good', 'Fair price', 'Making charge in the normal range for this type.'];
+    else if (mkG <= hi) v = ['ok2', 'On the high side', 'Within the usual range but near the top. Worth asking for a better making charge.'];
+    else v = ['high', 'Expensive', 'Making charge above what this type usually costs in Dubai, unless it is a known brand or very detailed work.'];
+    var target = lo + (hi - lo) * 0.3, offer = Math.floor((gold + target * g) * 1.05 / 10) * 10;
+    return { g: g, rt: rt, gold: gold, mk: mk, mkG: mkG, mkP: mkP, vat: vat, total: vatIn ? p.q : p.q + vat, v: v, offer: offer, ty: ty };
+  }
+  function fair() {
+    var R = fairRows(), vatIn = $('fV').checked, h = '', tq = 0, tg = 0, tgold = 0, toff = 0, n = 0;
+    R.forEach(function (p, i) {
+      var o = fairOne(p, vatIn), name = p.n || 'Piece ' + (i + 1);
+      if (!o.v) { h += '<div class="fv"><h3>' + name.replace(/</g, '&lt;') + '</h3><p class="note">Add the quoted total and the weight.</p></div>'; return; }
+      n++; tq += o.total; tg += o.g; tgold += o.gold; toff += Math.min(o.offer, o.total);
+      h += '<div class="fv ' + o.v[0] + '"><h3><span>' + name.replace(/</g, '&lt;') + '</span><span class="tag">' + o.v[1] + '</span></h3><dl class="bill">' +
+        '<dt>Gold: ' + o.g.toFixed(2) + ' g of ' + p.k + 'K at ' + o.rt.toFixed(2) + '</dt><dd>' + aed(o.gold) + '</dd>' +
+        '<dt>Making charge (implied)</dt><dd>' + aed(o.mk) + '</dd><dt>per gram · % of gold</dt><dd>' + aed(o.mkG) + ' · ' + o.mkP.toFixed(0) + '%</dd>' +
+        '<dt>VAT 5%</dt><dd>' + aed(o.vat) + '</dd><dt>Price per gram, all in</dt><dd>' + aed(o.total / o.g) + '</dd><hr><dt>Suggested counter-offer</dt><dd class="tot" style="font-size:1.25rem">' + (o.offer < o.total ? aed(o.offer, 0) : 'Take it') + '</dd></dl>' +
+        '<p class="note" style="margin:0">' + o.v[2] + ' Usual range for ' + o.ty[0].toLowerCase() + ': AED ' + o.ty[1] + '–' + o.ty[2] + ' per gram.</p></div>';
+    });
+    if (n > 1) h += '<dl class="bill"><dt>' + n + ' pieces, ' + tg.toFixed(2) + ' g of gold</dt><dd>' + aed(tq, 0) + '</dd><dt>Gold value inside</dt><dd>' + aed(tgold, 0) + '</dd><dt>Average price per piece</dt><dd>' + aed(tq / n, 0) + '</dd><hr><dt>Counter-offer for all</dt><dd class="tot">' + aed(toff, 0) + '</dd></dl>';
+    var stones = R.some(function (p) { return p.t === 'stones' || p.s; });
+    h += '<p class="note" style="margin-top:10px">' + (stones ? '<b>Stones are not gold.</b> If the tag shows one weight, ask for the net gold weight. Paying the gold rate on stone weight is the most common overcharge. ' : 'Ask for the weight to be checked on the shop\'s scale in front of you, and for the karat stamp. ') + 'Negotiate the making charge, not the gold rate: the rate follows the market. Buying several pieces together is a good reason to ask for a lower charge.</p>';
+    $('fairOut').innerHTML = h;
+    try { localStorage.setItem('goldFair', JSON.stringify(R)); } catch (e) {}
+  }
+  $('fitems').addEventListener('input', fair); $('fitems').addEventListener('change', fair);
+  $('fitems').addEventListener('click', function (e) { if (e.target.classList.contains('x')) { e.target.closest('.fitem').remove(); fair(); } });
+  $('addF').onclick = function () { var d = document.createElement('div'); d.innerHTML = fairRowHTML({ k: 21, t: 'chain' }); $('fitems').appendChild(d.firstChild); fair(); };
+  $('fV').addEventListener('change', fair);
+  (function () { var saved = null; try { saved = JSON.parse(localStorage.getItem('goldFair') || 'null'); } catch (e) {} (saved && saved.length ? saved : [{ n: 'Chain', w: 8.5, k: 22, t: 'chain' }]).forEach(function (p) { var d = document.createElement('div'); d.innerHTML = fairRowHTML(p); $('fitems').appendChild(d.firstChild); }); })();
+
+  function all() { rates(); buy(); worth(); zakat(); fair(); try { localStorage.setItem('goldOwn', $('own').value); } catch (e) {} }
 
   function addRow(id, w, k, worn) {
     var d = document.createElement('div'); d.innerHTML = rowHTML(w, k, 1); var r = d.firstChild;
@@ -167,7 +237,7 @@
     b.onclick = function () {
       tab = b.dataset.t;
       [].forEach.call(document.querySelectorAll('[data-t]'), function (x) { x.setAttribute('aria-pressed', x === b); });
-      ['buy', 'worth', 'zakat'].forEach(function (t) { $(t).hidden = t !== tab; $(t + 'Out').hidden = t !== tab; });
+      ['buy', 'worth', 'zakat', 'fair'].forEach(function (t) { $(t).hidden = t !== tab; $(t + 'Out').hidden = t !== tab; });
     };
   });
   try { $('own').value = localStorage.getItem('goldOwn') || ''; } catch (e) {}

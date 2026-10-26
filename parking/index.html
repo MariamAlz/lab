@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Find My Car · Mariam's Lab</title>
+<meta name="description" content="One tap to save where you parked: GPS, level, zone, pillar and a photo. It spots big UAE malls, tracks your steps underground, guides you back with a compass, and reminds you before paid parking runs out.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/parking/">
+<meta property="og:title" content="Find My Car · Mariam's Lab"><meta property="og:description" content="One tap to save your parking spot, then a compass, photo and step trail to get back."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.parkbig { width: 100%; font: inherit; font-family: var(--font-display); font-weight: 800; font-size: clamp(1.5rem, 6vw, 2.2rem); color: #1a1205; background: var(--accent); border: 0; border-radius: 22px; padding: 26px 18px; cursor: pointer; box-shadow: 0 10px 40px rgba(233,180,103,.25); transition: transform .12s; }
+.parkbig:active { transform: scale(.98); }
+.parkbig small { display: block; font-family: var(--font-body); font-weight: 500; font-size: 0.85rem; opacity: .75; margin-top: 4px; }
+.sm { font: inherit; font-size: 0.85rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 13px; cursor: pointer; }
+.sm:hover { border-color: var(--muted); }
+.sm[aria-pressed="true"], .sm.pri { background: var(--accent); color: #1a1205; border-color: var(--accent); }
+.sm.warn { border-color: var(--sat-c); color: var(--sat-c); }
+.pills { display: flex; gap: 6px; flex-wrap: wrap; }
+.pills .sm { padding: 6px 11px; }
+.dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%; vertical-align: -1px; margin-inline-end: 5px; border: 1px solid rgba(255,255,255,.35); }
+.fld { display: grid; gap: 6px; }
+.fld > span { font-size: 0.8rem; color: var(--muted); }
+.txt { font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; min-width: 0; width: 100%; box-sizing: border-box; }
+.two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
+.box { padding: 16px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); display: grid; gap: 12px; min-width: 0; }
+.ask { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(233,180,103,.18); }
+.meta { font-size: 0.86rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.meta b { color: var(--ink); font-weight: 600; }
+.mallbox { padding: 12px 14px; border-radius: 12px; border: 1px dashed var(--sat-b); font-size: 0.88rem; display: grid; gap: 4px; }
+.mallbox b { color: var(--sat-b); }
+.photo { width: 100%; max-height: 320px; object-fit: cover; border-radius: 12px; border: 1px solid var(--line); display: block; }
+.compass { display: grid; justify-items: center; gap: 4px; }
+.compass svg { width: min(240px, 70vw); height: auto; }
+.dist { font-family: var(--font-display); font-weight: 800; font-size: clamp(2rem, 8vw, 3rem); line-height: 1; }
+.crumb svg { width: 100%; height: 220px; display: block; border-radius: 12px; background: rgba(0,0,0,.18); }
+.route { margin: 0; padding-inline-start: 1.3em; font-size: 0.9rem; display: grid; gap: 4px; }
+.where-tag { display: flex; flex-wrap: wrap; gap: 8px; }
+.where-tag span { font-family: var(--font-mono); font-size: 0.95rem; padding: 6px 12px; border-radius: 10px; background: rgba(255,255,255,.06); border: 1px solid var(--line); }
+.where-tag span b { font-family: var(--font-display); font-size: 1.3rem; display: block; }
+.hist { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.hist li { padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 10px; align-items: center; font-size: 0.88rem; }
+.hist li.now { border-color: var(--accent); }
+.hist small { color: var(--muted); display: block; }
+.hist .acts2 { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.clock { font-family: var(--font-display); font-weight: 800; font-size: 2.2rem; line-height: 1; }
+.info { font-size: 0.82rem; color: var(--muted); margin: 0; }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 8px 0 0; }
+.alertbar { padding: 12px 14px; border-radius: 12px; background: rgba(240,138,179,.15); border: 1px solid var(--sat-c); font-size: 0.92rem; }
+.sms { font-size: 0.82rem; border-collapse: collapse; width: 100%; }
+.sms td { padding: 5px 4px; border-top: 1px solid var(--line); vertical-align: top; }
+.sms td:first-child { white-space: nowrap; color: var(--ink); }
+.sms code { font-family: var(--font-mono); font-size: 0.78rem; color: var(--accent); overflow-wrap: anywhere; }
+[hidden] { display: none !important; }
+@media (max-width: 520px) { .two { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Car · UAE</span>
+    <h1 style="font-size:var(--step-3)">Find my car.</h1>
+    <p>Tap once when you park. It saves your position, the time and a photo, and asks for the level when you're underground. It knows the big UAE malls and their car parks, counts your steps on the way out, and points you back. It can also remind you before paid parking runs out.</p>
+  </div>
+
+  <div class="game">
+    <div class="panel">
+      <button class="parkbig" type="button" id="park">🚗 I parked here<small id="parkSub">Saves GPS, time and level. Add a photo after.</small></button>
+      <p class="msg" id="msg" role="status"></p>
+      <div class="pills" style="align-items:center"><label class="sm" style="display:inline-flex;gap:6px;align-items:center"><input type="checkbox" id="pdrOn" checked style="accent-color:var(--accent);margin:0"> Count my steps as I walk away</label><span class="info" id="pdrState"></span></div>
+
+      <div class="box" id="spot" hidden>
+        <span class="label">This spot</span>
+        <div class="meta" id="spotMeta"></div>
+        <div class="mallbox" id="mallBox" hidden></div>
+        <div class="fld" id="levelWrap"><span id="levelAsk">Level</span><div class="pills" id="levels"></div></div>
+        <div class="fld"><span>Zone or car park</span><div class="pills" id="zones"></div></div>
+        <div class="fld"><span>Colour on the sign</span><div class="pills" id="colours"></div></div>
+        <div class="two">
+          <label class="fld"><span>Pillar or bay</span><input class="txt" id="pillar" placeholder="e.g. C14" autocomplete="off"></label>
+          <label class="fld"><span>Note</span><input class="txt" id="note" placeholder="near the lifts…" autocomplete="off"></label>
+        </div>
+        <div class="pills" id="pillarQuick" aria-label="Pillar letter"></div>
+        <div class="pills">
+          <label class="sm" for="cam">📷 Add a photo</label><input type="file" id="cam" accept="image/*" capture="environment" hidden>
+          <button class="sm" type="button" id="regps">📍 Retry GPS</button>
+          <button class="sm" type="button" id="stopPdr" hidden>⏹ Stop step count</button>
+        </div>
+        <img class="photo" id="spotPhoto" alt="Photo of where you parked" hidden>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="box" id="find">
+        <span class="label">Get back to the car</span>
+        <p class="info" id="findEmpty">Nothing saved yet. Tap "I parked here" when you park.</p>
+        <div id="findBody" hidden style="display:grid;gap:12px">
+          <div class="where-tag" id="tag"></div>
+          <button class="sm pri" type="button" id="guide" style="justify-self:start;font-size:1rem;padding:10px 18px">🧭 Guide me back</button>
+          <div class="compass" id="compass" hidden>
+            <svg viewBox="-60 -60 120 120" aria-hidden="true">
+              <circle r="56" fill="none" stroke="var(--line)" stroke-width="2"/>
+              <g id="ring" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--muted)" text-anchor="middle"><text y="-44">N</text><text x="46" y="3">E</text><text y="50">S</text><text x="-46" y="3">W</text></g>
+              <g id="arrow"><path d="M0,-42 L16,14 L0,4 L-16,14 Z" fill="var(--accent)"/></g>
+            </svg>
+            <div class="dist" id="dist">…</div>
+            <span class="info" id="distSub"></span>
+          </div>
+          <img class="photo" id="findPhoto" alt="Photo of the parking spot" hidden>
+          <div class="crumb" id="crumb" hidden>
+            <span class="label">Your walk from the car</span>
+            <svg id="crumbSvg" viewBox="0 0 300 220" preserveAspectRatio="xMidYMid meet" aria-label="Step trail map"></svg>
+            <ol class="route" id="route"></ol>
+          </div>
+          <div class="pills"><a class="sm" id="maps" target="_blank" rel="noopener">Open in maps ↗</a><button class="sm" type="button" id="found">✓ Found it</button></div>
+        </div>
+      </div>
+
+      <div class="box">
+        <span class="label">Paid parking timer</span>
+        <div class="alertbar" id="tAlert" hidden></div>
+        <div id="tIdle">
+          <div class="pills" id="durs"></div>
+          <div class="pills" style="margin-top:8px;align-items:center"><span class="info">Remind me</span><select class="txt" id="remind" style="width:auto"><option value="5">5 min before</option><option value="10" selected>10 min before</option><option value="15">15 min before</option><option value="20">20 min before</option></select><button class="sm pri" type="button" id="tStart">Start timer</button></div>
+          <span class="info" style="display:block;margin-top:6px">The reminder only works while this page stays open in a tab. For a lock-screen alarm, also set one in your phone's clock app.</span>
+        </div>
+        <div id="tRun" hidden style="display:grid;gap:8px">
+          <div class="clock" id="tClock">0:00</div>
+          <span class="info" id="tSub"></span>
+          <div class="pills"><button class="sm" type="button" id="tAdd">+30 min</button><button class="sm" type="button" id="tStop">Stop</button></div>
+        </div>
+        <details>
+          <summary class="info" style="cursor:pointer">Pay by SMS</summary>
+          <div style="display:grid;gap:8px;margin-top:10px">
+            <div class="two">
+              <label class="fld"><span>Emirate</span><select class="txt" id="smsEm"><option value="dxb">Dubai (7275)</option><option value="auh">Abu Dhabi (3009)</option><option value="shj">Sharjah (5566)</option></select></label>
+              <label class="fld"><span>Zone code on the sign</span><input class="txt" id="smsZone" placeholder="e.g. 365C" autocomplete="off"></label>
+            </div>
+            <label class="fld"><span>Plate (stays on this phone)</span><input class="txt" id="smsPlate" placeholder="e.g. A 12345" autocomplete="off"></label>
+            <a class="sm pri" id="smsGo" style="justify-self:start;text-decoration:none">Open SMS app</a>
+            <table class="sms"><tbody>
+              <tr><td>Dubai · 7275</td><td><code>plate zone hours</code>, e.g. <code>A12345 365C 2</code>. Plates from other emirates add the emirate first.</td></tr>
+              <tr><td>Abu Dhabi · 3009</td><td><code>plate zone hours</code> with the plate details as on the sign's example.</td></tr>
+              <tr><td>Sharjah · 5566</td><td><code>plate hours</code> or <code>plate zone hours</code>, as shown on the meter.</td></tr>
+            </tbody></table>
+            <p class="info">Info only. Formats change, so follow the example printed on the parking sign or meter. A small SMS fee applies, and you get a reply before expiry with an option to extend.</p>
+          </div>
+        </details>
+      </div>
+    </div>
+  </div>
+
+  <div class="game" style="margin-top:22px">
+    <div class="panel">
+      <span class="label">Last 10 spots</span>
+      <ul class="hist" id="hist"></ul>
+    </div>
+    <div class="panel">
+      <p class="fact" style="margin:0"><b>Why GPS fails underground.</b> Satellite signals are weak, about the strength of a car headlight seen from 20,000 km away. Concrete blocks them, so in a basement your phone guesses from Wi-Fi and the last fix, and the accuracy circle grows past 50 metres. That's the cue this page uses to ask for your level.</p>
+      <p class="fact" style="margin:0"><b>Step counting</b> uses the phone's accelerometer to spot each footfall and the compass for direction. Each step is taken as about 70 cm. Errors add up, and steel beams can bend the compass, so treat the trail as a rough shape, not a map. Your photo of the pillar sign is the most reliable clue.</p>
+      <p class="fact" style="margin:0">Everything stays on this phone: spots in local storage, photos in the browser's own database. Nothing is uploaded.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var R = Math.PI / 180, KEY = 'parkingRecs', STEP = 0.7;
+  // [name, lat, lng, radius m, zones or null, tip]
+  var MALLS = [
+    ['The Dubai Mall', 25.1975, 55.2796, 650, ['Grand', 'Cinema', 'Fashion', 'Zabeel'], 'Four separate car parks: Grand, Cinema, Fashion and Zabeel. Note which one, the level and the zone letter. Walking between them inside the mall can take 10 minutes or more.'],
+    ['Mall of the Emirates', 25.1181, 55.2003, 500, null, 'The car park wraps around the mall. Note the level, the zone and the nearest entrance, for example the Ski Dubai end or the hotel end.'],
+    ['Ibn Battuta Mall', 25.0444, 55.1176, 750, ['China', 'Persia', 'India', 'Egypt', 'Tunisia', 'Andalusia'], 'The mall is a long row of six themed courts, over a kilometre end to end. Parking is named by the nearest court, so remember China, Persia, India, Egypt, Tunisia or Andalusia.'],
+    ['Dubai Marina Mall', 25.0763, 55.1403, 300, null, 'Underground levels look alike. Snap the pillar sign by the lift you used.'],
+    ['Dubai Hills Mall', 25.1023, 55.2393, 500, null, 'Note the level and zone, plus the entrance you walked into the mall from.'],
+    ['Dubai Festival City Mall', 25.2222, 55.3527, 600, null, 'A long mall with car parks at both ends. Note whether you parked by IKEA or by the waterfront end.'],
+    ['City Centre Deira', 25.2525, 55.3331, 400, null, 'Several car park levels with colour codes. Note the colour, level and nearest entrance.'],
+    ['City Centre Mirdif', 25.2163, 55.4075, 450, null, 'Note the level and colour zone, and the entrance (Carrefour end or the entertainment end).'],
+    ['BurJuman', 25.2537, 55.3030, 350, null, 'Note the level and whether you parked in the older or newer car park.'],
+    ['Wafi', 25.2297, 55.3196, 400, null, 'Basement parking spreads under several buildings. A photo of the pillar sign helps most.'],
+    ['Nakheel Mall', 25.1126, 55.1390, 300, null, 'Underground car park. Note the level and the lift lobby.'],
+    ['Dragon Mart', 25.1719, 55.4199, 700, null, 'Very long buildings with open lots outside. Note the gate number nearest your car.'],
+    ['Yas Mall', 24.4889, 54.6084, 650, null, 'Big multi-level car parks on several sides. Note the level, zone and the entrance, such as the Ferrari World side or the IKEA side.'],
+    ['The Galleria Al Maryah Island', 24.5011, 54.3897, 400, null, 'Underground parking under each wing. Note the level and the wing.'],
+    ['Abu Dhabi Mall', 24.4960, 54.3829, 350, null, 'Note the level and colour zone by the lift.'],
+    ['Marina Mall Abu Dhabi', 24.4758, 54.3215, 450, null, 'Note the level and whether you parked on the corniche side.'],
+    ['Al Wahda Mall', 24.4702, 54.3725, 350, null, 'Note the level and the colour zone.'],
+    ['Reem Mall', 24.4990, 54.4071, 400, null, 'Note the level, zone and the entrance you used.'],
+    ['Dalma Mall', 24.3330, 54.5230, 450, null, 'Large car park. Note the zone and the entrance number.'],
+    ['Al Ain Mall', 24.2223, 55.7804, 350, null, 'Note the level and entrance.'],
+    ['City Centre Sharjah', 25.3245, 55.3930, 350, null, 'Note the level and colour zone.'],
+    ['Sahara Centre', 25.2977, 55.3742, 400, null, 'Big multi-storey car park. Note the level, the colour and the entrance.'],
+    ['City Centre Al Zahia', 25.2950, 55.4583, 450, null, 'Note the level and zone.'],
+    ['City Centre Ajman', 25.3998, 55.4794, 350, null, 'Note the level and the nearest entrance.'],
+    ['Manar Mall', 25.7666, 55.9447, 350, null, 'Note which side of the mall you parked.'],
+    ['City Centre Fujairah', 25.1180, 56.3197, 350, null, 'Note the level and the entrance.']
+  ];
+  var LEVELS = ['B3', 'B2', 'B1', 'G', 'P1', 'P2', 'P3', 'P4', 'P5', 'Roof'];
+  var COLOURS = [['Red', '#e5484d'], ['Orange', '#f08a3c'], ['Yellow', '#f5d547'], ['Green', '#3fbf6f'], ['Blue', '#3b82f6'], ['Purple', '#9b6bff'], ['Pink', '#f08ab3'], ['White', '#f2f2f2'], ['Grey', '#8a8f9f']];
+  var recs = [], cur = null;
+
+  function load() { try { recs = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) { recs = []; } cur = recs[0] && !recs[0].done ? recs[0] : null; }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(recs.slice(0, 10))); } catch (e) {} }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function msg(t) { $('msg').textContent = t; }
+  function hav(a1, o1, a2, o2) { var dA = (a2 - a1) * R, dO = (o2 - o1) * R, a = Math.sin(dA / 2) * Math.sin(dA / 2) + Math.cos(a1 * R) * Math.cos(a2 * R) * Math.sin(dO / 2) * Math.sin(dO / 2); return 6371000 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)); }
+  function bearing(a1, o1, a2, o2) { var y = Math.sin((o2 - o1) * R) * Math.cos(a2 * R), x = Math.cos(a1 * R) * Math.sin(a2 * R) - Math.sin(a1 * R) * Math.cos(a2 * R) * Math.cos((o2 - o1) * R); return (Math.atan2(y, x) / R + 360) % 360; }
+  function dir8(h) { return ['north', 'north-east', 'east', 'south-east', 'south', 'south-west', 'west', 'north-west'][Math.round(((h % 360) + 360) % 360 / 45) % 8]; }
+  function fmtT(t) { return new Date(t).toLocaleString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); }
+  function fmtD(m) { return m < 1000 ? Math.round(m) + ' m' : (m / 1000).toFixed(m < 10000 ? 1 : 0) + ' km'; }
+  function findMall(lat, lng) { var best = null; MALLS.forEach(function (m) { var d = hav(lat, lng, m[1], m[2]); if (d < m[3] && (!best || d < best.d)) best = { m: m, d: d }; }); return best ? best.m : null; }
+  function mallOf(r) { if (!r || !r.mall) return null; for (var i = 0; i < MALLS.length; i++) if (MALLS[i][0] === r.mall) return MALLS[i]; return null; }
+
+  // ---- photos in IndexedDB ----
+  var dbp = null;
+  function db() {
+    if (!dbp) dbp = new Promise(function (res, rej) { if (!window.indexedDB) return rej(0); var q = indexedDB.open('parkingPhotos', 1); q.onupgradeneeded = function () { q.result.createObjectStore('p'); }; q.onsuccess = function () { res(q.result); }; q.onerror = function () { rej(q.error); }; });
+    return dbp;
+  }
+  function tx(mode, fn) { return db().then(function (d) { return new Promise(function (res, rej) { var t = d.transaction('p', mode), q = fn(t.objectStore('p')); t.oncomplete = function () { res(q && q.result); }; t.onerror = function () { rej(t.error); }; }); }); }
+  function putPhoto(id, data) { return tx('readwrite', function (s) { return s.put(data, id); }); }
+  function getPhoto(id) { return tx('readonly', function (s) { return s.get(id); }).catch(function () { return null; }); }
+  function delPhoto(id) { return tx('readwrite', function (s) { return s.delete(id); }).catch(function () {}); }
+  function compress(file) {
+    return new Promise(function (res, rej) {
+      var fr = new FileReader(); fr.onerror = rej;
+      fr.onload = function () {
+        var img = new Image(); img.onerror = rej;
+        img.onload = function () { var s = Math.min(1, 960 / Math.max(img.width, img.height)), c = document.createElement('canvas'); c.width = Math.round(img.width * s); c.height = Math.round(img.height * s); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); res(c.toDataURL('image/jpeg', 0.6)); };
+        img.src = fr.result;
+      };
+      fr.readAsDataURL(file);
+    });
+  }
+
+  // ---- orientation (vector helpers from sky-camera) ----
+  function cross(a, b) { return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]; }
+  function fromEuler(al, be, ga) {
+    var cA = Math.cos(al * R), sA = Math.sin(al * R), cB = Math.cos(be * R), sB = Math.sin(be * R), cG = Math.cos(ga * R), sG = Math.sin(ga * R);
+    var m = [[cA * cG - sA * sB * sG, -cB * sA, cA * sG + cG * sA * sB], [cG * sA + cA * sB * sG, cA * cB, sA * sG - cA * cG * sB], [-cB * sG, sB, cB * cG]];
+    function col(i) { return [m[0][i], m[1][i], m[2][i]]; }
+    var right = col(0), up = col(1), back = col(2), fwd = [-back[0], -back[1], -back[2]];
+    var ang = ((screen.orientation && screen.orientation.angle) || window.orientation || 0) * R, ca = Math.cos(ang), sa = Math.sin(ang);
+    var r2 = [right[0] * ca - up[0] * sa, right[1] * ca - up[1] * sa, right[2] * ca - up[2] * sa], u2 = [right[0] * sa + up[0] * ca, right[1] * sa + up[1] * ca, right[2] * sa + up[2] * ca];
+    return { f: fwd, r: r2, u: u2 };
+  }
+  var hdg = null, hdgAt = 0, sensorsOn = false;
+  function onOri(e) {
+    var al = e.alpha; if (al == null) return;
+    if (e.webkitCompassHeading != null) al = 360 - e.webkitCompassHeading;
+    else if (!e.absolute && e.type !== 'deviceorientationabsolute') return;
+    var b = fromEuler(al, e.beta || 0, e.gamma || 0);
+    // flat phone: the top edge points the way; upright phone: the camera does
+    var v = Math.hypot(b.u[0], b.u[1]) > Math.hypot(b.f[0], b.f[1]) ? b.u : b.f;
+    var h = (Math.atan2(v[0], v[1]) / R + 360) % 360;
+    if (hdg == null) hdg = h; else { var d = ((h - hdg + 540) % 360) - 180; hdg = (hdg + d * 0.3 + 360) % 360; }
+    hdgAt = Date.now(); if (guiding) drawArrow();
+  }
+  function askSensors() {
+    if (sensorsOn) return Promise.resolve(true);
+    var a = window.DeviceOrientationEvent && DeviceOrientationEvent.requestPermission ? DeviceOrientationEvent.requestPermission() : Promise.resolve('granted');
+    var b = window.DeviceMotionEvent && DeviceMotionEvent.requestPermission ? DeviceMotionEvent.requestPermission() : Promise.resolve('granted');
+    return Promise.all([a, b]).then(function (s) {
+      if ('ondeviceorientationabsolute' in window) window.addEventListener('deviceorientationabsolute', onOri); window.addEventListener('deviceorientation', onOri);
+      window.addEventListener('devicemotion', onMotion); sensorsOn = true; return s[0] === 'granted';
+    }).catch(function () { return false; });
+  }
+
+  // ---- pedestrian dead reckoning ----
+  var pdr = false, pdrUntil = 0, smooth = 9.8, above = false, lastStep = 0, motionSeen = false;
+  function onMotion(e) {
+    var a = e.accelerationIncludingGravity; if (!a || a.x == null) return; motionSeen = true;
+    if (!pdr || !cur) return;
+    if (Date.now() > pdrUntil) { stopPdr(); return; }
+    var mag = Math.sqrt(a.x * a.x + a.y * a.y + a.z * a.z); smooth = smooth * 0.75 + mag * 0.25;
+    var t = Date.now();
+    if (!above && smooth > 11.0) { above = true; if (t - lastStep > 300) { lastStep = t; addStep(); } } else if (above && smooth < 9.4) above = false;
+  }
+  function addStep() {
+    var tr = cur.trail || (cur.trail = []), h = hdg != null && Date.now() - hdgAt < 3000 ? hdg : null, last = tr[tr.length - 1];
+    if (last && ((h == null && last.h == null) || (h != null && last.h != null && Math.abs(((h - last.h + 540) % 360) - 180) < 35))) { if (h != null) { var d = ((h - last.h + 540) % 360) - 180; last.h = (last.h + d / (last.n + 1) + 360) % 360; } last.n++; }
+    else tr.push({ h: h, n: 1 });
+    cur.steps = (cur.steps || 0) + 1;
+    if (cur.steps % 5 === 0) save();
+    $('pdrState').textContent = cur.steps + ' steps counted';
+  }
+  function startPdr() { pdr = true; pdrUntil = Date.now() + 15 * 60000; $('stopPdr').hidden = false; $('pdrState').textContent = 'Counting steps. Walk normally with the phone in hand.'; setTimeout(function () { if (pdr && !motionSeen) $('pdrState').textContent = 'No motion sensor here, so no step trail.'; }, 4000); }
+  function stopPdr() { pdr = false; $('stopPdr').hidden = true; save(); if (cur && cur.steps) $('pdrState').textContent = cur.steps + ' steps saved'; renderFind(); }
+
+  // ---- park ----
+  function park() {
+    if (cur && cur.lat == null && Date.now() - cur.t < 30000) { getFix(cur); return; }
+    var r = { id: 'p' + Date.now(), t: Date.now(), lat: null, lng: null, acc: null, mall: null, level: '', zone: '', colour: '', pillar: '', note: '', photo: false, indoor: false, trail: [], steps: 0 };
+    if (cur) cur.done = true;
+    recs.unshift(r); cur = r;
+    var gone = recs.splice(10); gone.forEach(function (x) { if (x.photo) delPhoto(x.id); });
+    save(); renderSpot(); renderFind(); renderHist();
+    msg('Saved the time. Getting your position…');
+    getFix(r);
+    if ($('pdrOn').checked) askSensors().then(startPdr);
+    else askSensors();
+    try { navigator.vibrate && navigator.vibrate(40); } catch (e) {}
+  }
+  function getFix(r) {
+    if (!navigator.geolocation) { r.indoor = true; msg('No GPS in this browser. Add the level and a photo.'); renderSpot(); return; }
+    navigator.geolocation.getCurrentPosition(function (p) {
+      r.lat = +p.coords.latitude.toFixed(6); r.lng = +p.coords.longitude.toFixed(6); r.acc = Math.round(p.coords.accuracy);
+      r.indoor = r.acc > 40;
+      var m = findMall(r.lat, r.lng); r.mall = m ? m[0] : null;
+      save(); msg(r.indoor ? 'Position saved, but GPS is weak (±' + r.acc + ' m). You\'re probably indoors or underground.' : 'Position saved (±' + r.acc + ' m).');
+      renderSpot(); renderFind(); renderHist();
+    }, function () {
+      r.indoor = true; save(); msg('No GPS fix. You\'re probably underground. Pick the level and take a photo of the pillar sign.'); renderSpot();
+    }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 });
+  }
+
+  function pillGroup(el, list, val, key, colours) {
+    el.innerHTML = list.map(function (x) { var n = colours ? x[0] : x; return '<button class="sm" type="button" data-v="' + esc(n) + '" aria-pressed="' + (val === n) + '">' + (colours ? '<span class="dot" style="background:' + x[1] + '"></span>' : '') + esc(n) + '</button>'; }).join('');
+    el.onclick = function (e) { var b = e.target.closest('[data-v]'); if (!b || !cur) return; cur[key] = cur[key] === b.dataset.v ? '' : b.dataset.v; save(); renderSpot(); renderFind(); renderHist(); };
+  }
+  function renderSpot() {
+    $('spot').hidden = !cur; if (!cur) return;
+    var m = mallOf(cur);
+    $('spotMeta').innerHTML = '<span>Saved <b>' + fmtT(cur.t) + '</b></span><span>' + (cur.lat == null ? 'No GPS yet' : 'GPS ±<b>' + cur.acc + ' m</b>') + '</span>' + (cur.indoor ? '<span style="color:var(--accent)">Probably indoors or underground</span>' : '');
+    $('mallBox').hidden = !m;
+    if (m) $('mallBox').innerHTML = '<b>Looks like ' + esc(m[0]) + '</b><span>' + esc(m[5]) + '</span>';
+    $('levelWrap').classList.toggle('ask', !!cur.indoor && !cur.level);
+    $('levelAsk').textContent = cur.indoor && !cur.level ? 'Which level are you on?' : 'Level';
+    pillGroup($('levels'), LEVELS, cur.level, 'level');
+    pillGroup($('zones'), m && m[4] ? m[4] : ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'], cur.zone, 'zone');
+    pillGroup($('colours'), COLOURS, cur.colour, 'colour', true);
+    if (document.activeElement !== $('pillar')) $('pillar').value = cur.pillar || '';
+    if (document.activeElement !== $('note')) $('note').value = cur.note || '';
+    if (cur.photo) getPhoto(cur.id).then(function (d) { if (d) { $('spotPhoto').src = d; $('spotPhoto').hidden = false; } }); else $('spotPhoto').hidden = true;
+  }
+  $('pillarQuick').innerHTML = 'ABCDEFGH'.split('').map(function (l) { return '<button class="sm" type="button" data-l="' + l + '">' + l + '</button>'; }).join('') + '<span class="info" style="align-self:center">tap a letter, then type the number</span>';
+  $('pillarQuick').onclick = function (e) { var b = e.target.closest('[data-l]'); if (!b || !cur) return; cur.pillar = b.dataset.l + (cur.pillar || '').replace(/^[A-Za-z]+/, ''); $('pillar').value = cur.pillar; save(); renderFind(); renderHist(); $('pillar').focus(); };
+  ['pillar', 'note'].forEach(function (k) { $(k).addEventListener('input', function () { if (!cur) return; cur[k] = $(k).value.slice(0, 60); save(); renderFind(); renderHist(); }); });
+  $('cam').onchange = function () {
+    var f = this.files && this.files[0]; if (!f || !cur) return; var r = cur;
+    msg('Shrinking the photo…');
+    compress(f).then(function (d) { return putPhoto(r.id, d).then(function () { r.photo = true; save(); msg('Photo saved on this phone (' + Math.round(d.length * 0.75 / 1024) + ' KB).'); renderSpot(); renderFind(); renderHist(); }); }).catch(function () { msg('Couldn\'t save the photo in this browser.'); });
+    this.value = '';
+  };
+  $('regps').onclick = function () { if (cur) { msg('Getting your position…'); getFix(cur); } };
+  $('stopPdr').onclick = stopPdr;
+  $('park').onclick = park;
+  try { var po = localStorage.getItem('parkingPdr'); if (po != null) $('pdrOn').checked = po === '1'; } catch (e) {}
+  $('pdrOn').onchange = function () { try { localStorage.setItem('parkingPdr', this.checked ? '1' : '0'); } catch (e) {} if (!this.checked && pdr) stopPdr(); };
+
+  // ---- find ----
+  var guiding = false, watchId = null, here = null;
+  function tagHTML(r) {
+    var t = [];
+    if (r.mall) t.push(['Place', r.mall]);
+    if (r.level) t.push(['Level', r.level]);
+    if (r.zone) t.push(['Zone', r.zone]);
+    if (r.colour) t.push(['Colour', r.colour]);
+    if (r.pillar) t.push(['Pillar', r.pillar]);
+    if (r.note) t.push(['Note', r.note]);
+    if (!t.length) t.push(['Saved', fmtT(r.t)]);
+    return t.map(function (x) { return '<span>' + esc(x[0]) + '<b>' + esc(x[1]) + '</b></span>'; }).join('');
+  }
+  function renderFind() {
+    $('findEmpty').hidden = !!cur; $('findBody').hidden = !cur;
+    if (!cur) { stopGuide(); return; }
+    $('tag').innerHTML = tagHTML(cur);
+    $('maps').hidden = cur.lat == null;
+    if (cur.lat != null) $('maps').href = 'https://www.google.com/maps/dir/?api=1&travelmode=walking&destination=' + cur.lat + ',' + cur.lng;
+    if (cur.photo) getPhoto(cur.id).then(function (d) { if (d) { $('findPhoto').src = d; $('findPhoto').hidden = false; } }); else $('findPhoto').hidden = true;
+    drawCrumb(cur);
+  }
+  function trailPts(tr) { var x = 0, y = 0, p = [[0, 0]]; tr.forEach(function (s) { var h = s.h == null ? 0 : s.h; x += Math.sin(h * R) * s.n * STEP; y += Math.cos(h * R) * s.n * STEP; p.push([x, y]); }); return p; }
+  function drawCrumb(r) {
+    var tr = (r.trail || []).filter(function (s) { return s.n > 0; });
+    $('crumb').hidden = !tr.length; if (!tr.length) return;
+    var p = trailPts(tr), xs = p.map(function (q) { return q[0]; }), ys = p.map(function (q) { return q[1]; });
+    var minX = Math.min.apply(null, xs), maxX = Math.max.apply(null, xs), minY = Math.min.apply(null, ys), maxY = Math.max.apply(null, ys);
+    var span = Math.max(maxX - minX, maxY - minY, 10), k = 180 / span, cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
+    function X(q) { return (150 + (q[0] - cx) * k).toFixed(1); } function Y(q) { return (110 - (q[1] - cy) * k).toFixed(1); }
+    var end = p[p.length - 1];
+    $('crumbSvg').innerHTML = '<polyline points="' + p.map(function (q) { return X(q) + ',' + Y(q); }).join(' ') + '" fill="none" stroke="var(--sat-b)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="1 6"/>' +
+      '<text x="' + X(p[0]) + '" y="' + Y(p[0]) + '" font-size="20" text-anchor="middle" dominant-baseline="central">🚗</text><circle cx="' + X(end) + '" cy="' + Y(end) + '" r="6" fill="var(--accent)"/><text x="' + X(end) + '" y="' + (+Y(end) - 12) + '" font-size="10" fill="var(--muted)" text-anchor="middle" font-family="JetBrains Mono, monospace">you stopped</text>' +
+      '<text x="290" y="16" font-size="10" fill="var(--muted)" text-anchor="end" font-family="JetBrains Mono, monospace">N ↑ · ' + Math.round(span) + ' m across</text>';
+    var steps = tr.slice().reverse().map(function (s) { return '<li>' + (s.h == null ? 'Walk back' : 'Face ' + dir8(s.h + 180)) + ' and walk about <b>' + s.n + ' steps</b> (' + Math.round(s.n * STEP) + ' m)</li>'; });
+    $('route').innerHTML = steps.join('') + '<li>Look for ' + esc([r.level && 'level ' + r.level, r.zone && 'zone ' + r.zone, r.colour, r.pillar && 'pillar ' + r.pillar].filter(Boolean).join(', ') || 'your car') + '.</li>';
+  }
+  function drawArrow() {
+    if (!cur) return;
+    if (cur.lat == null) { $('dist').textContent = cur.level ? 'Level ' + cur.level : 'No GPS'; $('distSub').textContent = 'No position was saved, so use the photo, level and step trail.'; $('arrow').style.display = 'none'; return; }
+    if (!here) { $('dist').textContent = '…'; $('distSub').textContent = 'Waiting for GPS…'; return; }
+    var d = hav(here.lat, here.lng, cur.lat, cur.lng), b = bearing(here.lat, here.lng, cur.lat, cur.lng);
+    $('dist').textContent = d < 15 ? 'Here' : fmtD(d);
+    var hasH = hdg != null && Date.now() - hdgAt < 3000;
+    $('arrow').style.display = '';
+    $('arrow').setAttribute('transform', 'rotate(' + (b - (hasH ? hdg : 0)).toFixed(1) + ')');
+    $('ring').setAttribute('transform', 'rotate(' + (hasH ? -hdg : 0).toFixed(1) + ')');
+    var poor = here.acc > 40 || cur.indoor;
+    $('distSub').textContent = (d < 15 ? 'You\'re within a few metres. ' : 'Head ' + dir8(b) + (hasH ? '. Arrow follows your phone. ' : '. Arrow shows north-up (no compass). ')) + 'GPS ±' + Math.round(here.acc) + ' m.' + (poor ? ' GPS is weak here, so trust the level, photo and trail below.' : '');
+  }
+  function startGuide() {
+    guiding = true; $('compass').hidden = false; $('guide').textContent = '⏹ Stop guiding';
+    askSensors();
+    drawArrow();
+    if (navigator.geolocation && cur && cur.lat != null) watchId = navigator.geolocation.watchPosition(function (p) { here = { lat: p.coords.latitude, lng: p.coords.longitude, acc: p.coords.accuracy }; drawArrow(); }, function () { $('distSub').textContent = 'Can\'t get your position. Use the photo, level and trail.'; }, { enableHighAccuracy: true, maximumAge: 2000, timeout: 20000 });
+  }
+  function stopGuide() { guiding = false; $('compass').hidden = true; $('guide').textContent = '🧭 Guide me back'; if (watchId != null && navigator.geolocation) navigator.geolocation.clearWatch(watchId); watchId = null; }
+  $('guide').onclick = function () { if (guiding) stopGuide(); else startGuide(); };
+  $('found').onclick = function () { if (!cur) return; cur.done = true; if (pdr) stopPdr(); save(); cur = null; stopGuide(); renderAll(); msg('Marked as found. Safe drive.'); };
+
+  // ---- history ----
+  function renderHist() {
+    if (!recs.length) { $('hist').innerHTML = '<li><span class="info">Your last 10 spots will show here.</span></li>'; return; }
+    $('hist').innerHTML = recs.map(function (r, i) {
+      var bits = [r.level && 'Level ' + r.level, r.zone && 'Zone ' + r.zone, r.colour, r.pillar].filter(Boolean).join(' · ');
+      return '<li class="' + (r === cur ? 'now' : '') + '"><span><b>' + esc(r.mall || (r.lat != null ? r.lat.toFixed(4) + ', ' + r.lng.toFixed(4) : 'No GPS')) + '</b>' + (r.photo ? ' 📷' : '') + '<small>' + fmtT(r.t) + (bits ? ' · ' + esc(bits) : '') + (r.steps ? ' · ' + r.steps + ' steps' : '') + '</small></span><span class="acts2">' + (r === cur ? '<span class="info">current</span>' : '<button class="sm" type="button" data-use="' + i + '">Use</button>') + '<button class="sm" type="button" data-del="' + i + '" aria-label="Delete">×</button></span></li>';
+    }).join('');
+  }
+  $('hist').onclick = function (e) {
+    var u = e.target.closest('[data-use]'), d = e.target.closest('[data-del]');
+    if (u) { var r = recs.splice(+u.dataset.use, 1)[0]; if (cur) cur.done = true; r.done = false; recs.unshift(r); cur = r; save(); stopGuide(); renderAll(); }
+    if (d) { var x = recs.splice(+d.dataset.del, 1)[0]; if (x.photo) delPhoto(x.id); if (x === cur) { cur = null; stopGuide(); } save(); renderAll(); }
+  };
+
+  // ---- timer ----
+  var DURS = [['30 min', 30], ['1 h', 60], ['2 h', 120], ['3 h', 180], ['4 h', 240]], dur = 60, T = null;
+  try { T = JSON.parse(localStorage.getItem('parkingTimer') || 'null'); } catch (e) {}
+  $('durs').innerHTML = DURS.map(function (d) { return '<button class="sm" type="button" data-m="' + d[1] + '" aria-pressed="' + (d[1] === dur) + '">' + d[0] + '</button>'; }).join('');
+  $('durs').onclick = function (e) { var b = e.target.closest('[data-m]'); if (!b) return; dur = +b.dataset.m; [].forEach.call($('durs').children, function (x) { x.setAttribute('aria-pressed', x === b); }); smsLink(); };
+  function saveT() { try { localStorage.setItem('parkingTimer', JSON.stringify(T)); } catch (e) {} }
+  function notify(t) {
+    $('tAlert').hidden = false; $('tAlert').textContent = t;
+    try { navigator.vibrate && navigator.vibrate([200, 100, 200]); } catch (e) {}
+    try { if (window.Notification && Notification.permission === 'granted') new Notification('Parking', { body: t, tag: 'parking' }); } catch (e) {}
+  }
+  function tick() {
+    $('tIdle').hidden = !!T; $('tRun').hidden = !T; if (!T) return;
+    var left = T.end - Date.now(), m = Math.max(0, Math.ceil(left / 60000));
+    $('tClock').textContent = left <= 0 ? 'Expired' : Math.floor(m / 60) + ':' + ('0' + m % 60).slice(-2);
+    $('tClock').style.color = left <= 0 ? 'var(--sat-c)' : left < T.remind * 60000 ? 'var(--accent)' : '';
+    $('tSub').textContent = 'Ends at ' + new Date(T.end).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) + ' · reminder ' + T.remind + ' min before';
+    if (!T.n1 && left <= T.remind * 60000 && left > 0) { T.n1 = true; saveT(); notify('Parking ends in ' + m + ' min. Extend by SMS or head back.'); }
+    if (!T.n2 && left <= 0) { T.n2 = true; saveT(); notify('Paid parking has run out.'); }
+  }
+  $('tStart').onclick = function () {
+    T = { end: Date.now() + dur * 60000, remind: +$('remind').value, mins: dur }; saveT(); $('tAlert').hidden = true; tick(); smsLink();
+    try { if (window.Notification && Notification.permission === 'default') Notification.requestPermission(); } catch (e) {}
+  };
+  $('tAdd').onclick = function () { if (!T) return; T.end = Math.max(T.end, Date.now()) + 30 * 60000; T.mins += 30; T.n1 = T.n2 = false; $('tAlert').hidden = true; saveT(); tick(); };
+  $('tStop').onclick = function () { T = null; saveT(); $('tAlert').hidden = true; tick(); };
+  setInterval(tick, 1000);
+  document.addEventListener('visibilitychange', tick);
+
+  // ---- SMS ----
+  var SMS = { dxb: '7275', auh: '3009', shj: '5566' };
+  function smsLink() {
+    var plate = $('smsPlate').value.replace(/\s+/g, '').toUpperCase(), zone = $('smsZone').value.trim().toUpperCase(), em = $('smsEm').value;
+    var hrs = Math.max(1, Math.ceil((T ? T.mins : dur) / 60)), body = [plate || 'PLATE', em === 'shj' && !zone ? '' : (zone || 'ZONE'), hrs].filter(Boolean).join(' ');
+    $('smsGo').href = 'sms:' + SMS[em] + '?&body=' + encodeURIComponent(body);
+    $('smsGo').textContent = 'Text ' + SMS[em] + ': ' + body;
+    try { localStorage.setItem('parkingSms', JSON.stringify({ p: $('smsPlate').value, z: $('smsZone').value, e: em })); } catch (e) {}
+  }
+  try { var sm = JSON.parse(localStorage.getItem('parkingSms') || 'null'); if (sm) { $('smsPlate').value = sm.p || ''; $('smsZone').value = sm.z || ''; $('smsEm').value = sm.e || 'dxb'; } } catch (e) {}
+  ['smsPlate', 'smsZone', 'smsEm'].forEach(function (k) { $(k).addEventListener('input', smsLink); $(k).addEventListener('change', smsLink); });
+
+  function renderAll() { renderSpot(); renderFind(); renderHist(); }
+  load(); renderAll(); tick(); smsLink();
+  if (cur) $('parkSub').textContent = 'Tap again to save a new spot. Current: ' + fmtT(cur.t);
+  window.__parking = { findMall: findMall, hav: hav, bearing: bearing, addStep: function (h) { hdg = h; hdgAt = Date.now(); addStep(); }, MALLS: MALLS };
+})();
+</script>
+</body>
+</html>
