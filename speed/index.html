@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Speed Truth · Mariam's Lab</title>
+<meta name="description" content="Test your internet speed, then see what it actually means: how many 4K streams, how long a game download takes, whether video calls will stutter, and how your connection copes when busy.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/speed/">
+<meta property="og:title" content="Speed Truth · Mariam's Lab"><meta property="og:description" content="Your internet speed, translated into real life."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.gauge { position: relative; padding: 22px; border-radius: var(--radius); border: 1px solid var(--line); background: rgba(7, 10, 24, 0.82); }
+.big { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.big b { font-family: var(--font-display); font-weight: 800; font-size: clamp(3rem, 10vw, 5.4rem); line-height: 1; letter-spacing: -0.02em; }
+.big span { color: var(--muted); font-family: var(--font-mono); }
+.phase { font-family: var(--font-mono); font-size: 0.8rem; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); min-height: 1.3em; }
+.spark { width: 100%; height: 90px; display: block; margin-top: 14px; }
+.row3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 16px; }
+.row3 div { padding: 12px; border: 1px solid var(--line); border-radius: 12px; }
+.row3 b { display: block; font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; }
+.row3 small { color: var(--muted); font-size: 0.78rem; }
+.acts { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; align-items: center; }
+.chk { display: flex; gap: 8px; align-items: center; font-size: 0.88rem; color: var(--muted); cursor: pointer; }
+.chk input { accent-color: var(--accent); }
+.means { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.means li { display: grid; grid-template-columns: 2.2em minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; }
+.means .ic { font-size: 1.3rem; text-align: center; }
+.means p { font-size: 0.9rem; }
+.means small { display: block; color: var(--muted); font-size: 0.78rem; }
+.means b { font-family: var(--font-mono); font-size: 0.9rem; text-align: end; white-space: nowrap; }
+.ok { color: var(--sat-b); } .meh { color: var(--accent); } .bad { color: var(--sat-c); }
+.plan { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 0.9rem; }
+.plan input { width: 6em; font: inherit; font-family: var(--font-mono); color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 8px; padding: 5px 8px; }
+.msg { font-size: 0.85rem; color: var(--sat-c); min-height: 1.2em; margin-top: 8px; }
+@media (max-width: 520px) { .row3 b { font-size: 1.2rem; } }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Network</span>
+    <h1 style="font-size:var(--step-3)">Speed truth.</h1>
+    <p>A speed test gives you a number. This one also tells you what the number means: how many 4K films you can stream at once, how long a big game takes to download, and whether your video calls stutter when someone else in the house is downloading.</p>
+  </div>
+  <div class="game">
+    <div>
+      <div class="gauge">
+        <div class="phase" id="phase">Ready</div>
+        <div class="big"><b id="now">—</b><span>Mbps</span></div>
+        <canvas class="spark" id="spark" aria-hidden="true"></canvas>
+        <div class="row3">
+          <div><small>Download</small><b id="dl">—</b><small>Mbps</small></div>
+          <div><small>Upload</small><b id="ul">—</b><small>Mbps</small></div>
+          <div><small>Ping · jitter</small><b id="pg">—</b><small id="jt">ms</small></div>
+        </div>
+        <div class="acts">
+          <button class="btn primary" type="button" id="go">Start the test</button>
+          <label class="chk"><input type="checkbox" id="light"> Light test (uses about 15 MB instead of up to 150 MB)</label>
+        </div>
+        <p class="msg" id="msg" role="status"></p>
+      </div>
+      <div class="row3" style="margin-top:10px">
+        <div><small>Ping when busy</small><b id="lp">—</b><small>ms</small></div>
+        <div style="grid-column: span 2"><small>Busy-hour grade</small><b id="bb">—</b><small id="bbt">How much your ping rises while the line is full. Big rises make calls and games lag.</small></div>
+      </div>
+    </div>
+    <div class="panel" style="display:grid;gap:14px">
+      <span class="label">What it means</span>
+      <ul class="means" id="means"><li><span class="ic">⏳</span><p>Run the test to see your results in real terms.</p><b></b></li></ul>
+      <div class="plan"><label for="planIn">My plan is</label><input type="number" id="planIn" min="1" placeholder="e.g. 500"><span>Mbps</span><span id="planOut" class="mono"></span></div>
+      <p class="fact">Tests run against Cloudflare's nearest server, straight from your browser. Wi-Fi is usually the bottleneck: if you get much less than your plan, test again next to the router or on a cable. Nothing is saved or sent anywhere else.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var BASE = 'https://speed.cloudflare.com/';
+  var res = { dl: 0, ul: 0, ping: 0, jit: 0, loaded: 0 }, samples = [], running = false;
+
+  function now() { return performance.now(); }
+  function median(a) { var b = a.slice().sort(function (x, y) { return x - y; }), m = b.length >> 1; return b.length % 2 ? b[m] : (b[m - 1] + b[m]) / 2; }
+  function pct(a, p) { var b = a.slice().sort(function (x, y) { return x - y; }); return b[Math.min(b.length - 1, Math.floor(p * b.length))]; }
+  function fmt(v) { return v >= 100 ? Math.round(v) : v >= 10 ? v.toFixed(1) : v.toFixed(2); }
+  function phase(t) { $('phase').textContent = t; }
+
+  function spark() {
+    var c = $('spark'), d = Math.min(devicePixelRatio || 1, 2), r = c.getBoundingClientRect();
+    c.width = r.width * d; c.height = r.height * d; var g = c.getContext('2d'), W = c.width, H = c.height;
+    g.clearRect(0, 0, W, H); if (samples.length < 2) return;
+    var mx = Math.max.apply(null, samples.map(function (s) { return s.v; })) * 1.15 || 1, t0 = samples[0].t, t1 = samples[samples.length - 1].t || 1;
+    ['dl', 'ul'].forEach(function (k) {
+      var pts = samples.filter(function (s) { return s.k === k; }); if (pts.length < 2) return;
+      g.beginPath(); pts.forEach(function (s, i) { var x = (s.t - t0) / (t1 - t0 || 1) * W, y = H - s.v / mx * (H - 4 * d); i ? g.lineTo(x, y) : g.moveTo(x, y); });
+      g.strokeStyle = k === 'dl' ? '#4FD3BD' : '#84A0FF'; g.lineWidth = 2 * d; g.stroke();
+    });
+  }
+
+  function ping(n) {
+    var out = [], i = 0;
+    return new Promise(function (resolve) {
+      (function next() {
+        if (i++ >= n) return resolve(out);
+        var t = now();
+        fetch(BASE + '__down?bytes=0&r=' + Math.random(), { cache: 'no-store' }).then(function (r) { return r.arrayBuffer(); }).then(function () { out.push(now() - t); next(); }, function () { next(); });
+      })();
+    });
+  }
+
+  // download one chunk, streaming so the gauge moves
+  function down(bytes, kind) {
+    var t = now(), got = 0;
+    return fetch(BASE + '__down?bytes=' + bytes + '&r=' + Math.random(), { cache: 'no-store' }).then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      if (!r.body || !r.body.getReader) return r.arrayBuffer().then(function (b) { got = b.byteLength; });
+      var rd = r.body.getReader();
+      return (function pump() {
+        return rd.read().then(function (x) {
+          if (x.done) return;
+          got += x.value.byteLength; var dt = (now() - t) / 1000;
+          if (dt > 0.15) { var v = got * 8 / dt / 1e6; $('now').textContent = fmt(v); samples.push({ k: kind, t: now(), v: v }); spark(); }
+          return pump();
+        });
+      })();
+    }).then(function () { var dt = (now() - t) / 1000; return { mbps: got * 8 / dt / 1e6, sec: dt }; });
+  }
+  function up(bytes) {
+    var body = new Uint8Array(bytes), t = now();
+    for (var i = 0; i < bytes; i += 65536) crypto.getRandomValues(body.subarray(i, Math.min(bytes, i + 65536)));
+    return fetch(BASE + '__up?r=' + Math.random(), { method: 'POST', body: body, cache: 'no-store' }).then(function (r) { return r.arrayBuffer(); }).then(function () {
+      var dt = (now() - t) / 1000, v = bytes * 8 / dt / 1e6; $('now').textContent = fmt(v); samples.push({ k: 'ul', t: now(), v: v }); spark();
+      return { mbps: v, sec: dt };
+    });
+  }
+  // grow the chunk until each takes about a second, then keep the fast ones
+  function series(fn, sizes, budget) {
+    var speeds = [], t0 = now(), i = 0;
+    return new Promise(function (resolve, reject) {
+      (function next() {
+        if (i >= sizes.length || now() - t0 > budget) return resolve(speeds);
+        fn(sizes[i]).then(function (r) {
+          if (r.sec > 0.25) speeds.push(r.mbps);
+          if (r.sec < 0.8 || i < 2) i++;
+          else if (speeds.length > 4) i = sizes.length;
+          next();
+        }, function (e) { if (speeds.length) resolve(speeds); else reject(e); });
+      })();
+    });
+  }
+
+  function run() {
+    if (running) return; running = true; samples = []; $('msg').textContent = '';
+    ['dl', 'ul', 'pg', 'lp', 'bb'].forEach(function (k) { $(k).textContent = '—'; });
+    $('go').disabled = true; $('go').textContent = 'Testing…';
+    var light = $('light').checked;
+    var DL = light ? [1e5, 1e6, 2e6, 5e6] : [1e5, 1e6, 5e6, 10e6, 25e6, 25e6, 25e6, 25e6];
+    var UL = light ? [1e5, 5e5, 1e6] : [1e5, 1e6, 2e6, 5e6, 10e6, 10e6];
+    phase('Measuring ping'); $('now').textContent = '…';
+    ping(12).then(function (p) {
+      if (!p.length) throw new Error('unreachable');
+      p = p.slice(2); res.ping = median(p);
+      var d = 0; for (var i = 1; i < p.length; i++) d += Math.abs(p[i] - p[i - 1]); res.jit = p.length > 1 ? d / (p.length - 1) : 0;
+      $('pg').textContent = Math.round(res.ping); $('jt').textContent = 'jitter ' + res.jit.toFixed(1) + ' ms';
+      phase('Download');
+      var busy = [], stop = false;
+      (function probe() { if (stop) return; var t = now(); fetch(BASE + '__down?bytes=0&r=' + Math.random(), { cache: 'no-store' }).then(function () { busy.push(now() - t); setTimeout(probe, 250); }, function () { setTimeout(probe, 400); }); })();
+      return series(function (b) { return down(b, 'dl'); }, DL, light ? 6000 : 12000).then(function (s) {
+        stop = true; res.dl = pct(s, 0.9); $('dl').textContent = fmt(res.dl);
+        res.loaded = busy.length > 2 ? median(busy.slice(1)) : 0;
+      });
+    }).then(function () {
+      phase('Upload');
+      return series(up, UL, light ? 5000 : 10000).then(function (s) { res.ul = pct(s, 0.9); $('ul').textContent = fmt(res.ul); });
+    }).then(function () {
+      phase('Done'); $('now').textContent = fmt(res.dl); finish();
+    }).catch(function (e) {
+      phase('Stopped');
+      $('msg').textContent = e && e.message === 'unreachable' ? 'Could not reach the test server. A content blocker or company network may be stopping it.' : 'The test was interrupted. Check your connection and try again.';
+    }).then(function () { running = false; $('go').disabled = false; $('go').textContent = 'Test again'; });
+  }
+
+  function dur(sec) {
+    if (!isFinite(sec)) return '—';
+    if (sec < 60) return Math.max(1, Math.round(sec)) + ' s';
+    if (sec < 3600) return Math.round(sec / 60) + ' min';
+    var h = sec / 3600; return (h < 10 ? h.toFixed(1) : Math.round(h)) + ' h';
+  }
+  function finish() {
+    var d = res.dl, u = res.ul, p = res.ping, j = res.jit, lp = res.loaded;
+    var rise = Math.max(0, lp - p);
+    if (lp) {
+      $('lp').textContent = Math.round(lp);
+      var gr = rise < 30 ? ['A', 'ok', 'Barely changes. Calls and games stay smooth while others download.'] : rise < 100 ? ['B', 'meh', 'Rises a bit. You might notice lag in games while someone downloads.'] : rise < 250 ? ['C', 'meh', 'Rises a lot. Video calls may freeze when the line is busy.'] : ['D', 'bad', 'Jumps sharply. A router with "SQM" or "smart queue" settings can fix this.'];
+      $('bb').innerHTML = '<span class="' + gr[1] + '">' + gr[0] + '</span>'; $('bbt').textContent = gr[2] + ' (+' + Math.round(rise) + ' ms)';
+    }
+    var GB = 8e3; // megabits per gigabyte
+    var items = [
+      ['📺', 'Netflix in 4K at once', 'about 15 Mbps each', Math.floor(d / 15) + ' streams', d >= 15 ? 'ok' : d >= 5 ? 'meh' : 'bad'],
+      ['🎬', 'Download a 2-hour HD film', '4 GB', dur(4 * GB / d), d >= 50 ? 'ok' : 'meh'],
+      ['🎮', 'Download a big game', '100 GB', dur(100 * GB / d), d >= 300 ? 'ok' : d >= 50 ? 'meh' : 'bad'],
+      ['📷', 'Upload 1,000 phone photos', 'about 4 GB', dur(4 * GB / u), u >= 50 ? 'ok' : 'meh'],
+      ['☁️', 'Back up a 128 GB phone', 'to iCloud or Google', dur(128 * GB / u), u >= 100 ? 'ok' : 'meh'],
+      ['👥', 'HD video calls at once', 'about 3.8 Mbps up each', Math.floor(u / 3.8) + ' calls', u >= 4 ? 'ok' : u >= 1.5 ? 'meh' : 'bad'],
+      ['🕹️', 'Online gaming', 'needs low ping and jitter', p < 30 && j < 10 ? 'great' : p < 60 && j < 20 ? 'fine' : 'laggy', p < 30 && j < 10 ? 'ok' : p < 60 && j < 20 ? 'meh' : 'bad'],
+      ['🏠', 'People working from home', 'one HD call + browsing each', Math.max(0, Math.floor(Math.min(d / 8, u / 4))), Math.min(d / 8, u / 4) >= 3 ? 'ok' : 'meh']
+    ];
+    $('means').innerHTML = items.map(function (x) { return '<li><span class="ic" aria-hidden="true">' + x[0] + '</span><p>' + x[1] + '<small>' + x[2] + '</small></p><b class="' + x[4] + '">' + x[3] + '</b></li>'; }).join('');
+    plan();
+  }
+  function plan() {
+    var v = +$('planIn').value;
+    try { localStorage.setItem('speedPlan', $('planIn').value); } catch (e) {}
+    if (!v || !res.dl) { $('planOut').textContent = ''; return; }
+    var r = res.dl / v * 100;
+    $('planOut').innerHTML = '→ you got <span class="' + (r >= 80 ? 'ok' : r >= 50 ? 'meh' : 'bad') + '">' + Math.round(r) + '%</span>';
+  }
+  $('planIn').addEventListener('input', plan);
+  try { $('planIn').value = localStorage.getItem('speedPlan') || ''; } catch (e) {}
+  $('go').onclick = run;
+  window.addEventListener('resize', spark);
+})();
+</script>
+</body>
+</html>
