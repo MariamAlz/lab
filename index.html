@@ -16,23 +16,59 @@
 <header class="labbar"><div class="wrap"><a class="home" href="./">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="./">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
 <main class="labmain"><div class="wrap">
 <div class="sec-head"><span class="label">Lab · lab.mariamalzaabi.ae</span><h1 style="font-size:var(--step-4);line-height:1">Things to <em style="font-style:normal;color:var(--accent)">poke at.</em></h1>
-<p>Small experiments from my work in satellite navigation and computer vision. Everything runs in your browser, so nothing you add leaves your device.</p></div>
-<div class="exps">
-<a class="exp" href="get-a-fix/"><span class="k" style="color:var(--sat-a)">GNSS · Game</span><h2>Get a fix</h2><p>Satellites only know how far away you are. Tap where their range circles meet and see how close you get to the truth.</p><span class="go">Play →</span></a>
-<a class="exp" href="my-sky/"><span class="k" style="color:var(--sat-b)">GNSS · Live data</span><h2>My sky and yours</h2><p>The GPS, Galileo and BeiDou satellites above Abu Dhabi right now, next to the ones above your city.</p><span class="go">Compare →</span></a>
-<a class="exp" href="dehaze/"><span class="k" style="color:var(--sat-c)">Computer vision · Tool</span><h2>Dehaze your own photo</h2><p>Drop in an underwater or foggy photo and watch the haze lift, with a before and after slider.</p><span class="go">Try it →</span></a>
-<a class="exp" href="duck-rabbit/"><span class="k" style="color:var(--sat-c)">Philosophy · Perception</span><h2>Duck or rabbit?</h2><p>Wittgenstein's duck-rabbit drifts from one animal to the other and back. Mark when it flips for you, and see whether what you already saw held on.</p><span class="go">Look →</span></a>
-<a class="exp" href="slab/"><span class="k" style="color:var(--sat-a)">Philosophy of language · Game</span><h2>Slab!</h2><p>Wittgenstein's builders' language-game. A builder calls out words nobody explains, and you learn them only by using them.</p><span class="go">Start building →</span></a>
-<a class="exp" href="space-wordle/"><span class="k" style="color:var(--accent)">Game · Daily</span><h2>Space Wordle</h2><p>A new five-letter word from space every day, with a fact for every answer. Can you hear it in Morse?</p><span class="go">Play →</span></a>
-<a class="exp" href="find-the-signal/"><span class="k" style="color:var(--sat-b)">GNSS · Sound · Game</span><h2>Find the signal</h2><p>A satellite is whispering under the noise. Search by ear, then tune in until your receiver locks on.</p><span class="go">Listen →</span></a>
-<a class="exp" href="morse/"><span class="k" style="color:var(--sat-c)">Signals · Sound</span><h2>Morse message</h2><p>Hear your message as Morse or as a 50 bit-per-second data signal, send it as a hidden link, or key your own.</p><span class="go">Send →</span></a>
-<a class="exp" href="https://sky.mariamalzaabi.ae/"><span class="k" style="color:var(--accent)">GNSS · Full screen</span><h2>Sky over Abu Dhabi</h2><p>A live, full-screen satellite tracker with the next ISS sighting. Works for your location too.</p><span class="go">Open ↗</span></a>
+<p>Small experiments from my work in satellite navigation, computer vision, optimization and AI, plus a few about language and philosophy. Everything runs in your browser, so nothing you add leaves your device.</p></div>
+<div class="finder">
+<label class="search"><span class="sr-only">Search experiments</span><input type="search" id="q" placeholder="Search experiments" autocomplete="off"></label>
+<div class="tags" id="tags" role="group" aria-label="Filter by topic"></div>
+<p class="count mono" id="count" aria-live="polite"></p>
+</div>
+<div class="exps" id="exps">
+<a class="exp" href="from-space/" data-tags="space,earth,tools"><span class="k" style="color:var(--sat-b)">Earth observation · Tool</span><h2>Earth from space, your way</h2><p>A real Sentinel-2 image of Abu Dhabi. Mix its bands to see vegetation, water and city in colours your eyes can't see.</p><span class="go">Explore →</span></a>
+<a class="exp" href="spoof-or-real/" data-tags="gnss,security,games"><span class="k" style="color:var(--sat-c)">GNSS · Security · Game</span><h2>Spoof or real?</h2><p>Six drives, six receivers. Read the signal strength and the track and call each one clean, jammed or spoofed.</p><span class="go">Play →</span></a>
+<a class="exp" href="spiking-neuron/" data-tags="ai,sound"><span class="k" style="color:var(--sat-a)">Neuromorphic · Sound</span><h2>A spiking neuron</h2><p>Feed a neuron spikes and watch it charge, leak and fire. Hear it, and see why event-driven chips save work.</p><span class="go">Fire →</span></a>
+<a class="exp" href="timetable/" data-tags="optimization,games"><span class="k" style="color:var(--accent)">Optimization · Game</span><h2>Timetable puzzle</h2><p>Fit the courses into rooms and slots with no clashes, then race a genetic algorithm and an ant colony.</p><span class="go">Solve →</span></a>
+<a class="exp" href="solar-house/" data-tags="optimization,earth"><span class="k" style="color:var(--sat-b)">Energy · Optimization</span><h2>Run a solar house</h2><p>Schedule the washing, the car and the dishwasher around a UAE solar day, then let a planner try.</p><span class="go">Plan →</span></a>
+<a class="exp" href="blend/" data-tags="optimization,games"><span class="k" style="color:var(--sat-c)">Optimization · Game</span><h2>Blend it right</h2><p>Three tanks, three orders, limited stock. Blend each order on spec at the lowest cost, then see what an optimizer finds.</p><span class="go">Blend →</span></a>
+<a class="exp" href="get-a-fix/" data-tags="gnss,games"><span class="k" style="color:var(--sat-a)">GNSS · Game</span><h2>Get a fix</h2><p>Satellites only know how far away you are. Tap where their range circles meet and see how close you get to the truth.</p><span class="go">Play →</span></a>
+<a class="exp" href="my-sky/" data-tags="gnss,space,live"><span class="k" style="color:var(--sat-b)">GNSS · Live data</span><h2>My sky and yours</h2><p>The GPS, Galileo and BeiDou satellites above Abu Dhabi right now, next to the ones above your city.</p><span class="go">Compare →</span></a>
+<a class="exp" href="dehaze/" data-tags="vision,tools"><span class="k" style="color:var(--sat-c)">Computer vision · Tool</span><h2>Dehaze your own photo</h2><p>Drop in an underwater or foggy photo and watch the haze lift, with a before and after slider.</p><span class="go">Try it →</span></a>
+<a class="exp" href="duck-rabbit/" data-tags="philosophy"><span class="k" style="color:var(--sat-c)">Philosophy · Perception</span><h2>Duck or rabbit?</h2><p>Wittgenstein's duck-rabbit drifts from one animal to the other and back. Mark when it flips for you, and see whether what you already saw held on.</p><span class="go">Look →</span></a>
+<a class="exp" href="slab/" data-tags="philosophy,language,games"><span class="k" style="color:var(--sat-a)">Philosophy of language · Game</span><h2>Slab!</h2><p>Wittgenstein's builders' language-game. A builder calls out words nobody explains, and you learn them only by using them.</p><span class="go">Start building →</span></a>
+<a class="exp" href="space-wordle/" data-tags="space,games,language"><span class="k" style="color:var(--accent)">Game · Daily</span><h2>Space Wordle</h2><p>A new five-letter word from space every day, with a fact for every answer. Can you hear it in Morse?</p><span class="go">Play →</span></a>
+<a class="exp" href="find-the-signal/" data-tags="gnss,sound,games"><span class="k" style="color:var(--sat-b)">GNSS · Sound · Game</span><h2>Find the signal</h2><p>A satellite is whispering under the noise. Search by ear, then tune in until your receiver locks on.</p><span class="go">Listen →</span></a>
+<a class="exp" href="morse/" data-tags="signals,sound,language"><span class="k" style="color:var(--sat-c)">Signals · Sound</span><h2>Morse message</h2><p>Hear your message as Morse or as a 50 bit-per-second data signal, send it as a hidden link, or key your own.</p><span class="go">Send →</span></a>
+<a class="exp" href="https://sky.mariamalzaabi.ae/" data-tags="gnss,space,live"><span class="k" style="color:var(--accent)">GNSS · Full screen</span><h2>Sky over Abu Dhabi</h2><p>A live, full-screen satellite tracker with the next ISS sighting. Works for your location too.</p><span class="go">Open ↗</span></a>
 </div>
 </div></main>
 <footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
 <script>
 var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 function css(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+
+var TAGS = [['all','All'],['games','Games'],['gnss','GNSS'],['space','Space'],['earth','Earth & UAE'],['ai','AI & ML'],['vision','Vision'],['optimization','Optimization'],['language','Language'],['philosophy','Philosophy'],['signals','Signals'],['sound','Sound'],['security','Security'],['tools','Tools'],['live','Live data']];
+var cards = [].slice.call(document.querySelectorAll('.exp')), tag = 'all';
+try { tag = new URLSearchParams(location.search).get('tag') || 'all'; } catch (e) {}
+var used = {}; cards.forEach(function (c) { (c.dataset.tags || '').split(',').forEach(function (t) { used[t] = 1; }); });
+document.getElementById('tags').innerHTML = TAGS.filter(function (t) { return t[0] === 'all' || used[t[0]]; }).map(function (t) {
+  return '<button type="button" data-t="' + t[0] + '" aria-pressed="' + (t[0] === tag) + '">' + t[1] + '</button>';
+}).join('');
+document.getElementById('tags').addEventListener('click', function (e) {
+  var b = e.target.closest('button'); if (!b) return; tag = b.dataset.t;
+  [].forEach.call(this.children, function (x) { x.setAttribute('aria-pressed', x === b); });
+  try { history.replaceState(null, '', tag === 'all' ? location.pathname : '?tag=' + tag); } catch (e) {}
+  apply();
+});
+document.getElementById('q').addEventListener('input', apply);
+function apply() {
+  var words = document.getElementById('q').value.toLowerCase().split(/\s+/).filter(Boolean), n = 0;
+  cards.forEach(function (c) {
+    var text = (c.textContent + ' ' + c.dataset.tags).toLowerCase();
+    var show = (tag === 'all' || (',' + c.dataset.tags + ',').indexOf(',' + tag + ',') >= 0) && words.every(function (w) { return text.indexOf(w) >= 0; });
+    c.hidden = !show; if (show) n++;
+  });
+  document.getElementById('count').textContent = n ? n + (n === 1 ? ' experiment' : ' experiments') : 'Nothing matches. Try another word or topic.';
+}
+apply();
 
 </script>
 </body>

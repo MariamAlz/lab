@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Solar House · Mariam's Lab</title>
+<meta name="description" content="Run a day in a solar-powered home in Abu Dhabi: decide when to run the appliances, and see how much of your power comes from the sun.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/solar-house/">
+<meta property="og:title" content="Solar House · Mariam's Lab"><meta property="og:description" content="Plan a day in a solar home. Use the sun, not the grid."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.left { display: grid; gap: 14px; min-width: 0; }
+.plot { border-radius: var(--radius); border: 1px solid var(--line); background: rgba(7, 10, 24, 0.82); overflow: hidden; }
+.plot canvas { display: block; width: 100%; height: auto; }
+.apps { display: grid; gap: 8px; }
+.app { display: grid; grid-template-columns: 150px minmax(0, 1fr) 64px; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); }
+@media (max-width: 560px) { .app { grid-template-columns: minmax(0, 1fr) 64px; } .app input { grid-column: 1 / -1; grid-row: 2; } }
+.app b { font-weight: 600; font-size: 0.95rem; }
+.app small { display: block; color: var(--muted); font-family: var(--font-mono); font-size: 0.72rem; }
+.app i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-inline-end: 6px; }
+.app input { width: 100%; accent-color: var(--accent); }
+.app output { font-family: var(--font-mono); color: var(--accent); text-align: end; }
+.day { display: flex; flex-wrap: wrap; gap: 8px; }
+.day button { padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--muted); font: inherit; font-size: 0.9rem; cursor: pointer; }
+.day button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.acts { display: flex; flex-wrap: wrap; gap: 10px; }
+.cmp { font-size: 0.95rem; color: var(--muted); }
+.cmp b { color: var(--ink); }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Experiment · Energy · AI</span>
+    <h1 style="font-size:var(--step-3)">Solar house.</h1>
+    <p>A day in a solar-powered home in Abu Dhabi. The panels follow the sun and the air conditioning follows the heat. You decide when to run everything else. Run things while the sun shines and you buy less from the grid.</p>
+  </div>
+  <div class="game">
+    <div class="left">
+      <div class="plot"><canvas id="cv" width="800" height="380" role="img" aria-label="Chart of a day: solar power, the home's load, and when it draws from the grid"></canvas></div>
+      <div class="apps" id="apps"></div>
+    </div>
+    <div class="panel">
+      <div class="stats">
+        <div><span class="label">Solar</span><b id="sSolar">0%</b></div>
+        <div><span class="label">Grid kWh</span><b id="sGrid">0</b></div>
+        <div><span class="label">Cost AED</span><b id="sCost">0</b></div>
+      </div>
+      <div class="day" role="group" aria-label="Weather"><button type="button" data-d="clear" aria-pressed="true">Clear day</button><button type="button" data-d="dusty" aria-pressed="false">Dusty day</button><button type="button" data-d="summer" aria-pressed="false">July heat</button></div>
+      <div class="acts"><button class="btn primary" id="plan" type="button">Let the model plan</button><button class="btn ghost" id="reset" type="button">Back to the evening rush</button></div>
+      <p class="cmp" id="cmp" aria-live="polite">Everything starts in the evening, when most families run it. Move the sliders to shift each job.</p>
+      <p class="fact">This is the idea behind SaveSmart, my senior design project for Khalifa University's solar home: LSTM models forecast tomorrow's sunshine and power use, and an app suggests when to run appliances. The house placed 2nd in energy efficiency at Solar Decathlon Middle East 2021.</p>
+      <p class="cmp" style="font-size:0.8rem">Simplified model: a 7 kW rooftop system, grid power at an assumed 0.30 AED per kWh, and no battery.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  function css(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+  var N = 96, DT = 0.25, PRICE = 0.30; // 15-minute steps
+  var APPS = [
+    { n: 'Washing machine', kw: 1.4, h: 2, col: '#84A0FF', start: 19 },
+    { n: 'Dishwasher', kw: 1.2, h: 1.5, col: '#4FD3BD', start: 21 },
+    { n: 'Car charging', kw: 3.6, h: 3, col: '#E9B467', start: 18.5 },
+    { n: 'Water heater', kw: 2, h: 2, col: '#F08AB3', start: 20 },
+    { n: 'Pool pump', kw: 0.9, h: 4, col: '#B8A4FF', start: 17 }
+  ];
+  var DEFAULT = APPS.map(function (a) { return a.start; }), day = 'clear';
+
+  function solar(i) {
+    var h = i * DT, rise = day === 'summer' ? 5.6 : 6.2, set = day === 'summer' ? 19.1 : 17.8;
+    if (h <= rise || h >= set) return 0;
+    var x = Math.sin(Math.PI * (h - rise) / (set - rise)), kw = 7 * 0.85 * Math.pow(x, 1.25);
+    if (day === 'dusty') kw *= 0.62 + 0.08 * Math.sin(i * 1.7);
+    if (day === 'summer') kw *= 0.94; // hot panels are less efficient
+    return kw;
+  }
+  function base(i) {
+    var h = i * DT, hot = day === 'summer' ? 1.8 : 1;
+    var ac = (0.9 + 1.4 * Math.max(0, Math.sin(Math.PI * (h - 8) / 14))) * hot; // cooling follows the afternoon heat
+    var people = h >= 6 && h < 8 || h >= 18 && h < 23 ? 0.6 : 0.25;
+    return ac + people;
+  }
+  function loads(starts) {
+    var per = APPS.map(function () { var a = []; for (var i = 0; i < N; i++) a.push(0); return a; });
+    APPS.forEach(function (ap, k) {
+      var s = Math.round(starts[k] / DT), len = Math.round(ap.h / DT);
+      for (var j = 0; j < len; j++) per[k][(s + j) % N] += ap.kw;
+    });
+    return per;
+  }
+  function evalDay(starts) {
+    var per = loads(starts), used = 0, fromSun = 0, grid = 0;
+    for (var i = 0; i < N; i++) {
+      var load = base(i); per.forEach(function (a) { load += a[i]; });
+      var sun = Math.min(load, solar(i)); fromSun += sun * DT; used += load * DT; grid += (load - sun) * DT;
+    }
+    return { share: fromSun / used, grid: grid, cost: grid * PRICE, per: per };
+  }
+
+  // the "model": place the biggest jobs first where the forecast surplus is largest
+  function plan() {
+    var starts = APPS.map(function () { return 0; }), order = APPS.map(function (_, k) { return k; }).sort(function (a, b) { return APPS[b].kw * APPS[b].h - APPS[a].kw * APPS[a].h; });
+    var placed = [];
+    order.forEach(function (k) {
+      var best = 0, bestCost = Infinity;
+      for (var s = 0; s < 24; s += 0.25) {
+        var trial = starts.slice(); trial[k] = s;
+        var on = placed.concat([k]), tmp = APPS.map(function (_, q) { return on.indexOf(q) >= 0 ? trial[q] : null; });
+        var c = 0, per = loads(tmp.map(function (v) { return v === null ? 0 : v; }));
+        for (var i = 0; i < N; i++) {
+          var load = base(i); on.forEach(function (q) { load += per[q][i]; });
+          c += Math.max(0, load - solar(i));
+        }
+        if (c < bestCost - 1e-9) { bestCost = c; best = s; }
+      }
+      starts[k] = best; placed.push(k);
+    });
+    return starts;
+  }
+
+  var starts = DEFAULT.slice();
+  function fmt(h) { var hh = Math.floor(h), mm = Math.round((h - hh) * 60); return (hh < 10 ? '0' : '') + hh + ':' + (mm < 10 ? '0' : '') + mm; }
+  APPS.forEach(function (ap, k) {
+    var d = document.createElement('div'); d.className = 'app';
+    d.innerHTML = '<label for="a' + k + '"><b><i style="background:' + ap.col + '"></i>' + ap.n + '</b><small>' + ap.kw + ' kW for ' + ap.h + ' h</small></label>' +
+      '<input type="range" id="a' + k + '" min="0" max="23.75" step="0.25" value="' + ap.start + '"><output id="o' + k + '">' + fmt(ap.start) + '</output>';
+    $('apps').appendChild(d);
+    $('a' + k).addEventListener('input', function () { starts[k] = +this.value; update(); });
+  });
+  function sync() { APPS.forEach(function (_, k) { $('a' + k).value = starts[k]; }); }
+
+  function draw(r) {
+    var c = $('cv'), g = c.getContext('2d'), W = c.width, H = c.height, L = 46, R = 14, T = 20, B = 40, muted = css('--muted'), line = css('--line');
+    g.clearRect(0, 0, W, H);
+    var maxKW = 12; function X(i) { return L + i / N * (W - L - R); } function Y(v) { return H - B - v / maxKW * (H - T - B); }
+    g.font = '500 12px "JetBrains Mono", monospace'; g.fillStyle = muted; g.textAlign = 'right'; g.textBaseline = 'middle';
+    for (var v = 0; v <= maxKW; v += 3) { g.fillText(v + ' kW', L - 6, Y(v)); g.strokeStyle = line; g.beginPath(); g.moveTo(L, Y(v) + 0.5); g.lineTo(W - R, Y(v) + 0.5); g.stroke(); }
+    g.textAlign = 'center'; g.textBaseline = 'top';
+    for (var h = 0; h <= 24; h += 3) g.fillText((h < 10 ? '0' : '') + h + ':00', X(h / DT), H - B + 8);
+    // stacked loads
+    for (var i = 0; i < N; i++) {
+      var y0 = base(i), x = X(i), w = X(i + 1) - x + 0.5;
+      g.fillStyle = 'rgba(167,173,203,0.35)'; g.fillRect(x, Y(y0), w, Y(0) - Y(y0));
+      var acc = y0;
+      r.per.forEach(function (a, k) { if (!a[i]) return; g.fillStyle = APPS[k].col; g.fillRect(x, Y(acc + a[i]), w, Y(acc) - Y(acc + a[i])); acc += a[i]; });
+      // grid draw shown as a red cap above the solar line
+      var sun = solar(i); if (acc > sun) { g.fillStyle = 'rgba(240,107,107,0.22)'; g.fillRect(x, Y(acc), w, Y(Math.max(sun, 0)) - Y(acc)); }
+    }
+    // solar curve
+    g.strokeStyle = '#FFD36E'; g.lineWidth = 3; g.beginPath();
+    for (i = 0; i <= N; i++) { var yy = Y(solar(i % N)); if (i === 0) g.moveTo(X(i), yy); else g.lineTo(X(i), yy); }
+    g.stroke(); g.lineWidth = 1;
+    g.textAlign = 'left'; g.fillStyle = '#FFD36E'; g.fillText('Sun', L + 6, T - 14);
+    g.fillStyle = 'rgba(167,173,203,0.8)'; g.fillText('AC and everyday use', L + 50, T - 14);
+    g.fillStyle = '#F06B6B'; g.fillText('Bought from the grid', L + 230, T - 14);
+  }
+  function update() {
+    var r = evalDay(starts);
+    APPS.forEach(function (_, k) { $('o' + k).textContent = fmt(starts[k]); });
+    $('sSolar').textContent = Math.round(r.share * 100) + '%';
+    $('sGrid').textContent = r.grid.toFixed(1);
+    $('sCost').textContent = r.cost.toFixed(2);
+    draw(r);
+    return r;
+  }
+  $('plan').addEventListener('click', function () {
+    var before = evalDay(starts); starts = plan(); sync(); var after = update();
+    $('cmp').innerHTML = 'The plan moves the big jobs into the sunniest hours. Grid power: <b>' + before.grid.toFixed(1) + ' → ' + after.grid.toFixed(1) + ' kWh</b>, about <b>' + ((before.cost - after.cost) * 365).toFixed(0) + ' AED a year</b> if every day went like this.';
+  });
+  $('reset').addEventListener('click', function () { starts = DEFAULT.slice(); sync(); update(); $('cmp').textContent = 'Back to the evening rush. Try beating the model yourself.'; });
+  document.querySelectorAll('.day button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      day = b.dataset.d; document.querySelectorAll('.day button').forEach(function (x) { x.setAttribute('aria-pressed', x === b); }); update();
+    });
+  });
+  update();
+})();
+</script>
+</body>
+</html>

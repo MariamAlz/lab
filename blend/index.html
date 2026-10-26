@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Blend It Right · Mariam's Lab</title>
+<meta name="description" content="A small production planning game: blend three base stocks to meet three orders on spec, with limited stock, at the lowest cost. Then see what an optimizer does.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/blend/">
+<meta property="og:title" content="Blend It Right · Mariam's Lab"><meta property="og:description" content="Meet every order on spec, with limited stock, at the lowest cost."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.left { display: grid; gap: 14px; min-width: 0; }
+.tanks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.tank { display: grid; gap: 8px; padding: 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); }
+.tank h3 { font-size: 1.05rem; font-weight: 800; }
+.tank dl { margin: 0; display: grid; grid-template-columns: auto auto; gap: 2px 8px; font-size: 0.82rem; }
+.tank dt { color: var(--muted); } .tank dd { margin: 0; font-family: var(--font-mono); text-align: end; }
+.level { height: 70px; border-radius: 8px; border: 1px solid var(--line); position: relative; overflow: hidden; background: rgba(7, 10, 24, 0.5); }
+.level i { position: absolute; left: 0; right: 0; bottom: 0; transition: height .4s; }
+.level s { position: absolute; left: 0; right: 0; background: repeating-linear-gradient(45deg, rgba(255,255,255,.25) 0 4px, transparent 4px 8px); text-decoration: none; }
+.mixer { display: grid; gap: 12px; padding: 16px; border-radius: 12px; border: 1px solid var(--accent); background: var(--surface); }
+.mixer h3 { font-size: 1.15rem; font-weight: 800; }
+.mixer label { display: grid; gap: 4px; font-size: 0.9rem; }
+.mixer label span { display: flex; justify-content: space-between; }
+.mixer output { font-family: var(--font-mono); color: var(--accent); }
+.mixer input { width: 100%; accent-color: var(--accent); }
+.spec { display: grid; gap: 8px; }
+.meter { display: grid; gap: 4px; font-size: 0.85rem; }
+.meter .bar { position: relative; height: 12px; border-radius: 99px; background: rgba(120, 132, 190, 0.2); }
+.meter .bar i { position: absolute; top: -3px; width: 4px; height: 18px; border-radius: 2px; background: var(--ink); transform: translateX(-2px); }
+.meter .bar u { position: absolute; top: 0; bottom: 0; background: color-mix(in srgb, var(--sat-b) 35%, transparent); border-radius: 99px; text-decoration: none; }
+.meter .row { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 0.78rem; color: var(--muted); }
+.ok { color: var(--sat-b); } .no { color: var(--sat-c); }
+.orders { display: grid; gap: 6px; padding: 0; margin: 0; list-style: none; }
+.orders li { display: flex; justify-content: space-between; gap: 10px; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--line); font-size: 0.9rem; }
+.orders li.cur { border-color: var(--accent); }
+.orders li span { font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted); }
+.acts { display: flex; flex-wrap: wrap; gap: 10px; }
+.res { display: grid; gap: 10px; padding: 16px; border-radius: 12px; border: 1px solid var(--accent); background: var(--surface); }
+@media (max-width: 560px) { .tanks { grid-template-columns: 1fr 1fr 1fr; gap: 6px; } .tank { padding: 10px; } .tank dl { font-size: 0.7rem; } }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Experiment · Optimization · Game</span>
+    <h1 style="font-size:var(--step-3)">Blend it right.</h1>
+    <p>Three tanks of base stock, three orders to fill. Each order needs a blend that's good enough and clean enough, and the stock has to last for all three. Do it at the lowest cost, then see what an optimizer finds.</p>
+  </div>
+  <div class="game">
+    <div class="left">
+      <div class="tanks" id="tanks"></div>
+      <div class="mixer" id="mixer"></div>
+    </div>
+    <div class="panel">
+      <div class="stats">
+        <div><span class="label">Order</span><b id="sO">1/3</b></div>
+        <div><span class="label">Cost</span><b id="sC">0</b></div>
+        <div><span class="label">On spec</span><b id="sOK">0</b></div>
+      </div>
+      <ol class="orders" id="orders"></ol>
+      <div id="out" aria-live="polite"></div>
+      <p class="fact">My team won the Pioneers 4.0 hackathon (MoIAT and EDGE Group, 2024) with an optimizer for blending schedules and a real-time monitoring dashboard. This is a simplified, made-up version of that kind of problem: every choice now changes what's possible later.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var STOCKS = [
+    { n: 'Alpha', q: 92, imp: 0.8, cost: 4.2, cap: 560, col: '#84A0FF' },
+    { n: 'Beta', q: 80, imp: 0.2, cost: 2.6, cap: 620, col: '#4FD3BD' },
+    { n: 'Gamma', q: 70, imp: 1.5, cost: 1.4, cap: 520, col: '#E9B467' }
+  ];
+  var ORDERS = [
+    { n: 'Order 1', vol: 400, qMin: 84, iMax: 0.7 },
+    { n: 'Order 2', vol: 400, qMin: 78, iMax: 0.9 },
+    { n: 'Order 3', vol: 400, qMin: 82, iMax: 0.6 }
+  ];
+  var left, k, cost, okCount, history, pct;
+
+  function props(p) { // p = fractions for the three stocks
+    var q = 0, imp = 0, c = 0;
+    STOCKS.forEach(function (s, i) { q += p[i] * s.q; imp += p[i] * s.imp; c += p[i] * s.cost; });
+    return { q: q, imp: imp, c: c };
+  }
+  function onSpec(p, o) { var r = props(p); return r.q >= o.qMin - 1e-9 && r.imp <= o.iMax + 1e-9; }
+  function fits(p, o, inv) { return p.every(function (f, i) { return f * o.vol <= inv[i] + 1e-9; }); }
+
+  function start() {
+    left = STOCKS.map(function (s) { return s.cap; }); k = 0; cost = 0; okCount = 0; history = []; pct = [40, 40];
+    $('out').innerHTML = ''; render();
+  }
+  function frac() { var a = pct[0] / 100, b = pct[1] / 100; return [a, b, Math.max(0, 1 - a - b)]; }
+
+  function render() {
+    $('tanks').innerHTML = STOCKS.map(function (s, i) {
+      var p = k < 3 ? frac()[i] * ORDERS[k].vol : 0, h = left[i] / s.cap * 100, take = Math.min(left[i], p) / s.cap * 100;
+      return '<div class="tank"><h3 style="color:' + s.col + '">' + s.n + '</h3><div class="level" aria-label="' + Math.round(left[i]) + ' units left"><i style="height:' + h + '%;background:' + s.col + '"></i><s style="bottom:' + (h - take) + '%;height:' + take + '%"></s></div>' +
+        '<dl><dt>Left</dt><dd>' + Math.round(left[i]) + '</dd><dt>Quality</dt><dd>' + s.q + '</dd><dt>Impurity</dt><dd>' + s.imp + '%</dd><dt>Cost</dt><dd>' + s.cost.toFixed(1) + '/u</dd></dl></div>';
+    }).join('');
+    $('orders').innerHTML = ORDERS.map(function (o, i) {
+      var h = history[i];
+      return '<li class="' + (i === k ? 'cur' : '') + '"><b>' + o.n + '</b><span>' + o.vol + ' u · quality ≥ ' + o.qMin + ' · impurity ≤ ' + o.iMax + '%</span>' +
+        (h ? '<span class="' + (h.ok ? 'ok' : 'no') + '">' + (h.ok ? '✓ ' + h.cost.toFixed(0) : '✗ rejected') + '</span>' : '') + '</li>';
+    }).join('');
+    $('sO').textContent = Math.min(k + 1, 3) + '/3'; $('sC').textContent = Math.round(cost); $('sOK').textContent = okCount + '/3';
+    if (k >= 3) { $('mixer').innerHTML = ''; return; }
+    var o = ORDERS[k], p = frac(), r = props(p), fitOK = fits(p, o, left), spec = onSpec(p, o);
+    $('mixer').innerHTML = '<h3>' + o.n + ': mix ' + o.vol + ' units</h3>' +
+      '<label for="pa"><span>Alpha <output>' + pct[0] + '%</output></span><input type="range" id="pa" min="0" max="100" step="1" value="' + pct[0] + '"></label>' +
+      '<label for="pb"><span>Beta <output>' + pct[1] + '%</output></span><input type="range" id="pb" min="0" max="100" step="1" value="' + pct[1] + '"></label>' +
+      '<p>Gamma makes up the rest: <b>' + Math.round(p[2] * 100) + '%</b></p>' +
+      '<div class="spec">' + meter('Quality', r.q, 65, 95, o.qMin, 95, r.q >= o.qMin) + meter('Impurity %', r.imp, 0, 1.6, 0, o.iMax, r.imp <= o.iMax) + '</div>' +
+      '<p>Cost of this batch: <b>' + Math.round(r.c * o.vol) + '</b>' + (fitOK ? '' : ' · <span class="no">not enough stock</span>') + '</p>' +
+      '<div class="acts"><button class="btn primary" id="go" type="button"' + (fitOK ? '' : ' disabled') + '>Blend and ship</button></div>';
+    ['pa', 'pb'].forEach(function (id, j) {
+      $(id).addEventListener('input', function () {
+        pct[j] = +this.value; if (pct[0] + pct[1] > 100) pct[1 - j] = 100 - pct[j];
+        var keep = document.activeElement && document.activeElement.id; render(); if (keep && $(keep)) $(keep).focus();
+      });
+    });
+    $('go').addEventListener('click', ship);
+  }
+  function meter(name, v, lo, hi, okLo, okHi, ok) {
+    function P(x) { return Math.max(0, Math.min(100, (x - lo) / (hi - lo) * 100)); }
+    return '<div class="meter"><div class="row"><span>' + name + '</span><span class="' + (ok ? 'ok' : 'no') + '">' + (name === 'Quality' ? v.toFixed(1) : v.toFixed(2)) + (ok ? ' ✓' : ' ✗') + '</span></div>' +
+      '<div class="bar"><u style="left:' + P(okLo) + '%;width:' + (P(okHi) - P(okLo)) + '%"></u><i style="left:' + P(v) + '%"></i></div></div>';
+  }
+  function ship() {
+    var o = ORDERS[k], p = frac(), r = props(p), ok = onSpec(p, o);
+    p.forEach(function (f, i) { left[i] -= f * o.vol; });
+    cost += r.c * o.vol; if (ok) okCount++;
+    history.push({ ok: ok, cost: r.c * o.vol, p: p });
+    k++; render();
+    if (k >= 3) finish();
+  }
+
+  // optimizer: try every 5% blend for each order, keeping only on-spec blends, and pick the cheapest plan whose stock lasts
+  function optimize() {
+    var opts = ORDERS.map(function (o) {
+      var list = [];
+      for (var a = 0; a <= 100; a += 5) for (var b = 0; a + b <= 100; b += 5) { var p = [a / 100, b / 100, (100 - a - b) / 100]; if (onSpec(p, o)) list.push(p); }
+      return list;
+    });
+    var best = null, bestC = Infinity;
+    opts[0].forEach(function (p0) { opts[1].forEach(function (p1) { opts[2].forEach(function (p2) {
+      var plan = [p0, p1, p2], use = [0, 0, 0], c = 0;
+      plan.forEach(function (p, i) { p.forEach(function (f, j) { use[j] += f * ORDERS[i].vol; }); c += props(p).c * ORDERS[i].vol; });
+      if (c < bestC && use.every(function (u, j) { return u <= STOCKS[j].cap + 1e-9; })) { bestC = c; best = plan; }
+    }); }); });
+    return { plan: best, cost: bestC };
+  }
+  function finish() {
+    var opt = optimize();
+    var mine = okCount === 3 ? 'All three orders on spec for <b>' + Math.round(cost) + '</b>.' : okCount + ' of 3 orders on spec. Rejected orders still used up stock.';
+    $('out').innerHTML = '<div class="res"><h3>Shipped</h3><p>' + mine + '</p>' +
+      (opt.plan ? '<p>The optimizer: all three on spec for <b>' + Math.round(opt.cost) + '</b>' + (okCount === 3 ? (cost <= opt.cost + 1 ? '. You matched it!' : ', ' + Math.round((cost - opt.cost) / opt.cost * 100) + '% cheaper than you.') : '.') + '</p>' +
+        '<p class="fact">Its blends (Alpha / Beta / Gamma): ' + opt.plan.map(function (p, i) { return ORDERS[i].n + ' ' + p.map(function (f) { return Math.round(f * 100); }).join(' / '); }).join(' · ') + '</p>' : '') +
+      '<div class="acts"><button class="btn primary" id="again" type="button">Try again</button></div></div>';
+    $('again').addEventListener('click', start); $('again').focus();
+  }
+  start();
+})();
+</script>
+</body>
+</html>
