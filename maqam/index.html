@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Maqam Explorer · Mariam's Lab</title>
+<meta name="description" content="Hear the eight main Arabic maqamat, quarter tones included. See each scale split into its ajnas, play it on a plucked-string synth, and try any note on a virtual oud neck.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/maqam/">
+<meta property="og:title" content="Maqam Explorer · Mariam's Lab"><meta property="og:description" content="Hear Rast, Bayati, Sikah, Hijaz, Saba, Nahawand, Ajam and Kurd, quarter tones included."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm[aria-pressed="true"], .sm.go { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.picks { display: flex; gap: 6px; flex-wrap: wrap; }
+.picks .sm span { font-family: 'IBM Plex Sans Arabic', sans-serif; margin-inline-start: 6px; opacity: .8; }
+.head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.head h2 { font-size: var(--step-2); }
+.head .ar { font-family: 'IBM Plex Sans Arabic', sans-serif; font-size: 1.6rem; color: var(--accent); }
+.notes { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 4px; }
+.notes button { font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 8px 2px; cursor: pointer; display: grid; gap: 2px; justify-items: center; min-width: 0; }
+.notes button b { font-family: var(--font-display); font-size: 1.05rem; white-space: nowrap; }
+.notes button small { font-size: 0.62rem; color: var(--muted); font-family: 'IBM Plex Sans Arabic', sans-serif; white-space: nowrap; overflow: hidden; max-width: 100%; }
+.notes button.qt b { color: var(--sat-b); }
+.notes button.on { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.steps { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 4px; font: 500 0.7rem var(--font-mono); color: var(--muted); text-align: center; }
+.steps span { transform: translateX(-50%); }
+.jins { display: grid; grid-template-columns: repeat(32, minmax(0, 1fr)); gap: 2px; }
+.jins div { border-radius: 8px; padding: 6px 8px; font-size: 0.8rem; border: 1px solid var(--c); background: color-mix(in srgb, var(--c) 16%, transparent); min-width: 0; overflow: hidden; }
+.jins div b { display: block; font-size: 0.86rem; }
+.jins div span { color: var(--muted); font-size: 0.74rem; }
+.oud { overflow-x: auto; padding-bottom: 6px; }
+.oud table { border-collapse: separate; border-spacing: 2px; width: 100%; }
+.oud th { font: 500 0.7rem var(--font-mono); color: var(--muted); padding-inline-end: 4px; text-align: end; white-space: nowrap; }
+.oud td button { width: 100%; min-width: 25px; height: 36px; border-radius: 6px; border: 1px solid var(--line); background: rgba(255,255,255,.02); color: var(--muted); font: 500 0.66rem var(--font-mono); cursor: pointer; padding: 0; }
+.oud td button.in { background: color-mix(in srgb, var(--accent) 22%, transparent); border-color: color-mix(in srgb, var(--accent) 60%, transparent); color: var(--ink); }
+.oud td button.in.qt { background: color-mix(in srgb, var(--sat-b) 22%, transparent); border-color: color-mix(in srgb, var(--sat-b) 60%, transparent); }
+.oud td button.ton { font-weight: 700; box-shadow: inset 0 0 0 2px var(--accent); }
+.oud td button.hit { background: var(--ink); color: var(--bg); }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 0.86rem; color: var(--muted); }
+.row input[type=range] { width: 120px; }
+.desc { margin: 0; }
+.ex { margin: 0; padding-inline-start: 18px; color: var(--muted); font-size: 0.9rem; display: grid; gap: 4px; }
+.ex i { color: var(--ink); font-style: normal; }
+.legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 0.75rem; color: var(--muted); }
+.legend span::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-inline-end: 4px; vertical-align: -1px; background: var(--c); }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Sound · Music · Arabic</span>
+    <h1 style="font-size:var(--step-3)">Maqam explorer.</h1>
+    <p>Arabic music is built on maqamat: scales made of small note groups called ajnas, some with notes that fall between the keys of a piano. Pick one of the eight common maqamat to hear it, see how it splits into ajnas, and play any note, quarter tones included, on a virtual oud neck.</p>
+  </div>
+  <div class="picks" id="picks" role="group" aria-label="Maqam"></div>
+  <div class="game" style="margin-top:18px">
+    <div class="panel">
+      <div class="head"><h2 id="mName">Rast</h2><span class="ar" dir="rtl" lang="ar" id="mAr">راست</span></div>
+      <p class="desc" id="mDesc"></p>
+      <div class="row">
+        <button class="sm go" type="button" id="up">▶ Play up</button>
+        <button class="sm" type="button" id="down">▶ Play down</button>
+        <button class="sm" type="button" id="both">▶ Up and down</button>
+        <label>Speed <input type="range" id="tempo" min="60" max="220" value="130"></label>
+      </div>
+      <div>
+        <div class="notes" id="notes"></div>
+        <div class="steps" id="steps" aria-hidden="true"></div>
+      </div>
+      <div class="legend"><span style="--c:var(--accent)">Piano note</span><span style="--c:var(--sat-b)">Half-flat (quarter tone)</span><span style="--c:var(--muted)">Steps in tones: 1 = whole, ½ = half, ¾ = three quarters</span></div>
+      <span class="label">Ajnas (building blocks)</span>
+      <div class="jins" id="jins"></div>
+      <p class="desc" id="jinsTxt" style="color:var(--muted);font-size:.9rem"></p>
+      <span class="label">Virtual oud · tap any spot</span>
+      <div class="oud" id="oud"></div>
+      <div class="row"><label><input type="checkbox" id="mark" checked> Mark this maqam's notes</label><span id="last" class="mono"></span></div>
+    </div>
+    <div class="panel">
+      <div class="stats">
+        <div><b id="sNotes">8</b><span>notes</span></div>
+        <div><b id="sQt">2</b><span>quarter tones</span></div>
+        <div><b id="sTonic">C</b><span>tonic</span></div>
+      </div>
+      <span class="label">Often heard in</span>
+      <ul class="ex" id="ex"></ul>
+      <p class="fact"><b>Quarter tones, roughly.</b> The half-flat notes here sit exactly halfway between two piano keys, 50 cents from each. That is the usual way to write them down. Real players place them by ear, and the E half-flat of Rast in Cairo is a little different from the one in Aleppo or Baghdad. Treat these as a close sketch, not the final word.</p>
+      <p class="fact"><b>How the sound is made.</b> Each pluck is a burst of random noise fed into a short delay loop that keeps averaging neighbouring samples. That is the Karplus–Strong method from 1983. The loop length sets the pitch, and the averaging softens the tone as it rings, much like a real string.</p>
+      <p class="fact">Mood words are how listeners often describe each maqam, not rules. Song examples are from the MaqamWorld reference site. Long songs usually move through several maqamat, so the named maqam is where they start or spend most time.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  // pitch in quarter tones above middle C (C4 = 0); 2 = semitone
+  var NAMES = ['C', 'C½♯', 'C♯', 'D½♭', 'D', 'D½♯', 'E♭', 'E½♭', 'E', 'E½♯', 'F', 'F½♯', 'F♯', 'G½♭', 'G', 'G½♯', 'A♭', 'A½♭', 'A', 'A½♯', 'B♭', 'B½♭', 'B', 'B½♯'];
+  var LET = { C: 0, D: 4, E: 8, F: 10, G: 14, A: 18, B: 22 };
+  var ACC = { '': 0, 'b': -2, '#': 2, 'hb': -1 };
+  function spell(s) { var m = s.match(/^([A-G])(hb|b|#)?(-?\d)?$/); return { q: LET[m[1]] + ACC[m[2] || ''] + 24 * ((m[3] ? +m[3] : 4) - 4), lab: m[1] + ({ '': '', b: '♭', '#': '♯', hb: '½♭' })[m[2] || ''] }; }
+  // traditional Arabic names for these pitches (from G3 yakah upward)
+  var AR = { 0: 'رست', 4: 'دوكاه', 7: 'سيكاه', 10: 'جهاركاه', 14: 'نوى', 18: 'حسيني', 21: 'أوج', 24: 'كردان', 20: 'عجم', 6: 'كردي', 12: 'حجاز', 22: 'ماهور', 28: 'محيّر', 26: 'شهناز', 31: 'بزرك', '-4': 'عجم عشيران', 8: 'بوسليك' };
+  var M = [
+    { n: 'Rast', ar: 'راست', s: 'C D Ehb F G A Bhb C5', j: [['Rast', 0, 4, '#E9B467'], ['Rast', 4, 7, '#84A0FF']], jt: 'Jins Rast on C, then Jins Rast again on G. Coming down, players often swap the upper part for Nahawand (B♭ instead of B half-flat).', mood: 'Steady, proud and balanced. Often called the father of the maqamat, and a common opening for a concert or a suite.', ex: [['Ya Shadi al-Alhan', 'muwashah, music by Sayyed Darwish'], ['Waraq el-Asfar Shahr Aylul', 'Fairouz, music by Philemon Wehbe'], ['Leh Tilaw\'ini', 'Umm Kulthum, 1938, music by Muhammad al-Qasabgi']] },
+    { n: 'Bayati', ar: 'بياتي', s: 'D Ehb F G A Bb C5 D5', j: [['Bayati', 0, 3, '#E9B467'], ['Nahawand', 3, 7, '#84A0FF']], jt: 'Jins Bayati on D, then Jins Nahawand on G. Jins Rast on G is a common alternative.', mood: 'Warm, earthy and close to speech. One of the most common maqamat in folk song and Quran recitation.', ex: [['Nura Nura', 'Farid al-Atrash, 1953'], ['\'Ala Balad el-Mahbub Waddini', 'Umm Kulthum, 1935, music by Riyad al-Sunbati'], ['Lamma-nta Nawi', 'Muhammad Abdel Wahab, 1929']] },
+    { n: 'Sikah', ar: 'سيكاه', s: 'Ehb F G A Bhb C5 D5 Ehb5', j: [['Sikah', 0, 2, '#E9B467'], ['Rast', 2, 5, '#84A0FF']], jt: 'A short three-note Jins Sikah on E half-flat, which flows into Jins Rast on G. Jins Rast on C above can act as a second resting point. The tonic itself is a quarter tone.', mood: 'Tender and floating, because it rests on a quarter-tone note. Heard in recitation and in many Egyptian songs.', ex: [['el-Ward Gamil', 'Umm Kulthum, 1947, music by Zakariya Ahmad'], ['Inti Fakrani', 'Umm Kulthum, 1938, music by Muhammad al-Qasabgi']] },
+    { n: 'Hijaz', ar: 'حجاز', s: 'D Eb F# G A Bb C5 D5', j: [['Hijaz', 0, 3, '#E9B467'], ['Nahawand', 3, 7, '#84A0FF']], jt: 'Jins Hijaz on D, with its wide one-and-a-half tone gap from E♭ to F♯, then Jins Nahawand on G (or Rast on G).', mood: 'Longing and spacious, with a gap that many listeners hear as the sound of the desert. Often heard in calls to prayer and devotional song.', ex: [['Foug el-Nakhal', 'traditional Iraqi song'], ['Qadduka al-Mayyas', 'Sabah Fakhri'], ['Hibbina', 'Farid al-Atrash, 1975']] },
+    { n: 'Saba', ar: 'صبا', s: 'D Ehb F Gb A Bb C5 Db5', j: [['Saba', 0, 3, '#E9B467'], ['Hijaz', 2, 5, '#84A0FF'], ['Ajam or Nikriz', 5, 7, '#F08AB3']], jt: 'Jins Saba on D (with its flattened fourth, G♭), overlapping with Jins Hijaz on F. Above it, Jins Ajam or Nikriz may follow. The scale does not close on a plain octave.', mood: 'Sorrowful and heavy-hearted. Probably the saddest-sounding of the common maqamat.', ex: [['al-Atlal', 'Umm Kulthum, 1966, music by Riyad al-Sunbati'], ['Huwwa Sahih il-Hawa Ghallab', 'Umm Kulthum, 1960, music by Zakariya Ahmad']] },
+    { n: 'Nahawand', ar: 'نهاوند', s: 'C D Eb F G Ab B C5', j: [['Nahawand', 0, 4, '#E9B467'], ['Hijaz', 4, 7, '#84A0FF']], jt: 'Jins Nahawand on C, then Jins Hijaz on G going up (A♭ to B). Coming down, it often uses Jins Kurd on G with B♭.', mood: 'Romantic and wistful. Close to the Western minor scale, which is why it travels easily between styles.', ex: [['Alf Leila w-Leila', 'Umm Kulthum, 1969, music by Baligh Hamdi'], ['Longa Farahfaza', 'music by Riyad al-Sunbati']] },
+    { n: 'Ajam', ar: 'عجم', s: 'Bb3 C D Eb F G A Bb', j: [['Ajam', 0, 4, '#E9B467'], ['Ajam', 4, 7, '#84A0FF']], jt: 'Jins Ajam on B♭, then Jins Ajam again on F. On paper it is the Western major scale.', mood: 'Bright, festive and confident. Common in celebration songs and anthems.', ex: [['Aghadan Alqak', 'Umm Kulthum, 1971, music by Muhammad Abdel Wahab'], ['Zuruni Kulli Sana Marra', 'music by Sayyed Darwish']] },
+    { n: 'Kurd', ar: 'كرد', s: 'D Eb F G A Bb C5 D5', j: [['Kurd', 0, 3, '#E9B467'], ['Nahawand', 3, 7, '#84A0FF']], jt: 'Jins Kurd on D, starting with a half step, then Jins Nahawand on G.', mood: 'Gentle and melancholic, a little darker than Nahawand. Popular in modern Arabic pop.', ex: [['\'Awwedt \'Ayni', 'Umm Kulthum, 1958, music by Riyad al-Sunbati'], ['Ya Zalimni', 'Umm Kulthum, 1951, music by Riyad al-Sunbati']] }
+  ];
+  M.forEach(function (m) { m.notes = m.s.split(' ').map(spell); });
+
+  // ---- audio: Karplus-Strong with a cached buffer per pitch
+  var ac = null, master = null, cache = {};
+  function audio() {
+    if (!ac) {
+      var AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null;
+      ac = new AC(); master = ac.createGain(); master.gain.value = 0.55;
+      var comp = ac.createDynamicsCompressor(); master.connect(comp); comp.connect(ac.destination);
+    }
+    if (ac.state === 'suspended') ac.resume();
+    return ac;
+  }
+  function freq(q) { return 261.6256 * Math.pow(2, q / 24); }
+  // Karplus-Strong: loop of L samples + 0.5 (two-point average) + d (all-pass) = sr / f
+  function ks(f, sr, n) {
+    var P = sr / f, L = Math.floor(P - 0.6), d = P - 0.5 - L, C = (1 - d) / (1 + d);
+    var line = new Float32Array(L), out = new Float32Array(n), i, prev = 0;
+    for (i = 0; i < L; i++) { var r = Math.random() * 2 - 1; prev = prev * 0.45 + r * 0.55; line[i] = prev; }
+    var g = 0.996 - Math.min(0.006, f / 200000), idx = 0, x1 = 0, y1 = 0, z = line[L - 1];
+    for (i = 0; i < n; i++) {
+      var a = line[idx], avg = g * 0.5 * (a + z); z = a;
+      var y = C * avg + x1 - C * y1; x1 = avg; y1 = y;
+      out[i] = a; line[idx] = y; idx = (idx + 1) % L;
+    }
+    var fade = Math.floor(sr * 0.05); for (i = 0; i < fade; i++) out[n - 1 - i] *= i / fade;
+    return out;
+  }
+  function pluckBuffer(f) {
+    var key = f.toFixed(3); if (cache[key]) return cache[key];
+    var sr = ac.sampleRate, n = Math.floor(sr * 2.2), buf = ac.createBuffer(1, n, sr);
+    buf.getChannelData(0).set(ks(f, sr, n));
+    return (cache[key] = buf);
+  }
+  function play(q, when) {
+    var c = audio(); if (!c) return;
+    var src = c.createBufferSource(); src.buffer = pluckBuffer(freq(q));
+    var g = c.createGain(); g.gain.value = 0.9;
+    var lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 3200;
+    src.connect(lp); lp.connect(g); g.connect(master);
+    src.start(when || c.currentTime);
+  }
+
+  // ---- UI
+  var cur = 0, timers = [];
+  function stepTxt(d) { return ({ 1: '¼', 2: '½', 3: '¾', 4: '1', 5: '1¼', 6: '1½' })[d] || (d / 4) + ''; }
+  function isQt(q) { return ((q % 2) + 2) % 2 === 1; }
+  function select(i) {
+    cur = i; var m = M[i];
+    [].forEach.call(document.querySelectorAll('#picks .sm'), function (b, k) { b.setAttribute('aria-pressed', k === i); });
+    $('mName').textContent = 'Maqam ' + m.n; $('mAr').textContent = 'مقام ' + m.ar; $('mDesc').textContent = m.mood;
+    $('notes').innerHTML = m.notes.map(function (n, k) {
+      var pc = ((n.q % 24) + 24) % 24, ar = AR[n.q] || AR[pc] || '';
+      return '<button type="button" data-k="' + k + '" class="' + (isQt(n.q) ? 'qt' : '') + '" aria-label="Play ' + n.lab + '"><b>' + n.lab + '</b><small lang="ar">' + ar + '</small></button>';
+    }).join('');
+    $('steps').innerHTML = '<span></span>' + m.notes.slice(1).map(function (n, k) { return '<span>' + stepTxt(n.q - m.notes[k].q) + '</span>'; }).join('');
+    // jins bars on a 32-column grid: each note gets 4 columns, bars span from note a to note b
+    $('jins').innerHTML = m.j.map(function (j, k) {
+      var a = j[1], b = j[2], start = a * 4 + 1, span = Math.max(4, (b - a) * 4 + 4);
+      if (start + span > 33) span = 33 - start;
+      return '<div style="--c:' + j[3] + ';grid-column:' + start + ' / span ' + span + ';grid-row:' + (k + 1) + '"><b>' + j[0] + '</b><span>on ' + m.notes[a].lab + '</span></div>';
+    }).join('');
+    $('jinsTxt').textContent = m.jt;
+    $('ex').innerHTML = m.ex.map(function (e) { return '<li><i>' + e[0] + '</i> · ' + e[1] + '</li>'; }).join('');
+    $('sNotes').textContent = m.notes.length;
+    $('sQt').textContent = m.notes.filter(function (n) { return isQt(n.q); }).length;
+    $('sTonic').textContent = m.notes[0].lab;
+    oud();
+    try { localStorage.setItem('maqamCur', i); } catch (e) {}
+  }
+  M.forEach(function (m, i) {
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'sm'; b.innerHTML = m.n + '<span lang="ar">' + m.ar + '</span>';
+    b.onclick = function () { stop(); select(i); }; $('picks').appendChild(b);
+  });
+  function flash(k) {
+    var bs = document.querySelectorAll('#notes button'); [].forEach.call(bs, function (b, j) { b.classList.toggle('on', j === k); });
+  }
+  function stop() { timers.forEach(clearTimeout); timers = []; flash(-1); }
+  function run(seq) {
+    stop(); if (!audio()) return;
+    var dt = 60 / +$('tempo').value;
+    seq.forEach(function (k, s) {
+      timers.push(setTimeout(function () { play(M[cur].notes[k].q); flash(k); }, s * dt * 1000));
+    });
+    timers.push(setTimeout(function () { flash(-1); }, seq.length * dt * 1000 + 300));
+  }
+  function upSeq() { return M[cur].notes.map(function (_, k) { return k; }); }
+  $('up').onclick = function () { run(upSeq()); };
+  $('down').onclick = function () { run(upSeq().reverse()); };
+  $('both').onclick = function () { var u = upSeq(); run(u.concat(u.slice(0, -1).reverse())); };
+  $('notes').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; var k = +b.getAttribute('data-k'); stop(); play(M[cur].notes[k].q); flash(k); setTimeout(function () { flash(-1); }, 400); });
+
+  // oud: six courses in a common Arabic tuning (low to high C2 F2 A2 D3 G3 C4), fretless, quarter-tone positions
+  var STR = [['C4', 0], ['G3', -10], ['D3', -20], ['A2', -30], ['F2', -38], ['C2', -48]];
+  var POS = 11; // 0..10 quarter tones up each string
+  function noteName(q) { var pc = ((q % 24) + 24) % 24, lab = null; if ($('mark').checked) M[cur].notes.forEach(function (n) { if (((n.q % 24) + 24) % 24 === pc) lab = n.lab; }); return lab || NAMES[pc]; }
+  function oud() {
+    var m = M[cur], pcs = {}; m.notes.forEach(function (n) { pcs[((n.q % 24) + 24) % 24] = n.lab; });
+    var tonic = ((m.notes[0].q % 24) + 24) % 24, mark = $('mark').checked;
+    var h = '<table><tbody>';
+    STR.forEach(function (s) {
+      h += '<tr><th scope="row">' + s[0] + '</th>';
+      for (var p = 0; p < POS; p++) {
+        var q = s[1] + p, pc = ((q % 24) + 24) % 24, inS = mark && pcs[pc];
+        h += '<td><button type="button" data-q="' + q + '" class="' + (inS ? 'in' : '') + (inS && isQt(q) ? ' qt' : '') + (inS && pc === tonic ? ' ton' : '') + '" aria-label="' + noteName(q) + '">' + (inS ? inS : p === 0 ? noteName(q) : '·') + '</button></td>';
+      }
+      h += '</tr>';
+    });
+    $('oud').innerHTML = h + '</tbody></table>';
+  }
+  $('oud').addEventListener('pointerdown', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    var q = +b.getAttribute('data-q'); play(q);
+    b.classList.add('hit'); setTimeout(function () { b.classList.remove('hit'); }, 220);
+    $('last').textContent = noteName(q) + ' · ' + freq(q).toFixed(1) + ' Hz';
+  });
+  $('oud').addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { var b = e.target.closest('button'); if (b) { e.preventDefault(); play(+b.getAttribute('data-q')); } } });
+  $('mark').onchange = oud;
+  var i0 = 0; try { var s = +localStorage.getItem('maqamCur'); if (M[s]) i0 = s; } catch (e) {}
+  select(i0);
+})();
+</script>
+</body>
+</html>

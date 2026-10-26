@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Perfume Layering Mixer · Mariam's Lab</title>
+<meta name="description" content="Pick two to four scent notes like oud, rose, saffron, musk or amber and see how well they layer, what the blend feels like, and which to put on first. Save the blends you like.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/perfume-mixer/">
+<meta property="og:title" content="Perfume Layering Mixer · Mariam's Lab"><meta property="og:description" content="Pick 2 to 4 notes, get a harmony score, a description and the order to layer them."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm.go, .sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.sm.x { padding: 2px 9px; font-size: 0.75rem; color: var(--muted); }
+.wheel { width: 100%; max-width: 440px; margin-inline: auto; display: block; }
+.wheel g.seg { cursor: pointer; }
+.wheel g.seg path { transition: opacity .15s, transform .15s; stroke: var(--bg); stroke-width: 2; }
+.wheel g.seg:hover path, .wheel g.seg:focus path { opacity: 1; }
+.wheel g.seg text { pointer-events: none; font-family: var(--font-body); font-size: 11px; font-weight: 600; fill: #0b0e1c; }
+.wheel g.seg text.ar { font-family: 'IBM Plex Sans Arabic', sans-serif; font-size: 9.5px; font-weight: 500; }
+.wheel g.seg:focus { outline: none; }
+.wheel g.seg:focus-visible path { stroke: var(--ink); }
+.pick { display: flex; gap: 6px; flex-wrap: wrap; min-height: 34px; align-items: center; }
+.np { display: inline-flex; align-items: center; gap: 6px; padding: 4px 6px 4px 12px; border-radius: 999px; border: 1px solid var(--c); background: color-mix(in srgb, var(--c) 18%, transparent); font-size: 0.86rem; }
+.np button { border: 0; background: transparent; color: var(--muted); cursor: pointer; font-size: 0.9rem; padding: 0 4px; }
+.meter { display: grid; gap: 6px; padding: 16px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); }
+.meter .big { font-family: var(--font-display); font-size: clamp(2rem, 6vw, 2.8rem); font-weight: 800; line-height: 1; }
+.meter .bar { height: 8px; border-radius: 99px; background: rgba(255,255,255,.08); overflow: hidden; }
+.meter .bar i { display: block; height: 100%; border-radius: 99px; transition: width .3s; }
+.meter p { margin: 0; }
+.why { margin: 0; padding-inline-start: 18px; font-size: 0.88rem; color: var(--muted); display: grid; gap: 3px; }
+.why li.g { color: var(--sat-b); }
+.why li.b { color: var(--sat-c); }
+.order { list-style: none; counter-reset: o; margin: 0; padding: 0; display: grid; gap: 6px; }
+.order li { counter-increment: o; display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 10px; align-items: start; font-size: 0.9rem; }
+.order li::before { content: counter(o); display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--c); color: #0b0e1c; font-weight: 700; font-size: 0.8rem; }
+.order small { display: block; color: var(--muted); }
+.form { display: flex; gap: 6px; flex-wrap: wrap; }
+.form input { font: inherit; font-size: 0.88rem; color: var(--ink); background: rgba(255,255,255,.04); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; flex: 1 1 160px; min-width: 0; }
+.saved { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.saved li { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; font-size: 0.88rem; }
+.saved li span { min-width: 0; }
+.saved li small { color: var(--muted); display: block; }
+.legend { display: flex; gap: 10px; flex-wrap: wrap; font-size: 0.75rem; color: var(--muted); }
+.legend span::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-inline-end: 4px; vertical-align: -1px; background: var(--c); }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 0; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Game · Scent · Layering</span>
+    <h1 style="font-size:var(--step-3)">Perfume layering mixer.</h1>
+    <p>Layering scents is an everyday art in the Gulf: bakhoor smoke on the clothes, an oil on the skin, a spray on top. Pick two to four notes on the wheel to see how well they get along, what the blend might feel like, and which one to put on first. Save the ones you want to try.</p>
+  </div>
+  <div class="game">
+    <div class="panel">
+      <svg class="wheel" id="wheel" viewBox="-210 -210 420 420" role="group" aria-label="Scent wheel. Choose up to four notes."></svg>
+      <div class="legend" id="legend"></div>
+      <span class="label">Your blend</span>
+      <div class="pick" id="pick"></div>
+      <div class="form" style="gap:6px">
+        <button class="sm" type="button" id="surprise">🎲 Surprise me</button>
+        <button class="sm" type="button" id="clear">Clear</button>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="meter" id="meter">
+        <span class="label">Harmony</span>
+        <div class="big" id="score">–</div>
+        <div class="bar"><i id="bar" style="width:0"></i></div>
+        <p id="verdict" class="msg">Pick at least two notes.</p>
+      </div>
+      <p id="desc"></p>
+      <ul class="why" id="why"></ul>
+      <span class="label">Layering order</span>
+      <ol class="order" id="order"></ol>
+      <span class="label">Save this blend</span>
+      <div class="form"><input id="name" maxlength="40" placeholder="Give it a name" aria-label="Blend name"><button class="sm go" type="button" id="save">Save</button></div>
+      <ul class="saved" id="saved"></ul>
+      <div class="stats">
+        <div><b id="sSaved">0</b><span>saved blends</span></div>
+        <div><b id="sBest">–</b><span>best harmony</span></div>
+        <div><b id="sNotes">0</b><span>notes on the wheel</span></div>
+      </div>
+      <p class="fact"><b>Why heavy goes first.</b> Base notes such as oud, amber, sandalwood and musk are made of larger, slower molecules that stay on skin for hours. Bright notes like citrus evaporate in minutes. Put the heavy one on first, and the light one on top, so you still smell the top note when you walk out of the door instead of it being buried.</p>
+      <p class="fact">The harmony score comes from a handful of simple rules about which scent families tend to sit well together, plus classic pairings like rose with oud. It's a starting point for your own nose, not a perfumer's verdict. Test new oils on a small patch of skin first, and keep strong oils off silk and white fabric.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var FAM = {
+    woody: { n: 'Woody', c: '#C99A6B' }, resin: { n: 'Resin & smoke', c: '#E9B467' }, floral: { n: 'Floral', c: '#F08AB3' },
+    spice: { n: 'Spice', c: '#FF8A4C' }, sweet: { n: 'Sweet', c: '#FFD6A0' }, fresh: { n: 'Fresh', c: '#C9E264' }, skin: { n: 'Musky & leather', c: '#B9A6FF' }
+  };
+  // w: weight 1 light (top) to 3 heavy (base); words describe the character
+  var NOTES = [
+    { k: 'oud', n: 'Oud', ar: 'عود', f: 'woody', w: 3, words: ['deep', 'woody', 'animalic'], tip: 'Oil on pulse points' },
+    { k: 'sandal', n: 'Sandalwood', ar: 'صندل', f: 'woody', w: 3, words: ['creamy', 'soft', 'woody'], tip: 'Oil or cream on skin' },
+    { k: 'vetiver', n: 'Vetiver', ar: 'نجيل', f: 'woody', w: 2.6, words: ['earthy', 'green', 'dry'], tip: 'A light spray' },
+    { k: 'bakhoor', n: 'Bakhoor', ar: 'بخور', f: 'resin', w: 3, words: ['smoky', 'sweet', 'resinous'], tip: 'Smoke on clothes and hair' },
+    { k: 'incense', n: 'Frankincense', ar: 'لبان', f: 'resin', w: 2.7, words: ['airy', 'smoky', 'peppery'], tip: 'A spray, or a little smoke' },
+    { k: 'amber', n: 'Amber', ar: 'عنبر', f: 'resin', w: 3, words: ['warm', 'golden', 'balmy'], tip: 'Oil or balm on skin' },
+    { k: 'rose', n: 'Rose', ar: 'ورد', f: 'floral', w: 2, words: ['rosy', 'lush', 'romantic'], tip: 'Oil or a spray' },
+    { k: 'jasmine', n: 'Jasmine', ar: 'ياسمين', f: 'floral', w: 2, words: ['heady', 'creamy', 'floral'], tip: 'A light spray' },
+    { k: 'orangeb', n: 'Orange blossom', ar: 'زهر البرتقال', f: 'floral', w: 1.6, words: ['sunny', 'clean', 'honeyed'], tip: 'A spray on top' },
+    { k: 'saffron', n: 'Saffron', ar: 'زعفران', f: 'spice', w: 2.2, words: ['leathery', 'metallic', 'luxurious'], tip: 'Just a touch (it is strong)' },
+    { k: 'cardamom', n: 'Cardamom', ar: 'هيل', f: 'spice', w: 1.4, words: ['cool', 'spicy', 'aromatic'], tip: 'A spray on top' },
+    { k: 'vanilla', n: 'Vanilla', ar: 'فانيلا', f: 'sweet', w: 2.8, words: ['sweet', 'cosy', 'creamy'], tip: 'Lotion or oil' },
+    { k: 'tonka', n: 'Tonka', ar: 'تونكا', f: 'sweet', w: 2.8, words: ['almondy', 'warm', 'sweet'], tip: 'Lotion or oil' },
+    { k: 'citrus', n: 'Citrus', ar: 'حمضيات', f: 'fresh', w: 1, words: ['bright', 'zesty', 'fresh'], tip: 'A spray, always last' },
+    { k: 'musk', n: 'White musk', ar: 'مسك', f: 'skin', w: 2.6, words: ['clean', 'soft', 'skin-like'], tip: 'Oil or lotion' },
+    { k: 'leather', n: 'Leather', ar: 'جلد', f: 'skin', w: 2.9, words: ['smoky', 'rugged', 'dark'], tip: 'A spray' }
+  ];
+  var BY = {}; NOTES.forEach(function (n) { BY[n.k] = n; });
+  // family affinity: +2 great, +1 good, 0 fine, -1 tricky, -2 clashing
+  var FA = {
+    'woody|woody': 1, 'woody|resin': 2, 'woody|floral': 1, 'woody|spice': 2, 'woody|sweet': 1, 'woody|fresh': 1, 'woody|skin': 1,
+    'resin|resin': 1, 'resin|floral': 1, 'resin|spice': 2, 'resin|sweet': 2, 'resin|fresh': -1, 'resin|skin': 1,
+    'floral|floral': 1, 'floral|spice': 1, 'floral|sweet': 1, 'floral|fresh': 2, 'floral|skin': 2,
+    'spice|spice': 0, 'spice|sweet': 1, 'spice|fresh': 1, 'spice|skin': 1,
+    'sweet|sweet': 0, 'sweet|fresh': 0, 'sweet|skin': 2,
+    'fresh|fresh': 0, 'fresh|skin': 2,
+    'skin|skin': 0
+  };
+  // classic pairings and known trouble spots (note level overrides)
+  var PAIR = {
+    'oud|rose': [3, 'Rose and oud is a classic Gulf pairing: the rose lifts the oud\'s darkness.'],
+    'oud|saffron': [3, 'Saffron gives oud a polished, leathery glow.'],
+    'rose|saffron': [2, 'Saffron and rose is a long-standing pair in Arabian perfumery.'],
+    'amber|vanilla': [2, 'Amber and vanilla melt into a warm, golden base.'],
+    'musk|rose': [2, 'Musk makes rose feel soft and close to the skin.'],
+    'jasmine|sandal': [2, 'Jasmine and sandalwood are a creamy, classic match.'],
+    'bakhoor|oud': [2, 'Bakhoor and oud share smoky woods, so they deepen each other.'],
+    'citrus|musk': [2, 'Citrus over musk is the classic clean, fresh layer.'],
+    'incense|amber': [2, 'Frankincense and amber are old companions in resin blends.'],
+    'cardamom|oud': [2, 'Cardamom adds a cool, coffee-like spice to oud.'],
+    'leather|saffron': [2, 'Saffron naturally smells a little leathery, so these blend smoothly.'],
+    'orangeb|musk': [2, 'Orange blossom and musk feel freshly washed and soft.'],
+    'tonka|vanilla': [1, 'Tonka and vanilla are close cousins, cosy but very sweet together.'],
+    'citrus|leather': [-2, 'Bright citrus and dark leather pull in opposite directions.'],
+    'citrus|bakhoor': [-1, 'Bakhoor smoke tends to swallow citrus.'],
+    'vanilla|leather': [-1, 'Sweet vanilla can make leather smell a bit plasticky.'],
+    'jasmine|leather': [-1, 'Heady jasmine with leather can turn heavy and indolic.'],
+    'cardamom|tonka': [1, 'Cardamom and tonka give a spiced, dessert-like warmth.'],
+    'vetiver|citrus': [2, 'Vetiver and citrus make a crisp, green, summery pair.'],
+    'rose|oud|saffron': [2, 'Rose, oud and saffron together is a signature Gulf trio.']
+  };
+  function pk(a, b) { return PAIR[a + '|' + b] || PAIR[b + '|' + a]; }
+  function fa(a, b) { var x = FA[a + '|' + b]; if (x == null) x = FA[b + '|' + a]; return x || 0; }
+
+  var sel = [];
+  // ---------- wheel
+  function wheel() {
+    var n = NOTES.length, r0 = 70, r1 = 200, h = '';
+    NOTES.forEach(function (note, i) {
+      var a0 = (i / n) * 2 * Math.PI - Math.PI / 2, a1 = ((i + 1) / n) * 2 * Math.PI - Math.PI / 2, on = sel.indexOf(note.k) >= 0;
+      var ro = on ? r1 + 6 : r1;
+      function p(r, a) { return (r * Math.cos(a)).toFixed(1) + ' ' + (r * Math.sin(a)).toFixed(1); }
+      var d = 'M' + p(r0, a0) + ' L' + p(ro, a0) + ' A' + ro + ' ' + ro + ' 0 0 1 ' + p(ro, a1) + ' L' + p(r0, a1) + ' A' + r0 + ' ' + r0 + ' 0 0 0 ' + p(r0, a0) + 'Z';
+      var am = (a0 + a1) / 2, tr = (r0 + r1) / 2 + 12, deg = am * 180 / Math.PI, flip = deg > 90 && deg < 270;
+      var tx = tr * Math.cos(am), ty = tr * Math.sin(am), rot = flip ? deg + 180 : deg;
+      h += '<g class="seg" tabindex="0" role="button" aria-pressed="' + on + '" aria-label="' + note.n + '" data-k="' + note.k + '"><path d="' + d + '" fill="' + FAM[note.f].c + '" opacity="' + (on ? 1 : sel.length >= 4 ? 0.3 : 0.62) + '"></path>' +
+        '<text transform="translate(' + tx.toFixed(1) + ' ' + ty.toFixed(1) + ') rotate(' + rot.toFixed(1) + ')" text-anchor="middle" dy="-2">' + note.n + '</text>' +
+        '<text class="ar" transform="translate(' + tx.toFixed(1) + ' ' + ty.toFixed(1) + ') rotate(' + rot.toFixed(1) + ')" text-anchor="middle" dy="11">' + note.ar + '</text></g>';
+    });
+    h += '<circle r="' + (r0 - 6) + '" fill="rgba(7,10,24,.85)" stroke="rgba(120,132,190,.3)"></circle>';
+    h += '<text text-anchor="middle" dy="-4" fill="#EEF0FA" font-family="Bricolage Grotesque, sans-serif" font-size="26" font-weight="800">' + sel.length + '/4</text><text text-anchor="middle" dy="16" fill="#A7ADCB" font-size="10" font-family="JetBrains Mono, monospace">NOTES</text>';
+    $('wheel').innerHTML = h;
+  }
+  function toggle(k) {
+    var i = sel.indexOf(k);
+    if (i >= 0) sel.splice(i, 1);
+    else if (sel.length < 4) sel.push(k);
+    else { $('verdict').textContent = 'Four notes is the limit. Remove one first.'; return; }
+    update();
+  }
+  $('wheel').addEventListener('click', function (e) { var g = e.target.closest('g.seg'); if (g) toggle(g.getAttribute('data-k')); });
+  $('wheel').addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { var g = e.target.closest('g.seg'); if (g) { e.preventDefault(); toggle(g.getAttribute('data-k')); var k = g.getAttribute('data-k'); setTimeout(function () { var x = document.querySelector('g.seg[data-k="' + k + '"]'); if (x) x.focus(); }, 0); } } });
+  $('legend').innerHTML = Object.keys(FAM).map(function (f) { return '<span style="--c:' + FAM[f].c + '">' + FAM[f].n + '</span>'; }).join('');
+  $('sNotes').textContent = NOTES.length;
+
+  // ---------- scoring
+  function analyse(keys) {
+    var ns = keys.map(function (k) { return BY[k]; }), why = [], s = 60, i, j;
+    if (ns.length < 2) return null;
+    var pairs = 0, sum = 0;
+    for (i = 0; i < ns.length; i++) for (j = i + 1; j < ns.length; j++) {
+      pairs++;
+      var p = pk(ns[i].k, ns[j].k), v = fa(ns[i].f, ns[j].f) * 6;
+      if (p) { v = p[0] * 10; why.push({ t: p[1], c: p[0] > 0 ? 'g' : 'b' }); }
+      sum += v;
+    }
+    s += sum / pairs * (1 + 0.15 * (pairs - 1));
+    if (keys.indexOf('rose') >= 0 && keys.indexOf('oud') >= 0 && keys.indexOf('saffron') >= 0) { s += 6; why.unshift({ t: PAIR['rose|oud|saffron'][1], c: 'g' }); }
+    // weight balance: a base plus something lighter is ideal
+    var ws = ns.map(function (n) { return n.w; }), hi = Math.max.apply(null, ws), lo = Math.min.apply(null, ws);
+    var heavy = ws.filter(function (w) { return w >= 2.6; }).length;
+    if (hi - lo >= 1) { s += 6; why.push({ t: 'Good spread from heavy base to lighter top.', c: 'g' }); }
+    else if (hi < 2.4) { s -= 6; why.push({ t: 'No real base note, so it may fade fast. Add a wood, resin or musk.', c: 'b' }); }
+    if (heavy >= 3) { s -= 8 * (heavy - 2); why.push({ t: heavy + ' heavy base notes may feel dense. Use a light hand.', c: 'b' }); }
+    var fams = {}; ns.forEach(function (n) { fams[n.f] = (fams[n.f] || 0) + 1; });
+    var nf = Object.keys(fams).length;
+    if (ns.length >= 3 && nf === 1) { s -= 6; why.push({ t: 'All from one family: smooth but one-dimensional.', c: 'b' }); }
+    if (ns.length === 4 && nf === 4) { s += 3; why.push({ t: 'Four families in one blend gives it real depth.', c: 'g' }); }
+    if (fams.sweet >= 2) { s -= 5; why.push({ t: 'Two sweet notes together can turn cloying.', c: 'b' }); }
+    s = Math.max(5, Math.min(99, Math.round(s)));
+    return { score: s, why: why, ns: ns };
+  }
+  function describe(a) {
+    var ns = a.ns, words = [], avgW = ns.reduce(function (t, n) { return t + n.w; }, 0) / ns.length;
+    ns.slice().sort(function (x, y) { return y.w - x.w; }).forEach(function (n) { n.words.forEach(function (w) { if (words.indexOf(w) < 0) words.push(w); }); });
+    var lead = ns.slice().sort(function (x, y) { return y.w - x.w; })[0], top = ns.slice().sort(function (x, y) { return x.w - y.w; })[0];
+    var mood = avgW > 2.4 ? 'Rich and long-lasting. Made for cool evenings, weddings and winter majlis nights.' : avgW > 1.9 ? 'Balanced enough for day into evening, and polite in an office if applied lightly.' : 'Light and airy. Good for hot days and daytime, but expect to reapply.';
+    var w3 = words.slice(0, 5);
+    return 'A ' + w3.slice(0, -1).join(', ') + ' and ' + w3[w3.length - 1] + ' blend. ' + lead.n + ' sets the base' + (top !== lead ? ', while ' + top.n.toLowerCase() + ' is what people notice first' : '') + '. ' + mood;
+  }
+  function verdict(s) { return s >= 85 ? 'Beautiful match' : s >= 72 ? 'Works well' : s >= 58 ? 'Worth a try' : s >= 45 ? 'Tricky' : 'Likely to clash'; }
+  function colorFor(s) { return s >= 72 ? 'var(--sat-b)' : s >= 58 ? 'var(--accent)' : 'var(--sat-c)'; }
+
+  function update() {
+    wheel();
+    $('pick').innerHTML = sel.length ? sel.map(function (k) { var n = BY[k]; return '<span class="np" style="--c:' + FAM[n.f].c + '">' + n.n + ' <span lang="ar" style="font-family:\'IBM Plex Sans Arabic\',sans-serif;color:var(--muted)">' + n.ar + '</span><button type="button" data-rm="' + k + '" aria-label="Remove ' + n.n + '">✕</button></span>'; }).join('') : '<span class="msg">Tap notes on the wheel.</span>';
+    var a = analyse(sel);
+    if (!a) {
+      $('score').textContent = '–'; $('bar').style.width = '0'; $('verdict').textContent = sel.length ? 'Add one more note.' : 'Pick at least two notes.';
+      $('desc').textContent = ''; $('why').innerHTML = ''; $('order').innerHTML = ''; return;
+    }
+    $('score').textContent = a.score; $('score').style.color = colorFor(a.score);
+    $('bar').style.width = a.score + '%'; $('bar').style.background = colorFor(a.score);
+    $('verdict').textContent = verdict(a.score) + '.';
+    $('desc').textContent = describe(a);
+    $('why').innerHTML = a.why.slice(0, 6).map(function (w) { return '<li class="' + w.c + '">' + w.t + '</li>'; }).join('');
+    var ord = a.ns.slice().sort(function (x, y) { return y.w - x.w; });
+    $('order').innerHTML = ord.map(function (n, i) {
+      var how = n.k === 'bakhoor' ? 'Let the smoke drift through your clothes or hair, then wait a few minutes before anything on skin.' : i === 0 ? n.tip + '. Let it settle for a minute.' : i === ord.length - 1 ? n.tip + '. This is what people notice first.' : n.tip + ', over the base.';
+      return '<li style="--c:' + FAM[n.f].c + '"><span><b>' + n.n + '</b><small>' + how + '</small></span></li>';
+    }).join('');
+  }
+  $('pick').addEventListener('click', function (e) { var k = e.target.getAttribute('data-rm'); if (k) toggle(k); });
+  $('clear').onclick = function () { sel = []; update(); };
+  $('surprise').onclick = function () {
+    // try several random blends and keep a good one
+    var best = null;
+    for (var t = 0; t < 40; t++) {
+      var n = 2 + ((Math.random() * 3) | 0), ks = NOTES.map(function (x) { return x.k; }).sort(function () { return Math.random() - 0.5; }).slice(0, n), a = analyse(ks);
+      if (!best || a.score > best.s) best = { s: a.score, k: ks };
+      if (a.score >= 80 && Math.random() < 0.4) break;
+    }
+    sel = best.k; update();
+  };
+
+  // ---------- saved blends
+  var SK = 'perfumeBlends', saved = [];
+  try { saved = JSON.parse(localStorage.getItem(SK) || '[]') || []; } catch (e) { saved = []; }
+  function persist() { try { localStorage.setItem(SK, JSON.stringify(saved)); } catch (e) {} }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function showSaved() {
+    $('saved').innerHTML = saved.length ? saved.map(function (b, i) {
+      return '<li><span><b>' + esc(b.name) + '</b><small>' + b.notes.map(function (k) { return BY[k] ? BY[k].n : k; }).join(' + ') + ' · ' + b.score + '</small></span><span style="display:flex;gap:4px"><button class="sm x" type="button" data-load="' + i + '">Load</button><button class="sm x" type="button" data-del="' + i + '" aria-label="Delete ' + esc(b.name) + '">✕</button></span></li>';
+    }).join('') : '<li><span class="msg">No saved blends yet.</span></li>';
+    $('sSaved').textContent = saved.length;
+    $('sBest').textContent = saved.length ? Math.max.apply(null, saved.map(function (b) { return b.score; })) : '–';
+  }
+  $('save').onclick = function () {
+    var a = analyse(sel); if (!a) { $('verdict').textContent = 'Pick at least two notes to save.'; return; }
+    var name = $('name').value.trim() || sel.map(function (k) { return BY[k].n; }).join(' & ');
+    saved.unshift({ name: name.slice(0, 40), notes: sel.slice(), score: a.score, at: Date.now() }); saved = saved.slice(0, 50);
+    persist(); showSaved(); $('name').value = '';
+  };
+  $('name').onkeydown = function (e) { if (e.key === 'Enter') $('save').click(); };
+  $('saved').addEventListener('click', function (e) {
+    var l = e.target.getAttribute('data-load'), d = e.target.getAttribute('data-del');
+    if (l != null) { sel = saved[+l].notes.filter(function (k) { return BY[k]; }).slice(0, 4); update(); window.scrollTo({ top: $('wheel').getBoundingClientRect().top + scrollY - 80, behavior: 'smooth' }); }
+    if (d != null) { saved.splice(+d, 1); persist(); showSaved(); }
+  });
+  sel = ['oud', 'rose'];
+  update(); showSaved();
+})();
+</script>
+</body>
+</html>

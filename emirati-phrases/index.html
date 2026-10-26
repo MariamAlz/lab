@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Emirati Phrasebook · Mariam's Lab</title>
+<meta name="description" content="Nearly 100 everyday Emirati Arabic phrases for greetings, home, shopping, directions, food, polite talk and numbers. Arabic script, simple transliteration, audio where your device has an Arabic voice, and a quiz.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/emirati-phrases/">
+<meta property="og:title" content="Emirati Phrasebook · Mariam's Lab"><meta property="og:description" content="Everyday Emirati Arabic phrases with transliteration, audio and a quiz."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@500;600&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm[aria-pressed="true"], .sm.go { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.sm:disabled { opacity: .45; cursor: default; }
+.cats { display: flex; gap: 6px; flex-wrap: wrap; }
+.find { font: inherit; font-size: 0.9rem; color: var(--ink); background: rgba(255,255,255,.04); border: 1px solid var(--line); border-radius: 999px; padding: 7px 14px; width: 100%; }
+.phr { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.phr li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; align-items: center; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.phr .ar { font-family: 'IBM Plex Sans Arabic', sans-serif; font-size: 1.3rem; font-weight: 600; line-height: 1.5; text-align: right; grid-column: 1 / -1; }
+.phr .tr { font-family: var(--font-mono); font-size: 0.86rem; color: var(--accent); }
+.phr .en { color: var(--ink); font-size: 0.94rem; }
+.phr .nt { color: var(--muted); font-size: 0.8rem; grid-column: 1; }
+.phr .say { grid-row: 2 / span 3; grid-column: 2; align-self: center; }
+.tag { font: 500 0.64rem var(--font-mono); text-transform: uppercase; letter-spacing: .08em; padding: 1px 6px; border-radius: 5px; border: 1px solid currentColor; margin-inline-start: 6px; vertical-align: 1px; }
+.tag.e { color: var(--sat-b); }
+.tag.s { color: var(--sat-a); }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 0; }
+.quiz { display: grid; gap: 12px; padding: 16px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+.quiz .q { font-family: 'IBM Plex Sans Arabic', sans-serif; font-size: 1.7rem; font-weight: 600; text-align: center; line-height: 1.5; }
+.quiz .qt { text-align: center; font-family: var(--font-mono); color: var(--accent); font-size: 0.9rem; min-height: 1.2em; }
+.opts { display: grid; gap: 6px; }
+.opts button { font: inherit; text-align: start; color: var(--ink); background: rgba(255,255,255,.03); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; cursor: pointer; }
+.opts button.ok { border-color: var(--sat-b); background: color-mix(in srgb, var(--sat-b) 18%, transparent); }
+.opts button.no { border-color: var(--sat-c); background: color-mix(in srgb, var(--sat-c) 18%, transparent); }
+.opts button .a { font-family: 'IBM Plex Sans Arabic', sans-serif; font-size: 1.1rem; }
+@media (max-width: 860px) { .game > .panel.qp { order: -1; } }
+.row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Language · Arabic · UAE</span>
+    <h1 style="font-size:var(--step-3)">Emirati phrasebook.</h1>
+    <p>Nearly 100 everyday phrases you will actually hear in the UAE, from <span lang="ar" dir="rtl">شحالك</span> to ordering at a cafeteria. Each one has Arabic script, a simple transliteration and the English meaning. Tap the speaker to hear it if your device has an Arabic voice, then test yourself in the quiz.</p>
+  </div>
+  <div class="game">
+    <div class="panel">
+      <div class="cats" id="cats" role="group" aria-label="Category"></div>
+      <input class="find" id="find" type="search" placeholder="Search in English, Arabic or transliteration" aria-label="Search phrases">
+      <p class="msg" id="voiceMsg" role="status"></p>
+      <ul class="phr" id="list"></ul>
+    </div>
+    <div class="panel qp">
+      <div class="stats">
+        <div><b id="sN">0</b><span>phrases</span></div>
+        <div><b id="sBest">0</b><span>best quiz streak</span></div>
+        <div><b id="sAcc">–</b><span>quiz accuracy</span></div>
+      </div>
+      <span class="label">Quiz</span>
+      <div class="row" role="group" aria-label="Quiz mode">
+        <button class="sm" type="button" data-mode="read" aria-pressed="true">Read and choose</button>
+        <button class="sm" type="button" data-mode="en" aria-pressed="false">English to Arabic</button>
+        <button class="sm" type="button" data-mode="listen" aria-pressed="false" id="listenBtn">🔊 Listen and choose</button>
+      </div>
+      <div class="quiz" id="quiz">
+        <div class="q" id="qText" dir="rtl" lang="ar"></div>
+        <div class="qt" id="qTr"></div>
+        <div class="opts" id="opts"></div>
+        <div class="row" style="justify-content:space-between">
+          <span class="msg" id="qMsg" role="status"></span>
+          <span class="row"><button class="sm" type="button" id="qSay">🔊 Again</button><button class="sm go" type="button" id="qNext">Next →</button></span>
+        </div>
+      </div>
+      <label class="row" style="font-size:.86rem;color:var(--muted)"><input type="checkbox" id="qCat"> Only quiz the category I picked</label>
+      <p class="fact"><b>Three sounds that give Emirati away.</b> The letter ق (q) is usually said as g, so <i>qahwa</i> (coffee) becomes <i>gahwa</i>. In many words ك (k) becomes ch, as in <i>chaif</i> for "how". And ج (j) often becomes y, so <i>dajaj</i> (chicken) becomes <i>diyay</i>. Speech also changes between emirates, between town and desert families, and between generations.</p>
+      <p class="fact"><b>Tags.</b> <span class="tag e">Emirati</span> marks dialect or Gulf words you would not normally find in formal Arabic. <span class="tag s">Shared</span> marks words that are the same in formal Arabic (MSA) or across the Arab world. Where it differs, "to a man / to a woman" forms are given. The device voice reads the Arabic script in a fairly standard accent, so trust the transliteration for the local sound.</p>
+      <p class="fact">Transliteration key: kh as in Scottish loch, gh a soft gargled g, ʿ a tight sound from the throat (ع), dh as in "this", th as in "think", a long vowel is doubled (aa, ee, oo).</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  // [arabic, transliteration, english, tag (e = Emirati/Gulf, s = shared with MSA), note]
+  var CATS = [
+    ['Greetings', [
+      ['السلام عليكم', 'as-salaamu ʿalaikum', 'Peace be upon you (hello)', 's', 'The standard greeting everywhere.'],
+      ['وعليكم السلام', 'wa ʿalaikum as-salaam', 'And peace be upon you (reply)', 's'],
+      ['مرحبا', 'marhaba', 'Hello', 's'],
+      ['هلا والله', 'hala wallah', 'Hello, so good to see you', 'e', 'Warm and informal.'],
+      ['مرحبا الساع', 'marhaba as-saaʿ', 'Welcome (said to an arriving guest)', 'e', 'Literally "welcome at this hour".'],
+      ['شحالك؟', 'sh-haalak?', 'How are you? (to a man)', 'e', 'To a woman: sh-haalich? (شحالج)'],
+      ['بخير، الحمد لله', 'bkhair, al-hamdu lillah', 'Fine, thank God', 's'],
+      ['الله يسلمك', 'allah ysallmak', 'God keep you safe (a reply to kind words)', 'e', 'To a woman: allah ysallmich.'],
+      ['شو اليديد؟', 'shu l-ydeed?', 'What\'s new?', 'e', 'From jadeed (new), with j said as y.'],
+      ['ما شي', 'ma shay', 'Nothing (much)', 'e'],
+      ['صباح الخير', 'sabaah al-khair', 'Good morning', 's', 'Reply: sabaah an-noor.'],
+      ['مساء الخير', 'masaa al-khair', 'Good evening', 's', 'Reply: masaa an-noor.'],
+      ['شو اسمك؟', 'shu ismak?', 'What\'s your name? (to a man)', 'e', 'To a woman: shu ismich? Said quickly: shismak.'],
+      ['اسمي مريم', 'ismi maryam', 'My name is Maryam', 's'],
+      ['تشرفنا', 'tsharrafna', 'Nice to meet you', 's'],
+      ['مع السلامة', 'maʿa as-salaama', 'Goodbye', 's'],
+      ['في أمان الله', 'fi amaan illah', 'Goodbye (in God\'s safekeeping)', 's']
+    ]],
+    ['Polite', [
+      ['مشكور', 'mashkoor', 'Thank you (to a man)', 'e', 'To a woman: mashkoora.'],
+      ['شكراً', 'shukran', 'Thank you', 's'],
+      ['يزاك الله خير', 'yizaak allah khair', 'May God reward you (a warm thank you)', 'e', 'Jazaak with j said as y.'],
+      ['عفواً', 'ʿafwan', 'You\'re welcome / excuse me', 's'],
+      ['لو سمحت', 'law samaht', 'Please / excuse me (to a man)', 's', 'To a woman: law samahti.'],
+      ['السموحة', 'is-smooha', 'Sorry / excuse me', 'e', 'A polite way to ask pardon.'],
+      ['ما عليه', 'ma ʿalaih', 'Never mind / it\'s okay', 'e'],
+      ['إن شاء الله', 'in shaa allah', 'God willing (I hope so)', 's'],
+      ['ما شاء الله', 'maa shaa allah', 'What God has willed (said when admiring something)', 's', 'Said to praise without envy.'],
+      ['مبروك', 'mabrook', 'Congratulations', 's', 'Reply: allah ybaarik feek.'],
+      ['تفضل', 'tfaddal', 'Please, go ahead / come in (to a man)', 's', 'To a woman: tfaddali.'],
+      ['طويل العمر', 'taweel il-ʿumr', 'Long life (respectful way to address someone)', 'e', 'Used for elders, hosts and seniors.'],
+      ['يعطيك العافية', 'yaʿteek il-ʿaafya', 'God give you strength (thanks for your effort)', 'e']
+    ]],
+    ['At home', [
+      ['هيه', 'hayy / heh', 'Yes', 'e'],
+      ['لا', 'la', 'No', 's'],
+      ['مب', 'mub', 'Not (as in "not good")', 'e', 'Mub zain: not good. Some areas say mush.'],
+      ['زين', 'zain', 'Good / fine / okay', 'e'],
+      ['وايد', 'waayid', 'A lot / very', 'e', 'Waayid zain: very good.'],
+      ['الحين', 'il-heen', 'Now', 'e'],
+      ['باكر', 'baachir', 'Tomorrow', 'e', 'Bukra in many other dialects. Here k is said as ch.'],
+      ['أبا', 'aba', 'I want', 'e', 'Aba gahwa: I want coffee.'],
+      ['تبا شي؟', 'tiba shay?', 'Do you want anything? (to a man)', 'e', 'To a woman: tibeen shay?'],
+      ['ما أدري', 'ma adri', 'I don\'t know', 'e'],
+      ['يلس', 'yils', 'Sit down (to a man)', 'e', 'From ijlis, with j said as y. To a woman: yilsi.'],
+      ['تعال', 'taʿaal', 'Come here (to a man)', 's', 'To a woman: taʿaali.'],
+      ['يلا', 'yalla', 'Come on / let\'s go', 'e'],
+      ['خلاص', 'khalaas', 'Done / that\'s enough', 'e'],
+      ['شوي شوي', 'shway shway', 'Slowly, little by little', 'e'],
+      ['شو هذا؟', 'shu haadha?', 'What is this?', 'e'],
+      ['ليش؟', 'laish?', 'Why?', 'e'],
+      ['كشخة', 'kashkha', 'Smart, dressed up', 'e']
+    ]],
+    ['Shopping', [
+      ['بكم هذا؟', 'bkam haadha?', 'How much is this?', 'e'],
+      ['غالي وايد', 'ghaali waayid', 'It\'s very expensive', 'e'],
+      ['رخيص', 'rkhees', 'Cheap', 's'],
+      ['في خصم؟', 'fee khasm?', 'Is there a discount?', 'e'],
+      ['أبا هذا', 'aba haadha', 'I want this one', 'e'],
+      ['ما أبا', 'ma aba', 'I don\'t want it', 'e'],
+      ['عندك مقاس أكبر؟', 'ʿindak mgaas akbar?', 'Do you have a bigger size?', 'e', 'Mgaas: q said as g.'],
+      ['فلوس', 'floos', 'Money', 'e'],
+      ['درهم', 'dirham', 'Dirham', 's'],
+      ['الحساب لو سمحت', 'il-hsaab law samaht', 'The bill, please', 'e'],
+      ['أدفع بالكارت', 'adfaʿ bil-kart', 'I\'ll pay by card', 'e']
+    ]],
+    ['Directions', [
+      ['وين؟', 'wain?', 'Where?', 'e'],
+      ['وين الحمام؟', 'wain il-hammaam?', 'Where is the toilet?', 'e'],
+      ['يمين', 'yimeen', 'Right', 's'],
+      ['يسار', 'yisaar', 'Left', 's'],
+      ['سيدا', 'seeda', 'Straight ahead', 'e', 'A loanword from Urdu/Hindi.'],
+      ['عند الدوار', 'ʿind id-dawwaar', 'At the roundabout', 'e'],
+      ['بعد الإشارة', 'baʿd il-ishaara', 'After the traffic lights', 'e'],
+      ['قريب', 'gareeb', 'Near', 'e', 'Qareeb with q said as g. Some say chereeb.'],
+      ['بعيد', 'bʿeed', 'Far', 's'],
+      ['وقف هني', 'wagguf hni', 'Stop here', 'e'],
+      ['هناك', 'hnaak', 'Over there', 's']
+    ]],
+    ['Food', [
+      ['يوعان', 'yooʿaan', 'Hungry', 'e', 'Jooʿaan with j said as y.'],
+      ['عطشان', 'ʿatshaan', 'Thirsty', 's'],
+      ['ماي', 'maay', 'Water', 'e'],
+      ['قهوة', 'gahwa', 'Coffee', 'e', 'Arabic coffee is often served with dates.'],
+      ['شاي', 'chaay', 'Tea', 'e'],
+      ['عيش', 'ʿaish', 'Rice', 'e', 'In much of the Arab world, \'aish means bread.'],
+      ['دياي', 'diyaay', 'Chicken', 'e', 'Dajaaj in formal Arabic.'],
+      ['سمج', 'simach', 'Fish', 'e', 'Samak in formal Arabic.'],
+      ['لحم', 'laham', 'Meat', 's'],
+      ['خبز', 'khubz', 'Bread', 's'],
+      ['بدون سكر', 'bidoon sukkar', 'Without sugar', 's'],
+      ['بس، شبعت', 'bas, shbiʿt', 'Enough, I\'m full', 'e'],
+      ['حلو', 'hilu', 'Sweet / nice', 's'],
+      ['بالعافية', 'bil-ʿaafya', 'Enjoy your meal (to good health)', 'e']
+    ]],
+    ['Numbers', [
+      ['واحد', 'waahid', 'One (1)', 's'],
+      ['اثنين', 'ithnain', 'Two (2)', 's'],
+      ['ثلاثة', 'thalaatha', 'Three (3)', 's'],
+      ['أربعة', 'arbaʿa', 'Four (4)', 's'],
+      ['خمسة', 'khamsa', 'Five (5)', 's'],
+      ['ستة', 'sitta', 'Six (6)', 's'],
+      ['سبعة', 'sabʿa', 'Seven (7)', 's'],
+      ['ثمانية', 'thamaanya', 'Eight (8)', 's'],
+      ['تسعة', 'tisʿa', 'Nine (9)', 's'],
+      ['عشرة', 'ʿashara', 'Ten (10)', 's'],
+      ['عشرين', 'ʿishreen', 'Twenty (20)', 's'],
+      ['مية', 'mya', 'A hundred (100)', 's'],
+      ['ألف', 'alf', 'A thousand (1,000)', 's']
+    ]]
+  ];
+  var ALL = [];
+  CATS.forEach(function (c) { c[1].forEach(function (p) { ALL.push({ ar: p[0], tr: p[1], en: p[2], tag: p[3], nt: p[4] || '', cat: c[0] }); }); });
+  $('sN').textContent = ALL.length;
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  // ---- speech
+  var voice = null, synth = window.speechSynthesis;
+  function pickVoice() {
+    if (!synth) return;
+    var vs = synth.getVoices() || [], ae = null, ar = null;
+    vs.forEach(function (v) { var l = (v.lang || '').toLowerCase().replace('_', '-'); if (l === 'ar-ae') ae = ae || v; else if (l.indexOf('ar') === 0) ar = ar || v; });
+    voice = ae || ar;
+    $('voiceMsg').textContent = voice ? 'Audio voice: ' + voice.name + ' (' + voice.lang + ')' + (ae ? '' : '. No UAE voice on this device, so this is another Arabic accent.') : 'No Arabic voice found on this device, so audio is off. Phones usually have one; on a computer you may need to add Arabic in your language settings.';
+    $('listenBtn').disabled = !voice;
+    [].forEach.call(document.querySelectorAll('.say, #qSay'), function (b) { b.disabled = !voice; });
+  }
+  function speak(text) {
+    if (!synth || !voice) return;
+    synth.cancel();
+    var u = new SpeechSynthesisUtterance(text); u.voice = voice; u.lang = voice.lang; u.rate = 0.85;
+    synth.speak(u);
+  }
+  if (synth) { pickVoice(); synth.onvoiceschanged = pickVoice; } else $('voiceMsg').textContent = 'This browser can\'t speak text aloud, so audio is off.';
+
+  // ---- list
+  var cat = 'All', q = '';
+  var CB = ['All'].concat(CATS.map(function (c) { return c[0]; }));
+  $('cats').innerHTML = CB.map(function (c) { return '<button class="sm" type="button" data-cat="' + c + '" aria-pressed="' + (c === cat) + '">' + c + '</button>'; }).join('');
+  $('cats').onclick = function (e) {
+    var b = e.target.closest('[data-cat]'); if (!b) return; cat = b.getAttribute('data-cat');
+    [].forEach.call($('cats').children, function (x) { x.setAttribute('aria-pressed', x === b); });
+    list(); try { localStorage.setItem('phrasesCat', cat); } catch (x) {}
+    if ($('qCat').checked) newQ();
+  };
+  function norm(s) { return s.toLowerCase().replace(/['’\u02BF?.,!-]/g, '').replace(/[ً-ْ]/g, ''); }
+  function shown() {
+    var n = norm(q);
+    return ALL.filter(function (p) { return (cat === 'All' || p.cat === cat) && (!n || norm(p.ar + ' ' + p.tr + ' ' + p.en + ' ' + p.nt).indexOf(n) >= 0); });
+  }
+  function list() {
+    var s = shown();
+    $('list').innerHTML = s.length ? s.map(function (p) {
+      var i = ALL.indexOf(p);
+      return '<li><div class="ar" dir="rtl" lang="ar">' + esc(p.ar) + '</div><span class="tr">' + esc(p.tr) + '<span class="tag ' + p.tag + '">' + (p.tag === 'e' ? 'Emirati' : 'Shared') + '</span></span><span class="en">' + esc(p.en) + '</span>' + (p.nt ? '<span class="nt">' + esc(p.nt) + '</span>' : '') + '<button class="sm say" type="button" data-say="' + i + '" aria-label="Hear ' + esc(p.en) + '"' + (voice ? '' : ' disabled') + '>🔊</button></li>';
+    }).join('') : '<li><span class="en">No phrases match. Try another word.</span></li>';
+  }
+  $('list').onclick = function (e) { var b = e.target.closest('[data-say]'); if (b) speak(ALL[+b.getAttribute('data-say')].ar); };
+  $('find').oninput = function () { q = this.value; list(); };
+
+  // ---- quiz
+  var mode = 'read', cur = null, answered = false, st = { right: 0, total: 0, streak: 0, best: 0 };
+  try { var sv = JSON.parse(localStorage.getItem('phrasesQuiz') || 'null'); if (sv && typeof sv.total === 'number') st = sv; st.streak = 0; } catch (e) {}
+  function saveSt() { try { localStorage.setItem('phrasesQuiz', JSON.stringify(st)); } catch (e) {} }
+  function showSt() { $('sBest').textContent = st.best; $('sAcc').textContent = st.total ? Math.round(100 * st.right / st.total) + '%' : '–'; }
+  function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = (Math.random() * (i + 1)) | 0, t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  var last = [];
+  function newQ() {
+    var pool = ALL.filter(function (p) { return !$('qCat').checked || cat === 'All' || p.cat === cat; });
+    var fresh = pool.filter(function (p) { return last.indexOf(p) < 0; }); if (fresh.length < 1) fresh = pool;
+    cur = fresh[(Math.random() * fresh.length) | 0];
+    last.push(cur); if (last.length > Math.min(12, pool.length - 1)) last.shift();
+    // distractors: prefer the same category, avoid identical meanings
+    var same = shuffle(pool.filter(function (p) { return p !== cur && p.cat === cur.cat && p.en !== cur.en; }));
+    var other = shuffle(ALL.filter(function (p) { return p !== cur && p.cat !== cur.cat; }));
+    var opts = shuffle([cur].concat(same.concat(other).slice(0, 3)));
+    answered = false; $('qMsg').textContent = '';
+    if (mode === 'read') {
+      $('qText').textContent = cur.ar; $('qText').setAttribute('dir', 'rtl'); $('qText').setAttribute('lang', 'ar'); $('qTr').textContent = cur.tr;
+      $('opts').innerHTML = opts.map(function (p) { return '<button type="button" data-i="' + ALL.indexOf(p) + '">' + esc(p.en) + '</button>'; }).join('');
+    } else if (mode === 'en') {
+      $('qText').textContent = cur.en; $('qText').setAttribute('dir', 'ltr'); $('qText').setAttribute('lang', 'en'); $('qTr').textContent = '';
+      $('opts').innerHTML = opts.map(function (p) { return '<button type="button" data-i="' + ALL.indexOf(p) + '"><span class="a" dir="rtl" lang="ar">' + esc(p.ar) + '</span> · <span class="mono">' + esc(p.tr) + '</span></button>'; }).join('');
+    } else {
+      $('qText').textContent = '🔊'; $('qText').setAttribute('dir', 'ltr'); $('qTr').textContent = 'Listen, then pick the meaning';
+      $('opts').innerHTML = opts.map(function (p) { return '<button type="button" data-i="' + ALL.indexOf(p) + '">' + esc(p.en) + '</button>'; }).join('');
+      setTimeout(function () { speak(cur.ar); }, 250);
+    }
+    $('qText').style.fontSize = mode === 'en' ? '1.25rem' : '';
+  }
+  $('opts').onclick = function (e) {
+    var b = e.target.closest('button'); if (!b || answered) return;
+    answered = true;
+    var p = ALL[+b.getAttribute('data-i')], ok = p === cur || (p.en === cur.en);
+    [].forEach.call($('opts').children, function (x) { var xp = ALL[+x.getAttribute('data-i')]; if (xp === cur) x.classList.add('ok'); });
+    if (!ok) b.classList.add('no');
+    st.total++; if (ok) { st.right++; st.streak++; st.best = Math.max(st.best, st.streak); } else st.streak = 0;
+    saveSt(); showSt();
+    $('qMsg').textContent = ok ? (st.streak > 2 ? 'Right. ' + st.streak + ' in a row.' : 'Right.') : 'Not quite: ' + cur.ar + ' (' + cur.tr + ') means "' + cur.en + '".';
+    if (mode === 'listen') { $('qText').textContent = cur.ar; $('qText').setAttribute('dir', 'rtl'); $('qTr').textContent = cur.tr; }
+    else if (ok) speak(cur.ar);
+  };
+  $('qNext').onclick = newQ;
+  $('qSay').onclick = function () { if (cur) speak(cur.ar); };
+  $('qCat').onchange = newQ;
+  [].forEach.call(document.querySelectorAll('[data-mode]'), function (b) {
+    b.onclick = function () {
+      if (b.disabled) return; mode = b.getAttribute('data-mode');
+      [].forEach.call(document.querySelectorAll('[data-mode]'), function (x) { x.setAttribute('aria-pressed', x === b); });
+      newQ();
+    };
+  });
+  try { var c0 = localStorage.getItem('phrasesCat'); if (c0 && CB.indexOf(c0) >= 0) { cat = c0; [].forEach.call($('cats').children, function (x) { x.setAttribute('aria-pressed', x.getAttribute('data-cat') === cat); }); } } catch (e) {}
+  list(); showSt(); newQ(); pickVoice();
+})();
+</script>
+</body>
+</html>

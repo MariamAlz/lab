@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Habit Tracker · Mariam's Lab</title>
+<meta name="description" content="A private habit tracker: daily and weekly habits, one-tap check-ins, streaks and a year heatmap for each habit. Ramadan mode moves reminders around suhoor and iftar for your location.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/habits/">
+<meta property="og:title" content="Habit Tracker · Mariam's Lab"><meta property="og:description" content="Daily and weekly habits, streaks, a year heatmap, and a Ramadan mode built around suhoor and iftar."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm[aria-pressed="true"], .sm.go { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.sm.x { padding: 2px 9px; font-size: 0.75rem; color: var(--muted); }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 0; }
+.hl { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.hb { border: 1px solid var(--line); border-radius: 14px; background: var(--surface); padding: 12px 14px; display: grid; gap: 10px; }
+.hb .top { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; }
+.tick { width: 46px; height: 46px; border-radius: 50%; border: 2px solid var(--c); background: transparent; color: var(--c); font-size: 1.3rem; cursor: pointer; display: grid; place-items: center; transition: background .15s; }
+.tick[aria-pressed="true"] { background: var(--c); color: var(--bg); }
+.hb h3 { font-size: 1.02rem; font-family: var(--font-display); overflow-wrap: anywhere; }
+.hb .sub { font-size: 0.8rem; color: var(--muted); }
+.hb .sk { text-align: end; font-family: var(--font-display); font-size: 1.3rem; line-height: 1; }
+.hb .sk small { display: block; font: 500 0.64rem var(--font-mono); color: var(--muted); letter-spacing: .06em; text-transform: uppercase; margin-top: 3px; }
+.week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.week button { font: 500 0.66rem var(--font-mono); color: var(--muted); background: rgba(255,255,255,.03); border: 1px solid var(--line); border-radius: 8px; padding: 4px 0; cursor: pointer; display: grid; gap: 2px; justify-items: center; }
+.week button i { font-style: normal; width: 12px; height: 12px; border-radius: 4px; border: 1px solid var(--line); }
+.week button.on i { background: var(--c); border-color: var(--c); }
+.week button.today { border-color: color-mix(in srgb, var(--c) 60%, transparent); color: var(--ink); }
+.heat { overflow-x: auto; }
+.heat svg { display: block; }
+.heat rect:hover { stroke: var(--ink); stroke-width: 1; }
+.hstat { display: flex; gap: 14px; flex-wrap: wrap; font-size: 0.8rem; color: var(--muted); }
+.hstat b { color: var(--ink); font-weight: 600; }
+.form { display: grid; gap: 8px; }
+.form input, .form select { font: inherit; font-size: 0.88rem; color: var(--ink); background: rgba(255,255,255,.04); border: 1px solid var(--line); border-radius: 10px; padding: 7px 10px; min-width: 0; }
+.form select option { background: #111; }
+.line { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; font-size: 0.88rem; }
+.line > input[type=text] { flex: 1 1 160px; }
+.box { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: grid; gap: 10px; }
+.box h3 { font-size: 1rem; font-family: var(--font-display); }
+.ram { border-color: color-mix(in srgb, var(--accent) 50%, var(--line)); }
+.times { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.times div { padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line); }
+.times span { display: block; font-size: 0.72rem; color: var(--muted); }
+.times b { font-family: var(--font-display); font-size: 1.15rem; }
+.rem { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 0.86rem; }
+.rem li { display: flex; justify-content: space-between; gap: 8px; padding: 5px 8px; border: 1px solid var(--line); border-radius: 8px; }
+.rem li.past { opacity: .5; }
+.edit { display: grid; gap: 8px; padding-top: 6px; border-top: 1px solid var(--line); }
+.empty { padding: 20px; text-align: center; color: var(--muted); border: 1px dashed var(--line); border-radius: 14px; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Habits · Ramadan</span>
+    <h1 style="font-size:var(--step-3)">Habit tracker.</h1>
+    <p>Track the small things you want to do every day or a few times a week. Tap the circle to check in, watch your streak grow, and see the whole year at a glance. In Ramadan, reminders move around suhoor and iftar for where you are. Nothing leaves your device.</p>
+  </div>
+  <div class="game">
+    <div class="panel">
+      <div class="stats">
+        <div><b id="sToday">0/0</b><span>done today</span></div>
+        <div><b id="sStreak">0</b><span>best current streak</span></div>
+        <div><b id="s30">–</b><span>last 30 days</span></div>
+      </div>
+      <p class="msg" id="dateLine"></p>
+      <ul class="hl" id="list"></ul>
+      <div class="box">
+        <h3>Add a habit</h3>
+        <div class="form">
+          <div class="line">
+            <input type="text" id="hName" maxlength="60" placeholder="e.g. Read 10 pages, Walk after Maghrib" aria-label="Habit name">
+          </div>
+          <div class="line">
+            <select id="hKind" aria-label="How often"><option value="daily">Every day</option><option value="weekly">Times a week</option></select>
+            <select id="hTarget" aria-label="Times per week" hidden><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select>
+            <label>Reminder <input type="time" id="hTime" aria-label="Reminder time"></label>
+            <button class="sm go" type="button" id="hAdd">Add</button>
+          </div>
+          <div class="line"><span class="msg">Ideas:</span><span id="ideas" class="line"></span></div>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="box ram" id="ramBox">
+        <h3>Ramadan mode</h3>
+        <p class="msg" id="ramState"></p>
+        <div class="line" role="group" aria-label="Ramadan mode">
+          <button class="sm" type="button" data-rm="auto">Auto</button>
+          <button class="sm" type="button" data-rm="on">On</button>
+          <button class="sm" type="button" data-rm="off">Off</button>
+        </div>
+        <div class="line">
+          <select id="city" aria-label="Location"></select>
+          <button class="sm" type="button" id="geo">📍 Use my location</button>
+        </div>
+        <div class="times" id="times"></div>
+        <p class="msg" id="timesNote"></p>
+      </div>
+      <div class="box">
+        <h3>Today's reminders</h3>
+        <ul class="rem" id="rems"></ul>
+        <div class="line"><button class="sm" type="button" id="notif">🔔 Turn on notifications</button></div>
+        <p class="msg" style="font-size:.8rem">Notifications only fire while this page is open in a tab. For reminders that always arrive, copy the times into your phone's alarm or calendar.</p>
+      </div>
+      <div class="box">
+        <h3>Backup</h3>
+        <div class="line">
+          <button class="sm" type="button" id="exp">⬇ Export JSON</button>
+          <label class="sm" style="cursor:pointer">⬆ Import JSON<input type="file" id="imp" accept="application/json,.json" hidden></label>
+          <button class="sm" type="button" id="demo">Fill with demo data</button>
+        </div>
+        <p class="msg" id="bMsg"></p>
+      </div>
+      <p class="fact"><b>How the Ramadan times work.</b> Fajr is when the sun is 18.2° below the horizon before dawn, the angle used for UAE timetables, and that is when suhoor ends. Maghrib, and iftar, is sunset. Both come from the sun's position for your latitude and longitude on that date. The Ramadan dates come from your browser's built-in Umm al-Qura calendar, so the start can differ by a day from the moon-sighting announcement. Check your local mosque or the official UAE timetable, which uses its own settings and can differ by a few minutes.</p>
+      <p class="fact"><b>Streaks.</b> A daily streak counts days in a row up to today, and today doesn't break it until it's over. A weekly streak counts weeks in a row (Monday to Sunday) where you hit your target.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var KEY = 'habitsData';
+  var COLORS = ['#4FD3BD', '#E9B467', '#84A0FF', '#F08AB3', '#C9E264', '#FF8A4C', '#B18CFF'];
+  var CITIES = [['Abu Dhabi', 24.4539, 54.3773], ['Dubai', 25.2048, 55.2708], ['Sharjah', 25.3463, 55.4209], ['Al Ain', 24.2075, 55.7447], ['Ajman', 25.4052, 55.5136], ['Umm Al Quwain', 25.5647, 55.5552], ['Ras Al Khaimah', 25.7895, 55.9432], ['Fujairah', 25.1288, 56.3265]];
+  var D;
+  function blank() { return { habits: [], log: {}, ram: 'auto', loc: { name: 'Abu Dhabi', lat: 24.4539, lng: 54.3773, tz: 4 }, nid: 1 }; }
+  function load() { try { D = JSON.parse(localStorage.getItem(KEY)); } catch (e) { D = null; } if (!D || !Array.isArray(D.habits)) D = blank(); if (!D.log) D.log = {}; }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(D)); } catch (e) {} }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  // ---------- dates (local)
+  function key(d) { return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+  function addDays(d, n) { var x = new Date(d.getFullYear(), d.getMonth(), d.getDate() + n); return x; }
+  function today() { var n = new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate()); }
+  function monday(d) { return addDays(d, -((d.getDay() + 6) % 7)); }
+  function done(h, d) { return !!(D.log[h.id] && D.log[h.id][key(d)]); }
+  function toggle(h, d) { var L = D.log[h.id] = D.log[h.id] || {}, k = key(d); if (L[k]) delete L[k]; else L[k] = 1; save(); render(); }
+  function weekCount(h, mon) { var n = 0; for (var i = 0; i < 7; i++) if (done(h, addDays(mon, i))) n++; return n; }
+  function streak(h) {
+    var t = today(), n = 0, d;
+    if (h.kind === 'weekly') {
+      var m = monday(t), tg = h.target || 1;
+      if (weekCount(h, m) >= tg) n++;
+      for (d = addDays(m, -7); weekCount(h, d) >= tg; d = addDays(d, -7)) n++;
+      return n;
+    }
+    d = done(h, t) ? t : addDays(t, -1);
+    while (done(h, d)) { n++; d = addDays(d, -1); }
+    return n;
+  }
+  function bestStreak(h) {
+    var L = D.log[h.id] || {}, ks = Object.keys(L).sort(), best = 0, run = 0, prev = null;
+    if (h.kind === 'weekly') {
+      var weeks = {}; ks.forEach(function (k) { var p = k.split('-'); weeks[key(monday(new Date(+p[0], p[1] - 1, +p[2])))] = (weeks[key(monday(new Date(+p[0], p[1] - 1, +p[2])))] || 0) + 1; });
+      Object.keys(weeks).sort().forEach(function (w) {
+        var p = w.split('-'), d = new Date(+p[0], p[1] - 1, +p[2]);
+        if (weeks[w] >= (h.target || 1)) { run = prev && key(addDays(prev, 7)) === w ? run + 1 : 1; prev = d; best = Math.max(best, run); }
+      });
+      return best;
+    }
+    ks.forEach(function (k) { var p = k.split('-'), d = new Date(+p[0], p[1] - 1, +p[2]); run = prev && key(addDays(prev, 1)) === k ? run + 1 : 1; prev = d; best = Math.max(best, run); });
+    return best;
+  }
+  function rate30(h) {
+    var t = today(), n = 0;
+    for (var i = 0; i < 30; i++) if (done(h, addDays(t, -i))) n++;
+    return h.kind === 'weekly' ? Math.min(1, n / ((h.target || 1) * 30 / 7)) : n / 30;
+  }
+
+  // ---------- sun and prayer times (UAE: Fajr 18.2°, Maghrib at sunset)
+  var R = Math.PI / 180;
+  function sunPos(jd) {
+    var d = jd - 2451545.0, g = (357.529 + 0.98560028 * d) % 360, q = (280.459 + 0.98564736 * d) % 360;
+    var L = (q + 1.915 * Math.sin(g * R) + 0.020 * Math.sin(2 * g * R)) % 360, e = 23.439 - 0.00000036 * d;
+    var RA = Math.atan2(Math.cos(e * R) * Math.sin(L * R), Math.cos(L * R)) / R / 15;
+    RA = ((RA % 24) + 24) % 24;
+    var eqt = q / 15 - RA; eqt = eqt - 24 * Math.round(eqt / 24);
+    return { dec: Math.asin(Math.sin(e * R) * Math.sin(L * R)) / R, eqt: eqt };
+  }
+  function julian(y, m, d) { if (m <= 2) { y--; m += 12; } var A = Math.floor(y / 100), B = 2 - A + Math.floor(A / 4); return Math.floor(365.25 * (y + 4716)) + Math.floor(30.6001 * (m + 1)) + d + B - 1524.5; }
+  function times(date, lat, lng, tz) {
+    var jd = julian(date.getFullYear(), date.getMonth() + 1, date.getDate()) - lng / 360;
+    function noon(t) { return 12 - sunPos(jd + t / 24).eqt; }
+    function hourAngle(angle, t) {
+      var s = sunPos(jd + t / 24), c = (-Math.sin(angle * R) - Math.sin(s.dec * R) * Math.sin(lat * R)) / (Math.cos(s.dec * R) * Math.cos(lat * R));
+      return Math.acos(Math.max(-1, Math.min(1, c))) / R / 15;
+    }
+    var t = { fajr: 5, sunrise: 6, dhuhr: 12, maghrib: 18 };
+    for (var i = 0; i < 2; i++) {
+      t = { fajr: noon(t.fajr) - hourAngle(18.2, t.fajr), sunrise: noon(t.sunrise) - hourAngle(0.833, t.sunrise), dhuhr: noon(t.dhuhr), maghrib: noon(t.maghrib) + hourAngle(0.833, t.maghrib) };
+    }
+    var adj = tz - lng / 15;
+    return { fajr: t.fajr + adj, sunrise: t.sunrise + adj, dhuhr: t.dhuhr + adj, maghrib: t.maghrib + adj, isha: t.maghrib + adj + 1.5 };
+  }
+  function hm(h) { h = ((h % 24) + 24) % 24; var m = Math.round(h * 60); return ('0' + Math.floor(m / 60) % 24).slice(-2) + ':' + ('0' + m % 60).slice(-2); }
+  function toMin(s) { var p = (s || '').split(':'); return p.length < 2 ? null : (+p[0]) * 60 + (+p[1]); }
+
+  // ---------- Hijri via Intl (Umm al-Qura)
+  var hijriFmt = null;
+  try { hijriFmt = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', { day: 'numeric', month: 'numeric', year: 'numeric', timeZone: 'UTC' }); if (hijriFmt.resolvedOptions().calendar !== 'islamic-umalqura') hijriFmt = null; } catch (e) { hijriFmt = null; }
+  function hijri(d) {
+    if (!hijriFmt) return null;
+    var o = {}; hijriFmt.formatToParts(new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), 12))).forEach(function (p) { o[p.type] = p.value; });
+    return { d: parseInt(o.day, 10), m: parseInt(o.month, 10), y: parseInt(o.year || o.relatedYear, 10) };
+  }
+  function ramadanInfo() {
+    var t = today(), h = hijri(t);
+    if (!h) return { known: false };
+    if (h.m === 9) { var end = t; while (hijri(addDays(end, 1)).m === 9) end = addDays(end, 1); return { known: true, now: true, day: h.d, left: Math.round((end - t) / 864e5) + 1 }; }
+    for (var i = 1; i < 400; i++) { var x = hijri(addDays(t, i)); if (x.m === 9 && x.d === 1) return { known: true, now: false, inDays: i, start: addDays(t, i) }; }
+    return { known: true, now: false };
+  }
+  function ramOn() { var r = ramadanInfo(); return D.ram === 'on' || (D.ram === 'auto' && r.now); }
+
+  // ---------- reminders
+  var ANCH = { keep: 'Same time', suhoor: 'Before suhoor ends', iftar: 'After iftar', preiftar: 'Before iftar' };
+  function remTime(h, T) {
+    var base = toMin(h.time);
+    if (!ramOn() || !h.anchor || h.anchor === 'keep') return base;
+    var off = h.off == null ? 30 : +h.off;
+    if (h.anchor === 'suhoor') return Math.round(T.fajr * 60) - off;
+    if (h.anchor === 'iftar') return Math.round(T.maghrib * 60) + off;
+    if (h.anchor === 'preiftar') return Math.round(T.maghrib * 60) - off;
+    return base;
+  }
+  var timers = [];
+  function schedule() {
+    timers.forEach(clearTimeout); timers = [];
+    var T = times(today(), D.loc.lat, D.loc.lng, D.loc.tz), now = new Date(), nowM = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
+    var list = D.habits.map(function (h) { return { h: h, m: remTime(h, T) }; }).filter(function (x) { return x.m != null; }).sort(function (a, b) { return a.m - b.m; });
+    $('rems').innerHTML = list.length ? list.map(function (x) {
+      return '<li class="' + (x.m < nowM ? 'past' : '') + '"><span>' + esc(x.h.name) + (ramOn() && x.h.anchor && x.h.anchor !== 'keep' ? ' <small style="color:var(--muted)">· ' + ANCH[x.h.anchor].toLowerCase() + '</small>' : '') + '</span><b class="mono">' + hm(x.m / 60) + '</b></li>';
+    }).join('') : '<li><span class="msg">No reminders set. Add a time to a habit.</span></li>';
+    list.forEach(function (x) {
+      var ms = (x.m - nowM) * 60000; if (ms <= 0 || ms > 864e5) return;
+      timers.push(setTimeout(function () {
+        if (done(x.h, today())) return;
+        try { if (window.Notification && Notification.permission === 'granted') new Notification('Habit reminder', { body: x.h.name, icon: 'https://mariamalzaabi.ae/assets/favicon.svg' }); } catch (e) {}
+        $('bMsg').textContent = 'Reminder: ' + x.h.name;
+      }, ms));
+    });
+  }
+
+  // ---------- render
+  var openEdit = null, openHeat = {};
+  function heat(h) {
+    var t = today(), start = addDays(monday(t), -52 * 7), cs = 11, gap = 2, w = 53 * (cs + gap) + 24, H = 7 * (cs + gap) + 16;
+    var s = '<svg width="' + w + '" height="' + H + '" viewBox="0 0 ' + w + ' ' + H + '" role="img" aria-label="Year heatmap for ' + esc(h.name) + '">';
+    var lastM = -1;
+    for (var wk = 0; wk < 53; wk++) {
+      for (var dw = 0; dw < 7; dw++) {
+        var d = addDays(start, wk * 7 + dw); if (d > t) continue;
+        var on = done(h, d), x = 24 + wk * (cs + gap), y = 14 + dw * (cs + gap);
+        if (dw === 0 && d.getMonth() !== lastM && d.getDate() <= 7) { lastM = d.getMonth(); s += '<text x="' + x + '" y="9" fill="#A7ADCB" font-size="8" font-family="JetBrains Mono, monospace">' + d.toLocaleString('en', { month: 'short' }) + '</text>'; }
+        s += '<rect data-d="' + key(d) + '" x="' + x + '" y="' + y + '" width="' + cs + '" height="' + cs + '" rx="2.5" fill="' + (on ? h.color : 'rgba(255,255,255,.06)') + '"><title>' + d.toDateString() + (on ? ' · done' : '') + '</title></rect>';
+      }
+    }
+    ['Mon', 'Wed', 'Fri'].forEach(function (l, i) { s += '<text x="0" y="' + (14 + (i * 2) * (cs + gap) + 9) + '" fill="#A7ADCB" font-size="8" font-family="JetBrains Mono, monospace">' + l + '</text>'; });
+    return s + '</svg>';
+  }
+  function render() {
+    var t = today();
+    $('dateLine').textContent = t.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }) + (hijri(t) ? ' · ' + new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', { day: 'numeric', month: 'long', year: 'numeric' }).format(t) : '');
+    if (!D.habits.length) $('list').innerHTML = '<li class="empty">No habits yet. Add one below, or tap an idea to start.</li>';
+    else $('list').innerHTML = D.habits.map(function (h) {
+      var dn = done(h, t), sk = streak(h), wk = '';
+      for (var i = 6; i >= 0; i--) { var d = addDays(t, -i); wk += '<button type="button" data-tog="' + h.id + '" data-day="' + key(d) + '" class="' + (done(h, d) ? 'on' : '') + (i === 0 ? ' today' : '') + '" aria-label="' + d.toDateString() + (done(h, d) ? ', done' : '') + '">' + d.toLocaleDateString('en', { weekday: 'short' }).slice(0, 2) + '<i></i></button>'; }
+      var sub = h.kind === 'weekly' ? weekCount(h, monday(t)) + ' of ' + h.target + ' this week' : (dn ? 'Done today' : 'Not yet today');
+      var r = remTime(h, times(t, D.loc.lat, D.loc.lng, D.loc.tz));
+      if (r != null) sub += ' · 🔔 ' + hm(r / 60);
+      var ed = openEdit === h.id ? '<div class="edit form"><div class="line"><input type="text" data-f="name" value="' + esc(h.name) + '" maxlength="60" aria-label="Name"></div>' +
+        '<div class="line"><select data-f="kind" aria-label="How often"><option value="daily"' + (h.kind === 'daily' ? ' selected' : '') + '>Every day</option><option value="weekly"' + (h.kind === 'weekly' ? ' selected' : '') + '>Times a week</option></select>' +
+        (h.kind === 'weekly' ? '<select data-f="target" aria-label="Times per week">' + [1, 2, 3, 4, 5, 6].map(function (n) { return '<option' + (n === h.target ? ' selected' : '') + '>' + n + '</option>'; }).join('') + '</select>' : '') +
+        '<label>Reminder <input type="time" data-f="time" value="' + (h.time || '') + '"></label></div>' +
+        '<div class="line"><span>In Ramadan:</span><select data-f="anchor" aria-label="Ramadan reminder">' + Object.keys(ANCH).map(function (k) { return '<option value="' + k + '"' + ((h.anchor || 'keep') === k ? ' selected' : '') + '>' + ANCH[k] + '</option>'; }).join('') + '</select>' +
+        '<input type="number" data-f="off" min="0" max="240" step="5" value="' + (h.off == null ? 30 : h.off) + '" style="width:72px" aria-label="Minutes"> min</div>' +
+        '<div class="line">' + COLORS.map(function (c) { return '<button type="button" class="sm x" data-col="' + c + '" aria-label="Colour" style="background:' + c + ';border-color:' + (c === h.color ? 'var(--ink)' : c) + ';width:24px;height:24px;padding:0"></button>'; }).join('') +
+        '<button class="sm x" type="button" data-up="' + h.id + '">↑ Move up</button><button class="sm x" type="button" data-del="' + h.id + '" style="color:var(--sat-c)">Delete</button></div></div>' : '';
+      return '<li class="hb" style="--c:' + h.color + '" data-h="' + h.id + '"><div class="top"><button type="button" class="tick" data-tog="' + h.id + '" data-day="' + key(t) + '" aria-pressed="' + dn + '" aria-label="' + (dn ? 'Undo ' : 'Check in ') + esc(h.name) + '">' + (dn ? '✓' : '') + '</button><div><h3>' + esc(h.name) + '</h3><span class="sub">' + sub + '</span></div><div class="sk">' + sk + '<small>' + (h.kind === 'weekly' ? 'week' : 'day') + (sk === 1 ? '' : 's') + ' streak</small></div></div>' +
+        '<div class="week">' + wk + '</div>' +
+        '<div class="line"><button class="sm x" type="button" data-heat="' + h.id + '">' + (openHeat[h.id] ? 'Hide year' : 'Show year') + '</button><button class="sm x" type="button" data-edit="' + h.id + '">' + (openEdit === h.id ? 'Close' : 'Edit') + '</button></div>' +
+        (openHeat[h.id] ? '<div class="heat">' + heat(h) + '</div><div class="hstat"><span>Total <b>' + Object.keys(D.log[h.id] || {}).length + '</b></span><span>Best streak <b>' + bestStreak(h) + '</b></span><span>Last 30 days <b>' + Math.round(rate30(h) * 100) + '%</b></span><span>Tap a square to fix a past day.</span></div>' : '') + ed + '</li>';
+    }).join('');
+    var dt = 0, due = 0, best = 0, r30 = 0;
+    D.habits.forEach(function (h) { if (h.kind === 'daily') { due++; if (done(h, t)) dt++; } else if (done(h, t)) { due++; dt++; } best = Math.max(best, streak(h)); r30 += rate30(h); });
+    $('sToday').textContent = dt + '/' + due; $('sStreak').textContent = best; $('s30').textContent = D.habits.length ? Math.round(100 * r30 / D.habits.length) + '%' : '–';
+    renderRam(); schedule();
+  }
+  function renderRam() {
+    var r = ramadanInfo(), on = ramOn();
+    [].forEach.call(document.querySelectorAll('[data-rm]'), function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-rm') === D.ram); });
+    var s = !r.known ? 'This browser has no Umm al-Qura calendar, so Auto can\'t tell when Ramadan is. Use On and Off instead.' :
+      r.now ? 'Ramadan Kareem. Today is day ' + r.day + ' of Ramadan, with about ' + r.left + ' day' + (r.left === 1 ? '' : 's') + ' to go.' :
+      r.inDays ? 'Ramadan is expected to start in ' + r.inDays + ' days, on ' + r.start.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) + '.' : '';
+    $('ramState').textContent = s + (on ? ' Ramadan mode is on: habits set to follow suhoor or iftar use the times below.' : ' Ramadan mode is off.');
+    var T = times(today(), D.loc.lat, D.loc.lng, D.loc.tz);
+    $('times').innerHTML = [['Suhoor ends (Fajr)', T.fajr], ['Sunrise', T.sunrise], ['Iftar (Maghrib)', T.maghrib]].map(function (x) { return '<div><span>' + x[0] + '</span><b>' + hm(x[1]) + '</b></div>'; }).join('');
+    var fast = T.maghrib - T.fajr;
+    $('timesNote').textContent = D.loc.name + ' today · fasting time about ' + Math.floor(fast) + ' h ' + Math.round((fast % 1) * 60) + ' min · times in UTC' + (D.loc.tz >= 0 ? '+' : '') + D.loc.tz;
+  }
+
+  // ---------- events
+  var IDEAS = ['Read 10 pages', 'Drink 8 glasses of water', 'Walk 20 minutes', 'Quran, one page', 'No phone after 10 pm', 'Call family'];
+  $('ideas').innerHTML = IDEAS.map(function (x) { return '<button class="sm x" type="button" data-idea="' + esc(x) + '">' + esc(x) + '</button>'; }).join('');
+  $('hKind').onchange = function () { $('hTarget').hidden = this.value !== 'weekly'; };
+  function addHabit(name) {
+    name = (name || '').trim(); if (!name) { $('hName').focus(); return; }
+    D.habits.push({ id: D.nid++, name: name.slice(0, 60), kind: $('hKind').value, target: +$('hTarget').value, time: $('hTime').value || '', anchor: 'keep', off: 30, color: COLORS[(D.habits.length) % COLORS.length], created: key(today()) });
+    $('hName').value = ''; save(); render();
+  }
+  $('hAdd').onclick = function () { addHabit($('hName').value); };
+  $('hName').onkeydown = function (e) { if (e.key === 'Enter') addHabit(this.value); };
+  function hById(id) { for (var i = 0; i < D.habits.length; i++) if (D.habits[i].id === id) return D.habits[i]; return null; }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest ? e.target.closest('button, rect') : null; if (!b) return;
+    var v;
+    if ((v = b.getAttribute('data-idea'))) { $('hName').value = v; addHabit(v); }
+    else if ((v = b.getAttribute('data-tog'))) { var p = b.getAttribute('data-day').split('-'); toggle(hById(+v), new Date(+p[0], p[1] - 1, +p[2])); }
+    else if ((v = b.getAttribute('data-heat'))) { openHeat[v] = !openHeat[v]; render(); }
+    else if ((v = b.getAttribute('data-edit'))) { openEdit = openEdit === +v ? null : +v; render(); }
+    else if ((v = b.getAttribute('data-del'))) { var h = hById(+v); if (confirm('Delete "' + h.name + '" and its history?')) { D.habits = D.habits.filter(function (x) { return x !== h; }); delete D.log[h.id]; openEdit = null; save(); render(); } }
+    else if ((v = b.getAttribute('data-up'))) { var i = D.habits.indexOf(hById(+v)); if (i > 0) { var tmp = D.habits[i - 1]; D.habits[i - 1] = D.habits[i]; D.habits[i] = tmp; save(); render(); } }
+    else if ((v = b.getAttribute('data-col'))) { var li = b.closest('[data-h]'); hById(+li.getAttribute('data-h')).color = v; save(); render(); }
+    else if ((v = b.getAttribute('data-rm'))) { D.ram = v; save(); render(); }
+    else if ((v = b.getAttribute('data-d'))) { var li2 = b.closest('[data-h]'), q = v.split('-'); toggle(hById(+li2.getAttribute('data-h')), new Date(+q[0], q[1] - 1, +q[2])); }
+  });
+  document.addEventListener('change', function (e) {
+    var f = e.target.getAttribute && e.target.getAttribute('data-f'); if (!f) return;
+    var h = hById(+e.target.closest('[data-h]').getAttribute('data-h')), v = e.target.value;
+    if (f === 'name') { if (v.trim()) h.name = v.trim().slice(0, 60); }
+    else if (f === 'target') h.target = +v;
+    else if (f === 'off') h.off = Math.max(0, Math.min(240, +v || 0));
+    else { h[f] = v; if (f === 'kind' && v === 'weekly' && !h.target) h.target = 3; }
+    save(); render();
+  });
+  $('city').innerHTML = CITIES.map(function (c, i) { return '<option value="' + i + '">' + c[0] + '</option>'; }).join('') + '<option value="me" hidden>My location</option>';
+  $('city').onchange = function () { var c = CITIES[+this.value]; if (!c) return; D.loc = { name: c[0], lat: c[1], lng: c[2], tz: 4 }; save(); render(); };
+  $('geo').onclick = function () {
+    if (!navigator.geolocation) { $('timesNote').textContent = 'Your browser can\'t share a location.'; return; }
+    navigator.geolocation.getCurrentPosition(function (p) {
+      D.loc = { name: 'Your location', lat: +p.coords.latitude.toFixed(3), lng: +p.coords.longitude.toFixed(3), tz: -new Date().getTimezoneOffset() / 60 };
+      $('city').value = 'me'; save(); render();
+    }, function () { $('timesNote').textContent = 'Location was not shared. Pick a city instead.'; }, { maximumAge: 6e5, timeout: 10000 });
+  };
+  $('notif').onclick = function () {
+    if (!window.Notification) { $('bMsg').textContent = 'This browser doesn\'t support notifications.'; return; }
+    Notification.requestPermission().then(function (p) { $('notif').textContent = p === 'granted' ? '🔔 Notifications on' : '🔕 Notifications blocked'; });
+  };
+  $('exp').onclick = function () {
+    var blob = new Blob([JSON.stringify({ app: 'habits', version: 1, exported: new Date().toISOString(), data: D }, null, 1)], { type: 'application/json' });
+    var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'habits-' + key(today()) + '.json'; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+    $('bMsg').textContent = 'Saved a backup file.';
+  };
+  $('imp').onchange = function () {
+    var f = this.files[0]; if (!f) return; var rd = new FileReader();
+    rd.onload = function () {
+      try {
+        var j = JSON.parse(rd.result), d = j.data || j;
+        if (!Array.isArray(d.habits) || typeof d.log !== 'object') throw new Error('bad');
+        if (!confirm('Replace your current habits with ' + d.habits.length + ' from this file?')) return;
+        D = d; if (!D.loc) D.loc = blank().loc; if (!D.ram) D.ram = 'auto';
+        D.nid = Math.max(D.nid || 1, D.habits.reduce(function (m, h) { return Math.max(m, h.id + 1); }, 1));
+        save(); render(); $('bMsg').textContent = 'Imported ' + D.habits.length + ' habits.';
+      } catch (e) { $('bMsg').textContent = 'That file doesn\'t look like a habits backup.'; }
+    };
+    rd.readAsText(f); this.value = '';
+  };
+  $('demo').onclick = function () {
+    if (D.habits.length && !confirm('Replace your habits with demo data?')) return;
+    D = blank(); var t = today();
+    [['Read 10 pages', 'daily', 0, '21:30', 'iftar', 90, 0.7], ['Walk 20 minutes', 'weekly', 4, '18:00', 'preiftar', 45, 0.55], ['Drink 8 glasses of water', 'daily', 0, '10:00', 'suhoor', 30, 0.85], ['Call family', 'weekly', 2, '', 'keep', 30, 0.3]].forEach(function (x, i) {
+      var h = { id: D.nid++, name: x[0], kind: x[1], target: x[2] || 1, time: x[3], anchor: x[4], off: x[5], color: COLORS[i], created: key(addDays(t, -365)) };
+      D.habits.push(h); D.log[h.id] = {};
+      for (var k = 1; k < 365; k++) if (Math.random() < x[6] * (0.6 + 0.4 * Math.sin(k / 40) ** 2 + 0.2)) D.log[h.id][key(addDays(t, -k))] = 1;
+    });
+    save(); render(); $('bMsg').textContent = 'Demo data loaded. Export first if you want to keep your own.';
+  };
+
+  load();
+  var ci = -1; CITIES.forEach(function (c, i) { if (c[0] === D.loc.name) ci = i; }); $('city').value = ci >= 0 ? ci : 'me';
+  render();
+  if (window.Notification && Notification.permission === 'granted') $('notif').textContent = '🔔 Notifications on';
+  // refresh at midnight and every few minutes
+  setInterval(function () { render(); }, 5 * 60 * 1000);
+})();
+</script>
+</body>
+</html>

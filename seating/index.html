@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Seating Planner · Mariam's Lab</title>
+<meta name="description" content="Plan seating for a wedding, majlis or dinner. Add guests and families, tables and rules like who must sit together or apart, and let the planner find a good arrangement. Drag to adjust, then print.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/seating/">
+<meta property="og:title" content="Seating Planner · Mariam's Lab"><meta property="og:description" content="Guests, tables and rules in. A good seating plan out. Drag to adjust and print."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm.go, .sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.sm.x { padding: 1px 8px; font-size: 0.75rem; color: var(--muted); }
+.acts { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 0; }
+.sect { display: grid; gap: 10px; }
+.sect h3 { font-size: 1rem; font-family: var(--font-display); display: flex; gap: 8px; align-items: baseline; }
+.sect h3 small { font: 500 0.72rem var(--font-mono); color: var(--muted); }
+.tbls { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; }
+.tbl { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); padding: 10px; display: grid; gap: 8px; align-content: start; min-height: 96px; transition: border-color .15s, background .15s; }
+.tbl.over { border-color: var(--sat-c); }
+.tbl.drop { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--surface)); }
+.tbl header { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; }
+.tbl header b { font-family: var(--font-display); font-size: 0.98rem; }
+.tbl header span { font: 500 0.72rem var(--font-mono); color: var(--muted); }
+.tbl header span.full { color: var(--accent); }
+.tbl header span.bad { color: var(--sat-c); }
+.seats { display: flex; flex-wrap: wrap; gap: 4px; }
+.gp { font-size: 0.8rem; padding: 3px 9px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--c, var(--line)) 70%, transparent); background: color-mix(in srgb, var(--c, #888) 16%, transparent); cursor: grab; user-select: none; -webkit-user-select: none; touch-action: none; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.gp.sel { outline: 2px solid var(--accent); outline-offset: 1px; }
+.gp.warn { border-color: var(--sat-c); border-style: dashed; }
+.gp i { font-style: normal; font-size: 0.7rem; margin-inline-start: 3px; }
+.ghost { position: fixed; z-index: 50; pointer-events: none; opacity: .9; transform: translate(-50%, -50%); }
+.pool { border: 1px dashed var(--line); border-radius: 12px; padding: 10px; display: grid; gap: 8px; }
+.pool.drop { border-color: var(--accent); }
+.form { display: grid; gap: 8px; }
+.form textarea, .form input, .form select { font: inherit; font-size: 0.88rem; color: var(--ink); background: rgba(255,255,255,.04); border: 1px solid var(--line); border-radius: 10px; padding: 7px 10px; min-width: 0; }
+.form textarea { min-height: 96px; resize: vertical; }
+.form select option { background: #111; }
+.line { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.line > input, .line > select { flex: 1 1 110px; }
+.line > input.n { flex: 0 1 72px; }
+.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; max-height: 260px; overflow: auto; font-size: 0.86rem; }
+.list li { display: flex; justify-content: space-between; gap: 8px; align-items: center; padding: 4px 8px; border: 1px solid var(--line); border-radius: 8px; }
+.list li span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.list li small { color: var(--muted); }
+.issues { margin: 0; padding-inline-start: 18px; font-size: 0.86rem; color: var(--muted); display: grid; gap: 3px; }
+.issues li.b { color: var(--sat-c); }
+details.box { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+details.box summary { cursor: pointer; font-weight: 600; }
+details.box[open] summary { margin-bottom: 10px; }
+.ck { display: flex; gap: 8px; align-items: flex-start; font-size: 0.88rem; }
+.ck input { margin-top: 3px; flex: none; }
+.legend { display: flex; gap: 10px; flex-wrap: wrap; font-size: 0.75rem; color: var(--muted); }
+#printout { display: none; }
+@media print {
+  body { background: #fff !important; color: #000 !important; }
+  body::before, .labbar, .labfoot, main.labmain { display: none !important; }
+  #printout { display: block !important; font-family: var(--font-body); color: #000; padding: 0 8mm; }
+  #printout h1 { font-size: 20pt; margin: 0 0 4mm; color: #000; }
+  #printout h2 { font-size: 13pt; margin: 6mm 0 3mm; color: #000; border-bottom: 1px solid #999; }
+  #printout .pt { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4mm; }
+  #printout .pt div { border: 1px solid #999; border-radius: 3mm; padding: 3mm; break-inside: avoid; }
+  #printout .pt b { display: block; font-size: 11pt; margin-bottom: 1mm; }
+  #printout .pt ol { margin: 0; padding-left: 5mm; font-size: 10pt; }
+  #printout .az { columns: 3; font-size: 9.5pt; margin-top: 2mm; }
+  #printout .az div { break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Planning · Events</span>
+    <h1 style="font-size:var(--step-3)">Seating planner.</h1>
+    <p>Seating a wedding, a majlis or a big family dinner is a puzzle: families want to sit together, some people are best kept apart, and every table has a limit. Add your guests, tables and rules, press Arrange, then drag people around until it feels right. Separate halls or sections are supported too.</p>
+  </div>
+  <div class="game">
+    <div class="panel">
+      <div class="acts">
+        <button class="sm go" type="button" id="solve">✦ Arrange</button>
+        <button class="sm" type="button" id="unseat">Clear seats</button>
+        <button class="sm" type="button" id="print">Print</button>
+        <button class="sm" type="button" id="sample">Load an example</button>
+      </div>
+      <p class="msg" id="msg" role="status"></p>
+      <div class="stats">
+        <div><b id="sSeat">0/0</b><span>guests seated</span></div>
+        <div><b id="sCap">0</b><span>seats in total</span></div>
+        <div><b id="sIss">0</b><span>rules not met</span></div>
+      </div>
+      <div id="plan"></div>
+      <div class="pool" id="pool" data-table=""><span class="label">Not seated yet</span><div class="seats" id="poolSeats"></div></div>
+      <p class="msg">Drag a name onto a table, or tap a name and then tap a table. A name you place by hand gets a pin 📌 so Arrange leaves it there. Tap the pin to free it.</p>
+      <span class="label">Rules check</span>
+      <ul class="issues" id="issues"></ul>
+    </div>
+    <div class="panel">
+      <details class="box" open>
+        <summary>Guests <small id="gCount" class="mono"></small></summary>
+        <div class="form">
+          <textarea id="gIn" placeholder="One per line: Name, Group, Section&#10;Fatima Al Hashmi, Al Hashmi family&#10;Omar, Work friends&#10;Group and section are optional." aria-label="Guests to add"></textarea>
+          <div class="line">
+            <button class="sm go" type="button" id="gAdd">Add guests</button>
+            <label class="sm" style="cursor:pointer">Import CSV<input type="file" id="csv" accept=".csv,text/csv,.txt" hidden></label>
+          </div>
+          <p class="msg" style="font-size:.8rem">CSV: a name column, plus optional group and section columns. A header row with "name" is detected.</p>
+          <ul class="list" id="gList"></ul>
+        </div>
+      </details>
+      <details class="box" open>
+        <summary>Tables</summary>
+        <div class="form">
+          <div class="line">
+            <input class="n" type="number" id="tNum" min="1" max="60" value="4" aria-label="Number of tables">
+            <span>tables of</span>
+            <input class="n" type="number" id="tCap" min="1" max="60" value="8" aria-label="Seats per table">
+            <span>seats</span>
+            <select id="tSec" aria-label="Section for new tables"></select>
+            <button class="sm go" type="button" id="tAdd">Add</button>
+          </div>
+          <ul class="list" id="tList"></ul>
+        </div>
+      </details>
+      <details class="box">
+        <summary>Sections</summary>
+        <div class="form">
+          <label class="ck"><input type="checkbox" id="useSec"> Split into separate sections (for example separate halls, or a family area and a guest area)</label>
+          <div class="line"><input id="secName" placeholder="Section name, e.g. Hall A" aria-label="New section name"><button class="sm" type="button" id="secAdd">Add section</button></div>
+          <ul class="list" id="secList"></ul>
+          <p class="msg" style="font-size:.8rem">Guests are only seated at tables in their own section. A guest with no section can sit anywhere.</p>
+        </div>
+      </details>
+      <details class="box" open>
+        <summary>Rules</summary>
+        <div class="form">
+          <div class="line">
+            <select id="rA" aria-label="First guest"></select>
+            <select id="rType" aria-label="Rule">
+              <option value="t">must sit with</option>
+              <option value="a">keep apart from</option>
+              <option value="p">would like to sit with</option>
+            </select>
+            <select id="rB" aria-label="Second guest"></select>
+            <button class="sm go" type="button" id="rAdd">Add rule</button>
+          </div>
+          <label class="ck" style="font-size:.86rem;color:var(--muted)"><input type="checkbox" id="keepGroups" checked> Try to keep each group at one table</label>
+          <ul class="list" id="rList"></ul>
+        </div>
+      </details>
+      <p class="fact"><b>How Arrange works.</b> It first seats whole families and must-sit pairs, biggest first, at the table with the most room. Then it runs simulated annealing: thousands of small random moves and swaps, keeping any change that lowers a penalty score and sometimes accepting a worse one early on, so it doesn't get stuck. Must-sit and keep-apart rules cost a lot, wishes and split groups cost a little.</p>
+      <p class="fact" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">Your plan is saved on this device. <button class="sm" type="button" id="wipe">Start a new plan</button></p>
+    </div>
+  </div>
+</div></main>
+<div id="printout"></div>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var KEY = 'seatingPlan';
+  var S;
+  function blank() { return { guests: [], tables: [], sections: [], useSec: false, rules: [], seat: {}, pin: {}, keepGroups: true, nid: 1 }; }
+  function load() { try { S = JSON.parse(localStorage.getItem(KEY)); } catch (e) { S = null; } if (!S || !S.guests) S = blank(); }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  var GI = {}, TI = {}, gN = -1, tN = -1, gRef = null, tRef = null;
+  function reindex() {
+    if (gRef === S.guests && tRef === S.tables && gN === S.guests.length && tN === S.tables.length) return;
+    GI = {}; TI = {}; S.guests.forEach(function (g) { GI[g.id] = g; }); S.tables.forEach(function (t) { TI[t.id] = t; });
+    gRef = S.guests; tRef = S.tables; gN = S.guests.length; tN = S.tables.length;
+  }
+  function gById(id) { reindex(); return GI[id] || null; }
+  function tById(id) { reindex(); return TI[id] || null; }
+  var PAL = ['#E9B467', '#4FD3BD', '#84A0FF', '#F08AB3', '#C9E264', '#FF8A4C', '#B18CFF', '#6CC6FF', '#FFD166', '#9BE7A8'];
+  function groupColor(g) { if (!g) return 'var(--line)'; var h = 0; for (var i = 0; i < g.length; i++) h = (h * 31 + g.charCodeAt(i)) >>> 0; return PAL[h % PAL.length]; }
+  function secOf(x) { return S.useSec ? (x.section || '') : ''; }
+  var secCache = null, secKey = '';
+  function secHas() {
+    var k = S.useSec + '|' + S.tables.map(function (t) { return t.section || ''; }).join(',');
+    if (k !== secKey) { secKey = k; secCache = {}; S.tables.forEach(function (t) { if (secOf(t)) secCache[secOf(t)] = 1; }); }
+    return secCache;
+  }
+  // a guest with a section sits only in that section (if it has tables); a guest without one can sit anywhere
+  function fits(g, t) {
+    var gs = secOf(g), ts = secOf(t); if (!gs) return true;
+    if (!ts) return !secHas()[gs];
+    return gs === ts;
+  }
+
+  // ---------- cost model
+  var W = { cap: 5000, sec: 5000, together: 800, apart: 800, prefer: 12, group: 18, unseated: 300, loose: 4 };
+  function evaluate(seat, detail) {
+    var cost = 0, out = [], load = {}, i;
+    S.tables.forEach(function (t) { load[t.id] = 0; });
+    S.guests.forEach(function (g) {
+      var t = seat[g.id];
+      if (t == null || !tById(t)) { cost += W.unseated; if (detail) out.push({ b: 0, t: g.name + ' is not seated.' }); return; }
+      load[t]++;
+      if (!secOf(g) && secOf(tById(t))) cost += W.loose;
+      if (!fits(g, tById(t))) { cost += W.sec; if (detail) out.push({ b: 1, t: g.name + ' is in a table outside their section.' }); }
+    });
+    S.tables.forEach(function (t) { var o = load[t.id] - t.cap; if (o > 0) { cost += W.cap * o; if (detail) out.push({ b: 1, t: t.name + ' has ' + o + ' too many.' }); } });
+    S.rules.forEach(function (r) {
+      var a = gById(r.a), b = gById(r.b); if (!a || !b) return;
+      var ta = seat[r.a], tb = seat[r.b];
+      if (ta == null || tb == null) return;
+      var same = ta === tb;
+      if (r.k === 't' && !same) { cost += W.together; if (detail) out.push({ b: 1, t: a.name + ' and ' + b.name + ' must sit together but are apart.' }); }
+      if (r.k === 'a' && same) { cost += W.apart; if (detail) out.push({ b: 1, t: a.name + ' and ' + b.name + ' should be kept apart but share a table.' }); }
+      if (r.k === 'p' && !same) { cost += W.prefer; if (detail) out.push({ b: 0, t: a.name + ' would like to sit with ' + b.name + '.' }); }
+    });
+    if (S.keepGroups) {
+      var groups = {};
+      S.guests.forEach(function (g) { if (!g.group || seat[g.id] == null) return; var k = g.group + '\u0001' + secOf(g); (groups[k] = groups[k] || {})[seat[g.id]] = 1; });
+      Object.keys(groups).forEach(function (k) { var n = Object.keys(groups[k]).length, nm = k.split('\u0001'); if (n > 1) { cost += W.group * (n - 1); if (detail) out.push({ b: 0, t: 'The ' + nm[0] + ' group' + (nm[1] ? ' (' + nm[1] + ')' : '') + ' is spread over ' + n + ' tables.' }); } });
+    }
+    return detail ? { cost: cost, list: out, load: load } : cost;
+  }
+
+  // ---------- solver: greedy by unit, then simulated annealing
+  function units() {
+    // union-find on must-sit rules (and groups, as a soft starting hint)
+    var par = {}; S.guests.forEach(function (g) { par[g.id] = g.id; });
+    function f(x) { while (par[x] !== x) { par[x] = par[par[x]]; x = par[x]; } return x; }
+    S.rules.forEach(function (r) { if (r.k === 't' && par[r.a] != null && par[r.b] != null) par[f(r.a)] = f(r.b); });
+    var m = {}; S.guests.forEach(function (g) { var k = f(g.id); (m[k] = m[k] || []).push(g.id); });
+    return Object.keys(m).map(function (k) { return m[k]; });
+  }
+  function solve() {
+    var T = S.tables; if (!T.length) { say('Add some tables first.'); return; }
+    if (!S.guests.length) { say('Add some guests first.'); return; }
+    var seat = {}, room = {};
+    T.forEach(function (t) { room[t.id] = t.cap; });
+    // keep pinned guests
+    S.guests.forEach(function (g) { if (S.pin[g.id] && S.seat[g.id] != null && tById(S.seat[g.id])) { seat[g.id] = S.seat[g.id]; room[seat[g.id]]--; } });
+    // greedy: units sorted by size; group siblings pulled in together
+    var U = units().map(function (u) { return u.filter(function (id) { return seat[id] == null; }); }).filter(function (u) { return u.length; });
+    var byGroup = {};
+    U.forEach(function (u) { var g = gById(u[0]).group || ('~' + u[0]); (byGroup[g] = byGroup[g] || []).push(u); });
+    var blocks = Object.keys(byGroup).map(function (k) { return byGroup[k]; });
+    blocks.sort(function (a, b) { return size(b) - size(a); });
+    function size(bl) { return bl.reduce(function (s, u) { return s + u.length; }, 0); }
+    // best fit: the fullest table that still has room for n; otherwise the emptiest table
+    function best(g, n) {
+      var fit = null, any = null;
+      T.forEach(function (t) {
+        if (!fits(g, t)) return;
+        var r = room[t.id] - (secOf(g) === secOf(t) ? 0 : 0.5);
+        if (room[t.id] >= n && (!fit || r < fit.r)) fit = { t: t, r: r };
+        if (!any || r > any.r) any = { t: t, r: r };
+      });
+      return fit ? fit.t : any && any.t;
+    }
+    function put(ids, t) { ids.forEach(function (id) { seat[id] = t.id; }); room[t.id] -= ids.length; }
+    blocks.forEach(function (bl) {
+      var all = [].concat.apply([], bl), g = gById(all[0]), t = best(g, all.length);
+      if (t && room[t.id] >= all.length) { put(all, t); return; }
+      bl.sort(function (a, b) { return b.length - a.length; });
+      bl.forEach(function (u) { var tu = best(gById(u[0]), u.length); if (tu) put(u, tu); });
+    });
+    // annealing
+    var free = S.guests.filter(function (g) { return !S.pin[g.id]; }).map(function (g) { return g.id; });
+    var start = Object.assign({}, seat), bestSeat = Object.assign({}, seat), bestCost = evaluate(seat);
+    var iters = Math.min(40000, 4000 + free.length * 400), t0 = Date.now(), T0 = 300, T1 = 0.3;
+    var uMap = {}; units().forEach(function (u) { u.forEach(function (id) { uMap[id] = u; }); });
+    for (var rs = 0; rs < 4 && bestCost > 0 && (rs === 0 || Date.now() - t0 < 2000); rs++) {
+      seat = Object.assign({}, start);
+      var cur = evaluate(seat);
+      for (var it = 0; it < iters && free.length; it++) {
+        var temp = T0 * Math.pow(T1 / T0, it / iters);
+        var r = Math.random(), changes = [];
+        var a = free[(Math.random() * free.length) | 0];
+        if (r < 0.45) { // move one guest
+          changes.push([a, T[(Math.random() * T.length) | 0].id]);
+        } else if (r < 0.85) { // swap two guests
+          var b = free[(Math.random() * free.length) | 0]; if (b === a) continue;
+          changes.push([a, seat[b]], [b, seat[a]]);
+        } else { // move a whole must-sit unit, or a guest's whole group
+          var dest = T[(Math.random() * T.length) | 0].id, g = gById(a), mem = Math.random() < 0.5 && g.group ? S.guests.filter(function (x) { return x.group === g.group && !S.pin[x.id]; }).map(function (x) { return x.id; }) : uMap[a];
+          mem.forEach(function (id) { if (!S.pin[id]) changes.push([id, dest]); });
+        }
+        var old = changes.map(function (c) { return [c[0], seat[c[0]]]; });
+        changes.forEach(function (c) { if (c[1] == null) delete seat[c[0]]; else seat[c[0]] = c[1]; });
+        var nc = evaluate(seat), d = nc - cur;
+        if (d <= 0 || Math.random() < Math.exp(-d / temp)) { cur = nc; if (cur < bestCost) { bestCost = cur; bestSeat = Object.assign({}, seat); } }
+        else old.reverse().forEach(function (c) { if (c[1] == null) delete seat[c[0]]; else seat[c[0]] = c[1]; });
+      }
+    }
+    S.seat = bestSeat; save(); render();
+    var ev = evaluate(S.seat, true), hard = ev.list.filter(function (x) { return x.b; }).length;
+    say(hard ? 'Arranged, but ' + hard + ' firm rule' + (hard > 1 ? 's' : '') + ' could not be met. See the rules check below.' : 'Arranged. All firm rules are met.' + (ev.list.length ? ' A few wishes could not all fit.' : ''));
+  }
+  function say(t) { $('msg').textContent = t; }
+
+  // ---------- render
+  function pill(g, warnIds) {
+    var pinned = S.pin[g.id];
+    return '<span class="gp' + (warnIds[g.id] ? ' warn' : '') + (sel === g.id ? ' sel' : '') + '" data-g="' + g.id + '" style="--c:' + groupColor(g.group) + '" title="' + esc(g.name + (g.group ? ' · ' + g.group : '') + (secOf(g) ? ' · ' + secOf(g) : '')) + '">' + esc(g.name) + (pinned ? '<i data-pin="' + g.id + '" role="button" aria-label="Unpin">📌</i>' : '') + '</span>';
+  }
+  function render() {
+    var ev = evaluate(S.seat, true), warn = {};
+    S.rules.forEach(function (r) {
+      var ta = S.seat[r.a], tb = S.seat[r.b]; if (ta == null || tb == null) return;
+      if ((r.k === 't' && ta !== tb) || (r.k === 'a' && ta === tb)) { warn[r.a] = 1; warn[r.b] = 1; }
+    });
+    S.guests.forEach(function (g) { var t = tById(S.seat[g.id]); if (t && !fits(g, t)) warn[g.id] = 1; });
+    var secs = S.useSec ? S.sections.concat(['']) : [''];
+    var html = '';
+    secs.forEach(function (sec) {
+      var ts = S.tables.filter(function (t) { return (S.useSec ? (t.section || '') : '') === sec; });
+      if (!ts.length) return;
+      var seated = 0, cap = 0; ts.forEach(function (t) { seated += ev.load[t.id] || 0; cap += t.cap; });
+      html += '<div class="sect">' + (S.useSec ? '<h3>' + esc(sec || 'Any section') + ' <small>' + seated + '/' + cap + '</small></h3>' : '') + '<div class="tbls">';
+      ts.forEach(function (t) {
+        var n = ev.load[t.id] || 0, gs = S.guests.filter(function (g) { return S.seat[g.id] === t.id; });
+        html += '<div class="tbl' + (n > t.cap ? ' over' : '') + '" data-table="' + t.id + '"><header><b>' + esc(t.name) + '</b><span class="' + (n > t.cap ? 'bad' : n === t.cap ? 'full' : '') + '">' + n + '/' + t.cap + '</span></header><div class="seats">' + gs.map(function (g) { return pill(g, warn); }).join('') + '</div></div>';
+      });
+      html += '</div></div>';
+    });
+    $('plan').innerHTML = html || '<p class="msg">No tables yet. Add some on the right, or load the example.</p>';
+    $('plan').style.display = 'grid'; $('plan').style.gap = '16px';
+    var un = S.guests.filter(function (g) { return S.seat[g.id] == null || !tById(S.seat[g.id]); });
+    $('poolSeats').innerHTML = un.length ? un.map(function (g) { return pill(g, warn); }).join('') : '<span class="msg">Everyone has a seat.</span>';
+    var cap = S.tables.reduce(function (s, t) { return s + t.cap; }, 0);
+    $('sSeat').textContent = (S.guests.length - un.length) + '/' + S.guests.length;
+    $('sCap').textContent = cap;
+    var hard = ev.list.filter(function (x) { return x.b; });
+    $('sIss').textContent = hard.length;
+    var issues = ev.list.filter(function (x) { return !/is not seated/.test(x.t); });
+    $('issues').innerHTML = issues.length ? issues.slice(0, 30).map(function (x) { return '<li class="' + (x.b ? 'b' : '') + '">' + esc(x.t) + '</li>'; }).join('') : '<li>' + (S.guests.length && !un.length ? 'All rules are met.' : 'Nothing to check yet.') + '</li>';
+    if (cap < S.guests.length && S.tables.length) $('issues').insertAdjacentHTML('afterbegin', '<li class="b">There are ' + S.guests.length + ' guests but only ' + cap + ' seats.</li>');
+    renderSide();
+  }
+  function opts(sel0) { return S.guests.slice().sort(function (a, b) { return a.name.localeCompare(b.name); }).map(function (g) { return '<option value="' + g.id + '"' + (g.id === sel0 ? ' selected' : '') + '>' + esc(g.name) + '</option>'; }).join(''); }
+  function secOpts(v, any) { return (any ? '<option value="">' + any + '</option>' : '') + S.sections.map(function (s) { return '<option' + (s === v ? ' selected' : '') + '>' + esc(s) + '</option>'; }).join(''); }
+  function renderSide() {
+    $('gCount').textContent = S.guests.length ? '· ' + S.guests.length : '';
+    $('gList').innerHTML = S.guests.map(function (g) {
+      return '<li><span>' + esc(g.name) + ' <small>' + esc([g.group, S.useSec ? g.section : ''].filter(Boolean).join(' · ')) + '</small></span><span class="line" style="flex-wrap:nowrap">' + (S.useSec ? '<select data-gsec="' + g.id + '" aria-label="Section for ' + esc(g.name) + '">' + secOpts(g.section || '', 'Any') + '</select>' : '') + '<button class="sm x" type="button" data-delg="' + g.id + '" aria-label="Remove ' + esc(g.name) + '">✕</button></span></li>';
+    }).join('');
+    $('tList').innerHTML = S.tables.map(function (t) {
+      return '<li><span>' + esc(t.name) + ' <small>' + t.cap + ' seats' + (S.useSec && t.section ? ' · ' + esc(t.section) : '') + '</small></span><span class="line" style="flex-wrap:nowrap"><button class="sm x" type="button" data-capm="' + t.id + '" aria-label="One seat fewer">−</button><button class="sm x" type="button" data-capp="' + t.id + '" aria-label="One seat more">+</button><button class="sm x" type="button" data-delt="' + t.id + '" aria-label="Remove ' + esc(t.name) + '">✕</button></span></li>';
+    }).join('');
+    $('tSec').style.display = S.useSec ? '' : 'none';
+    $('tSec').innerHTML = secOpts($('tSec').value, 'Any section');
+    $('useSec').checked = S.useSec;
+    $('secList').innerHTML = S.sections.map(function (s, i) { return '<li><span>' + esc(s) + '</span><button class="sm x" type="button" data-dels="' + i + '" aria-label="Remove section">✕</button></li>'; }).join('');
+    var a = $('rA').value, b = $('rB').value;
+    $('rA').innerHTML = opts(+a); $('rB').innerHTML = opts(+b);
+    if (!b && S.guests.length > 1) $('rB').selectedIndex = 1;
+    var KN = { t: 'must sit with', a: 'keep apart from', p: 'would like to sit with' };
+    $('rList').innerHTML = S.rules.map(function (r, i) { var A = gById(r.a), B = gById(r.b); if (!A || !B) return ''; return '<li><span>' + esc(A.name) + ' <small>' + KN[r.k] + '</small> ' + esc(B.name) + '</span><button class="sm x" type="button" data-delr="' + i + '" aria-label="Remove rule">✕</button></li>'; }).join('');
+    $('keepGroups').checked = S.keepGroups;
+  }
+
+  // ---------- input
+  function parseCSV(text) {
+    var rows = [], row = [], f = '', q = false, i, c;
+    for (i = 0; i < text.length; i++) {
+      c = text[i];
+      if (q) { if (c === '"') { if (text[i + 1] === '"') { f += '"'; i++; } else q = false; } else f += c; }
+      else if (c === '"') q = true;
+      else if (c === ',' || c === ';' || c === '\t') { row.push(f); f = ''; }
+      else if (c === '\n' || c === '\r') { if (c === '\r' && text[i + 1] === '\n') i++; row.push(f); rows.push(row); row = []; f = ''; }
+      else f += c;
+    }
+    if (f || row.length) { row.push(f); rows.push(row); }
+    return rows.map(function (r) { return r.map(function (x) { return x.trim(); }); }).filter(function (r) { return r.some(Boolean); });
+  }
+  function addRows(rows) {
+    if (!rows.length) return 0;
+    var ci = { name: 0, group: 1, section: 2 }, h = rows[0].map(function (x) { return x.toLowerCase(); });
+    var hasHead = h.some(function (x) { return /^(names?|guests?|guest names?|full names?|الاسم)$/.test(x); });
+    if (hasHead) {
+      ci = { name: -1, group: -1, section: -1 };
+      h.forEach(function (x, i) {
+        if (ci.name < 0 && /name|guest|الاسم/.test(x)) ci.name = i;
+        else if (ci.group < 0 && /group|family|party|household|side|عائلة/.test(x)) ci.group = i;
+        else if (ci.section < 0 && /section|hall|area|room|قسم/.test(x)) ci.section = i;
+      });
+      if (ci.name < 0) ci.name = 0;
+      rows = rows.slice(1);
+    }
+    var n = 0;
+    rows.forEach(function (r) {
+      var name = (r[ci.name] || '').trim(); if (!name) return;
+      var sec = ci.section >= 0 ? (r[ci.section] || '').trim() : '';
+      if (sec && S.sections.indexOf(sec) < 0) { S.sections.push(sec); S.useSec = true; }
+      S.guests.push({ id: S.nid++, name: name.slice(0, 60), group: ci.group >= 0 ? (r[ci.group] || '').trim().slice(0, 40) : '', section: sec });
+      n++;
+    });
+    return n;
+  }
+  $('gAdd').onclick = function () {
+    var n = addRows(parseCSV($('gIn').value).map(function (r) { return r; }));
+    $('gIn').value = ''; save(); render(); say(n ? 'Added ' + n + ' guest' + (n > 1 ? 's' : '') + '.' : 'Type one name per line.');
+  };
+  $('csv').onchange = function () {
+    var f = this.files[0]; if (!f) return;
+    var rd = new FileReader();
+    rd.onload = function () { var n = addRows(parseCSV(String(rd.result).replace(/^﻿/, ''))); save(); render(); say('Imported ' + n + ' guest' + (n === 1 ? '' : 's') + ' from ' + f.name + '.'); };
+    rd.readAsText(f); this.value = '';
+  };
+  $('tAdd').onclick = function () {
+    var n = Math.max(1, Math.min(60, +$('tNum').value || 1)), c = Math.max(1, Math.min(60, +$('tCap').value || 8)), sec = S.useSec ? $('tSec').value : '';
+    for (var i = 0; i < n; i++) S.tables.push({ id: S.nid++, name: 'Table ' + (S.tables.length + 1), cap: c, section: sec });
+    save(); render();
+  };
+  $('rAdd').onclick = function () {
+    var a = +$('rA').value, b = +$('rB').value, k = $('rType').value;
+    if (!a || !b || a === b) { say('Pick two different guests.'); return; }
+    S.rules = S.rules.filter(function (r) { return !((r.a === a && r.b === b) || (r.a === b && r.b === a)); });
+    S.rules.push({ a: a, b: b, k: k }); save(); render();
+  };
+  $('keepGroups').onchange = function () { S.keepGroups = this.checked; save(); render(); };
+  $('useSec').onchange = function () {
+    S.useSec = this.checked;
+    if (S.useSec && !S.sections.length) S.sections = ['Section A', 'Section B'];
+    save(); render();
+  };
+  $('secAdd').onclick = function () { var v = $('secName').value.trim(); if (!v || S.sections.indexOf(v) >= 0) return; S.sections.push(v.slice(0, 40)); S.useSec = true; $('secName').value = ''; save(); render(); };
+  document.addEventListener('change', function (e) {
+    var g = e.target.getAttribute && e.target.getAttribute('data-gsec');
+    if (g) { gById(+g).section = e.target.value; save(); render(); }
+  });
+  document.addEventListener('click', function (e) {
+    var t = e.target, v;
+    if ((v = t.getAttribute('data-delg'))) { v = +v; S.guests = S.guests.filter(function (g) { return g.id !== v; }); S.rules = S.rules.filter(function (r) { return r.a !== v && r.b !== v; }); delete S.seat[v]; delete S.pin[v]; save(); render(); }
+    else if ((v = t.getAttribute('data-delt'))) { v = +v; S.tables = S.tables.filter(function (x) { return x.id !== v; }); Object.keys(S.seat).forEach(function (k) { if (S.seat[k] === v) { delete S.seat[k]; delete S.pin[k]; } }); save(); render(); }
+    else if ((v = t.getAttribute('data-capm'))) { var tb = tById(+v); tb.cap = Math.max(1, tb.cap - 1); save(); render(); }
+    else if ((v = t.getAttribute('data-capp'))) { var tp = tById(+v); tp.cap = Math.min(60, tp.cap + 1); save(); render(); }
+    else if ((v = t.getAttribute('data-delr'))) { S.rules.splice(+v, 1); save(); render(); }
+    else if ((v = t.getAttribute('data-dels'))) { var nm = S.sections[+v]; S.sections.splice(+v, 1); S.guests.concat(S.tables).forEach(function (x) { if (x.section === nm) x.section = ''; }); if (!S.sections.length) S.useSec = false; save(); render(); }
+  });
+  $('solve').onclick = function () { say('Arranging…'); setTimeout(solve, 30); };
+  $('unseat').onclick = function () { S.seat = {}; S.pin = {}; save(); render(); say('Everyone is back in the unseated list.'); };
+  $('wipe').onclick = function () { if (confirm('Delete this plan and start a new one?')) { S = blank(); save(); render(); say('New plan started.'); } };
+  $('sample').onclick = function () {
+    if (S.guests.length && !confirm('Replace your current plan with the example?')) return;
+    S = blank();
+    var fam = [['Al Mansoori family', ['Hamad', 'Mariam', 'Saeed', 'Noura', 'Khalid']], ['Al Ketbi family', ['Ali', 'Aisha', 'Rashid', 'Latifa']], ['Bride\'s friends', ['Shamma', 'Hessa', 'Maitha', 'Alya', 'Reem', 'Sara']], ['Groom\'s friends', ['Obaid', 'Humaid', 'Majid', 'Sultan', 'Faisal']], ['Neighbours', ['Ahmed', 'Fatima', 'Yousef']], ['Work', ['Priya', 'Daniel', 'Lina', 'Tariq']]];
+    fam.forEach(function (f) { f[1].forEach(function (n) { S.guests.push({ id: S.nid++, name: n, group: f[0], section: '' }); }); });
+    for (var i = 0; i < 4; i++) S.tables.push({ id: S.nid++, name: 'Table ' + (i + 1), cap: 7, section: '' });
+    function id(n) { return S.guests.filter(function (g) { return g.name === n; })[0].id; }
+    S.rules.push({ a: id('Hamad'), b: id('Ali'), k: 't' }, { a: id('Majid'), b: id('Sultan'), k: 'a' }, { a: id('Shamma'), b: id('Priya'), k: 'p' }, { a: id('Ahmed'), b: id('Obaid'), k: 'p' });
+    save(); render(); say('Example loaded: 27 guests, 4 tables of 7, and a few rules. Press Arrange.');
+  };
+
+  // ---------- drag and drop (pointer based, works with touch), plus tap-to-move
+  var sel = null, drag = null;
+  function tableAt(x, y) {
+    var el = document.elementFromPoint(x, y);
+    while (el && el !== document.body) { if (el.hasAttribute && el.hasAttribute('data-table')) return el; el = el.parentNode; }
+    return null;
+  }
+  function place(gid, tid) {
+    if (tid === '' || tid == null) { delete S.seat[gid]; delete S.pin[gid]; }
+    else { S.seat[gid] = +tid; S.pin[gid] = true; }
+    save(); render();
+  }
+  document.addEventListener('pointerdown', function (e) {
+    var pin = e.target.getAttribute && e.target.getAttribute('data-pin');
+    if (pin) { e.preventDefault(); delete S.pin[+pin]; save(); render(); return; }
+    var p = e.target.closest && e.target.closest('.gp'); if (!p) return;
+    drag = { g: +p.getAttribute('data-g'), x: e.clientX, y: e.clientY, el: p, moved: false, ghost: null, over: null };
+  });
+  document.addEventListener('pointermove', function (e) {
+    if (!drag) return;
+    if (!drag.moved && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 6) return;
+    if (!drag.moved) { drag.moved = true; drag.ghost = drag.el.cloneNode(true); drag.ghost.classList.add('ghost'); document.body.appendChild(drag.ghost); }
+    e.preventDefault();
+    drag.ghost.style.left = e.clientX + 'px'; drag.ghost.style.top = e.clientY + 'px';
+    var t = tableAt(e.clientX, e.clientY);
+    if (t !== drag.over) { if (drag.over) drag.over.classList.remove('drop'); if (t) t.classList.add('drop'); drag.over = t; }
+  }, { passive: false });
+  document.addEventListener('pointerup', function (e) {
+    if (!drag) {
+      if (sel != null) { var t0 = tableAt(e.clientX, e.clientY); if (t0) { var g0 = sel; sel = null; place(g0, t0.getAttribute('data-table')); } }
+      return;
+    }
+    var d = drag; drag = null;
+    if (d.ghost) d.ghost.remove();
+    if (d.over) d.over.classList.remove('drop');
+    if (d.moved) { var t = tableAt(e.clientX, e.clientY); if (t) place(d.g, t.getAttribute('data-table')); sel = null; render(); }
+    else { sel = sel === d.g ? null : d.g; render(); if (sel != null) say('Now tap a table (or the unseated area) for ' + gById(sel).name + '.'); }
+  });
+  document.addEventListener('pointercancel', function () { if (drag && drag.ghost) drag.ghost.remove(); drag = null; });
+
+  // ---------- print
+  $('print').onclick = function () {
+    var h = '<h1>Seating plan</h1>';
+    var secs = S.useSec ? S.sections.concat(['']) : [''];
+    secs.forEach(function (sec) {
+      var ts = S.tables.filter(function (t) { return (S.useSec ? (t.section || '') : '') === sec; }); if (!ts.length) return;
+      if (S.useSec) h += '<h2>' + esc(sec || 'Any section') + '</h2>';
+      h += '<div class="pt">' + ts.map(function (t) { return '<div><b>' + esc(t.name) + '</b><ol>' + S.guests.filter(function (g) { return S.seat[g.id] === t.id; }).map(function (g) { return '<li>' + esc(g.name) + '</li>'; }).join('') + '</ol></div>'; }).join('') + '</div>';
+    });
+    h += '<h2>Find your table</h2><div class="az">' + S.guests.slice().sort(function (a, b) { return a.name.localeCompare(b.name); }).map(function (g) { var t = tById(S.seat[g.id]); return '<div>' + esc(g.name) + ' · ' + (t ? esc(t.name) : '—') + '</div>'; }).join('') + '</div>';
+    $('printout').innerHTML = h;
+    window.print();
+  };
+
+  load(); render();
+  if (!S.guests.length) say('Start by loading the example, or add your own guests and tables.');
+})();
+</script>
+</body>
+</html>

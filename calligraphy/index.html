@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Arabic Letter Tracing · Mariam's Lab</title>
+<meta name="description" content="Trace the 28 Arabic letters and a few joined words with your finger or mouse. Each attempt is scored on shape, stroke direction and order, and your progress stays on this device.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/calligraphy/">
+<meta property="og:title" content="Arabic Letter Tracing · Mariam's Lab"><meta property="og:description" content="Trace the Arabic letters and get a score for shape, direction and stroke order."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@500&family=Amiri:wght@400;700&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm[aria-pressed="true"], .sm.go { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.sm:disabled { opacity: .45; cursor: default; }
+.pad { position: relative; width: 100%; max-width: 460px; aspect-ratio: 1; margin-inline: auto; border-radius: var(--radius); border: 1px solid var(--line); background: #0d1230; touch-action: none; overflow: hidden; }
+.pad canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: crosshair; }
+.now { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.now .ar { font-family: 'Amiri', 'IBM Plex Sans Arabic', serif; font-size: 2.6rem; line-height: 1; color: var(--accent); }
+.now .nm b { font-family: var(--font-display); font-size: 1.3rem; display: block; }
+.now .nm span { color: var(--muted); font-size: 0.86rem; }
+.ctrl { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+.letters { display: grid; grid-template-columns: repeat(auto-fill, minmax(52px, 1fr)); gap: 6px; direction: rtl; }
+.letters button { font-family: 'IBM Plex Sans Arabic', sans-serif; font-size: 1.35rem; line-height: 1.2; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 6px 2px 4px; cursor: pointer; display: grid; gap: 1px; justify-items: center; }
+.letters button.wide { grid-column: span 2; }
+.letters button[aria-current="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.letters small { font: 500 0.62rem var(--font-mono); color: var(--accent); letter-spacing: .06em; min-height: 0.8rem; direction: ltr; }
+.msg { font-size: 0.9rem; color: var(--muted); min-height: 1.3em; margin: 0; }
+.score { display: grid; gap: 6px; padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.score b { font-family: var(--font-display); font-size: 1.6rem; }
+.score ul { margin: 0; padding-inline-start: 18px; color: var(--muted); font-size: 0.88rem; display: grid; gap: 3px; }
+.togs { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; font-size: 0.84rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Game · Language · Handwriting</span>
+    <h1 style="font-size:var(--step-3)">Arabic letter tracing.</h1>
+    <p>Trace each of the 28 Arabic letters over a faint guide, then try a few joined words. Every attempt gets a score for shape, stroke direction and stroke order, with a tip on what to fix. It works with a finger, a stylus or a mouse, and your best scores stay on this device.</p>
+  </div>
+  <div class="game">
+    <div class="panel">
+      <div class="now">
+        <div class="nm"><b id="nm">Alif</b><span id="sub">Letter 1 of 28</span></div>
+        <div class="ar" dir="rtl" lang="ar" id="ar">ا</div>
+      </div>
+      <div class="pad" id="pad"><canvas id="cv" aria-label="Tracing area. Draw over the faint guide."></canvas></div>
+      <div class="ctrl">
+        <button class="sm" type="button" id="prev">← Back</button>
+        <button class="sm" type="button" id="show">▶ Show me</button>
+        <button class="sm" type="button" id="clear">Clear</button>
+        <button class="sm go" type="button" id="check">Check</button>
+        <button class="sm" type="button" id="next">Next →</button>
+      </div>
+      <p class="msg" id="msg" role="status">Start where the gold dot is and follow the arrow.</p>
+      <div class="score" id="score" hidden></div>
+      <div class="togs">
+        <label><input type="checkbox" id="auto" checked> Check when I finish the last stroke</label>
+        <label><input type="checkbox" id="hint" checked> Show start points</label>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="stats">
+        <div><b id="sDone">0</b><span>traced</span></div>
+        <div><b id="sStars">0</b><span>stars of <span id="sMax">93</span></span></div>
+        <div><b id="sAvg">–</b><span>average best</span></div>
+      </div>
+      <span class="label">Letters</span>
+      <div class="letters" id="grid"></div>
+      <span class="label">Joined words</span>
+      <div class="letters" id="words"></div>
+      <p class="fact"><b>How the score works.</b> Your line and the guide are each resampled to 48 evenly spaced points, and the score comes from the average gap between matching points. It also checks the same comparison backwards, so it can tell when a stroke was drawn the wrong way, and it checks whether the strokes came in the right order. Dots can be a tap or a short dash.</p>
+      <p class="fact"><b>Why the dot matters.</b> Classical Naskh is measured in dots: the small rhombus a reed pen leaves when pressed once. The 10th-century Baghdad vizier Ibn Muqla is credited with a system that sized each letter in these dots and in proportion to the alif. The guides here are simplified, Naskh-like shapes for practice, not a calligrapher's exemplar.</p>
+      <p class="fact" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">Start over? <button class="sm" type="button" id="reset">Reset my progress</button></p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  // DATA: 200 x 200 box, baseline at y = 130, alif from y = 40. Strokes are SVG paths drawn right to left; d = dots.
+  var LETTERS = [
+    { ch: 'ا', n: 'Alif', t: 'a / ā', s: ['M104 40 Q101 85 98 132'] },
+    { ch: 'ب', n: 'Bāʾ', t: 'b', s: ['M152 104 Q156 134 126 136 L74 136 Q46 135 48 110'], d: [[100, 158]] },
+    { ch: 'ت', n: 'Tāʾ', t: 't', s: ['M152 104 Q156 134 126 136 L74 136 Q46 135 48 110'], d: [[110, 112], [90, 112]] },
+    { ch: 'ث', n: 'Thāʾ', t: 'th', s: ['M152 104 Q156 134 126 136 L74 136 Q46 135 48 110'], d: [[110, 114], [90, 114], [100, 96]] },
+    { ch: 'ج', n: 'Jīm', t: 'j', s: ['M86 70 Q112 62 140 74 Q76 92 66 132 Q62 178 112 180 Q136 180 150 168'], d: [[108, 140]] },
+    { ch: 'ح', n: 'Ḥāʾ', t: 'ḥ', s: ['M86 70 Q112 62 140 74 Q76 92 66 132 Q62 178 112 180 Q136 180 150 168'] },
+    { ch: 'خ', n: 'Khāʾ', t: 'kh', s: ['M86 70 Q112 62 140 74 Q76 92 66 132 Q62 178 112 180 Q136 180 150 168'], d: [[112, 46]] },
+    { ch: 'د', n: 'Dāl', t: 'd', s: ['M98 82 Q124 106 128 128 Q128 138 112 138 L80 137'] },
+    { ch: 'ذ', n: 'Dhāl', t: 'dh', s: ['M98 82 Q124 106 128 128 Q128 138 112 138 L80 137'], d: [[100, 62]] },
+    { ch: 'ر', n: 'Rāʾ', t: 'r', s: ['M124 104 Q128 132 110 152 Q90 172 58 172'] },
+    { ch: 'ز', n: 'Zāy', t: 'z', s: ['M124 104 Q128 132 110 152 Q90 172 58 172'], d: [[126, 82]] },
+    { ch: 'س', n: 'Sīn', t: 's', s: ['M176 106 Q178 130 164 130 Q150 130 150 112 Q151 130 138 130 Q124 130 124 110 C126 178 46 180 42 128'] },
+    { ch: 'ش', n: 'Shīn', t: 'sh', s: ['M176 106 Q178 130 164 130 Q150 130 150 112 Q151 130 138 130 Q124 130 124 110 C126 178 46 180 42 128'], d: [[166, 92], [146, 92], [156, 74]] },
+    { ch: 'ص', n: 'Ṣād', t: 'ṣ', s: ['M130 128 Q150 98 178 102 Q196 116 172 130 L132 131 Q120 131 118 114 C122 178 46 180 42 128'] },
+    { ch: 'ض', n: 'Ḍād', t: 'ḍ', s: ['M130 128 Q150 98 178 102 Q196 116 172 130 L132 131 Q120 131 118 114 C122 178 46 180 42 128'], d: [[158, 80]] },
+    { ch: 'ط', n: 'Ṭāʾ', t: 'ṭ', s: ['M98 130 Q118 98 150 102 Q172 114 148 131 L74 132', 'M114 42 Q111 86 108 124'] },
+    { ch: 'ظ', n: 'Ẓāʾ', t: 'ẓ', s: ['M98 130 Q118 98 150 102 Q172 114 148 131 L74 132', 'M114 42 Q111 86 108 124'], d: [[140, 84]] },
+    { ch: 'ع', n: 'ʿAyn', t: 'ʿ', s: ['M134 78 Q110 60 96 76 Q88 96 132 100 Q74 110 66 140 Q62 180 114 180 Q138 180 150 168'] },
+    { ch: 'غ', n: 'Ghayn', t: 'gh', s: ['M134 78 Q110 60 96 76 Q88 96 132 100 Q74 110 66 140 Q62 180 114 180 Q138 180 150 168'], d: [[114, 46]] },
+    { ch: 'ف', n: 'Fāʾ', t: 'f', s: ['M150 128 Q138 100 158 98 Q176 100 170 124 Q166 134 142 134 L64 134 Q46 132 46 110'], d: [[160, 78]] },
+    { ch: 'ق', n: 'Qāf', t: 'q', s: ['M132 124 Q120 96 140 94 Q158 96 154 124 Q152 172 104 172 Q66 170 62 136'], d: [[152, 76], [132, 76]] },
+    { ch: 'ك', n: 'Kāf', t: 'k', s: ['M150 46 Q149 90 148 124 Q146 136 128 136 L70 136 Q50 134 50 110', 'M116 92 Q100 88 102 100 Q106 108 120 106 Q104 112 96 116'] },
+    { ch: 'ل', n: 'Lām', t: 'l', s: ['M136 42 Q135 90 134 128 Q132 170 96 170 Q62 170 58 134'] },
+    { ch: 'م', n: 'Mīm', t: 'm', s: ['M112 130 Q98 106 118 102 Q136 104 132 124 Q128 134 108 134 Q94 136 94 180'] },
+    { ch: 'ن', n: 'Nūn', t: 'n', s: ['M146 106 Q154 166 104 166 Q62 164 62 118'], d: [[104, 108]] },
+    { ch: 'ه', n: 'Hāʾ', t: 'h', s: ['M118 86 C80 104 82 140 110 138 C140 138 148 110 118 86'] },
+    { ch: 'و', n: 'Wāw', t: 'w / ū', s: ['M118 126 Q104 100 122 98 Q140 100 136 126 Q132 160 82 172'] },
+    { ch: 'ي', n: 'Yāʾ', t: 'y / ī', s: ['M132 92 Q100 104 116 120 Q140 128 146 146 Q142 174 96 172 Q60 170 54 144'], d: [[110, 190], [90, 190]] }
+  ];
+  var WORDS = [
+    { ch: 'باب', n: 'bāb', t: 'door', s: ['M178 106 Q180 132 160 132 L134 132 Q130 90 132 46', 'M108 106 Q111 134 86 136 L46 136 Q26 134 28 112'], d: [[160, 152], [72, 156]] },
+    { ch: 'بيت', n: 'bayt', t: 'house', s: ['M182 106 Q184 130 170 130 L148 130 Q140 128 140 110 L140 126 Q136 132 120 132 Q110 130 110 110 L110 128 Q108 138 84 138 L46 138 Q26 136 28 112'], d: [[168, 148], [148, 148], [132, 148], [78, 116], [60, 116]] },
+    { ch: 'نور', n: 'nūr', t: 'light', s: ['M180 106 Q182 130 168 130 L140 130 Q124 128 126 110 Q132 98 144 106 Q146 120 134 136 Q122 158 96 164', 'M74 104 Q78 130 62 148 Q46 164 20 164'], d: [[168, 92]] }
+  ];
+  var ITEMS = LETTERS.concat(WORDS);
+  var N = 48;
+  var svgNS = 'http://www.w3.org/2000/svg';
+  var probe = document.createElementNS(svgNS, 'path');
+  var holder = document.createElementNS(svgNS, 'svg'); holder.setAttribute('width', '0'); holder.setAttribute('height', '0'); holder.style.position = 'absolute'; holder.appendChild(probe); document.body.appendChild(holder);
+  function samplePath(d, n) {
+    probe.setAttribute('d', d);
+    var L = probe.getTotalLength(), out = [];
+    for (var i = 0; i < n; i++) { var p = probe.getPointAtLength(L * i / (n - 1)); out.push([p.x, p.y]); }
+    return out;
+  }
+  function plen(pts) { var L = 0; for (var i = 1; i < pts.length; i++) L += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); return L; }
+  function resample(pts, n) {
+    if (pts.length < 2) { var o = []; for (var k = 0; k < n; k++) o.push(pts[0].slice()); return o; }
+    var L = plen(pts), step = L / (n - 1), out = [pts[0].slice()], acc = 0, prev = pts[0].slice();
+    for (var i = 1; i < pts.length && out.length < n; i++) {
+      var cur = pts[i], seg = Math.hypot(cur[0] - prev[0], cur[1] - prev[1]);
+      while (acc + seg >= step && seg > 0 && out.length < n) {
+        var t = (step - acc) / seg, q = [prev[0] + t * (cur[0] - prev[0]), prev[1] + t * (cur[1] - prev[1])];
+        out.push(q); prev = q; seg = Math.hypot(cur[0] - prev[0], cur[1] - prev[1]); acc = 0;
+      }
+      acc += seg; prev = cur;
+    }
+    while (out.length < n) out.push(pts[pts.length - 1].slice());
+    return out;
+  }
+  function meanDist(a, b) { var s = 0; for (var i = 0; i < a.length; i++) s += Math.hypot(a[i][0] - b[i][0], a[i][1] - b[i][1]); return s / a.length; }
+  // reference cache: list of {kind:'line', pts} or {kind:'dot', c}
+  var refCache = {};
+  function refs(it) {
+    if (refCache[it.ch]) return refCache[it.ch];
+    var r = it.s.map(function (d) { return { kind: 'line', pts: samplePath(d, N), d: d }; });
+    (it.d || []).forEach(function (c) { r.push({ kind: 'dot', c: c }); });
+    return (refCache[it.ch] = r);
+  }
+
+  // ---- storage
+  var KEY = 'calligraphyBest';
+  var best = {};
+  try { best = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { best = {}; }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(best)); } catch (e) {} }
+  function stars(sc) { return sc >= 85 ? 3 : sc >= 70 ? 2 : sc >= 50 ? 1 : 0; }
+
+  // ---- canvas
+  var cv = $('cv'), cx = cv.getContext('2d'), scale = 1, dpr = 1;
+  var cur = 0, ink = [], drawing = null, anim = null;
+  function size() {
+    var r = cv.getBoundingClientRect(); dpr = window.devicePixelRatio || 1;
+    cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr);
+    scale = cv.width / 200; render();
+  }
+  function strokePath(d) { cx.stroke(new Path2D(d)); }
+  function arrowAt(pts, col) {
+    var a = pts[0], b = pts[Math.min(5, pts.length - 1)], ang = Math.atan2(b[1] - a[1], b[0] - a[0]);
+    cx.fillStyle = col; cx.beginPath(); cx.arc(a[0], a[1], 4.2, 0, 7); cx.fill();
+    var m = pts[Math.min(9, pts.length - 1)];
+    cx.save(); cx.translate(m[0], m[1]); cx.rotate(ang); cx.beginPath(); cx.moveTo(4, 0); cx.lineTo(-3, -3.5); cx.lineTo(-3, 3.5); cx.closePath(); cx.fill(); cx.restore();
+  }
+  function render(progress) {
+    var it = ITEMS[cur], R = refs(it);
+    cx.setTransform(1, 0, 0, 1, 0, 0); cx.clearRect(0, 0, cv.width, cv.height);
+    cx.setTransform(scale, 0, 0, scale, 0, 0);
+    // baseline + alif height
+    cx.strokeStyle = 'rgba(120,132,190,.25)'; cx.lineWidth = 0.6; cx.setLineDash([3, 4]);
+    cx.beginPath(); cx.moveTo(8, 130); cx.lineTo(192, 130); cx.moveTo(8, 40); cx.lineTo(192, 40); cx.stroke(); cx.setLineDash([]);
+    // guide
+    cx.lineCap = 'round'; cx.lineJoin = 'round';
+    cx.strokeStyle = 'rgba(238,240,250,.13)'; cx.fillStyle = 'rgba(238,240,250,.13)'; cx.lineWidth = 11;
+    R.forEach(function (r) { if (r.kind === 'line') strokePath(r.d); else { dotShape(r.c, 6.5); } });
+    if ($('hint').checked && progress == null) {
+      var num = 0;
+      R.forEach(function (r, i) {
+        num++;
+        var done = i < ink.length, col = done ? 'rgba(79,211,189,.55)' : (i === ink.length ? '#E9B467' : 'rgba(233,180,103,.45)');
+        if (r.kind === 'line') { arrowAt(r.pts, col); label(r.pts[0], num, col); }
+        else { cx.fillStyle = col; cx.beginPath(); cx.arc(r.c[0], r.c[1], 2.2, 0, 7); cx.fill(); }
+      });
+    }
+    // demo animation
+    if (progress != null) {
+      var total = R.length, upto = progress * total;
+      cx.strokeStyle = '#E9B467'; cx.fillStyle = '#E9B467'; cx.lineWidth = 5;
+      R.forEach(function (r, i) {
+        var f = Math.max(0, Math.min(1, upto - i)); if (f <= 0) return;
+        if (r.kind === 'dot') { dotShape(r.c, 4 * f); return; }
+        var k = Math.max(2, Math.round(f * r.pts.length));
+        cx.beginPath(); cx.moveTo(r.pts[0][0], r.pts[0][1]);
+        for (var j = 1; j < k; j++) cx.lineTo(r.pts[j][0], r.pts[j][1]);
+        cx.stroke();
+        if (f < 1) { var p = r.pts[k - 1]; cx.beginPath(); cx.arc(p[0], p[1], 3.4, 0, 7); cx.fill(); }
+      });
+    }
+    // ink
+    cx.strokeStyle = '#4FD3BD'; cx.fillStyle = '#4FD3BD'; cx.lineWidth = 4.2;
+    ink.concat(drawing ? [drawing] : []).forEach(function (s) {
+      if (s.length === 1 || plen(s) < 2) { cx.beginPath(); cx.arc(s[0][0], s[0][1], 3, 0, 7); cx.fill(); return; }
+      cx.beginPath(); cx.moveTo(s[0][0], s[0][1]);
+      for (var j = 1; j < s.length; j++) cx.lineTo(s[j][0], s[j][1]);
+      cx.stroke();
+    });
+  }
+  function dotShape(c, r) { cx.beginPath(); cx.moveTo(c[0], c[1] - r); cx.lineTo(c[0] + r * 0.8, c[1]); cx.lineTo(c[0], c[1] + r); cx.lineTo(c[0] - r * 0.8, c[1]); cx.closePath(); cx.fill(); }
+  function label(p, n, col) { cx.fillStyle = col; cx.font = '600 8px "JetBrains Mono", monospace'; cx.textAlign = 'center'; cx.fillText(String(n), p[0] + 8, p[1] - 6); }
+
+  function pos(e) { var r = cv.getBoundingClientRect(); return [(e.clientX - r.left) / r.width * 200, (e.clientY - r.top) / r.height * 200]; }
+  cv.addEventListener('pointerdown', function (e) {
+    if (anim) stopAnim();
+    e.preventDefault(); try { cv.setPointerCapture(e.pointerId); } catch (x) {}
+    if ($('score').hidden === false && ink.length === 0) $('score').hidden = true;
+    drawing = [pos(e)]; render();
+  });
+  cv.addEventListener('pointermove', function (e) {
+    if (!drawing) return; e.preventDefault();
+    var evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+    if (!evs.length) evs = [e];
+    evs.forEach(function (ev) { var p = pos(ev), q = drawing[drawing.length - 1]; if (Math.hypot(p[0] - q[0], p[1] - q[1]) > 0.6) drawing.push(p); });
+    render();
+  });
+  function up() {
+    if (!drawing) return;
+    ink.push(drawing); drawing = null; render();
+    var need = refs(ITEMS[cur]).length;
+    if (ink.length >= need && $('auto').checked) check();
+    else $('msg').textContent = 'Stroke ' + ink.length + ' of ' + need + ' done.' + (ink.length < need ? ' Next: ' + (refs(ITEMS[cur])[ink.length].kind === 'dot' ? 'a dot.' : 'stroke ' + (ink.length + 1) + '.') : '');
+  }
+  cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up); cv.addEventListener('lostpointercapture', up);
+
+  // ---- scoring
+  function scoreLine(user, ref) {
+    var u = resample(user, N), f = meanDist(u, ref.pts), b = meanDist(u.slice().reverse(), ref.pts);
+    var lenRatio = plen(user) / plen(ref.pts);
+    var s = 100 - Math.max(0, f - 3) * 7;
+    if (lenRatio < 0.6) s -= (0.6 - lenRatio) * 80;
+    var reversed = b + 2 < f && b < 14;
+    if (reversed) s = Math.min(s, 100 - Math.max(0, b - 3) * 7) - 25;
+    return { s: Math.max(0, Math.min(100, s)), f: f, rev: reversed, short: lenRatio < 0.6 };
+  }
+  function scoreDot(user, ref) {
+    var c = [0, 0]; user.forEach(function (p) { c[0] += p[0]; c[1] += p[1]; }); c[0] /= user.length; c[1] /= user.length;
+    var d = Math.hypot(c[0] - ref.c[0], c[1] - ref.c[1]), L = plen(user);
+    var s = 100 - Math.max(0, d - 4) * 6 - Math.max(0, L - 16) * 3;
+    return { s: Math.max(0, Math.min(100, s)), f: d, big: L > 16 };
+  }
+  function permute(a) {
+    if (a.length <= 1) return [a.slice()];
+    var out = [];
+    a.forEach(function (x, i) { permute(a.slice(0, i).concat(a.slice(i + 1))).forEach(function (r) { out.push([x].concat(r)); }); });
+    return out;
+  }
+  function check() {
+    var it = ITEMS[cur], R = refs(it);
+    if (!ink.length) { $('msg').textContent = 'Draw over the guide first.'; return; }
+    var notes = [], total = 0, scores = [];
+    var lines = R.filter(function (r) { return r.kind === 'line'; }), dots = R.filter(function (r) { return r.kind === 'dot'; });
+    var userLines = [], userDots = [];
+    ink.forEach(function (s) { if (plen(s) < 14 && dots.length) userDots.push(s); else userLines.push(s); });
+    // order check: if the user's strokes fit better in another order, score that order and flag it
+    var orderBad = false, perm = lines.map(function (_, i) { return i; });
+    if (userLines.length === lines.length && lines.length > 1) {
+      var bestSum = -1, bestP = perm;
+      permute(perm).forEach(function (P) {
+        var sum = 0; P.forEach(function (ri, ui) { sum += scoreLine(userLines[ui], lines[ri]).s; });
+        if (sum > bestSum) { bestSum = sum; bestP = P; }
+      });
+      var idSum = 0; perm.forEach(function (ri, ui) { idSum += scoreLine(userLines[ui], lines[ri]).s; });
+      if (bestSum > idSum + 25) { orderBad = true; perm = bestP; }
+    }
+    var inv = []; perm.forEach(function (ri, ui) { inv[ri] = ui; });
+    lines.forEach(function (ref, i) {
+      var u = userLines[inv[i]];
+      if (!u) { scores.push(0); notes.push('Stroke ' + (i + 1) + ' is missing.'); return; }
+      var r = scoreLine(u, ref);
+      if (r.rev) notes.push('Stroke ' + (i + 1) + ' went the wrong way. Start at the gold dot and follow the arrow.');
+      else if (r.short) notes.push('Stroke ' + (i + 1) + ' stopped early. Carry it all the way to the end.');
+      else if (r.f > 9) notes.push('Stroke ' + (i + 1) + ' drifted from the guide. Go slower on the curves.');
+      scores.push(r.s);
+    });
+    if (userLines.length > lines.length) { notes.push('There ' + (userLines.length - lines.length === 1 ? 'is one extra stroke' : 'are extra strokes') + '. This shape needs ' + lines.length + ' main stroke' + (lines.length > 1 ? 's' : '') + '.'); scores.push(0); }
+    // dots: match each reference dot to nearest unused user dot
+    var used = {};
+    dots.forEach(function (ref) {
+      var bestI = -1, bs = null;
+      userDots.forEach(function (u, i) { if (used[i]) return; var r = scoreDot(u, ref); if (!bs || r.s > bs.s) { bs = r; bestI = i; } });
+      if (bestI < 0) { scores.push(0); return; }
+      used[bestI] = 1; scores.push(bs.s);
+      if (bs.big) notes.push('Keep dots small: a tap or a tiny dash.');
+    });
+    var missingDots = dots.length - Object.keys(used).length;
+    if (missingDots > 0) notes.push(missingDots === 1 ? 'One dot is missing.' : missingDots + ' dots are missing.');
+    if (userDots.length > dots.length) { notes.push('There are more dots than this ' + (it.ch.length > 1 ? 'word' : 'letter') + ' has.'); scores.push(40); }
+    if (orderBad) notes.push('The strokes came in a different order. Follow the numbers.');
+    // dots drawn before main strokes
+    if (dots.length && lines.length && ink.length && plen(ink[0]) < 14) notes.push('Write the main shape first, then the dots.');
+    scores.forEach(function (s) { total += s; });
+    var sc = Math.round(total / scores.length - (orderBad ? 20 : 0));
+    sc = Math.max(0, Math.min(100, sc));
+    var st = stars(sc);
+    var prevBest = best[it.ch] || 0;
+    if (sc > prevBest) { best[it.ch] = sc; save(); }
+    var head = sc >= 85 ? 'Lovely.' : sc >= 70 ? 'Good.' : sc >= 50 ? 'Getting there.' : 'Try again.';
+    if (!notes.length) notes.push(sc >= 85 ? 'Clean shape, right direction, right order.' : 'Shape is close. Try a steadier, slower line.');
+    $('score').hidden = false;
+    $('score').innerHTML = '<span class="label">Score</span><b>' + sc + ' / 100 <span style="color:var(--accent)">' + '★★★'.slice(0, st) + '<span style="opacity:.25">' + '★★★'.slice(0, 3 - st) + '</span></span></b><span>' + head + (sc > prevBest && prevBest ? ' New best (was ' + prevBest + ').' : '') + '</span><ul>' + notes.map(function (n) { return '<li>' + n + '</li>'; }).join('') + '</ul>';
+    $('msg').textContent = sc >= 70 ? 'Press Next for the next one, or Clear to try again.' : 'Press Clear and try again. Show me plays the strokes.';
+    ink = []; drawing = null;
+    setTimeout(function () { if (!ink.length && !drawing) render(); }, 1200);
+    grid();
+  }
+
+  // ---- demo animation
+  function stopAnim() { if (anim) cancelAnimationFrame(anim); anim = null; render(); }
+  $('show').onclick = function () {
+    ink = []; drawing = null; $('score').hidden = true;
+    var R = refs(ITEMS[cur]), t0 = performance.now(), dur = R.length * 1100;
+    function step(t) {
+      var p = (t - t0) / dur;
+      if (p >= 1) { anim = null; render(); $('msg').textContent = 'Your turn. Start at the gold dot.'; return; }
+      render(p); anim = requestAnimationFrame(step);
+    }
+    if (anim) cancelAnimationFrame(anim);
+    $('msg').textContent = 'Watch the order and direction.';
+    anim = requestAnimationFrame(step);
+  };
+  $('clear').onclick = function () { stopAnim(); ink = []; drawing = null; $('score').hidden = true; $('msg').textContent = 'Start where the gold dot is and follow the arrow.'; render(); };
+  $('check').onclick = check;
+  $('hint').onchange = function () { render(); };
+  function go(i) {
+    stopAnim();
+    cur = (i + ITEMS.length) % ITEMS.length; ink = []; drawing = null; $('score').hidden = true;
+    var it = ITEMS[cur], isWord = cur >= LETTERS.length;
+    $('nm').textContent = isWord ? it.n + ' · ' + it.t : it.n + ' · ' + it.t;
+    $('sub').textContent = isWord ? 'Word ' + (cur - LETTERS.length + 1) + ' of ' + WORDS.length + ' · ' + refs(it).length + ' strokes and dots' : 'Letter ' + (cur + 1) + ' of 28 · ' + refs(it).length + (refs(it).length === 1 ? ' stroke' : ' strokes and dots');
+    $('ar').textContent = it.ch;
+    $('msg').textContent = 'Start where the gold dot is and follow the arrow.';
+    try { localStorage.setItem('calligraphyCur', cur); } catch (e) {}
+    render(); grid();
+  }
+  $('prev').onclick = function () { go(cur - 1); };
+  $('next').onclick = function () { go(cur + 1); };
+  $('reset').onclick = function () { if (confirm('Clear all your best scores?')) { best = {}; save(); grid(); } };
+  function grid() {
+    function btn(it, i) {
+      var b = best[it.ch], st = b ? stars(b) : 0;
+      return '<button type="button" data-i="' + i + '"' + (it.ch.length > 1 ? ' class="wide"' : '') + (i === cur ? ' aria-current="true"' : '') + ' aria-label="' + it.n + (b ? ', best ' + b : '') + '"><span lang="ar">' + it.ch + '</span><small>' + (b ? '★★★'.slice(0, st) || b : '') + '</small></button>';
+    }
+    $('grid').innerHTML = LETTERS.map(btn).join('');
+    $('words').innerHTML = WORDS.map(function (w, k) { return btn(w, LETTERS.length + k); }).join('');
+    var done = 0, sum = 0, st = 0;
+    ITEMS.forEach(function (it) { var b = best[it.ch]; if (b) { done++; sum += b; st += stars(b); } });
+    $('sDone').textContent = done + '/' + ITEMS.length; $('sStars').textContent = st; $('sMax').textContent = ITEMS.length * 3;
+    $('sAvg').textContent = done ? Math.round(sum / done) : '–';
+  }
+  document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('.letters button'); if (b) go(+b.getAttribute('data-i')); });
+  window.addEventListener('resize', size);
+  var c0 = 0; try { c0 = +(localStorage.getItem('calligraphyCur') || 0) || 0; } catch (e) {}
+  go(c0); size();
+})();
+</script>
+</body>
+</html>
