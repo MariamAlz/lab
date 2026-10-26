@@ -119,7 +119,12 @@
         ms.forEach(function (m) {
           if (m.type === 'characterData') doText(m.target);
           else if (m.type === 'attributes') doEl(m.target);
-          else m.addedNodes.forEach(run);
+          else {
+            // a script replaced this element's children: try the whole element as an innerHTML key first
+            var t = m.target;
+            if (t.nodeType === 1 && t.isConnected && BLOCK.test(t.tagName) && !skip(t)) { var h = norm(t.innerHTML); if (html[h] != null && done.get(t) !== h) { t.innerHTML = html[h]; done.set(t, norm(t.innerHTML)); return; } }
+            m.addedNodes.forEach(run);
+          }
         });
       }).observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ATTR });
     };
