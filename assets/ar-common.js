@@ -167,3 +167,10 @@ LabAr.add({
  "A 0 to 100 sunset score from cloud layers, dust and the western horizon, with golden and blue hour.": "درجة من 0 إلى 100 لجمال الغروب حسب طبقات الغيوم والغبار والأفق الغربي، مع الساعة الذهبية والزرقاء.",
  "Score tonight →": "قيّم الليلة ←"
 });
+/* index cards for newer tools */
+LabAr.add({
+ "Tool · Verification": "أداة · تحقق",
+ "Video verification kit": "أدوات التحقق من الفيديو",
+ "Pull key frames from a video for reverse image search, read its hidden creation date, and work through a fact-check list.": "استخرج الإطارات الرئيسية من فيديو للبحث العكسي عن الصور، واقرأ تاريخ إنشائه المخفي، واتبع قائمة للتحقق من صحته.",
+ "Check a video →": "افحص فيديو ←"
+});

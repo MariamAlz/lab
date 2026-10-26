@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Video Verification Kit · Mariam's Lab</title>
+<meta name="description" content="Check a viral video before you share it: pull out its key frames for reverse image search, read the hidden creation date and encoder tags, and work through a verification checklist. The video never leaves your device.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/video-verify/">
+<meta property="og:title" content="Video Verification Kit · Mariam's Lab"><meta property="og:description" content="Key frames for reverse search, hidden metadata, and a checklist. Runs on your device."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.btns { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; text-decoration: none; display: inline-block; }
+.sm.pri { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.sm[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+.sm:disabled { opacity: .5; cursor: default; }
+.drop { border: 1px dashed var(--line); border-radius: var(--radius); padding: 22px 14px; text-align: center; color: var(--muted); font-size: 0.9rem; display: grid; gap: 10px; justify-items: center; }
+.drop.on { border-color: var(--accent); color: var(--ink); }
+.vid { width: 100%; max-height: 420px; border-radius: var(--radius); background: #000; border: 1px solid var(--line); display: block; }
+.kv { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 14px; font-size: 0.88rem; margin: 0; }
+.kv dt { color: var(--muted); } .kv dd { margin: 0; font-family: var(--font-mono); font-size: 0.8rem; word-break: break-word; }
+.opts { display: flex; gap: 10px 16px; flex-wrap: wrap; align-items: center; font-size: 0.85rem; color: var(--muted); }
+.opts input[type=number] { width: 70px; font: inherit; color: var(--ink); background: rgba(7,10,24,.7); border: 1px solid var(--line); border-radius: 8px; padding: 5px 8px; }
+.opts input[type=range] { accent-color: var(--accent); width: 130px; }
+.bar { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.bar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .15s; }
+.frames { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr)); gap: 12px; }
+.frm { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); overflow: hidden; display: grid; min-width: 0; }
+.frm img { width: 100%; aspect-ratio: 16 / 9; object-fit: contain; background: #000; display: block; cursor: zoom-in; }
+.frm .fi { padding: 8px 10px 10px; display: grid; gap: 6px; }
+.frm .fi b { font-family: var(--font-mono); font-size: 0.8rem; color: var(--accent); font-weight: 500; }
+.frm .sm { font-size: 0.74rem; padding: 3px 9px; }
+.lbl { font-size: 0.78rem; color: var(--muted); font-family: var(--font-body); }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; }
+.toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); max-width: calc(100% - 32px); z-index: 50; padding: 10px 16px; border-radius: 12px; background: #1b2142; border: 1px solid var(--accent); font-size: 0.88rem; box-shadow: 0 6px 30px rgba(0,0,0,.5); }
+.lightbox { position: fixed; inset: 0; z-index: 40; background: rgba(4,6,14,.94); display: grid; place-items: center; padding: 16px; }
+.lightbox .stage { position: relative; max-width: 100%; max-height: calc(100vh - 90px); }
+.lightbox img { display: block; max-width: 100%; max-height: calc(100vh - 90px); cursor: none; touch-action: none; }
+.lightbox .lens { position: absolute; width: 180px; height: 180px; border-radius: 50%; border: 2px solid var(--accent); pointer-events: none; background-repeat: no-repeat; box-shadow: 0 4px 24px rgba(0,0,0,.6); display: none; }
+.lightbox .top { position: absolute; top: 12px; right: 12px; left: 12px; display: flex; justify-content: space-between; align-items: center; gap: 10px; color: var(--muted); font-size: 0.85rem; }
+.vlist { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.vlist li label { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 8px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; font-size: 0.92rem; cursor: pointer; }
+.vlist input { accent-color: var(--sat-b); width: 17px; height: 17px; margin-top: 2px; }
+.vlist small { display: block; color: var(--muted); font-size: 0.82rem; }
+.vlist li:has(input:checked) label { border-color: color-mix(in srgb, var(--sat-b) 50%, transparent); }
+[hidden] { display: none !important; }
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Verification · Video</span>
+    <h1 style="font-size:var(--step-3)">Video verification kit.</h1>
+    <p>Most fake videos aren't edited. They're real footage from another year or another country, reposted with a new caption. The fastest way to catch that is to reverse-search still frames. This pulls out the key frames, reads the metadata the file still carries, and walks you through the other checks. The video is never uploaded.</p>
+  </div>
+  <div class="game">
+    <div class="panel">
+      <div class="drop" id="drop"><span>Drop a video file here, or</span><label class="sm pri" style="cursor:pointer">Choose a video<input type="file" id="file" accept="video/*,.mp4,.mov,.m4v,.webm,.mkv" hidden></label><small>MP4, MOV and WebM work best. Save the video from the app first; screen recordings work too.</small></div>
+      <video class="vid" id="vid" controls muted playsinline hidden></video>
+      <div class="opts" id="opts">
+        <span class="btns" role="group" aria-label="How to pick frames"><button class="sm" type="button" data-mode="scene" aria-pressed="true">Scene changes</button><button class="sm" type="button" data-mode="every" aria-pressed="false">Every N seconds</button></span>
+        <label id="sensL">Sensitivity <input type="range" id="sens" min="5" max="60" value="25" aria-label="Scene change threshold"> <span id="sensV">0.25</span></label>
+        <label id="everyL" hidden>Every <input type="number" id="every" min="0.5" step="0.5" value="2"> s</label>
+        <button class="sm pri" type="button" id="go" disabled>Extract frames</button>
+        <button class="sm" type="button" id="here" disabled>Grab the frame on screen</button>
+      </div>
+      <div class="bar" aria-hidden="true"><i id="bar"></i></div>
+      <p class="msg" id="msg" role="status">Choose a video to start.</p>
+    </div>
+    <div class="panel">
+      <span class="label">What the file says about itself</span>
+      <dl class="kv" id="meta"><dt>File</dt><dd>none yet</dd></dl>
+      <p class="fact" style="margin:0">Phones write a creation time into MP4 and MOV files (the <code>mvhd</code> box), and often the app or encoder name and sometimes a GPS position. WhatsApp, Instagram, X and TikTok re-encode uploads and wipe most of it, so an empty result is normal. A date that is present can still be wrong: it comes from the device clock, and it is stored in UTC.</p>
+    </div>
+  </div>
+  <div class="panel" style="margin-top:22px">
+    <div class="btns" style="justify-content:space-between"><span class="label">Key frames <span id="count"></span></span><button class="sm" type="button" id="zip" hidden>Download all (zip)</button></div>
+    <div class="frames" id="frames"></div>
+    <p class="fact">The search buttons open Google Lens, Bing, Yandex or TinEye in a new tab and copy the frame to your clipboard. These sites need you to upload the picture yourself, so paste it there (Ctrl+V or long-press, Paste) or drag in the PNG. This page uploads nothing. Yandex is often best for buildings and faces of places outside Western Europe; TinEye sorts matches by date, which helps find the first copy.</p>
+  </div>
+  <div class="game" style="margin-top:22px">
+    <div class="panel">
+      <span class="label">Verification checklist <span id="done" class="lbl"></span></span>
+      <ul class="vlist" id="list"></ul>
+      <button class="sm" type="button" id="reset" style="justify-self:start">Clear the checklist</button>
+    </div>
+    <div class="panel">
+      <span class="label">How scene detection works</span>
+      <p class="fact" style="margin:0">The page plays through the video in small steps and shrinks each frame to 48 × 27 pixels. It compares the colour histogram and the pixels with the previous step. A cut to a new shot changes both a lot; a person walking changes them a little. When the change passes the sensitivity level, that frame is kept at full size. Lower sensitivity catches slow pans; higher keeps only hard cuts.</p>
+      <p class="fact" style="margin:0">Reverse search works best on frames with something distinctive: a skyline, a sign, a shopfront, a mountain ridge. Crop out captions and logos added by reposters before searching, since they can make the engine match the repost rather than the original. Your checklist ticks are saved only in this browser.</p>
+    </div>
+  </div>
+</div></main>
+<div class="lightbox" id="lb" hidden role="dialog" aria-label="Magnified frame"><div class="top"><span id="lbT">Move over the image to magnify</span><button class="sm" type="button" id="lbX">Close ✕</button></div><div class="stage"><img id="lbI" alt="Frame"><div class="lens" id="lens"></div></div></div>
+<div class="toast" id="toast" hidden role="status"></div>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script src="../assets/vendor/jszip.min.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  var file = null, url = null, frames = [], mode = 'scene', busy = false, vid = $('vid');
+  var ENGINES = [['Lens', 'https://lens.google.com/'], ['Bing', 'https://www.bing.com/visualsearch'], ['Yandex', 'https://yandex.com/images/'], ['TinEye', 'https://tineye.com/']];
+  function fmtT(t) { var m = Math.floor(t / 60), s = t - m * 60; return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s.toFixed(2); }
+  function fmtB(n) { return n > 1e9 ? (n / 1e9).toFixed(2) + ' GB' : n > 1e6 ? (n / 1e6).toFixed(1) + ' MB' : Math.round(n / 1e3) + ' kB'; }
+  var tt; function toast(t) { $('toast').textContent = t; $('toast').hidden = false; clearTimeout(tt); tt = setTimeout(function () { $('toast').hidden = true; }, 5000); }
+
+  // ---------- container metadata ----------
+  function str4(v, o) { return String.fromCharCode(v.getUint8(o), v.getUint8(o + 1), v.getUint8(o + 2), v.getUint8(o + 3)); }
+  function mp4Date(secs) { return secs ? new Date((secs - 2082844800) * 1000) : null; } // seconds since 1904-01-01 UTC
+  function topBoxes(f) {
+    // walk top-level boxes by reading only their headers, so big files stay cheap
+    var out = [], pos = 0;
+    function step() {
+      if (pos + 8 > f.size || out.length > 64) return Promise.resolve(out);
+      return f.slice(pos, pos + 16).arrayBuffer().then(function (b) {
+        var v = new DataView(b); if (b.byteLength < 8) return out;
+        var size = v.getUint32(0), type = str4(v, 4), hdr = 8;
+        if (!/^[\x20-\x7e©]{4}$/.test(type)) return out;
+        if (size === 1 && b.byteLength >= 16) { size = v.getUint32(8) * 4294967296 + v.getUint32(12); hdr = 16; }
+        else if (size === 0) size = f.size - pos;
+        if (size < hdr) return out;
+        out.push({ type: type, start: pos, size: size, hdr: hdr }); pos += size; return step();
+      });
+    }
+    return step();
+  }
+  function parseMoov(v, s, e, out, path) {
+    var o = s;
+    while (o + 8 <= e) {
+      var size = v.getUint32(o), type = str4(v, o + 4), h = 8;
+      if (size === 1) { size = v.getUint32(o + 8) * 4294967296 + v.getUint32(o + 12); h = 16; } else if (size === 0) size = e - o;
+      if (size < 8 || o + size > e) break;
+      var b = o + h, end = o + size, p = path + '/' + type;
+      if (/^(trak|mdia|minf|stbl|udta|ilst|edts|dinf)$/.test(type)) parseMoov(v, b, end, out, p);
+      else if (type === 'meta') { var full = v.getUint32(b) === 0 ? 4 : 0; /* ISO meta is a full box; QuickTime meta is not */ out.keys = null; parseMoov(v, b + full, end, out, p); }
+      else if (type === 'mvhd' && !out.mvhd) {
+        var ver = v.getUint8(b), c, m, ts, du;
+        if (ver === 1) { c = v.getUint32(b + 4) * 4294967296 + v.getUint32(b + 8); m = v.getUint32(b + 12) * 4294967296 + v.getUint32(b + 16); ts = v.getUint32(b + 20); du = v.getUint32(b + 24) * 4294967296 + v.getUint32(b + 28); }
+        else { c = v.getUint32(b + 4); m = v.getUint32(b + 8); ts = v.getUint32(b + 12); du = v.getUint32(b + 16); }
+        out.mvhd = { created: mp4Date(c), modified: mp4Date(m), dur: ts ? du / ts : null };
+      }
+      else if (type === 'hdlr' && /trak\/mdia$/.test(path)) { (out.handlers = out.handlers || []).push(str4(v, b + 8)); }
+      else if (type === 'tkhd') { var tv = v.getUint8(b), wo = tv === 1 ? b + 88 : b + 76, w = v.getUint32(wo) / 65536, hh = v.getUint32(wo + 4) / 65536; if (w && hh) (out.tracks = out.tracks || []).push(w + ' × ' + hh); }
+      else if (type === 'stsd' && /stbl$/.test(path)) { var fmt = str4(v, b + 12); (out.codecs = out.codecs || []).push(fmt); }
+      else if (type === 'keys') { var n = v.getUint32(b + 4), q = b + 8; out.keys = []; for (var i = 0; i < n && q + 8 <= end; i++) { var ks = v.getUint32(q), nm = ''; for (var j = 8; j < ks; j++) nm += String.fromCharCode(v.getUint8(q + j)); out.keys.push(nm); q += ks; } }
+      else if (/ilst$/.test(path)) {
+        // iTunes-style item: child 'data' box holds the value
+        var name = type; if (out.keys && v.getUint32(o + 4) <= out.keys.length && v.getUint32(o + 4) > 0) name = out.keys[v.getUint32(o + 4) - 1];
+        if (b + 16 <= end && str4(v, b + 4) === 'data') { var dl = v.getUint32(b), dt = v.getUint32(b + 8) & 0xffffff; out.tags[name] = dt === 1 ? utf8(v, b + 16, b + dl) : dt === 23 ? v.getFloat32(b + 16) : dt === 21 && dl - 16 <= 4 ? v.getInt32(b + 16) : '(' + (dl - 16) + ' bytes)'; }
+      }
+      else if (type.charCodeAt(0) === 169 && /udta$/.test(path)) { var L = v.getUint16(b); out.tags[type] = utf8(v, b + 4, Math.min(end, b + 4 + L)); }
+      o = end;
+    }
+  }
+  function utf8(v, a, b) { try { return new TextDecoder().decode(new Uint8Array(v.buffer, v.byteOffset + a, Math.max(0, b - a))).replace(/\0+$/, ''); } catch (e) { return ''; } }
+  function readMp4(f) {
+    return topBoxes(f).then(function (boxes) {
+      var res = { boxes: boxes.map(function (b) { return b.type; }), tags: {} }, moov = boxes.filter(function (b) { return b.type === 'moov'; })[0], ftyp = boxes.filter(function (b) { return b.type === 'ftyp'; })[0];
+      var jobs = [];
+      if (ftyp) jobs.push(f.slice(ftyp.start, ftyp.start + Math.min(ftyp.size, 64)).arrayBuffer().then(function (b) { var v = new DataView(b); res.brand = str4(v, 8).trim(); var c = []; for (var o = 16; o + 4 <= b.byteLength; o += 4) c.push(str4(v, o).trim()); res.compat = c; }));
+      if (moov && moov.size < 80e6) jobs.push(f.slice(moov.start, moov.start + moov.size).arrayBuffer().then(function (b) { var v = new DataView(b); parseMoov(v, moov.hdr, b.byteLength, res, ''); }));
+      return Promise.all(jobs).then(function () { return res; });
+    });
+  }
+  // Matroska / WebM: a small EBML walk through the header, Info and Tracks
+  function readEbml(f) {
+    return f.slice(0, 512 * 1024).arrayBuffer().then(function (buf) {
+      var u = new Uint8Array(buf), res = { tags: {} }, MASTER = { 0x1A45DFA3: 1, 0x18538067: 1, 0x1549A966: 1, 0x1654AE6B: 1, 0xAE: 1, 0xE0: 1 };
+      function vint(o, keep) { var b = u[o], len = 1, m = 0x80; while (len <= 8 && !(b & m)) { m >>= 1; len++; } if (len > 8) return null; var val = keep ? b : b & (m - 1), all = (b & (m - 1)) === m - 1; for (var i = 1; i < len; i++) { val = val * 256 + u[o + i]; if (u[o + i] !== 255) all = false; } return { v: val, n: len, unk: !keep && all }; }
+      function uint(o, n) { var x = 0; for (var i = 0; i < n; i++) x = x * 256 + u[o + i]; return x; }
+      function s(o, n) { return new TextDecoder().decode(u.subarray(o, o + n)).replace(/\0+$/, ''); }
+      function walk(o, end, depth) {
+        while (o < end && o < u.length - 2) {
+          var id = vint(o, true); if (!id) return; var sz = vint(o + id.n, false); if (!sz) return;
+          var d = o + id.n + sz.n, e = sz.unk ? end : Math.min(end, d + sz.v), I = id.v;
+          if (I === 0x1F43B675) return; // first cluster: header is over
+          if (MASTER[I] && depth < 6) walk(d, e, depth + 1);
+          else if (I === 0x4282) res.brand = s(d, sz.v);
+          else if (I === 0x4D80) res.tags.MuxingApp = s(d, sz.v);
+          else if (I === 0x5741) res.tags.WritingApp = s(d, sz.v);
+          else if (I === 0x7BA9) res.tags.Title = s(d, sz.v);
+          else if (I === 0x86) (res.codecs = res.codecs || []).push(s(d, sz.v));
+          else if (I === 0x4461 && sz.v === 8) { var hi = new DataView(buf, d, 8).getBigInt64(0); res.dateUTC = new Date(Date.UTC(2001, 0, 1) + Number(hi / 1000000n)); }
+          else if (I === 0x4489) { var dv = new DataView(buf, d, sz.v), dd = sz.v === 8 ? dv.getFloat64(0) : dv.getFloat32(0); res.ebmlDur = dd; }
+          else if (I === 0x2AD7B1) res.tcScale = uint(d, sz.v);
+          o = e;
+        }
+      }
+      walk(0, u.length, 0);
+      if (res.ebmlDur != null) res.ebmlDur = res.ebmlDur * (res.tcScale || 1e6) / 1e9;
+      return res;
+    });
+  }
+  var TAGN = { '©too': 'Encoder (©too)', '©swr': 'Software (©swr)', '©nam': 'Title', '©day': 'Date tag (©day)', '©xyz': 'Location (©xyz)', '©mak': 'Make', '©mod': 'Model', '©cmt': 'Comment', '©enc': 'Encoded by', 'com.apple.quicktime.location.ISO6709': 'Location (Apple)', 'com.apple.quicktime.make': 'Make', 'com.apple.quicktime.model': 'Model', 'com.apple.quicktime.software': 'Software', 'com.apple.quicktime.creationdate': 'Creation date (Apple)', 'com.android.version': 'Android version', 'com.android.capture.fps': 'Capture fps' };
+  function iso(d) { return d && !isNaN(d) ? d.toISOString().replace('T', ' ').slice(0, 19) + ' UTC' : null; }
+  function showMeta(x) {
+    var rows = [['File', file.name, 1], ['Size', fmtB(file.size)], ['Type', file.type || 'unknown', !!file.type], ['Last modified', new Date(file.lastModified).toLocaleString('en-GB'), 1, 'on this device; usually the download date']];
+    if (x.dur) rows.push(['Duration', fmtT(x.dur), 1]);
+    if (x.w) rows.push(['Resolution', x.w + ' × ' + x.h, 1, x.h > x.w ? 'portrait, likely a phone' : '']);
+    var c = x.c || { tags: {} };
+    if (c.brand) rows.push(['Container', c.brand + (c.compat && c.compat.length ? ' (' + c.compat.join(', ') + ')' : ''), 1, c.brand === 'qt' ? 'QuickTime: often an iPhone original' : '']);
+    if (c.codecs) rows.push(['Codecs', c.codecs.join(', '), 1]);
+    if (c.mvhd) {
+      var cr = c.mvhd.created, bad = !cr || cr.getUTCFullYear() < 1971;
+      rows.push(['Created (mvhd)', bad ? 'not set' : iso(cr), !bad]);
+      if (c.mvhd.modified && +c.mvhd.modified !== +cr && c.mvhd.modified.getUTCFullYear() > 1970) rows.push(['Modified (mvhd)', iso(c.mvhd.modified), 1]);
+    }
+    if (c.dateUTC) rows.push(['Created (WebM)', iso(c.dateUTC), 1]);
+    if (c.tracks) rows.push(['Track sizes', c.tracks.join(', '), 1]);
+    Object.keys(c.tags).forEach(function (k) { rows.push([TAGN[k] || k, c.tags[k], 1]); });
+    if (c.boxes && c.boxes.length) rows.push(['Box layout', c.boxes.join(' → '), 1, c.boxes.indexOf('moov') >= 0 && c.boxes.indexOf('mdat') >= 0 ? (c.boxes.indexOf('moov') < c.boxes.indexOf('mdat') ? 'moov first: web-optimised, typical of edited or re-encoded files' : 'moov last: typical of a camera original') : '']);
+    $('meta').innerHTML = rows.map(function (r) { return '<dt>' + esc(r[0]) + '</dt><dd>' + (r[2] ? '<span data-noar>' + esc(r[1]) + '</span>' : esc(r[1])) + (r[3] ? ' <small class="lbl">' + esc(r[3]) + '</small>' : '') + '</dd>'; }).join('');
+  }
+
+  // ---------- loading ----------
+  function load(f) {
+    if (!f) return;
+    file = f; if (url) URL.revokeObjectURL(url); url = URL.createObjectURL(f);
+    clearFrames(); $('msg').textContent = 'Reading the file…';
+    var head = f.slice(0, 12).arrayBuffer();
+    var meta = head.then(function (b) {
+      var v = new DataView(b), isEbml = b.byteLength >= 4 && v.getUint32(0) === 0x1A45DFA3;
+      return (isEbml ? readEbml(f) : readMp4(f)).catch(function () { return { tags: {} }; });
+    });
+    vid.hidden = false; vid.src = url;
+    var ready = new Promise(function (res) {
+      vid.onloadedmetadata = function () { res(true); }; vid.onerror = function () { res(false); };
+    });
+    Promise.all([meta, ready]).then(function (r) {
+      var c = r[0], ok = r[1];
+      if (!ok) { vid.hidden = true; showMeta({ c: c }); $('msg').textContent = 'This browser can\'t play that video, so frames can\'t be extracted. The file details are still shown. Try converting it to MP4, or use Chrome.'; $('go').disabled = $('here').disabled = true; return; }
+      return fixDuration(vid, c).then(function (dur) {
+        showMeta({ c: c, dur: dur, w: vid.videoWidth, h: vid.videoHeight });
+        $('go').disabled = $('here').disabled = false;
+        $('msg').textContent = 'Ready. ' + fmtT(dur) + ' long. Press Extract frames.';
+      });
+    });
+  }
+  function fixDuration(v, c) {
+    // WebM from screen recorders often has no duration; seeking far ahead makes the browser work it out
+    if (isFinite(v.duration) && v.duration > 0) return Promise.resolve(v.duration);
+    if (c && c.ebmlDur) return Promise.resolve(c.ebmlDur);
+    return new Promise(function (res) {
+      var done = false; function fin() { if (done) return; done = true; v.removeEventListener('durationchange', chk); var d = isFinite(v.duration) ? v.duration : 0; v.currentTime = 0; res(d); }
+      function chk() { if (isFinite(v.duration)) fin(); }
+      v.addEventListener('durationchange', chk); v.currentTime = 1e7; setTimeout(fin, 4000);
+    });
+  }
+  $('file').onchange = function () { load(this.files[0]); };
+  var dp = $('drop');
+  ['dragenter', 'dragover'].forEach(function (ev) { dp.addEventListener(ev, function (e) { e.preventDefault(); dp.classList.add('on'); }); });
+  ['dragleave', 'drop'].forEach(function (ev) { dp.addEventListener(ev, function (e) { e.preventDefault(); dp.classList.remove('on'); }); });
+  dp.addEventListener('drop', function (e) { var f = e.dataTransfer.files[0]; if (f) load(f); });
+
+  // ---------- extraction ----------
+  [].forEach.call(document.querySelectorAll('[data-mode]'), function (b) { b.onclick = function () { mode = b.dataset.mode; [].forEach.call(document.querySelectorAll('[data-mode]'), function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); }); $('sensL').hidden = mode !== 'scene'; $('everyL').hidden = mode !== 'every'; }; });
+  $('sens').oninput = function () { $('sensV').textContent = (this.value / 100).toFixed(2); };
+  function seek(v, t) {
+    return new Promise(function (res) {
+      var done = false; function fin() { if (done) return; done = true; v.removeEventListener('seeked', fin); res(); }
+      v.addEventListener('seeked', fin); v.currentTime = t; setTimeout(fin, 3000);
+    });
+  }
+  var small = document.createElement('canvas'); small.width = 48; small.height = 27; var sctx = small.getContext('2d', { willReadFrequently: true });
+  function signature(v) {
+    sctx.drawImage(v, 0, 0, 48, 27); var d = sctx.getImageData(0, 0, 48, 27).data, h = new Float32Array(48), n = d.length / 4;
+    for (var i = 0; i < d.length; i += 4) { h[d[i] >> 4]++; h[16 + (d[i + 1] >> 4)]++; h[32 + (d[i + 2] >> 4)]++; }
+    for (var k = 0; k < 48; k++) h[k] /= n;
+    return { h: h, px: new Uint8ClampedArray(d) };
+  }
+  function diff(a, b) {
+    var hd = 0, pd = 0; for (var k = 0; k < 48; k++) hd += Math.abs(a.h[k] - b.h[k]); hd /= 6; // 0..1
+    for (var i = 0; i < a.px.length; i += 4) pd += Math.abs(a.px[i] - b.px[i]) + Math.abs(a.px[i + 1] - b.px[i + 1]) + Math.abs(a.px[i + 2] - b.px[i + 2]);
+    pd /= (a.px.length / 4) * 765;
+    return 0.5 * hd + 0.5 * Math.min(1, pd * 2);
+  }
+  function grab(v, t) {
+    var w = v.videoWidth, h = v.videoHeight, s = Math.min(1, 1280 / Math.max(w, h)), c = document.createElement('canvas');
+    c.width = Math.round(w * s); c.height = Math.round(h * s); c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
+    return new Promise(function (res) { c.toBlob(function (b) { res({ t: t, blob: b, url: URL.createObjectURL(b), w: c.width, h: c.height }); }, 'image/png'); });
+  }
+  function clearFrames() { frames.forEach(function (f) { URL.revokeObjectURL(f.url); }); frames = []; $('frames').innerHTML = ''; $('count').textContent = ''; $('zip').hidden = true; }
+  $('go').onclick = function () {
+    if (busy || !file) return; busy = true; clearFrames(); $('go').disabled = true; $('msg').textContent = 'Scanning…'; $('msg').removeAttribute('data-done'); $('bar').style.width = '0';
+    var v = document.createElement('video'); v.muted = true; v.playsInline = true; v.preload = 'auto'; v.src = url;
+    var MAX = 48, thr = +$('sens').value / 100, every = Math.max(0.5, +$('every').value || 2);
+    new Promise(function (r) { v.onloadeddata = r; v.onerror = r; }).then(function () { return fixDuration(v, null); }).then(function (dur) {
+      dur = dur || vid.duration || 0;
+      var step = mode === 'scene' ? Math.max(0.2, Math.min(1, dur / 300)) : every, t = 0, prev = null, lastKeep = -1e9, kept = 0;
+      function next() {
+        if (t > dur - 0.05 || kept >= MAX) return finish();
+        return seek(v, t).then(function () {
+          var sig = signature(v), keep = false;
+          if (mode === 'every') keep = true;
+          else if (!prev) keep = true;
+          else if (diff(sig, prev) > thr && t - lastKeep >= 0.5) keep = true;
+          prev = sig; $('bar').style.width = Math.round(100 * t / dur) + '%';
+          var tt0 = t; t += step;
+          if (!keep) return next();
+          lastKeep = tt0; kept++;
+          return grab(v, tt0).then(function (fr) { frames.push(fr); addFrame(fr, frames.length - 1); $('msg').textContent = 'Scanning… ' + kept + ' frame' + (kept > 1 ? 's' : '') + ' so far'; return next(); });
+        });
+      }
+      function finish() {
+        busy = false; $('go').disabled = false; $('bar').style.width = '100%'; $('msg').setAttribute('data-done', frames.length); v.removeAttribute('src'); v.load();
+        $('count').textContent = '· ' + frames.length; $('zip').hidden = !frames.length;
+        $('msg').textContent = frames.length ? 'Found ' + frames.length + ' key frame' + (frames.length > 1 ? 's' : '') + (kept >= MAX ? ' (stopped at ' + MAX + ')' : '') + '. Search the most distinctive ones.' : 'No frames found. Try a lower sensitivity or "Every N seconds".';
+      }
+      return next();
+    }).catch(function (e) { busy = false; $('go').disabled = false; $('msg').textContent = 'Frame extraction stopped: ' + e.message; });
+  };
+  $('here').onclick = function () { if (!vid.videoWidth) return; grab(vid, vid.currentTime).then(function (fr) { frames.push(fr); addFrame(fr, frames.length - 1); $('count').textContent = '· ' + frames.length; $('zip').hidden = false; }); };
+  function addFrame(fr, i) {
+    var name = (file.name.replace(/\.[^.]+$/, '') || 'video') + '_' + fmtT(fr.t).replace(':', 'm').replace('.', 's') + '.png'; fr.name = name;
+    var el = document.createElement('div'); el.className = 'frm';
+    el.innerHTML = '<img alt="Frame at ' + fmtT(fr.t) + '" src="' + fr.url + '"><div class="fi"><div class="btns" style="justify-content:space-between"><b>' + fmtT(fr.t) + '</b><span class="btns"><a class="sm" download="' + esc(name) + '" href="' + fr.url + '">PNG</a><button class="sm" type="button" data-z>Zoom</button></span></div><div class="btns">' +
+      ENGINES.map(function (e, k) { return '<button class="sm" type="button" data-e="' + k + '">' + e[0] + ' ↗</button>'; }).join('') + '</div></div>';
+    el.querySelector('img').onclick = el.querySelector('[data-z]').onclick = function () { zoom(fr); };
+    [].forEach.call(el.querySelectorAll('[data-e]'), function (b) { b.onclick = function () { search(fr, ENGINES[b.dataset.e]); }; });
+    $('frames').appendChild(el);
+  }
+  function search(fr, eng) {
+    window.open(eng[1], '_blank', 'noopener');
+    var p = (navigator.clipboard && window.ClipboardItem) ? navigator.clipboard.write([new ClipboardItem({ 'image/png': fr.blob })]) : Promise.reject(new Error('no clipboard'));
+    p.then(function () { toast('Frame copied. In the ' + eng[0] + ' tab, paste it (Ctrl+V) or use its upload button.'); }, function () { toast('Couldn\'t copy the image here. Download the PNG and upload it in the ' + eng[0] + ' tab.'); });
+  }
+  $('zip').onclick = function () {
+    if (!window.JSZip || !frames.length) return; var z = new JSZip();
+    frames.forEach(function (f) { z.file(f.name, f.blob); });
+    z.generateAsync({ type: 'blob' }).then(function (b) { var a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'keyframes.zip'; a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 5000); });
+  };
+
+  // ---------- magnifier ----------
+  var lb = $('lb'), lbI = $('lbI'), lens = $('lens'), cur = null;
+  function zoom(fr) { cur = fr; lbI.src = fr.url; lens.style.backgroundImage = 'url("' + fr.url + '")'; $('lbT').textContent = fmtT(fr.t) + ' · ' + fr.w + ' × ' + fr.h + ' · move over the image to magnify 3×'; lb.hidden = false; $('lbX').focus(); }
+  function closeZoom() { lb.hidden = true; lens.style.display = 'none'; }
+  $('lbX').onclick = closeZoom; lb.addEventListener('click', function (e) { if (e.target === lb) closeZoom(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !lb.hidden) closeZoom(); });
+  function moveLens(e) {
+    var r = lbI.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+    if (x < 0 || y < 0 || x > r.width || y > r.height) { lens.style.display = 'none'; return; }
+    var Z = 3; lens.style.display = 'block'; lens.style.left = (x - 90) + 'px'; lens.style.top = (y - 90) + 'px';
+    lens.style.backgroundSize = (r.width * Z) + 'px ' + (r.height * Z) + 'px'; lens.style.backgroundPosition = (-x * Z + 90) + 'px ' + (-y * Z + 90) + 'px';
+  }
+  lbI.addEventListener('pointermove', moveLens); lbI.addEventListener('pointerdown', moveLens); lbI.addEventListener('pointerleave', function () { lens.style.display = 'none'; });
+
+  // ---------- checklist ----------
+  var CHECKS = [
+    ['src', 'Who posted it first?', 'Look at the account, not the clip: when it was created, what else it posts, and whether it was really there. Reposters often crop out the original watermark.'],
+    ['first', 'Find the earliest copy', 'Reverse-search two or three key frames. Sort by date where you can (TinEye does). If the same footage appeared years earlier, the caption is wrong.'],
+    ['land', 'Match the landmarks', 'Buildings, towers, bridges, mountain ridges, road layouts. Compare with satellite imagery and street-level photos of the claimed place.'],
+    ['weather', 'Check the weather', 'Was it raining, cloudy, dusty, hot? Compare with weather records for the claimed date and place. Wet roads on a dry day give a reposted clip away.'],
+    ['shadow', 'Check the shadows', 'Shadow length and direction give the time of day. Use the <a href="../chronolocation/">shadow chronolocation tool</a> on a frame.'],
+    ['signs', 'Read signs and language', 'Shop signs, script, dialect, phone number formats, car number plates, road markings and which side of the road cars drive on.'],
+    ['audio', 'Listen carefully', 'Accents, sirens (they differ by country), call to prayer timing, and whether the sound matches what you see.'],
+    ['season', 'Clothes and season', 'Coats in a summer clip, or trees in leaf in winter, suggest a different date.'],
+    ['meta', 'Treat metadata as a clue, not proof', 'Dates in the file come from a device clock and are easy to change. Missing metadata is normal after a social app re-encodes the video.'],
+    ['edit', 'Look for edits', 'Step through frame by frame around cuts. Watch for warped edges, mismatched lighting, or frozen backgrounds that hint at splicing or AI generation.']
+  ];
+  var ticks = {}; try { ticks = JSON.parse(localStorage.getItem('videoVerifyChecks') || '{}'); } catch (e) { ticks = {}; }
+  function renderList() {
+    $('list').innerHTML = CHECKS.map(function (c) { return '<li><label><input type="checkbox" data-k="' + c[0] + '"' + (ticks[c[0]] ? ' checked' : '') + '><span>' + c[1] + '<small>' + c[2] + '</small></span></label></li>'; }).join('');
+    $('done').textContent = '· ' + Object.keys(ticks).filter(function (k) { return ticks[k]; }).length + ' of ' + CHECKS.length;
+    [].forEach.call($('list').querySelectorAll('input'), function (i) { i.onchange = function () { ticks[i.dataset.k] = i.checked; try { localStorage.setItem('videoVerifyChecks', JSON.stringify(ticks)); } catch (e) {} $('done').textContent = '· ' + Object.keys(ticks).filter(function (k) { return ticks[k]; }).length + ' of ' + CHECKS.length; }; });
+  }
+  $('reset').onclick = function () { ticks = {}; try { localStorage.removeItem('videoVerifyChecks'); } catch (e) {} renderList(); };
+  renderList();
+  window.__vv = { readMp4: readMp4, readEbml: readEbml };
+})();
+</script>
+</body>
+</html>
