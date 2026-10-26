@@ -1,0 +1,675 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>What Is This File? · Mariam's Lab</title>
+<meta name="description" content="Drop any file to see what it really is, whatever its name says. Spots programs disguised as PDFs, hidden macros, double extensions and reversed file names, and gives you its hashes to look up. Nothing is uploaded.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/file-id/">
+<meta property="og:title" content="What Is This File? · Mariam's Lab"><meta property="og:description" content="The real type of a file, its hashes and hidden warning signs. Nothing is uploaded."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.85rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 7px 14px; cursor: pointer; text-decoration: none; display: inline-block; }
+.sm.pri { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 600; }
+.fi-btns { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.fi-drop { border: 1.5px dashed var(--line); border-radius: var(--radius); padding: 30px 18px; text-align: center; display: grid; gap: 12px; justify-items: center; background: rgba(7,10,24,.5); }
+.fi-drop.fi-over { border-color: var(--accent); background: var(--accent-soft); }
+.fi-drop b { font-family: var(--font-display); font-size: 1.25rem; }
+.fi-muted { color: var(--muted); font-size: 0.86rem; }
+.fi-tries { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: center; font-size: 0.78rem; color: var(--muted); }
+.fi-tries .sm { font-size: 0.78rem; padding: 4px 10px; }
+.fi-res { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 20px; }
+.fi-sec { padding: 16px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); display: grid; gap: 10px; align-content: start; min-width: 0; }
+.fi-sec h2 { font-size: 1.05rem; font-weight: 700; }
+.fi-wide { grid-column: 1 / -1; }
+.fi-big { font-family: var(--font-display); font-size: clamp(1.35rem, 4vw, 2rem); font-weight: 800; line-height: 1.12; }
+.fi-flags { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
+.fi-flags li { display: grid; grid-template-columns: 1.3em minmax(0, 1fr); gap: 6px; font-size: 0.9rem; }
+.fi-flags small { display: block; color: var(--muted); font-size: 0.82rem; word-break: break-word; }
+.fi-kv { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 5px 14px; font-size: 0.88rem; margin: 0; }
+.fi-kv dt { color: var(--muted); }
+.fi-kv dd { margin: 0; font-family: var(--font-mono); font-size: 0.8rem; word-break: break-all; }
+.fi-hash { display: grid; grid-template-columns: 4.5em minmax(0, 1fr) auto; gap: 8px; align-items: center; font-size: 0.82rem; }
+.fi-hash code { font-family: var(--font-mono); font-size: 0.76rem; word-break: break-all; }
+.fi-hash .sm { font-size: 0.72rem; padding: 3px 9px; }
+.fi-bar { height: 8px; border-radius: 99px; background: var(--line); overflow: hidden; }
+.fi-bar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .15s; }
+.fi-ent { width: 100%; height: 64px; display: block; border-radius: 8px; background: rgba(7,10,24,.6); }
+.fi-tbl { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+.fi-tbl th, .fi-tbl td { text-align: start; padding: 5px 6px; border-bottom: 1px solid var(--line); }
+.fi-tbl th { color: var(--muted); font-weight: 500; }
+.fi-tbl td { font-family: var(--font-mono); font-size: 0.76rem; }
+.fi-scroll { overflow: auto; max-height: 320px; max-width: 100%; }
+.fi-strs { font-family: var(--font-mono); font-size: 0.74rem; line-height: 1.55; white-space: pre-wrap; word-break: break-all; margin: 0; direction: ltr; text-align: left; }
+.fi-strs mark { background: var(--sat-c); color: var(--bg); border-radius: 3px; padding: 0 2px; }
+.fi-names { list-style: none; margin: 0; padding: 0; font-family: var(--font-mono); font-size: 0.76rem; display: grid; gap: 2px; direction: ltr; text-align: left; }
+.fi-names li.fi-hot { color: var(--sat-c); }
+.fi-name { font-family: var(--font-mono); font-size: 0.86rem; padding: 8px 10px; border-radius: 10px; background: rgba(7,10,24,.6); border: 1px solid var(--line); word-break: break-all; direction: ltr; text-align: left; }
+.fi-name mark { background: var(--sat-c); color: var(--bg); border-radius: 3px; padding: 0 3px; font-size: .75rem; }
+.fi-ok { color: var(--sat-b); } .fi-bad { color: var(--sat-c); } .fi-meh { color: var(--accent); } .fi-na { color: var(--muted); }
+[hidden] { display: none !important; }
+@media (max-width: 760px) { .fi-res { grid-template-columns: minmax(0, 1fr); } .fi-hash { grid-template-columns: minmax(0, 1fr) auto; } .fi-hash > span:first-child { grid-column: 1 / -1; } }
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Security</span>
+    <h1 style="font-size:var(--step-3)">What is this file, really?</h1>
+    <p>A file's name can say anything. "Invoice.pdf" can be a program, and a "photo" can be a ZIP full of scripts. Drop a file here to see what its bytes say it is, whether the name is hiding something, and its fingerprints (hashes) to look up. The file never leaves your device.</p>
+  </div>
+
+  <label class="fi-drop" id="drop">
+    <b>Drop a file here</b>
+    <span class="fi-muted">or tap to choose one. Any size, any type.</span>
+    <input type="file" id="file" hidden>
+  </label>
+  <div class="fi-tries" style="margin-top:10px"><span>Or try a harmless sample:</span>
+    <button class="sm" type="button" data-sample="pe">invoice.pdf.exe</button>
+    <button class="sm" type="button" data-sample="macro">Statement.docx with a macro</button>
+    <button class="sm" type="button" data-sample="zipjpg">holiday-photo.jpg</button>
+    <button class="sm" type="button" data-sample="rlo">a reversed name</button>
+  </div>
+  <p class="fi-muted" style="text-align:center;margin-top:8px">Reading happens in this tab only. Nothing is uploaded, and the samples are made in your browser and can't run.</p>
+
+  <div class="fi-res" id="res" hidden>
+    <div class="fi-sec fi-wide" id="verdict"></div>
+    <div class="fi-sec"><h2>Fingerprints</h2>
+      <div class="fi-bar" id="bar"><i></i></div><p class="fi-muted" id="barMsg"></p>
+      <div id="hashes" style="display:grid;gap:8px"></div>
+      <div class="fi-btns" id="lookup" hidden></div>
+      <p class="fi-muted" style="margin:0">A hash is a fingerprint of the exact bytes. Change one byte and it changes completely. Looking it up tells you if security companies have seen this exact file. The links only open the search page. You choose whether to click them.</p>
+    </div>
+    <div class="fi-sec"><h2>Randomness (entropy)</h2>
+      <div id="entVal" class="fi-big">…</div>
+      <canvas class="fi-ent" id="ent" width="600" height="64" aria-label="Entropy across the file"></canvas>
+      <p class="fi-muted" id="entMsg" style="margin:0"></p>
+    </div>
+    <div class="fi-sec" id="progSec" hidden><h2 id="progTitle">Program details</h2><div id="prog"></div></div>
+    <div class="fi-sec" id="contSec" hidden><h2>What's inside</h2><div id="cont"></div></div>
+    <div class="fi-sec fi-wide"><h2>Readable text inside</h2><div id="iocs"></div><div class="fi-scroll"><pre class="fi-strs" id="strs" data-noar></pre></div></div>
+  </div>
+
+  <div class="game" style="margin-top:26px">
+    <div class="panel" style="display:grid;gap:10px">
+      <span class="label">How it works</span>
+      <p class="fact" style="margin:0">Most file formats start with a fixed signature, called a magic number. Every PDF begins with <b>%PDF</b>, every Windows program with <b>MZ</b> (the initials of Mark Zbikowski, who designed the format in the 1980s), and every ZIP with <b>PK</b> after Phil Katz. Word, Excel, PowerPoint, Android apps and Java programs are all ZIPs inside, so the page also reads the list of files packed within to tell them apart. It knows about 90 formats.</p>
+    </div>
+    <div class="panel" style="display:grid;gap:10px">
+      <span class="label">If a file looks wrong</span>
+      <ul class="fi-muted" style="margin:0;padding-inline-start:1.1em;display:grid;gap:6px">
+        <li>Don't open it. Delete it, or keep it closed until you've checked with the sender by phone.</li>
+        <li>At work, forward it to your IT or security team instead of opening it.</li>
+        <li>No match in a hash lookup doesn't mean it's safe. New malware is often unique.</li>
+        <li>Turn on "Show file extensions" on Windows (File Explorer, View) so names can't hide .exe.</li>
+      </ul>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  // ---- types: id -> [name, allowed extensions, category, risk 0..2]
+  var T = {
+    pe: ['Windows program (PE)', 'exe dll sys scr cpl ocx com efi drv mui ax node', 'program', 2],
+    pe_dll: ['Windows library (DLL)', 'dll ocx cpl ax mui drv node', 'program', 2],
+    pe_drv: ['Windows driver', 'sys drv efi', 'program', 2],
+    elf: ['Linux program (ELF)', ' so o ko elf bin out run axf prx', 'program', 2],
+    macho: ['macOS program (Mach-O)', ' dylib bundle o so', 'program', 2],
+    java_class: ['Java class file', 'class', 'program', 2],
+    dex: ['Android bytecode (DEX)', 'dex', 'program', 2],
+    wasm: ['WebAssembly module', 'wasm', 'program', 1],
+    pdf: ['PDF document', 'pdf ai', 'document', 0],
+    zip: ['ZIP archive', 'zip zipx', 'archive', 0],
+    docx: ['Word document', 'docx dotx', 'document', 0],
+    docm: ['Word document with macros', 'docm dotm', 'document', 2],
+    xlsx: ['Excel workbook', 'xlsx xltx', 'document', 0],
+    xlsm: ['Excel workbook with macros', 'xlsm xltm xlam', 'document', 2],
+    xlsb: ['Excel binary workbook', 'xlsb', 'document', 1],
+    pptx: ['PowerPoint presentation', 'pptx ppsx potx', 'document', 0],
+    pptm: ['PowerPoint with macros', 'pptm ppsm potm', 'document', 2],
+    vsdx: ['Visio drawing', 'vsdx vsdm', 'document', 0],
+    apk: ['Android app (APK)', 'apk apks xapk', 'program', 2],
+    jar: ['Java program (JAR)', 'jar war ear', 'program', 2],
+    epub: ['E-book (EPUB)', 'epub', 'document', 0],
+    odf: ['OpenDocument file', 'odt ods odp odg ott', 'document', 0],
+    ipa: ['iPhone app (IPA)', 'ipa', 'program', 2],
+    appx: ['Windows app package (MSIX)', 'msix appx msixbundle appxbundle', 'program', 2],
+    vsix: ['Editor extension (VSIX)', 'vsix', 'program', 2],
+    xpi: ['Browser extension', 'xpi zip', 'program', 1],
+    whl: ['Python package (wheel)', 'whl', 'program', 1],
+    nupkg: ['NuGet package', 'nupkg', 'program', 1],
+    kmz: ['Map file (KMZ)', 'kmz', 'data', 0],
+    rar: ['RAR archive', 'rar', 'archive', 0],
+    sevenz: ['7-Zip archive', '7z', 'archive', 0],
+    gz: ['Gzip archive', 'gz tgz gzip', 'archive', 0],
+    bz2: ['Bzip2 archive', 'bz2 tbz2', 'archive', 0],
+    xz: ['XZ archive', 'xz txz', 'archive', 0],
+    zst: ['Zstandard archive', 'zst', 'archive', 0],
+    lz4: ['LZ4 archive', 'lz4', 'archive', 0],
+    cab: ['Windows cabinet archive', 'cab', 'archive', 1],
+    tar: ['TAR archive', 'tar', 'archive', 0],
+    iso: ['Disc image (ISO)', 'iso img', 'disk', 1],
+    dmg: ['macOS disk image', 'dmg', 'disk', 1],
+    vhd: ['Virtual hard disk (VHD)', 'vhd', 'disk', 1],
+    vhdx: ['Virtual hard disk (VHDX)', 'vhdx', 'disk', 1],
+    vmdk: ['VMware disk', 'vmdk', 'disk', 0],
+    qcow: ['QEMU disk', 'qcow qcow2 img', 'disk', 0],
+    ole: ['Office 97-2003 or other OLE file', 'doc dot xls xlt ppt pps msg msi msp', 'document', 1],
+    doc: ['Word 97-2003 document', 'doc dot', 'document', 0],
+    xls: ['Excel 97-2003 workbook', 'xls xlt xla', 'document', 0],
+    ppt: ['PowerPoint 97-2003', 'ppt pps pot', 'document', 0],
+    msg: ['Outlook email message', 'msg', 'document', 0],
+    msi: ['Windows installer (MSI)', 'msi msp mst', 'program', 2],
+    lnk: ['Windows shortcut (LNK)', 'lnk', 'program', 2],
+    rtf: ['Rich text document (RTF)', 'rtf', 'document', 1],
+    png: ['PNG image', 'png apng', 'image', 0],
+    jpg: ['JPEG image', 'jpg jpeg jpe jfif', 'image', 0],
+    gif: ['GIF image', 'gif', 'image', 0],
+    bmp: ['Bitmap image', 'bmp dib', 'image', 0],
+    tif: ['TIFF image or camera RAW', 'tif tiff dng nef cr2 arw orf rw2 pef srw', 'image', 0],
+    webp: ['WebP image', 'webp', 'image', 0],
+    ico: ['Icon', 'ico cur', 'image', 0],
+    psd: ['Photoshop document', 'psd psb', 'image', 0],
+    heic: ['HEIC photo', 'heic heif hif', 'image', 0],
+    avif: ['AVIF image', 'avif', 'image', 0],
+    jxl: ['JPEG XL image', 'jxl', 'image', 0],
+    svg: ['SVG image', 'svg svgz', 'image', 1],
+    mp4: ['MP4 video or audio', 'mp4 m4v m4a m4b f4v mp4v', 'video', 0],
+    mov: ['QuickTime video', 'mov qt', 'video', 0],
+    tgp: ['3GP video', '3gp 3g2', 'video', 0],
+    mkv: ['Matroska video', 'mkv mka mk3d', 'video', 0],
+    webm: ['WebM video', 'webm', 'video', 0],
+    avi: ['AVI video', 'avi', 'video', 0],
+    wav: ['WAV audio', 'wav wave', 'audio', 0],
+    mp3: ['MP3 audio', 'mp3', 'audio', 0],
+    flac: ['FLAC audio', 'flac', 'audio', 0],
+    ogg: ['Ogg audio or video', 'ogg oga ogv opus spx', 'audio', 0],
+    mid: ['MIDI music', 'mid midi', 'audio', 0],
+    aac: ['AAC audio', 'aac', 'audio', 0],
+    amr: ['AMR voice recording', 'amr', 'audio', 0],
+    flv: ['Flash video', 'flv', 'video', 0],
+    asf: ['Windows Media file', 'wmv wma asf', 'video', 0],
+    swf: ['Flash animation (SWF)', 'swf', 'program', 1],
+    regf: ['Windows registry hive', ' dat hiv hve sav', 'data', 0],
+    evtx: ['Windows event log', 'evtx', 'data', 0],
+    pcap: ['Network capture (pcap)', 'pcap cap dmp', 'data', 0],
+    pcapng: ['Network capture (pcapng)', 'pcapng', 'data', 0],
+    sqlite: ['SQLite database', ' sqlite sqlite3 db db3 sdb', 'data', 0],
+    ttf: ['TrueType font', 'ttf tte', 'font', 0],
+    otf: ['OpenType font', 'otf', 'font', 0],
+    woff: ['Web font (WOFF)', 'woff', 'font', 0],
+    woff2: ['Web font (WOFF2)', 'woff2', 'font', 0],
+    bplist: ['Apple binary property list', 'plist', 'data', 0],
+    deb: ['Debian/Ubuntu package', 'deb udeb', 'program', 2],
+    rpm: ['Red Hat package (RPM)', 'rpm', 'program', 2],
+    pst: ['Outlook mailbox file', 'pst ost', 'data', 0],
+    access: ['Access database', 'mdb accdb', 'data', 1],
+    chm: ['Compiled help file (CHM)', 'chm', 'program', 2],
+    crx: ['Chrome extension', 'crx', 'program', 2],
+    djvu: ['DjVu document', 'djvu djv', 'document', 0],
+    torrent: ['Torrent file', 'torrent', 'data', 0],
+    html: ['Web page (HTML)', 'html htm xhtml shtml mht mhtml', 'script', 1],
+    hta: ['HTML application (HTA)', 'hta', 'script', 2],
+    js: ['JavaScript code', 'js mjs cjs jse jsx ts', 'script', 2],
+    vbs: ['VBScript code', 'vbs vbe wsf', 'script', 2],
+    ps1: ['PowerShell script', 'ps1 psm1 psd1', 'script', 2],
+    bat: ['Windows batch script', 'bat cmd', 'script', 2],
+    sh: ['Shell script', ' sh bash zsh command ksh', 'script', 2],
+    py: ['Python code', 'py pyw', 'script', 1],
+    reg: ['Registry change file (.reg)', 'reg', 'script', 2],
+    url: ['Internet shortcut', 'url', 'script', 1],
+    xml: ['XML data', 'xml xsd xsl xslt config manifest plist rss atom gpx kml xaml svg resx', 'data', 0],
+    json: ['JSON data', 'json geojson map webmanifest har ipynb', 'data', 0],
+    eml: ['Email message', 'eml mht', 'document', 0],
+    vcf: ['Contact card', 'vcf vcard', 'data', 0],
+    ics: ['Calendar invite', 'ics ical', 'data', 0],
+    pem: ['Certificate or key (PEM)', 'pem crt cer key csr pub', 'data', 0],
+    pgp: ['PGP message or key', 'asc gpg pgp sig', 'data', 0],
+    csv: ['Table (CSV)', 'csv tsv txt', 'text', 0],
+    text: ['Plain text', ' txt log md markdown csv tsv ini cfg conf text nfo srt vtt sub yml yaml toml readme', 'text', 0],
+    empty: ['Empty file', '', 'data', 0],
+    unknown: ['Unknown binary data', '', 'data', 0]
+  };
+  var EXEC_EXT = /^(exe|scr|com|pif|cpl|msi|msp|bat|cmd|js|jse|vbs|vbe|wsf|wsh|hta|ps1|lnk|jar|reg|url|scf|chm|iso|img|vhd|vhdx|xll|docm|xlsm|pptm|ppsm|dotm|xlam|appx|msix|apk|ipa|application|gadget|inf|sct|dll|sys|sh|command|app|pkg|dmg|run|bin|elf)$/;
+  // magic numbers: [offset, hex with ?? wildcards, type]
+  var SIGS = [
+    [0, '4D5A', 'pe'], [0, '7F454C46', 'elf'], [0, 'FEEDFACE', 'macho'], [0, 'FEEDFACF', 'macho'], [0, 'CEFAEDFE', 'macho'], [0, 'CFFAEDFE', 'macho'], [0, 'CAFEBABE', 'cafebabe'],
+    [0, '25504446', 'pdf'], [0, '504B0304', 'zip'], [0, '504B0506', 'zip'], [0, '504B0708', 'zip'],
+    [0, '526172211A07', 'rar'], [0, '377ABCAF271C', 'sevenz'], [0, '1F8B', 'gz'], [0, '425A68', 'bz2'], [0, 'FD377A585A00', 'xz'], [0, '28B52FFD', 'zst'], [0, '04224D18', 'lz4'], [0, '4D534346', 'cab'],
+    [257, '7573746172', 'tar'], [32769, '4344303031', 'iso'], [34817, '4344303031', 'iso'], [36865, '4344303031', 'iso'],
+    [0, '636F6E6563746978', 'vhd'], [0, '7668647866696C65', 'vhdx'], [0, '4B444D56', 'vmdk'], [0, '514649FB', 'qcow'],
+    [0, 'D0CF11E0A1B11AE1', 'ole'], [0, '4C0000000114020000000000C000000000000046', 'lnk'], [0, '7B5C727466', 'rtf'],
+    [0, '89504E470D0A1A0A', 'png'], [0, 'FFD8FF', 'jpg'], [0, '474946383761', 'gif'], [0, '474946383961', 'gif'], [0, '49492A00', 'tif'], [0, '4D4D002A', 'tif'], [0, '49492B00', 'tif'],
+    [0, '52494646????????57454250', 'webp'], [0, '52494646????????57415645', 'wav'], [0, '52494646????????41564920', 'avi'],
+    [0, '00000100', 'ico'], [0, '00000200', 'ico'], [0, '38425053', 'psd'], [0, 'FF0A', 'jxl'], [0, '0000000C4A584C20', 'jxl'],
+    [4, '66747970', 'ftyp'], [0, '1A45DFA3', 'ebml'], [0, '494433', 'mp3'], [0, 'FFFB', 'mp3'], [0, 'FFF3', 'mp3'], [0, 'FFF2', 'mp3'], [0, 'FFF1', 'aac'], [0, 'FFF9', 'aac'],
+    [0, '664C6143', 'flac'], [0, '4F676753', 'ogg'], [0, '4D546864', 'mid'], [0, '2321414D52', 'amr'], [0, '464C5601', 'flv'], [0, '3026B2758E66CF11', 'asf'],
+    [0, '465753', 'swf'], [0, '435753', 'swf'], [0, '5A5753', 'swf'],
+    [0, '72656766', 'regf'], [0, '456C6646696C6500', 'evtx'], [0, 'D4C3B2A1', 'pcap'], [0, 'A1B2C3D4', 'pcap'], [0, '4D3CB2A1', 'pcap'], [0, '0A0D0D0A', 'pcapng'],
+    [0, '53514C69746520666F726D6174203300', 'sqlite'], [0, '6465780A', 'dex'], [0, '0061736D', 'wasm'],
+    [0, '0001000000', 'ttf'], [0, '74727565', 'ttf'], [0, '4F54544F', 'otf'], [0, '774F4646', 'woff'], [0, '774F4632', 'woff2'],
+    [0, '62706C6973743030', 'bplist'], [0, '213C617263683E0A64656269616E', 'deb'], [0, 'EDABEEDB', 'rpm'], [0, '2142444E', 'pst'],
+    [4, '5374616E64617264204A6574204442', 'access'], [4, '5374616E6461726420414345204442', 'access'], [0, '49545346', 'chm'], [0, '43723234', 'crx'], [0, '41542654464F524D', 'djvu'],
+    [0, '64383A616E6E6F756E6365', 'torrent'], [0, '424D', 'bmp']
+  ];
+  SIGS.forEach(function (s) { s[3] = s[1].match(/../g).map(function (h) { return h === '??' ? -1 : parseInt(h, 16); }); });
+  SIGS.sort(function (a, b) { return b[3].length - a[3].length; });
+
+  function u16(b, o, be) { return be ? (b[o] << 8 | b[o + 1]) : (b[o] | b[o + 1] << 8); }
+  function u32(b, o, be) { return be ? ((b[o] << 24 | b[o + 1] << 16 | b[o + 2] << 8 | b[o + 3]) >>> 0) : ((b[o] | b[o + 1] << 8 | b[o + 2] << 16 | b[o + 3] << 24) >>> 0); }
+  function ascii(b, o, n) { var s = ''; for (var i = o; i < o + n && i < b.length; i++) s += String.fromCharCode(b[i]); return s; }
+  function slice(file, a, b) { return file.slice(a, b).arrayBuffer().then(function (x) { return new Uint8Array(x); }); }
+  function sigMatch(b) {
+    for (var i = 0; i < SIGS.length; i++) {
+      var s = SIGS[i], o = s[0], h = s[3], ok = o + h.length <= b.length;
+      for (var j = 0; ok && j < h.length; j++) if (h[j] >= 0 && b[o + j] !== h[j]) ok = false;
+      if (ok) return s[2];
+    }
+    return null;
+  }
+
+  // ---- ZIP: read the central directory from the end of the file
+  function zipNames(file) {
+    var n = Math.min(file.size, 65557);
+    return slice(file, file.size - n, file.size).then(function (t) {
+      for (var i = t.length - 22; i >= 0; i--) if (t[i] === 0x50 && t[i + 1] === 0x4B && t[i + 2] === 5 && t[i + 3] === 6) break;
+      if (i < 0) return null;
+      var cnt = u16(t, i + 10), size = u32(t, i + 12), off = u32(t, i + 16);
+      if (off === 0xFFFFFFFF || off + size > file.size) return null;
+      return slice(file, off, off + Math.min(size, 16 << 20)).then(function (c) {
+        var out = [], p = 0;
+        while (p + 46 <= c.length && u32(c, p) === 0x02014b50 && out.length < 20000) {
+          var flags = u16(c, p + 8), nl = u16(c, p + 28), xl = u16(c, p + 30), cl = u16(c, p + 32);
+          out.push({ name: new TextDecoder().decode(c.subarray(p + 46, p + 46 + nl)), enc: !!(flags & 1), size: u32(c, p + 24) });
+          p += 46 + nl + xl + cl;
+        }
+        return { entries: out, total: cnt };
+      });
+    }).catch(function () { return null; });
+  }
+  function zipKind(names) {
+    var has = function (re) { return names.some(function (n) { return re.test(n); }); };
+    var macro = has(/(^|\/)vbaProject\.bin$/i);
+    if (has(/^word\//)) return macro ? 'docm' : 'docx';
+    if (has(/^xl\//)) return macro ? 'xlsm' : has(/^xl\/workbook\.bin$/) ? 'xlsb' : 'xlsx';
+    if (has(/^ppt\//)) return macro ? 'pptm' : 'pptx';
+    if (has(/^visio\//)) return 'vsdx';
+    if (has(/^AndroidManifest\.xml$/) && has(/^classes\d*\.dex$/)) return 'apk';
+    if (has(/^Payload\/[^/]+\.app\//)) return 'ipa';
+    if (has(/^AppxManifest\.xml$|^AppxMetadata\//)) return 'appx';
+    if (has(/^extension\.vsixmanifest$/)) return 'vsix';
+    if (has(/^mimetype$/) && has(/^META-INF\/container\.xml$/)) return 'epub';
+    if (has(/^mimetype$/) && has(/^content\.xml$/)) return 'odf';
+    if (has(/^META-INF\/MANIFEST\.MF$/) && has(/\.class$/)) return 'jar';
+    if (has(/\.dist-info\/WHEEL$/)) return 'whl';
+    if (has(/\.nuspec$/)) return 'nupkg';
+    if (has(/^doc\.kml$/)) return 'kmz';
+    if (has(/^manifest\.json$/) && has(/\.js$/) && !has(/\//)) return 'xpi';
+    return 'zip';
+  }
+  // ---- OLE2 (old Office, MSI, Outlook): walk the directory
+  function oleNames(file) {
+    if (file.size > 200 << 20) return Promise.resolve(null);
+    return file.arrayBuffer().then(function (ab) {
+      var b = new Uint8Array(ab), ss = 1 << u16(b, 0x1E), nfat = u32(b, 0x2C), dir = u32(b, 0x30), fat = [], names = [], clsid = '';
+      var sec = function (id) { return (id + 1) * ss; };
+      for (var i = 0; i < Math.min(nfat, 109); i++) { var fs = u32(b, 0x4C + i * 4); if (fs >= 0xFFFFFFFA) continue; var o = sec(fs); for (var j = 0; j < ss / 4 && o + j * 4 + 4 <= b.length; j++) fat.push(u32(b, o + j * 4)); }
+      var guard = 0;
+      while (dir < 0xFFFFFFFA && guard++ < 4096) {
+        var base = sec(dir);
+        for (var k = 0; k < ss / 128; k++) {
+          var e = base + k * 128; if (e + 128 > b.length) break;
+          var nl = u16(b, e + 0x40), type = b[e + 0x42]; if (!type || nl < 2) continue;
+          var nm = ''; for (var c = 0; c < nl / 2 - 1; c++) nm += String.fromCharCode(u16(b, e + c * 2));
+          if (type === 5) { for (var q = 0; q < 16; q++) clsid += ('0' + b[e + 0x50 + q].toString(16)).slice(-2); }
+          names.push(nm);
+        }
+        dir = fat[dir]; if (dir === undefined) break;
+      }
+      return { names: names, clsid: clsid };
+    }).catch(function () { return null; });
+  }
+  function oleKind(o) {
+    if (!o) return 'ole';
+    var n = o.names.join('|');
+    if (o.clsid === '84100c0000000000c000000000000046') return 'msi';
+    if (/WordDocument/.test(n)) return 'doc';
+    if (/\|(Workbook|Book)(\||$)/.test('|' + n)) return 'xls';
+    if (/PowerPoint Document/.test(n)) return 'ppt';
+    if (/__substg1\.0_|__properties_version1\.0/.test(n)) return 'msg';
+    return 'ole';
+  }
+  // ---- PE header
+  var MACH = { 0x14c: 'Intel x86 (32-bit)', 0x8664: 'x64 (64-bit)', 0xaa64: 'ARM64', 0x1c0: 'ARM', 0x1c4: 'ARM Thumb-2', 0x200: 'Itanium', 0xebc: 'EFI byte code' };
+  function parsePE(b) {
+    var e = u32(b, 0x3C); if (e + 24 > b.length || ascii(b, e, 4) !== 'PE\0\0') return null;
+    var c = e + 4, opt = c + 20, magic = u16(b, opt), p = {
+      machine: MACH[u16(b, c)] || '0x' + u16(b, c).toString(16), nsec: u16(b, c + 2), ts: u32(b, c + 4), chars: u16(b, c + 18), magic: magic === 0x20b ? 'PE32+ (64-bit)' : magic === 0x10b ? 'PE32 (32-bit)' : '?'
+    };
+    p.dll = !!(p.chars & 0x2000);
+    p.subsystem = { 1: 'Driver / native', 2: 'Windows GUI', 3: 'Console', 9: 'Windows CE', 10: 'EFI application', 11: 'EFI boot driver', 12: 'EFI runtime driver' }[u16(b, opt + 68)] || String(u16(b, opt + 68));
+    var dd = opt + (magic === 0x20b ? 112 : 96), nrva = u32(b, opt + (magic === 0x20b ? 108 : 92));
+    p.signed = nrva > 4 && u32(b, dd + 4 * 8 + 4) > 0;
+    p.dotnet = nrva > 14 && u32(b, dd + 14 * 8) > 0;
+    var so = opt + u16(b, c + 16); p.sections = [];
+    for (var i = 0; i < p.nsec && i < 96; i++) {
+      var s = so + i * 40; if (s + 40 > b.length) break;
+      p.sections.push({ name: ascii(b, s, 8).replace(/\0+$/, ''), vsize: u32(b, s + 8), rsize: u32(b, s + 16), rptr: u32(b, s + 20), chars: u32(b, s + 36) });
+    }
+    return p;
+  }
+  function parseELF(b) {
+    var le = b[5] === 1, cls = b[4] === 2 ? '64-bit' : '32-bit';
+    return { cls: cls, endian: le ? 'little-endian' : 'big-endian', type: { 1: 'Relocatable object', 2: 'Executable', 3: 'Shared library or PIE executable', 4: 'Core dump' }[u16(b, 16, !le)] || '?', machine: { 3: 'Intel x86', 0x3E: 'x86-64', 0x28: 'ARM', 0xB7: 'ARM64', 0xF3: 'RISC-V', 8: 'MIPS', 0x14: 'PowerPC', 0x15: 'PowerPC 64' }[u16(b, 18, !le)] || String(u16(b, 18, !le)) };
+  }
+  function parseMachO(b) {
+    var be = b[0] === 0xFE, cpu = u32(b, 4, be), ft = u32(b, 12, be);
+    return { cpu: { 7: 'Intel x86', 0x01000007: 'x86-64', 12: 'ARM', 0x0100000C: 'ARM64' }[cpu] || '0x' + cpu.toString(16), type: { 1: 'Object', 2: 'Executable', 6: 'Dynamic library', 8: 'Bundle' }[ft] || String(ft) };
+  }
+
+  // ---- text sniffing
+  function textKind(b) {
+    var n = Math.min(b.length, 8192), bad = 0;
+    if (b[0] === 0xFF && b[1] === 0xFE || b[0] === 0xFE && b[1] === 0xFF) return { kind: 'text', text: '' };
+    for (var i = 0; i < n; i++) { var c = b[i]; if (c === 0) return null; if (c < 9 || (c > 13 && c < 32 && c !== 27)) bad++; }
+    if (bad > n * 0.02) return null;
+    var t = new TextDecoder('utf-8', { fatal: false }).decode(b.subarray(0, Math.min(b.length, 65536)));
+    var s = t.replace(/^﻿/, ''), k = 'text';
+    if (/^\s*\[InternetShortcut\]/i.test(s)) k = 'url';
+    else if (/^\s*(Windows Registry Editor Version|REGEDIT4)/.test(s)) k = 'reg';
+    else if (/<hta:application/i.test(s)) k = 'hta';
+    else if (/^\s*(<\?xml[^>]*>\s*)?(<!--[\s\S]*?-->\s*)*(<!DOCTYPE svg[^>]*>\s*)?<svg[\s>]/i.test(s)) k = 'svg';
+    else if (/^\s*(<!--[\s\S]*?-->\s*)*(<!doctype html|<html[\s>]|<head[\s>]|<body[\s>])|<script[\s>]/i.test(s)) k = 'html';
+    else if (/^\s*<\?xml/.test(s)) k = 'xml';
+    else if (/^#!.*\bpython/.test(s)) k = 'py';
+    else if (/^#!.*\b(ba|z|k|da)?sh\b/.test(s)) k = 'sh';
+    else if (/^-----BEGIN PGP/m.test(s)) k = 'pgp';
+    else if (/^-----BEGIN [A-Z0-9 ]+-----/m.test(s)) k = 'pem';
+    else if (/^BEGIN:VCARD/i.test(s)) k = 'vcf';
+    else if (/^BEGIN:VCALENDAR/i.test(s)) k = 'ics';
+    else if (/^(Received|Return-Path|Delivered-To|MIME-Version|Message-ID|From|Date): /im.test(s) && /^Subject: /im.test(s) && /^(Received|MIME-Version|Message-ID): /im.test(s)) k = 'eml';
+    else if (/^\s*@?echo off|%~dp0|%comspec%|^\s*(goto|call) :?\w+/im.test(s)) k = 'bat';
+    else if (/\b(Invoke-(Expression|WebRequest|RestMethod)|IEX\s*\(|New-Object\s+(System\.)?Net\.WebClient|Set-ExecutionPolicy|-EncodedCommand|\$env:\w+|Write-Host|Get-ChildItem|\[Convert\]::FromBase64String)/i.test(s)) k = 'ps1';
+    else if (/\b(CreateObject\s*\(\s*"|WScript\.(Shell|Echo|CreateObject|Sleep)|On Error Resume Next|End Sub|End Function)\b/i.test(s) && !/\bfunction\s*\(|=>|\bvar\s/.test(s)) k = 'vbs';
+    else if (/^\s*[{\[]/.test(s) && (function () { try { JSON.parse(s); return true; } catch (e) { return b.length > 65536 && /^\s*[{\[]\s*"/.test(s); } })()) k = 'json';
+    else if (/\b(ActiveXObject|WScript\.|document\.write|eval\s*\(|function\s*\w*\s*\([^)]*\)\s*\{|(var|let|const)\s+\w+\s*=|=>\s*[{(]|require\s*\(['"]|module\.exports)/.test(s)) k = 'js';
+    else if (/^(import \w+|from [\w.]+ import |def \w+\(.*\):|class \w+(\(.*\))?:)/m.test(s)) k = 'py';
+    else { var lines = s.split(/\r?\n/).slice(0, 20).filter(Boolean); if (lines.length >= 3) { var cc = lines.map(function (l) { return (l.match(/,/g) || []).length; }); if (cc[0] >= 2 && cc.every(function (x) { return x === cc[0]; })) k = 'csv'; } }
+    return { kind: k, text: s };
+  }
+
+  // ---- detection: returns {type, details}
+  function detect(file) {
+    if (!file.size) return Promise.resolve({ type: 'empty' });
+    return slice(file, 0, Math.min(file.size, 65536)).then(function (h) {
+      var t = sigMatch(h), r = { type: t || 'unknown', head: h };
+      if (t === 'cafebabe') { r.type = u32(h, 4, true) < 40 ? 'macho' : 'java_class'; if (r.type === 'macho') r.fat = true; }
+      if (t === 'ftyp') { var br = ascii(h, 8, 4); r.type = /^(heic|heix|heim|heis|hevc|hevx|mif1|msf1)$/.test(br) ? 'heic' : /^avi[fs]$/.test(br) ? 'avif' : /^qt  $/.test(br) ? 'mov' : /^3g/.test(br) ? 'tgp' : /^crx /.test(br) ? 'tif' : 'mp4'; r.brand = br; }
+      if (t === 'ebml') r.type = /webm/.test(ascii(h, 0, 64)) ? 'webm' : 'mkv';
+      if (t === 'bmp' && u32(h, 2) !== file.size) r.type = 'unknown';
+      if (t === 'ico' && (h[4] === 0 || h[4] > 64 || h[5] !== 0)) r.type = 'unknown';
+      if (t === 'mp3' && h[0] === 0xFF && file.size < 512) r.type = 'unknown';
+      if (r.type === 'pe') { r.pe = parsePE(h); if (r.pe) r.type = r.pe.subsystem === 'Driver / native' && !r.pe.dll ? 'pe_drv' : r.pe.dll ? 'pe_dll' : 'pe'; }
+      if (r.type === 'elf') r.elf = parseELF(h);
+      if (r.type === 'macho' && !r.fat) r.macho = parseMachO(h);
+      if (r.type === 'zip') return zipNames(file).then(function (z) { r.zip = z; if (z) r.type = zipKind(z.entries.map(function (e) { return e.name; })); return r; });
+      if (r.type === 'ole') return oleNames(file).then(function (o) { r.ole = o; r.type = oleKind(o); r.oleMacro = !!(o && o.names.some(function (n) { return /^(_VBA_PROJECT_CUR|_VBA_PROJECT|VBA|Macros)$/i.test(n); })); return r; });
+      if (!t && file.size > 1024) {
+        return slice(file, file.size - 512, file.size).then(function (tl) { if (ascii(tl, 0, 4) === 'koly') r.type = 'dmg'; else if (ascii(tl, 0, 8) === 'conectix') r.type = 'vhd'; else { var tk = textKind(h); if (tk) { r.type = tk.kind; r.text = tk.text; } } return r; });
+      }
+      if (!t) { var tk = textKind(h); if (tk) { r.type = tk.kind; r.text = tk.text; } }
+      return r;
+    });
+  }
+
+  // ---- name checks
+  var BIDI = /[‪-‮⁦-⁩‎‏؜]/g;
+  var BIDI_NAME = { '‪': 'LRE', '‫': 'RLE', '‬': 'PDF', '‭': 'LRO', '‮': 'RLO', '⁦': 'LRI', '⁧': 'RLI', '⁨': 'FSI', '⁩': 'PDI', '‎': 'LRM', '‏': 'RLM', '؜': 'ALM' };
+  function nameInfo(name) {
+    var clean = name.replace(BIDI, ''), m = clean.match(/\.([A-Za-z0-9]{1,12})$/), ext = m ? m[1].toLowerCase() : '';
+    var parts = clean.split('.'), prev = parts.length > 2 ? parts[parts.length - 2].toLowerCase() : '';
+    return { clean: clean, ext: ext, prev: prev, bidi: BIDI.test(name) ? name.match(BIDI) : null, spaces: /\s{4,}\.[A-Za-z0-9]+$/.test(clean) || /\.[A-Za-z0-9]+\s{3,}\./.test(clean) };
+  }
+
+  // ---- hashing: MD5 in JS (incremental), SHA via SubtleCrypto
+  var MD5K = new Int32Array(64), MD5S = [7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 5, 9, 14, 20, 5, 9, 14, 20, 5, 9, 14, 20, 5, 9, 14, 20, 4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23, 6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21];
+  for (var ki = 0; ki < 64; ki++) MD5K[ki] = Math.floor(Math.abs(Math.sin(ki + 1)) * 4294967296) | 0;
+  function MD5() { this.h = new Int32Array([0x67452301, 0xefcdab89 | 0, 0x98badcfe | 0, 0x10325476]); this.buf = new Uint8Array(64); this.bl = 0; this.len = 0; this.w = new Int32Array(16); }
+  MD5.prototype.block = function (b, o) {
+    var w = this.w, h = this.h, a = h[0], bb = h[1], c = h[2], d = h[3], f, g, i, t;
+    for (i = 0; i < 16; i++) w[i] = b[o + i * 4] | b[o + i * 4 + 1] << 8 | b[o + i * 4 + 2] << 16 | b[o + i * 4 + 3] << 24;
+    for (i = 0; i < 64; i++) {
+      if (i < 16) { f = (bb & c) | (~bb & d); g = i; } else if (i < 32) { f = (d & bb) | (~d & c); g = (5 * i + 1) & 15; } else if (i < 48) { f = bb ^ c ^ d; g = (3 * i + 5) & 15; } else { f = c ^ (bb | ~d); g = (7 * i) & 15; }
+      t = d; d = c; c = bb; var x = (a + f + MD5K[i] + w[g]) | 0; bb = (bb + ((x << MD5S[i]) | (x >>> (32 - MD5S[i])))) | 0; a = t;
+    }
+    h[0] = (h[0] + a) | 0; h[1] = (h[1] + bb) | 0; h[2] = (h[2] + c) | 0; h[3] = (h[3] + d) | 0;
+  };
+  MD5.prototype.update = function (u) {
+    var i = 0, n = u.length; this.len += n;
+    if (this.bl) { while (this.bl < 64 && i < n) this.buf[this.bl++] = u[i++]; if (this.bl === 64) { this.block(this.buf, 0); this.bl = 0; } }
+    for (; i + 64 <= n; i += 64) this.block(u, i);
+    while (i < n) this.buf[this.bl++] = u[i++];
+  };
+  MD5.prototype.hex = function () {
+    var bits = this.len * 8, pad = new Uint8Array(((this.bl < 56) ? 56 : 120) - this.bl + 8); pad[0] = 0x80;
+    var lo = bits % 4294967296, hi = Math.floor(bits / 4294967296), L = pad.length - 8;
+    for (var i = 0; i < 4; i++) { pad[L + i] = (lo >>> (8 * i)) & 255; pad[L + 4 + i] = (hi >>> (8 * i)) & 255; }
+    this.update(pad); var s = '';
+    for (var j = 0; j < 4; j++) for (var k = 0; k < 4; k++) s += ('0' + ((this.h[j] >>> (8 * k)) & 255).toString(16)).slice(-2);
+    return s;
+  };
+  function hexOf(buf) { return Array.prototype.map.call(new Uint8Array(buf), function (x) { return ('0' + x.toString(16)).slice(-2); }).join(''); }
+
+  // ---- one pass over the file: MD5, entropy, strings, then SHA
+  var CHUNK = 4 << 20, SHA_MAX = 1 << 30, STR_MAX = 16 << 20, run = 0;
+  function scan(file, onProgress) {
+    var my = ++run, md5 = new MD5(), hist = new Float64Array(256), nb = 200, bs = Math.max(1024, Math.ceil(file.size / nb)), blocks = [], bh = new Uint32Array(256), bn = 0;
+    var keep = file.size <= SHA_MAX ? new Uint8Array(file.size) : null, pos = 0;
+    var strs = [], iocText = [], cur = '', w16 = '', w16odd = false;
+    function flushBlock() { var e = 0; for (var i = 0; i < 256; i++) if (bh[i]) { var p = bh[i] / bn; e -= p * Math.log2(p); } blocks.push(e); bh.fill(0); bn = 0; }
+    function pushStr(s, wide) { if (strs.length < 200) strs.push(s); if (iocText.length < 20000) iocText.push(s); }
+    function step() {
+      if (my !== run) return Promise.reject(new Error('cancelled'));
+      if (pos >= file.size) return Promise.resolve();
+      var end = Math.min(file.size, pos + CHUNK);
+      return slice(file, pos, end).then(function (u) {
+        md5.update(u); if (keep) keep.set(u, pos);
+        for (var i = 0; i < u.length; i++) { var c = u[i]; hist[c]++; bh[c]++; if (++bn === bs) flushBlock(); }
+        if (pos < STR_MAX) {
+          for (var j = 0; j < u.length; j++) {
+            var ch = u[j];
+            if ((ch >= 32 && ch < 127) || ch === 9) { cur += String.fromCharCode(ch); if (cur.length > 400) { pushStr(cur); cur = ''; } }
+            else { if (cur.length >= 5) pushStr(cur); cur = ''; }
+            // UTF-16LE: printable byte followed by zero
+            if (j + 1 < u.length && u[j + 1] === 0 && ch >= 32 && ch < 127) { w16 += String.fromCharCode(ch); j++; if (w16.length > 400) { pushStr(w16, true); w16 = ''; } }
+            else if (w16) { if (w16.length >= 5) pushStr(w16, true); w16 = ''; }
+          }
+        }
+        pos = end; onProgress(pos / file.size);
+        return new Promise(function (r) { setTimeout(r, 0); }).then(step);
+      });
+    }
+    return step().then(function () {
+      if (cur.length >= 5) pushStr(cur); if (w16.length >= 5) pushStr(w16, true);
+      if (bn) flushBlock();
+      var ent = 0; for (var i = 0; i < 256; i++) if (hist[i]) { var p = hist[i] / file.size; ent -= p * Math.log2(p); }
+      var res = { md5: md5.hex(), entropy: ent, blocks: blocks, strings: strs, iocText: iocText };
+      if (!keep) return res;
+      return Promise.all([crypto.subtle.digest('SHA-1', keep), crypto.subtle.digest('SHA-256', keep)]).then(function (d) { res.sha1 = hexOf(d[0]); res.sha256 = hexOf(d[1]); return res; });
+    });
+  }
+  function entropyOf(u) { var h = new Uint32Array(256), e = 0; for (var i = 0; i < u.length; i++) h[u[i]]++; for (var k = 0; k < 256; k++) if (h[k]) { var p = h[k] / u.length; e -= p * Math.log2(p); } return e; }
+
+  // ---- interesting strings
+  var IOC = [
+    [/\bhttps?:\/\/[^\s"'<>()\]]{4,}/gi, 'Web address'],
+    [/\b(?:(?:25[0-5]|2[0-4]\d|1?\d?\d)\.){3}(?:25[0-5]|2[0-4]\d|1?\d?\d)\b/g, 'IP address'],
+    [/\b[\w.+-]+@[\w-]+\.[\w.-]+\b/g, 'Email address'],
+    [/\b(HKEY_[A-Z_]+|HKLM|HKCU)\\[^\s"']+/g, 'Registry key'],
+    [/\b(powershell(\.exe)?|cmd\.exe|mshta|rundll32|regsvr32|certutil|bitsadmin|wscript|cscript|schtasks|vssadmin)\b/gi, 'Launches a system tool'],
+    [/\b(VirtualAlloc(Ex)?|WriteProcessMemory|CreateRemoteThread|URLDownloadToFile[AW]?|ShellExecute[AW]?|WinExec|IsDebuggerPresent|SetWindowsHookEx[AW]?|GetAsyncKeyState|CryptEncrypt)\b/g, 'Risky Windows function'],
+    [/\b(AutoOpen|Auto_Open|Document_Open|Workbook_Open|AutoExec|Shell\s*\(|CreateObject)\b/g, 'Macro that runs on open'],
+    [/\/(JavaScript|JS|OpenAction|Launch|EmbeddedFile|AA)\b/g, 'PDF action'],
+    [/-(e|enc|encodedcommand)\s+[A-Za-z0-9+\/=]{20,}/gi, 'Hidden (encoded) command']
+  ];
+  function findIocs(list) {
+    var seen = {}, out = [], text = list.join('\n');
+    IOC.forEach(function (r) { (text.match(r[0]) || []).forEach(function (m) { var k = r[1] + m; if (!seen[k] && out.length < 80) { seen[k] = 1; out.push([r[1], m]); } }); });
+    return out;
+  }
+  function hl(s) { var t = esc(s); return t.replace(/https?:\/\/[^\s"'&lt;&gt;()]+|\b(?:\d{1,3}\.){3}\d{1,3}\b/g, function (m) { return '<mark>' + m + '</mark>'; }); }
+
+  // ---- rendering
+  var ic = { ok: '✓', bad: '✕', meh: '!', na: '·' };
+  function flags(f) { return '<ul class="fi-flags">' + f.map(function (x) { return '<li><span class="fi-' + x[0] + '">' + ic[x[0]] + '</span><span>' + x[1] + '<small>' + x[2] + '</small></span></li>'; }).join('') + '</ul>'; }
+  function kv(rows) { return '<dl class="fi-kv">' + rows.filter(function (r) { return r[1] !== '' && r[1] != null; }).map(function (r) { return '<dt>' + esc(r[0]) + '</dt><dd' + (r[2] ? '' : ' data-noar') + '>' + esc(r[1]) + '</dd>'; }).join('') + '</dl>'; }
+  function size(n) { return n < 1024 ? n + ' bytes' : n < 1048576 ? (n / 1024).toFixed(1) + ' KB' : n < 1073741824 ? (n / 1048576).toFixed(1) + ' MB' : (n / 1073741824).toFixed(2) + ' GB'; }
+  function niceName(name) { return esc(name).replace(BIDI, function (c) { return '<mark>' + BIDI_NAME[c] + '</mark>'; }); }
+
+  function analyse(file) {
+    $('res').hidden = false; $('verdict').innerHTML = '<div class="fi-big">Reading…</div>'; $('barMsg').textContent = ''; $('bar').firstChild.style.width = '0';
+    ['hashes', 'iocs', 'prog', 'cont', 'lookup'].forEach(function (id) { $(id).innerHTML = ''; });
+    $('strs').textContent = ''; $('progSec').hidden = $('contSec').hidden = $('lookup').hidden = true; $('entVal').textContent = '…'; $('entMsg').textContent = '';
+    var g = $('ent').getContext('2d'); g.clearRect(0, 0, 600, 64);
+    var started = performance.now();
+    return detect(file).then(function (d) {
+      var t = T[d.type] || T.unknown, nm = nameInfo(file.name), f = [], worst = 'ok';
+      var add = function (lvl, a, b) { f.push([lvl, a, b]); if (lvl === 'bad' || (lvl === 'meh' && worst === 'ok')) worst = lvl; };
+      var allowed = t[1].split(' '), extOk = allowed.indexOf(nm.ext) >= 0 || d.type === 'unknown' || d.type === 'empty';
+      if (!extOk) {
+        if (t[3] >= 2) add('bad', 'Disguised as something else', 'The name ends in .' + esc(nm.ext || '(nothing)') + ', but the bytes say it is a ' + esc(t[0]) + '. Programs pretending to be documents or photos are a classic attack.');
+        else if (/zip/.test(t[1]) || ['docx', 'xlsx', 'pptx', 'odf', 'epub', 'apk', 'jar'].indexOf(d.type) >= 0 && nm.ext === 'zip') add('meh', 'The name doesn\'t match the contents', 'It is really a ' + esc(t[0]) + ', named .' + esc(nm.ext || '(nothing)') + '.');
+        else add('meh', 'The name doesn\'t match the contents', 'It is really a ' + esc(t[0]) + ', named .' + esc(nm.ext || '(nothing)') + '. Sometimes that is harmless renaming, but check where it came from.');
+      } else if (d.type !== 'unknown' && d.type !== 'empty') add(t[3] >= 2 ? 'na' : 'ok', 'The name matches the contents', 'A .' + esc(nm.ext || '(no extension)') + ' file that really is a ' + esc(t[0]) + '.');
+      if (nm.bidi) add('bad', 'Hidden text-direction characters in the name', 'The name contains invisible ' + nm.bidi.map(function (c) { return BIDI_NAME[c]; }).join(', ') + ' characters that flip how it is displayed. A file shown as "photo_gnp.exe" can really end in .exe. The real order is: <code>' + esc(nm.clean) + '</code>');
+      if (nm.prev && /^(pdf|docx?|xlsx?|pptx?|jpe?g|png|gif|txt|rtf|csv|mp3|mp4|mov|zip|rar|html?)$/.test(nm.prev) && nm.ext !== nm.prev) add(EXEC_EXT.test(nm.ext) ? 'bad' : 'meh', 'Double extension', 'The name ends ".' + esc(nm.prev) + '.' + esc(nm.ext) + '". Windows hides the last part by default, so people only see ".' + esc(nm.prev) + '".');
+      if (nm.spaces) add('bad', 'Lots of spaces before the extension', 'Padding pushes the real ending out of view in narrow windows.');
+      if (EXEC_EXT.test(nm.ext)) add(t[3] >= 2 || extOk === false ? 'bad' : 'meh', 'This kind of file can run code', 'Opening a .' + esc(nm.ext) + ' file can run commands on your computer. Only open it if you expected it from someone you trust.');
+      else if (t[3] >= 2) add('bad', 'It can run code', 'A ' + esc(t[0]) + ' can run commands when opened.');
+      if (d.zip) {
+        var en = d.zip.entries, encr = en.filter(function (e) { return e.enc; }).length, risky = en.filter(function (e) { return /\.(exe|scr|js|jse|vbs|vbe|wsf|hta|lnk|bat|cmd|ps1|msi|iso|img|jar|dll|com|pif|reg|url|chm)$/i.test(e.name); });
+        if (/vbaProject\.bin$/i.test(en.map(function (e) { return e.name; }).join('\n')) || /m$/.test(d.type) && ['docm', 'xlsm', 'pptm'].indexOf(d.type) >= 0) add('bad', 'Contains macros (vbaProject.bin)', 'Macros are small programs inside Office files. Most attacks via Word or Excel ask you to "Enable content" so the macro can run. Don\'t.');
+        if (encr && d.type === 'zip') add('meh', 'Password-protected archive', encr + ' of ' + en.length + ' files are encrypted. Attackers do this so email scanners can\'t look inside, then put the password in the message.');
+        if (risky.length) add('bad', 'Programs or scripts inside', risky.slice(0, 5).map(function (e) { return '<code>' + esc(e.name) + '</code>'; }).join(', ') + (risky.length > 5 ? '…' : ''));
+      }
+      if (d.oleMacro) add('bad', 'Contains macros', 'This old-style Office file has a macro (VBA) storage. Don\'t click "Enable content".');
+      if (d.type === 'lnk') add('bad', 'Shortcut files are a favourite trick', 'A .lnk can run PowerShell or download something the moment it is opened, while showing a normal icon.');
+      if (d.type === 'iso' || d.type === 'vhd' || d.type === 'vhdx' || d.type === 'dmg') add('meh', 'Disk images can smuggle programs', 'Opening one mounts it as a drive. Files inside may skip some of the warnings you would normally get.');
+      if (d.type === 'html' && /\.(html?)$/.test(file.name) && d.text && /<input[^>]+type=["']?password|atob\(|document\.write\(unescape|window\.location|\.submit\(\)/i.test(d.text)) add('meh', 'A web page with a login form or tricks', 'HTML attachments that open a sign-in page on your computer are a common way to steal passwords.');
+      if (d.type === 'svg' && d.text && /<script|onload=|javascript:|<foreignObject/i.test(d.text)) add('bad', 'An image with code inside', 'This SVG contains script or links that run when opened in a browser.');
+      if (d.type === 'empty') add('na', 'The file is empty', 'Zero bytes.');
+      if (d.type === 'unknown') add('na', 'No known signature', 'It could be encrypted, compressed in an unusual way, or a format this page doesn\'t know.');
+
+      var title = d.type === 'unknown' ? 'Unknown type' : d.type === 'empty' ? 'An empty file' : 'This is really: ' + t[0];
+      var col = worst === 'bad' ? 'var(--sat-c)' : worst === 'meh' ? 'var(--accent)' : 'var(--sat-b)';
+      $('verdict').style.borderColor = col;
+      $('verdict').innerHTML = '<span class="label">What the bytes say</span><div class="fi-big" style="color:' + col + '">' + esc(title) + '</div>' +
+        '<div class="fi-name" data-noar>' + niceName(file.name) + '</div>' + flags(f) +
+        kv([['Size', size(file.size), 1], ['Kind', t[2], 1], ['Signature', d.head ? Array.prototype.map.call(d.head.subarray(0, 16), function (x) { return ('0' + x.toString(16)).slice(-2).toUpperCase(); }).join(' ') : ''], ['Container brand', d.brand || ''], ['Modified', file.lastModified ? new Date(file.lastModified).toISOString().slice(0, 16).replace('T', ' ') : '']]);
+
+      // program details
+      if (d.pe) {
+        var p = d.pe, ts = new Date(p.ts * 1000), odd = p.ts * 1000 > Date.now() || p.ts < 946684800;
+        $('progSec').hidden = false; $('progTitle').textContent = 'Windows program header';
+        var ph = kv([['Machine', p.machine], ['Format', p.magic], ['Type', p.dll ? 'DLL (library)' : 'Program (EXE)', 1], ['Subsystem', p.subsystem, 1], ['Built (compile time)', ts.toISOString().slice(0, 19).replace('T', ' ') + ' UTC'], ['.NET', p.dotnet ? 'yes' : 'no', 1], ['Signature block', p.signed ? 'present (not verified here)' : 'none', 1], ['Sections', String(p.nsec)]]) +
+          (odd ? '<p class="fi-muted" style="margin:0">That build date is impossible or very old. Many modern compilers write a hash there instead of a date, and some malware fakes it.</p>' : '') +
+          '<div class="fi-scroll"><table class="fi-tbl"><thead><tr><th>Section</th><th>Raw size</th><th>Entropy</th></tr></thead><tbody id="secRows">' + p.sections.map(function (s, i) { return '<tr><td data-noar>' + esc(s.name || '(none)') + '</td><td>' + s.rsize + '</td><td id="se' + i + '">…</td></tr>'; }).join('') + '</tbody></table></div>';
+        if (p.sections.some(function (s) { return /^(UPX\d|\.aspack|\.adata|\.packed|\.themida|\.vmp\d|MPRESS\d)/i.test(s.name); })) ph += flags([['meh', 'Packed', 'Section names show a packer (UPX, Themida, VMProtect…). Packing hides the real code. Legit software does it too, but malware loves it.']]);
+        $('prog').innerHTML = ph;
+        p.sections.forEach(function (s, i) {
+          if (!s.rsize || s.rptr >= file.size) { $('se' + i).textContent = '-'; return; }
+          slice(file, s.rptr, Math.min(file.size, s.rptr + Math.min(s.rsize, 32 << 20))).then(function (u) { var e = entropyOf(u); var el = $('se' + i); if (el) { el.textContent = e.toFixed(2); el.className = e > 7.2 ? 'fi-bad' : ''; } });
+        });
+      } else if (d.elf) { $('progSec').hidden = false; $('progTitle').textContent = 'Linux program header'; $('prog').innerHTML = kv([['Class', d.elf.cls], ['Byte order', d.elf.endian], ['Type', d.elf.type], ['Machine', d.elf.machine]]); }
+      else if (d.macho) { $('progSec').hidden = false; $('progTitle').textContent = 'macOS program header'; $('prog').innerHTML = kv([['CPU', d.macho.cpu], ['Type', d.macho.type]]); }
+      else if (d.fat) { $('progSec').hidden = false; $('progTitle').textContent = 'macOS program header'; $('prog').innerHTML = kv([['Format', 'Universal binary', 1], ['Architectures', String(u32(d.head, 4, true))]]); }
+
+      if (d.zip) {
+        $('contSec').hidden = false; var en2 = d.zip.entries;
+        $('cont').innerHTML = '<p class="fi-muted" style="margin:0">' + en2.length + ' files packed inside.</p><div class="fi-scroll"><ul class="fi-names" data-noar>' + en2.slice(0, 300).map(function (e) { var hot = /vbaProject\.bin$|\.(exe|scr|js|jse|vbs|vbe|wsf|hta|lnk|bat|cmd|ps1|msi|iso|img|jar|dll|com|pif|reg|url|chm)$/i.test(e.name); return '<li' + (hot ? ' class="fi-hot"' : '') + '>' + esc(e.name) + (e.enc ? ' 🔒' : '') + '</li>'; }).join('') + '</ul></div>';
+      } else if (d.ole) {
+        $('contSec').hidden = false;
+        $('cont').innerHTML = '<p class="fi-muted" style="margin:0">Streams inside this OLE container:</p><div class="fi-scroll"><ul class="fi-names" data-noar>' + d.ole.names.slice(0, 300).map(function (n) { return '<li' + (/VBA|Macros/i.test(n) ? ' class="fi-hot"' : '') + '>' + esc(n.replace(/[\x00-\x1f]/g, function (c) { return '\\x' + ('0' + c.charCodeAt(0).toString(16)).slice(-2); })) + '</li>'; }).join('') + '</ul></div>';
+      }
+
+      // hashes, entropy, strings
+      var bar = $('bar').firstChild;
+      $('barMsg').textContent = 'Reading ' + size(file.size) + '…';
+      return scan(file, function (fr) { bar.style.width = (fr * 100).toFixed(1) + '%'; $('barMsg').textContent = 'Reading… ' + Math.round(fr * 100) + '%'; }).then(function (s) {
+        $('barMsg').textContent = 'Done in ' + ((performance.now() - started) / 1000).toFixed(1) + ' s.';
+        var rows = [['MD5', s.md5], ['SHA-1', s.sha1], ['SHA-256', s.sha256]];
+        $('hashes').innerHTML = rows.map(function (r) { return '<div class="fi-hash"><span class="fi-muted">' + r[0] + '</span>' + (r[1] ? '<code>' + r[1] + '</code><button class="sm" type="button" data-copy="' + r[1] + '">Copy</button>' : '<span class="fi-muted">Too large to hash here. Use <code>shasum -a 256</code> or <code>certutil -hashfile</code>.</span><span></span>') + '</div>'; }).join('');
+        [].forEach.call(document.querySelectorAll('[data-copy]'), function (b) { b.onclick = function () { var v = b.getAttribute('data-copy'); if (navigator.clipboard) navigator.clipboard.writeText(v).then(function () { var o = b.textContent; b.textContent = 'Copied'; setTimeout(function () { b.textContent = o; }, 1200); }); }; });
+        var hsh = s.sha256 || s.md5;
+        $('lookup').hidden = false;
+        $('lookup').innerHTML = '<a class="sm" target="_blank" rel="noopener noreferrer" href="https://www.virustotal.com/gui/search/' + hsh + '">Look up on VirusTotal ↗</a><a class="sm" target="_blank" rel="noopener noreferrer" href="https://bazaar.abuse.ch/browse.php?search=' + encodeURIComponent((s.sha256 ? 'sha256:' : 'md5:') + hsh) + '">Look up on MalwareBazaar ↗</a>';
+        // entropy
+        var e = s.entropy, el = e > 7.5 ? ['fi-bad', 'Very random. Typical of compressed, encrypted or packed data. Normal for ZIP, JPEG, MP4 or DOCX; suspicious for a program or a plain text file.'] : e > 6 ? ['fi-meh', 'Fairly random. A mix of code, data and compressed parts.'] : ['fi-ok', 'Low randomness. Plain text, uncompressed data or simple code.'];
+        if (['jpg', 'png', 'mp4', 'zip', 'docx', 'xlsx', 'pptx', 'gz', 'rar', 'sevenz', 'webp', 'mp3', 'heic', 'pdf', 'apk', 'jar', 'mov', 'webm', 'mkv', 'xz', 'zst', 'bz2', 'ogg', 'flac'].indexOf(d.type) >= 0 && e > 7.5) el = ['fi-ok', 'Very random, which is normal for a compressed format like this one.'];
+        if ((T[d.type] || T.unknown)[2] === 'text' && e > 6) el = ['fi-meh', 'High for text. It may hold a long encoded (base64) blob.'];
+        $('entVal').innerHTML = '<span class="' + el[0] + '">' + e.toFixed(2) + '</span> <small style="font-size:.5em;color:var(--muted)">/ 8 bits per byte</small>';
+        $('entMsg').textContent = el[1];
+        var W = 600, H = 64, n = s.blocks.length; g.clearRect(0, 0, W, H);
+        s.blocks.forEach(function (v, i) { var x = i / n * W, w = Math.max(1, W / n), hh = v / 8 * (H - 4); g.fillStyle = v > 7.2 ? '#F08AB3' : v > 6 ? '#E9B467' : '#4FD3BD'; g.fillRect(x, H - hh, w + 0.5, hh); });
+        // strings
+        var io = findIocs(s.iocText);
+        $('iocs').innerHTML = io.length ? '<p class="fi-muted" style="margin:0 0 6px">Worth a look:</p><div class="fi-scroll" style="max-height:220px"><table class="fi-tbl"><tbody>' + io.map(function (x) { return '<tr><td style="font-family:var(--font-body);white-space:nowrap"><span>' + esc(x[0]) + '</span></td><td data-noar style="word-break:break-all">' + esc(x[1].slice(0, 200)) + '</td></tr>'; }).join('') + '</tbody></table></div>' : '<p class="fi-muted" style="margin:0">No web addresses, IP addresses or risky commands found in the readable text.</p>';
+        $('strs').innerHTML = s.strings.length ? s.strings.map(function (x) { return hl(x.slice(0, 300)); }).join('\n') : '(no readable strings)';
+        return { detect: d, scan: s, flags: f };
+      });
+    }).catch(function (e) { if (e && e.message === 'cancelled') return; $('verdict').innerHTML = '<div class="fi-big fi-bad">Couldn\'t read this file</div><p class="fi-muted">' + esc(e && e.message || '') + '</p>'; });
+  }
+
+  // ---- input
+  var drop = $('drop');
+  $('file').addEventListener('change', function () { if (this.files[0]) analyse(this.files[0]); this.value = ''; });
+  ['dragenter', 'dragover'].forEach(function (ev) { drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.add('fi-over'); }); });
+  ['dragleave', 'drop'].forEach(function (ev) { drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.remove('fi-over'); }); });
+  drop.addEventListener('drop', function (e) { var f = e.dataTransfer.files[0]; if (f) analyse(f); });
+  document.addEventListener('dragover', function (e) { e.preventDefault(); });
+  document.addEventListener('drop', function (e) { e.preventDefault(); if (!drop.contains(e.target) && e.dataTransfer.files[0]) analyse(e.dataTransfer.files[0]); });
+
+  // ---- harmless samples, made here
+  function fakePE() {
+    var b = new Uint8Array(1536), s = function (o, str) { for (var i = 0; i < str.length; i++) b[o + i] = str.charCodeAt(i); }, w16 = function (o, v) { b[o] = v & 255; b[o + 1] = v >> 8; }, w32 = function (o, v) { for (var i = 0; i < 4; i++) b[o + i] = (v >>> (8 * i)) & 255; };
+    s(0, 'MZ'); w32(0x3C, 0x80); s(0x40, 'This program cannot be run in DOS mode.'); s(0x80, 'PE\0\0');
+    w16(0x84, 0x8664); w16(0x86, 2); w32(0x88, 1714000000); w16(0x94, 0xF0); w16(0x96, 0x22);
+    w16(0x98, 0x20b); w16(0x98 + 68, 2); w32(0x98 + 108, 16);
+    var so = 0x98 + 0xF0; s(so, '.text'); w32(so + 8, 0x200); w32(so + 16, 0x200); w32(so + 20, 0x200); s(so + 40, '.rsrc'); w32(so + 48, 0x100); w32(so + 56, 0x200); w32(so + 60, 0x400);
+    for (var i = 0x200; i < 0x400; i++) b[i] = (i * 2654435761 >>> 13) & 255;
+    s(0x400, 'http://198.51.100.7/update.bin\0powershell -nop -w hidden\0VirtualAlloc\0URLDownloadToFileA\0 Sample made by the lab page. It does nothing.\0');
+    return b;
+  }
+  function loadZip() { return window.JSZip ? Promise.resolve(window.JSZip) : new Promise(function (ok, no) { var sc = document.createElement('script'); sc.src = '../assets/vendor/jszip.min.js'; sc.onload = function () { ok(window.JSZip); }; sc.onerror = no; document.head.appendChild(sc); }); }
+  function sample(kind) {
+    if (kind === 'pe') return Promise.resolve(new File([fakePE()], 'invoice.pdf.exe'));
+    if (kind === 'rlo') return Promise.resolve(new File([fakePE()], 'Annual_report_‮fdp.exe'));
+    return loadZip().then(function (Z) {
+      var z = new Z();
+      if (kind === 'macro') {
+        z.file('[Content_Types].xml', '<?xml version="1.0"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Override PartName="/word/document.xml" ContentType="application/vnd.ms-word.document.macroEnabled.main+xml"/></Types>');
+        z.file('word/document.xml', '<w:document><w:body><w:p><w:r><w:t>Please click Enable Content to view your statement.</w:t></w:r></w:p></w:body></w:document>');
+        z.file('word/vbaProject.bin', 'Sub AutoOpen()\r\n  Shell "powershell -nop -c Write-Host sample"\r\nEnd Sub\r\n(inert sample made by the lab page)');
+        return z.generateAsync({ type: 'uint8array' }).then(function (u) { return new File([u], 'Statement.docx'); });
+      }
+      z.file('holiday-photo.jpg.lnk', new Uint8Array([0x4C, 0, 0, 0, 1, 0x14, 2, 0, 0, 0, 0, 0, 0xC0, 0, 0, 0, 0, 0, 0, 0x46]));
+      z.file('readme.txt', 'Sample made by the lab page.');
+      return z.generateAsync({ type: 'uint8array' }).then(function (u) { return new File([u], 'holiday-photo.jpg'); });
+    });
+  }
+  [].forEach.call(document.querySelectorAll('[data-sample]'), function (b) { b.onclick = function () { sample(b.getAttribute('data-sample')).then(analyse); }; });
+  window.__fid = { detect: detect, analyse: analyse, nameInfo: nameInfo, MD5: MD5, sample: sample };
+})();
+</script>
+</body>
+</html>

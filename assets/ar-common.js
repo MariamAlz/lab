@@ -318,3 +318,10 @@ LabAr.add({
  "Scan the barcode on a boarding pass to see the name, booking reference, ticket and frequent flyer numbers anyone can read from a photo of it.": "امسح الرمز الشريطي على بطاقة الصعود لترى الاسم ورقم الحجز ورقم التذكرة ورقم المسافر الدائم التي يستطيع أي شخص قراءتها من صورتها.",
  "Scan a pass →": "امسح بطاقة ←"
 });
+/* index cards for newer tools */
+LabAr.add({
+ "Tool · Security": "أداة · أمن",
+ "What is this file, really?": "ما حقيقة هذا الملف؟",
+ "Drop any file to see its real type from its bytes, catch disguised programs, macros and reversed names, and get its hashes to look up.": "أفلت أي ملف لتعرف نوعه الحقيقي من بايتاته، وتكشف البرامج المتنكرة ووحدات الماكرو والأسماء المعكوسة، وتحصل على بصماته للبحث عنها.",
+ "Check a file →": "افحص ملفًا ←"
+});
