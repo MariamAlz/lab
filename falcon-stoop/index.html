@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>How a Falcon Dives · Mariam's Lab</title>
+<meta name="description" content="Simulate a falcon's stoop: body shape, drag, stoop angle, terminal speed and the g-force of the pull-out, compared with a skydiver and a pigeon. Plus a short guide to falconry in the UAE.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/falcon-stoop/">
+<meta property="og:title" content="How a Falcon Dives · Mariam's Lab"><meta property="og:description" content="The physics of the fastest animal on Earth, and falconry as UAE heritage."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm[aria-pressed="true"], .sm.go1 { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.btnrow { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: 0.9rem; }
+.row b { font-family: var(--font-mono); font-weight: 500; }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+canvas.ch { width: 100%; display: block; border-radius: 12px; background: rgba(7,10,24,.55); border: 1px solid var(--line); }
+.shapes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.shp { font: inherit; color: var(--ink); background: rgba(7,10,24,.6); border: 1px solid var(--line); border-radius: 12px; padding: 8px 6px; cursor: pointer; display: grid; gap: 4px; justify-items: center; font-size: 0.82rem; }
+.shp svg { width: 100%; max-width: 92px; height: 40px; }
+.shp[aria-pressed="true"] { border-color: var(--accent); background: rgba(255,200,87,.1); }
+.shp small { font-family: var(--font-mono); font-size: 0.68rem; color: var(--muted); }
+.lbl { font-size: 0.78rem; color: var(--muted); }
+.stats span { font-size: 0.76rem; color: var(--muted); }
+.stats b { font-size: clamp(1.1rem, 4vw, 1.5rem); }
+.stats small { font-family: var(--font-mono); font-size: 0.7rem; color: var(--muted); }
+.leg { display: flex; gap: 12px; flex-wrap: wrap; font-size: 0.76rem; color: var(--muted); }
+.leg span::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-inline-end: 5px; vertical-align: -1px; background: var(--c); }
+.msg { font-size: 0.88rem; color: var(--muted); min-height: 1.2em; margin: 0; }
+.tbl { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+.tbl th, .tbl td { padding: 7px 6px; border-bottom: 1px solid var(--line); text-align: start; vertical-align: top; }
+.tbl td.n { font-family: var(--font-mono); white-space: nowrap; }
+.heritage { margin-top: 34px; padding-top: 22px; border-top: 1px solid var(--line); }
+.heritage h2 { font-family: var(--font-display); font-size: clamp(1.3rem, 3.4vw, 1.8rem); margin: 4px 0 10px; }
+.heritage p { max-width: 72ch; margin: 0 0 12px; }
+#clock { direction: ltr; unicode-bidi: isolate; font-family: var(--font-mono); font-size: 0.8rem; }
+.terms { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin: 12px 0; }
+.terms div { padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); display: grid; gap: 2px; }
+.terms b { font-family: 'IBM Plex Sans Arabic', sans-serif; font-size: 1.1rem; }
+.terms span { font-size: 0.8rem; color: var(--muted); }
+.src { font-size: 0.8rem; color: var(--muted); }
+.src a { color: var(--muted); }
+html.ar #birds span[lang=ar] { display: none; }
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Experiment · Physics · Nature · UAE</span>
+    <h1 style="font-size:var(--step-3)">How a falcon dives.</h1>
+    <p>A peregrine falcon in a full dive, called a stoop, is the fastest animal on Earth. This simulation shows how it gets there: folding its wings to cut drag, picking a steep angle, then pulling out at several times the force of gravity. Change the bird, its shape and the dive, and compare it with a skydiver and a pigeon.</p>
+  </div>
+  <div class="game">
+    <div class="panel" style="gap:10px">
+      <canvas class="ch" id="side" aria-label="Side view of the dive"></canvas>
+      <div class="btnrow"><button class="sm go1" type="button" id="go">▶ Dive</button><button class="sm" type="button" id="skip">Skip to the end</button><span class="msg" id="clock"></span></div>
+      <canvas class="ch" id="spd" aria-label="Speed over time"></canvas>
+      <div class="leg"><span style="--c:#ffc857">Falcon</span><span style="--c:#7fb4ff">Skydiver (belly down)</span><span style="--c:#ff7a8f">Pigeon in level flight</span></div>
+      <div class="stats">
+        <div><b id="sTop">–</b><span>top speed</span></div>
+        <div><b id="sVt">–</b><span>terminal speed on this angle</span></div>
+        <div><b id="sG">–</b><span>pull-out force</span></div>
+      </div>
+      <p class="msg" id="sum"></p>
+    </div>
+    <div class="panel" style="gap:12px">
+      <span class="label">The bird</span>
+      <div class="btnrow" id="birds"></div>
+      <p class="msg" id="birdInfo"></p>
+      <span class="label">Body shape</span>
+      <div class="shapes" id="shapes"></div>
+      <table class="tbl"><tbody>
+        <tr><td>Drag coefficient (Cd)</td><td class="n" id="tCd"></td></tr>
+        <tr><td>Frontal area</td><td class="n" id="tA"></td></tr>
+        <tr><td>Cd × area</td><td class="n" id="tCdA"></td></tr>
+        <tr><td>Terminal speed, straight down</td><td class="n" id="tVt"></td></tr>
+      </tbody></table>
+      <label class="row"><span>Starting height</span><b id="vAlt"></b></label>
+      <input type="range" id="alt" min="100" max="1500" step="50" value="800" aria-label="Starting height">
+      <label class="row"><span>Stoop angle below horizontal</span><b id="vAng"></b></label>
+      <input type="range" id="ang" min="15" max="90" step="5" value="60" aria-label="Stoop angle">
+      <label class="row"><span>Pull-out force limit</span><b id="vN"></b></label>
+      <input type="range" id="gmax" min="2" max="12" step="0.5" value="6" aria-label="Pull-out force limit">
+      <p class="fact" style="margin:0">Drag grows with the square of speed. The falcon speeds up until drag equals the part of its weight pulling it along the dive, which is its terminal speed. Folding the wings shrinks the area facing the air and smooths the shape, so drag drops and the terminal speed rises. A steeper dive puts more of the weight to work. Heavier birds of the same shape are faster, because weight grows faster than frontal area.</p>
+    </div>
+  </div>
+
+  <div class="game" style="margin-top:22px">
+    <div class="panel" style="gap:10px">
+      <span class="label">What the records say</span>
+      <p class="fact" style="margin:0">The fastest dive on record is about <b>389 km/h</b> (242 mph), by a trained peregrine called Frightful released from a plane at about 5,200 m by falconer and skydiver Ken Franklin in 1999. Guinness World Records lists the peregrine's normal hunting stoop at about <b>320 km/h</b>. Some scientists question the faster figure, because wild falcons rarely dive from that high.</p>
+      <p class="fact" style="margin:0">Field measurements are lower. A trained gyrfalcon tracked by Vance Tucker and colleagues in 1998 reached 52 to 58 m/s (about 190 to 210 km/h) in dives from up to 500 m, and often added drag on purpose to control its speed. Tucker's models of an ideal falcon put the top speed in a long vertical dive at roughly 320 to 400 km/h, close to what this simulation gives for a fully tucked bird.</p>
+    </div>
+    <div class="panel" style="gap:10px">
+      <span class="label">The pull-out</span>
+      <p class="fact" style="margin:0">To turn a dive into level flight, the falcon has to curve its path. The tighter the curve and the higher the speed, the bigger the force: it grows with the square of speed. Wind-tunnel and field work by Christoph Brücker's group measured pull-outs of about 3 g in a controlled dive, and predicted close to 10 g at full stoop speed. A trained fighter pilot in a g-suit manages about 9 g. The falcon spreads the pull-out over a longer arc when it can, and its lift limits how hard it can turn.</p>
+      <p class="fact" style="margin:0">Speed is not just for show. A 2018 computer study by Robin Mills and colleagues found that a high-speed stoop gives the falcon more turning force, which helps it catch agile prey that dodges at the last moment.</p>
+    </div>
+  </div>
+
+  <section class="heritage">
+    <span class="label">Heritage · الصقارة</span>
+    <h2>Falconry in the UAE.</h2>
+    <p>Falconry is one of the oldest traditions of the Arabian Peninsula. Bedouin families trapped wild falcons on their autumn migration, trained them over the winter to hunt houbara bustard and hares for the family table, and often released them again in spring. The bond between falconer and bird, built on patience and trust, was valued as much as the hunt.</p>
+    <p>In 2010, UNESCO added falconry to its Representative List of the Intangible Cultural Heritage of Humanity, in a joint nomination led by the UAE with other countries. The listing has since been extended several times and now includes many countries on several continents.</p>
+    <div class="terms">
+      <div><b lang="ar">الصقر الحر</b><span>Saker falcon, the classic desert hunter</span></div>
+      <div><b lang="ar">الشاهين</b><span>Peregrine falcon, the champion of the stoop</span></div>
+      <div><b lang="ar">الجير</b><span>Gyrfalcon, the largest falcon, from the Arctic</span></div>
+      <div><b lang="ar">البرقع</b><span>The leather hood that keeps the bird calm</span></div>
+      <div><b lang="ar">الدس</b><span>The thick glove the falcon perches on</span></div>
+      <div><b lang="ar">الوكر</b><span>The perch where the falcon rests</span></div>
+      <div><b lang="ar">التلواح</b><span>The lure used in training</span></div>
+      <div><b lang="ar">الصقّار</b><span>The falconer</span></div>
+    </div>
+    <p>Today most falcons in the UAE are captive-bred, which protects wild populations. Falcons travel with their own passports under the CITES wildlife trade rules, and Abu Dhabi has a hospital just for falcons. Since 1995 the Sheikh Zayed Falcon Release Programme has returned hundreds of sakers and peregrines to the wild along their migration routes. Sakers usually hunt with fast low chases, while peregrines are the ones famous for the high stoop.</p>
+    <p class="src">Sources: Guinness World Records, "Fastest bird (diving)"; V. A. Tucker, T. J. Cade and A. E. Tucker (1998), Journal of Experimental Biology 201: 2061–2070; V. A. Tucker (1998), Journal of Experimental Biology 201: 403–414; B. Gowree, C. Brücker and colleagues on peregrine pull-outs (2018, 2020); R. Mills and colleagues (2018), PLoS Computational Biology; UNESCO Intangible Cultural Heritage list, "Falconry, a living human heritage". The drag numbers for each body shape are rounded model values chosen to match these studies, not direct measurements.</p>
+  </section>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var G = 9.81, KMH = 3.6;
+  // mass (kg) and a size factor; frontal area scales with mass^(2/3) from a 1 kg reference bird
+  var BIRDS = [
+    { id: 'peregrine', name: 'Peregrine', ar: 'الشاهين', m: 0.95, info: 'Peregrine falcon, female, about 0.95 kg. Found on every continent except Antarctica.' },
+    { id: 'saker', name: 'Saker', ar: 'الحر', m: 1.1, info: 'Saker falcon, female, about 1.1 kg. The traditional falcon of Arabian falconry.' },
+    { id: 'gyr', name: 'Gyrfalcon', ar: 'الجير', m: 1.5, info: 'Gyrfalcon, female, about 1.5 kg. The largest falcon, from the Arctic.' }
+  ];
+  // shape values for a 1 kg bird: Cd and frontal area (m²). Rounded model values.
+  var SHAPES = [
+    { id: 'open', name: 'Wings out', cd: 0.20, a: 0.040, svg: '<path d="M4 20 Q24 8 46 18 Q68 8 88 20 Q68 16 50 24 L46 30 L42 24 Q24 16 4 20Z" fill="currentColor"/>' },
+    { id: 'cup', name: 'Cupped', cd: 0.18, a: 0.018, svg: '<path d="M22 26 Q30 10 46 14 Q62 10 70 26 Q60 18 50 24 L46 32 L42 24 Q32 18 22 26Z" fill="currentColor"/>' },
+    { id: 'tuck', name: 'Fully tucked', cd: 0.17, a: 0.0095, svg: '<path d="M30 20 Q46 10 64 18 Q70 20 64 22 Q46 30 30 20Z" fill="currentColor"/><path d="M30 20 L20 16 L22 20 L20 24Z" fill="currentColor"/>' }
+  ];
+  var st = { bird: BIRDS[0], shape: SHAPES[2] };
+  function rho(h) { return 1.225 * Math.pow(Math.max(0, 1 - 2.25577e-5 * h), 4.2559); }
+  function cdA(b, s) { return s.cd * s.a * Math.pow(b.m, 2 / 3); }
+  function vt(m, CdA, rh, angDeg) { return Math.sqrt(2 * m * G * Math.sin((angDeg == null ? 90 : angDeg) * Math.PI / 180) / (rh * CdA)); }
+
+  // dive along a fixed path angle, then a pull-out arc at constant load factor nMax until level
+  function simulate(o) {
+    var m = o.m, k = o.CdA, th = o.ang * Math.PI / 180, nMax = o.n, hEnd = 15, dt = 0.02;
+    var x = 0, h = o.h0, v = 3, phi = th, t = 0, pts = [], phase = 'dive', peakN = 1, top = 0;
+    function arcDrop(v0, ph0) { var d = 0, p = ph0, steps = 40, dp = ph0 / steps; for (var i = 0; i < steps; i++) { var r = v0 * v0 / (G * (nMax - Math.cos(p))); d += r * Math.sin(p - dp / 2) * dp; p -= dp; } return d; }
+    while (t < 300) {
+      var a = G * Math.sin(phi) - 0.5 * rho(h) * k * v * v / m;
+      if (phase === 'dive' && h - arcDrop(v, phi) <= hEnd) phase = 'pull';
+      if (phase === 'pull') {
+        var nn = nMax, dphi = G * (nn - Math.cos(phi)) / v * dt;
+        phi = Math.max(0, phi - dphi); peakN = Math.max(peakN, nn);
+        if (phi <= 0) { pts.push({ t: t, x: x, h: h, v: v, phi: 0, ph: 'level' }); break; }
+      }
+      v = Math.max(1, v + a * dt); x += v * Math.cos(phi) * dt; h -= v * Math.sin(phi) * dt; t += dt;
+      if (h < 0) { h = 0; pts.push({ t: t, x: x, h: h, v: v, phi: phi, ph: 'crash' }); phase = 'crash'; break; }
+      top = Math.max(top, v);
+      if (pts.length === 0 || t - pts[pts.length - 1].t >= 0.05) pts.push({ t: t, x: x, h: h, v: v, phi: phi, ph: phase });
+    }
+    return { pts: pts, top: top, peakN: peakN, crash: phase === 'crash', T: t };
+  }
+  // skydiver from the same height, belly down (Cd·A about 0.45 m², 80 kg)
+  function skydiver(h0, T) { var v = 0, h = h0, t = 0, out = []; while (t <= T && h > 0) { var a = G - 0.5 * rho(h) * 0.45 * v * v / 80; v += a * 0.05; h -= v * 0.05; t += 0.05; out.push({ t: t, v: v }); } return out; }
+
+  function cv(id, hgt) {
+    var c = $(id), d = window.devicePixelRatio || 1, w = Math.max(240, c.clientWidth);
+    c.width = Math.round(w * d); c.height = Math.round(hgt * d); c.style.height = hgt + 'px';
+    var x = c.getContext('2d'); x.setTransform(d, 0, 0, d, 0, 0); x.clearRect(0, 0, w, hgt); x.font = '11px JetBrains Mono, monospace'; return { x: x, w: w, h: hgt };
+  }
+  var MUTED = '#8b93ad', GRID = 'rgba(255,255,255,.08)';
+  var sim = null, sky = null, anim = null;
+
+  function drawSide(upTo) {
+    var c = cv('side', 260), x = c.x, L = 44, R = 14, T = 14, B = 26, W = c.w - L - R, H = c.h - T - B, pts = sim.pts, last = pts[pts.length - 1];
+    var maxX = Math.max(50, last.x), h0 = +$('alt').value, sc = Math.min(W / maxX, H / h0);
+    var off = Math.max(0, (W - maxX * sc) / 2), px = function (p) { return L + off + p.x * sc; }, py = function (p) { return T + H - p.h * sc; };
+    var g = x.createLinearGradient(0, T, 0, T + H); g.addColorStop(0, 'rgba(127,180,255,.10)'); g.addColorStop(1, 'rgba(255,200,87,.06)'); x.fillStyle = g; x.fillRect(L, T, W, H);
+    x.fillStyle = '#c9a26a'; x.fillRect(L, T + H, W, 3);
+    x.fillStyle = MUTED; x.textAlign = 'right';
+    var step = h0 > 800 ? 500 : h0 > 300 ? 200 : 50;
+    for (var a = 0; a <= h0; a += step) { var yy = T + H - a * sc; x.fillText(a + ' m', L - 4, yy + 4); x.strokeStyle = GRID; x.beginPath(); x.moveTo(L, yy); x.lineTo(L + W, yy); x.stroke(); }
+    x.setLineDash([4, 5]); x.strokeStyle = 'rgba(255,255,255,.35)'; x.beginPath(); pts.forEach(function (p, i) { if (i) x.lineTo(px(p), py(p)); else x.moveTo(px(p), py(p)); }); x.stroke(); x.setLineDash([]);
+    var cur = pts[Math.min(pts.length - 1, upTo)];
+    x.strokeStyle = '#ffc857'; x.lineWidth = 2; x.beginPath(); for (var i = 0; i <= Math.min(pts.length - 1, upTo); i++) { if (i) x.lineTo(px(pts[i]), py(pts[i])); else x.moveTo(px(pts[i]), py(pts[i])); } x.stroke(); x.lineWidth = 1;
+    // the bird, pointing along its path
+    x.save(); x.translate(px(cur), py(cur)); x.rotate(cur.phi); x.fillStyle = '#ffc857';
+    var sid = cur.ph === 'level' ? 'open' : st.shape.id;
+    x.beginPath();
+    if (sid === 'tuck') { x.ellipse(0, 0, 11, 4, 0, 0, 7); x.fill(); x.beginPath(); x.moveTo(-10, 0); x.lineTo(-17, -4); x.lineTo(-17, 4); x.fill(); }
+    else if (sid === 'cup') { x.ellipse(0, 0, 10, 4, 0, 0, 7); x.fill(); x.beginPath(); x.moveTo(2, -2); x.lineTo(-8, -11); x.lineTo(-4, -2); x.moveTo(2, 2); x.lineTo(-8, 11); x.lineTo(-4, 2); x.fill(); }
+    else { x.ellipse(0, 0, 9, 4, 0, 0, 7); x.fill(); x.beginPath(); x.moveTo(3, -2); x.lineTo(-2, -18); x.lineTo(-5, -2); x.moveTo(3, 2); x.lineTo(-2, 18); x.lineTo(-5, 2); x.fill(); }
+    x.restore();
+    x.fillStyle = '#e9ecf5'; x.textAlign = 'left';
+    var nearR = px(cur) > c.w - 100; x.textAlign = nearR ? 'right' : 'left'; x.fillText(Math.round(cur.v * KMH) + ' km/h', px(cur) + (nearR ? -16 : 16), Math.max(T + 12, py(cur) - 12));
+    if (sim.crash && upTo >= pts.length - 1) { x.fillStyle = '#ff7a8f'; x.textAlign = 'center'; x.fillText('Too low to pull out!', L + W / 2, T + 18); }
+    $('clock').textContent = cur.t.toFixed(1) + ' s · ' + Math.round(cur.h) + ' m';
+  }
+  function drawSpeed(upTo) {
+    var c = cv('spd', 180), x = c.x, L = 44, R = 12, T = 12, B = 24, W = c.w - L - R, H = c.h - T - B, pts = sim.pts;
+    var Tm = Math.max(5, pts[pts.length - 1].t), vmax = Math.max(400, Math.ceil(sim.top * KMH / 100) * 100);
+    x.strokeStyle = GRID; x.fillStyle = MUTED; x.textAlign = 'right';
+    for (var v = 0; v <= vmax; v += 100) { var y = T + H * (1 - v / vmax); x.beginPath(); x.moveTo(L, y); x.lineTo(L + W, y); x.stroke(); x.fillText(String(v), L - 4, y + 4); }
+    x.save(); x.translate(10, T + H / 2); x.rotate(-Math.PI / 2); x.textAlign = 'center'; x.fillText('km/h', 0, 0); x.restore();
+    x.textAlign = 'center'; var ts = Tm > 40 ? 10 : Tm > 15 ? 5 : 2;
+    for (var t = 0; t <= Tm; t += ts) x.fillText(t + ' s', L + W * t / Tm, c.h - 6);
+    function line(arr, col, lim) { x.strokeStyle = col; x.lineWidth = 2; x.beginPath(); var n = 0; arr.forEach(function (p) { if (p.t > lim) return; var X = L + W * p.t / Tm, Y = T + H * (1 - p.v * KMH / vmax); if (n++) x.lineTo(X, Y); else x.moveTo(X, Y); }); x.stroke(); x.lineWidth = 1; }
+    var lim = pts[Math.min(pts.length - 1, upTo)].t;
+    x.setLineDash([5, 4]); var py = T + H * (1 - 80 / vmax); x.strokeStyle = '#ff7a8f'; x.lineWidth = 2; x.beginPath(); x.moveTo(L, py); x.lineTo(L + W * lim / Tm, py); x.stroke(); x.setLineDash([]); x.lineWidth = 1;
+    line(sky, '#7fb4ff', lim); line(pts, '#ffc857', lim);
+  }
+  function run() {
+    var b = st.bird, s = st.shape, k = cdA(b, s), h0 = +$('alt').value, ang = +$('ang').value, n = +$('gmax').value;
+    sim = simulate({ m: b.m, CdA: k, h0: h0, ang: ang, n: n }); sky = skydiver(h0, sim.T);
+    $('vAlt').textContent = h0 + ' m'; $('vAng').textContent = ang + '°'; $('vN').textContent = n + ' g';
+    $('tCd').textContent = s.cd.toFixed(2); $('tA').textContent = (s.a * Math.pow(b.m, 2 / 3) * 1e4).toFixed(0) + ' cm²'; $('tCdA').textContent = (k * 1e4).toFixed(1) + ' cm²';
+    var vtv = vt(b.m, k, rho(h0 / 2)), vta = vt(b.m, k, rho(h0 / 2), ang);
+    $('tVt').textContent = Math.round(vtv * KMH) + ' km/h';
+    $('sTop').textContent = Math.round(sim.top * KMH) + ' km/h'; $('sVt').textContent = Math.round(vta * KMH) + ' km/h'; $('sG').textContent = sim.crash ? '–' : n + ' g';
+    var frac = sim.top / vta;
+    $('sum').textContent = sim.crash ? 'At this speed and force limit the falcon can\'t level out before the ground. Start higher, dive less steeply or allow a harder pull-out.' :
+      'The ' + b.name.toLowerCase() + ' reaches ' + Math.round(sim.top * KMH) + ' km/h, ' + Math.round(frac * 100) + '% of its terminal speed for this angle, and starts pulling out at about ' + Math.round(pullStartHeight()) + ' m. A skydiver from the same height peaks near ' + Math.round(Math.max.apply(null, sky.map(function (p) { return p.v; })) * KMH) + ' km/h. A racing pigeon flies at about 80 km/h.';
+    $('birdInfo').textContent = b.info;
+    drawSide(sim.pts.length - 1); drawSpeed(sim.pts.length - 1);
+  }
+  function pullStartHeight() { var p = sim.pts.filter(function (q) { return q.ph === 'pull'; })[0]; return p ? p.h : 0; }
+  function play() {
+    cancelAnimationFrame(anim); var t0 = performance.now(), pts = sim.pts, i = 0;
+    (function f() { var t = (performance.now() - t0) / 1000; while (i < pts.length - 1 && pts[i + 1].t <= t) i++; drawSide(i); drawSpeed(i); if (i < pts.length - 1) anim = requestAnimationFrame(f); })();
+  }
+  $('go').onclick = function () { run(); play(); };
+  $('skip').onclick = function () { cancelAnimationFrame(anim); drawSide(sim.pts.length - 1); drawSpeed(sim.pts.length - 1); };
+  BIRDS.forEach(function (b) { var e = document.createElement('button'); e.className = 'sm'; e.type = 'button'; e.innerHTML = b.name + ' <span lang="ar" data-noar>' + b.ar + '</span>'; e.setAttribute('aria-pressed', b === st.bird); e.onclick = function () { st.bird = b; [].forEach.call($('birds').children, function (z) { z.setAttribute('aria-pressed', z === e); }); cancelAnimationFrame(anim); run(); }; $('birds').appendChild(e); });
+  SHAPES.forEach(function (s) { var e = document.createElement('button'); e.className = 'shp'; e.type = 'button'; e.innerHTML = '<svg viewBox="0 0 92 40" aria-hidden="true" style="color:#ffc857">' + s.svg + '</svg><span>' + s.name + '</span><small>Cd ' + s.cd.toFixed(2) + '</small>'; e.setAttribute('aria-pressed', s === st.shape); e.onclick = function () { st.shape = s; [].forEach.call($('shapes').children, function (z) { z.setAttribute('aria-pressed', z === e); }); cancelAnimationFrame(anim); run(); }; $('shapes').appendChild(e); });
+  ['alt', 'ang', 'gmax'].forEach(function (k) { $(k).addEventListener('input', function () { cancelAnimationFrame(anim); run(); }); });
+  var rt; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { if (sim) { drawSide(sim.pts.length - 1); drawSpeed(sim.pts.length - 1); } }, 150); });
+  window.Falcon = { vt: vt, simulate: simulate, rho: rho, cdA: cdA, BIRDS: BIRDS, SHAPES: SHAPES };
+  if (document.readyState === 'complete') run(); else window.addEventListener('load', run);
+})();
+</script>
+</body>
+</html>

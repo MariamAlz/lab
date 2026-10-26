@@ -38,6 +38,7 @@
 .ops .bar.dense i { background: var(--sat-c); }
 .ops b { font-family: var(--font-mono); font-weight: 500; }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -77,6 +78,7 @@
 <footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
 <script>
 (function () {
+  var MONO = window.LabAr && LabAr.on ? '"IBM Plex Sans Arabic", sans-serif' : '"JetBrains Mono", monospace';
   var $ = function (id) { return document.getElementById(id); };
   function css(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
   var cv = $('cv'), g = cv.getContext('2d'), W = cv.width, H = cv.height;
@@ -155,7 +157,7 @@
   function draw() {
     var muted = css('--muted'), line = css('--line'), acc = css('--accent'), ink = css('--ink');
     g.clearRect(0, 0, W, H);
-    g.font = '500 13px "JetBrains Mono", monospace'; g.textBaseline = 'middle'; g.textAlign = 'right';
+    g.font = '500 13px ' + MONO; g.textBaseline = 'middle'; g.textAlign = 'right';
     // input rasters
     INPUTS.forEach(function (inp, i) {
       var y = 30 + i * 30; g.fillStyle = muted; g.fillText(inp.key.toUpperCase(), 44, y);

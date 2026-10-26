@@ -35,7 +35,9 @@
 .wait { color: var(--muted); font-size: 0.86rem; }
 [hidden] { display: none !important; }
 @media (max-width: 760px) { .res { grid-template-columns: minmax(0, 1fr); } }
+html.ar .kv dd[data-noar], html.ar .grade { direction: ltr; unicode-bidi: isolate; text-align: right; }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -46,7 +48,7 @@
     <p>Got a link in a text message or an email? Paste it here before you tap it. You'll see whether the address is pretending to be someone else, how long the domain has existed and who registered it, how well the site is secured, and every subdomain that has ever had a public certificate.</p>
   </div>
   <form class="inrow" id="f"><input id="q" placeholder="Paste a link or a domain, e.g. https://rta-fines-pay.top/login" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Link or domain"><button class="btn primary" type="submit">Inspect</button></form>
-  <div class="tries"><span class="lbl">Try</span><button class="sm" type="button" data-q="https://emiratesnbd.com.secure-login.example/verify">a look-alike trick</button><button class="sm" type="button" data-q="http://xn--pple-43d.com">a hidden letter</button><button class="sm" type="button" data-q="mariamalzaabi.ae">mariamalzaabi.ae</button><button class="sm" type="button" data-q="github.com">github.com</button></div>
+  <div class="tries"><span class="lbl">Try</span><button class="sm" type="button" data-q="https://emiratesnbd.com.secure-login.example/verify">a look-alike trick</button><button class="sm" type="button" data-q="http://xn--pple-43d.com">a hidden letter</button><button class="sm" type="button" data-q="mariamalzaabi.ae" data-noar>mariamalzaabi.ae</button><button class="sm" type="button" data-q="github.com" data-noar>github.com</button></div>
   <div class="res" id="res" hidden>
     <div class="sec verdict" id="verdict"></div>
     <div class="sec"><h2>The address itself <small>checked on your device</small></h2><ul class="flags" id="link"></ul></div>
@@ -137,15 +139,15 @@
       try { owner = reg2.vcardArray[1].filter(function (v) { return v[0] === 'fn' || v[0] === 'org'; })[0][3]; } catch (e) {}
       var created = ev.registration, days = created ? Math.floor((Date.now() - new Date(created)) / 864e5) : null;
       state.age = days; verdict();
-      var rows = [['Registered', created ? fmtD(created) + ' (' + ageText(days) + ' ago)' : 'not shown'], ['Expires', ev.expiration ? fmtD(ev.expiration) : 'not shown'], ['Last changed', ev['last changed'] ? fmtD(ev['last changed']) : ''], ['Registrar', regName], ['Registered to', owner && !/redact|privacy|withheld/i.test(owner) ? owner : 'hidden for privacy (normal)'], ['Status', (j.status || []).slice(0, 3).join(', ')]];
-      $('rdap').className = ''; $('rdap').innerHTML = '<dl class="kv">' + rows.filter(function (r) { return r[1]; }).map(function (r) { return '<dt>' + r[0] + '</dt><dd>' + esc(r[1]) + '</dd>'; }).join('') + '</dl>' + (days != null && days < 90 ? '<p class="bad" style="font-size:.86rem">Registered very recently. Most scam domains are used within weeks of being bought.</p>' : '');
+      var rows = [['Registered', created ? fmtD(created) + ' (' + ageText(days) + ' ago)' : 'not shown'], ['Expires', ev.expiration ? fmtD(ev.expiration) : 'not shown'], ['Last changed', ev['last changed'] ? fmtD(ev['last changed']) : ''], ['Registrar', regName, 1], ['Registered to', owner && !/redact|privacy|withheld/i.test(owner) ? owner : 'hidden for privacy (normal)', owner && !/redact|privacy|withheld/i.test(owner)], ['Status', (j.status || []).slice(0, 3).join(', '), 1]];
+      $('rdap').className = ''; $('rdap').innerHTML = '<dl class="kv">' + rows.filter(function (r) { return r[1]; }).map(function (r) { return '<dt>' + r[0] + '</dt><dd' + (r[2] ? ' data-noar' : '') + '>' + esc(r[1]) + '</dd>'; }).join('') + '</dl>' + (days != null && days < 90 ? '<p class="bad" style="font-size:.86rem">Registered very recently. Most scam domains are used within weeks of being bought.</p>' : '');
     }).catch(function (e) { $('rdap').textContent = e.message === 'nf' ? 'No registration record found. The domain may not exist, or its registry (some country endings, including .ae) doesn\'t publish RDAP data.' : 'The registry didn\'t answer. Try again later.'; });
   }
   function obs(host) {
     return fetch('https://observatory-api.mdn.mozilla.net/api/v2/scan?host=' + encodeURIComponent(host), { method: 'POST' }).then(function (r) { return r.json(); }).then(function (j) {
       if (!j.grade) throw new Error(j.error || 'x');
       var col = /^A/.test(j.grade) ? 'ok' : /^[BC]/.test(j.grade) ? 'meh' : 'bad';
-      $('obs').className = ''; $('obs').innerHTML = '<div style="display:flex;gap:16px;align-items:center"><span class="grade ' + col + '">' + esc(j.grade) + '</span><span class="wait">Score ' + j.score + '/100<br>' + j.tests_passed + ' of ' + (j.tests_passed + j.tests_failed) + ' checks passed</span></div><p class="wait">This grades the protective settings a site sends to browsers (forcing HTTPS, blocking clickjacking and script injection). It says how carefully a site is set up, not whether its owner is honest.</p>' + (j.details_url ? '<a class="wait" href="' + esc(j.details_url) + '" target="_blank" rel="noopener">Full report ↗</a>' : '');
+      $('obs').className = ''; $('obs').innerHTML = '<div style="display:flex;gap:16px;align-items:center"><span class="grade ' + col + '" data-noar>' + esc(j.grade) + '</span><span class="wait">Score ' + j.score + '/100<br>' + j.tests_passed + ' of ' + (j.tests_passed + j.tests_failed) + ' checks passed</span></div><p class="wait">This grades the protective settings a site sends to browsers (forcing HTTPS, blocking clickjacking and script injection). It says how carefully a site is set up, not whether its owner is honest.</p>' + (j.details_url ? '<a class="wait" href="' + esc(j.details_url) + '" target="_blank" rel="noopener">Full report ↗</a>' : '');
     }).catch(function () { $('obs').textContent = 'Couldn\'t scan this site. It may not run a website, or it blocked the scanner.'; });
   }
   function ct(reg) {
@@ -156,7 +158,7 @@
       var list = Object.keys(names).sort(function (a, b) { return a.split('.').length - b.split('.').length || a.localeCompare(b); });
       var age = first ? Math.floor((Date.now() - first) / 864e5) : null; state.ctAge = age; verdict();
       $('ct').className = ''; $('ct').innerHTML = (first ? '<p class="wait">First certificate: <b>' + fmtD(first) + '</b> · ' + j.length.toLocaleString('en') + ' certificates logged · ' + list.length + ' names</p>' : '<p class="wait">No certificates logged. A site without one can\'t use HTTPS.</p>') +
-        '<div class="subs">' + list.slice(0, 300).map(function (n) { return '<span>' + esc(n) + '</span>'; }).join('') + '</div>' + (list.length > 300 ? '<p class="wait">…and ' + (list.length - 300) + ' more.</p>' : '') +
+        '<div class="subs" data-noar>' + list.slice(0, 300).map(function (n) { return '<span>' + esc(n) + '</span>'; }).join('') + '</div>' + (list.length > 300 ? '<p class="wait">…and ' + (list.length - 300) + ' more.</p>' : '') +
         '<p class="wait">For your own domain, this shows forgotten test or staging sites that the whole internet can see.</p>';
     }).catch(function () { $('ct').textContent = 'crt.sh is busy or slow right now. Try again in a minute.'; });
   }

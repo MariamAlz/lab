@@ -106,13 +106,13 @@ LabAr.add({
   "Not medical advice.": "ليست نصيحة طبية.",
   "This is not medical advice.": "هذه ليست نصيحة طبية."
 }, [
-  [/^(\d+) days?$/, '$1 يوم'],
+  [/^(\d+) days?$/, function (m, n) { n = +n; return n === 1 ? 'يوم واحد' : n === 2 ? 'يومان' : n <= 10 ? n + ' أيام' : n + ' يومًا'; }],
   [/^(\d+) hours?$/, '$1 ساعة'],
   [/^(\d+) min(?:utes?)?$/, '$1 دقيقة'],
   [/^(\d+) experiments?$/, '$1 تجربة'],
   [/^In (\d+) days$/, 'بعد $1 أيام'],
   [/^In (\d+) h$/, 'بعد $1 ساعة'],
-  [/^(\d+) days? ago$/, 'قبل $1 يوم']
+  [/^(\d+) days? ago$/, function (m, n) { n = +n; return n === 1 ? 'قبل يوم' : n === 2 ? 'قبل يومين' : n <= 10 ? 'قبل ' + n + ' أيام' : 'قبل ' + n + ' يومًا'; }]
 ]);
 /* index cards for newer tools */
 LabAr.add({
@@ -406,4 +406,11 @@ LabAr.add({
  "A pearl diving season": "موسم غوص",
  "Captain a Gulf pearling boat from June to September, share out the catch, and live through the collapse after 1929.": "كن نوخذة سفينة غوص من يونيو إلى سبتمبر، واقسم الحصيلة، وعِش انهيار تجارة اللؤلؤ بعد 1929.",
  "Set sail →": "أبحر ←"
+});
+/* index cards for newer tools */
+LabAr.add({
+ "Experiment · Physics · Heritage": "تجربة · فيزياء · تراث",
+ "How a falcon dives": "كيف ينقضّ الصقر",
+ "Simulate a falcon's stoop: wing shape, drag, terminal speed and the g-force of the pull-out.": "حاكِ انقضاضة الصقر: شكل الجناحين ومقاومة الهواء والسرعة الحدية وقوة الخروج من الانقضاض.",
+ "Dive →": "انقضّ ←"
 });

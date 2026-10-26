@@ -33,7 +33,10 @@
 .ok { color: var(--sat-b); } .bad { color: var(--sat-c); } .meh { color: var(--accent); } .na { color: var(--muted); }
 .tips { margin: 0; padding-inline-start: 1.1em; display: grid; gap: 6px; font-size: 0.88rem; color: var(--muted); }
 [hidden] { display: none !important; }
+html.ar .kv dd[data-noar] { unicode-bidi: plaintext; text-align: right; }
+html.ar .raw { unicode-bidi: plaintext; text-align: start; }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -128,12 +131,12 @@
   }
   var ic = { ok: '✓', bad: '✕', meh: '!', na: '·' };
   function list(f) { return '<ul class="checks">' + f.map(function (x) { return '<li><span class="' + x[0] + '">' + ic[x[0]] + '</span><span>' + esc(x[1]) + '<small>' + esc(x[2]) + '</small></span></li>'; }).join('') + '</ul>'; }
-  function kv(rows) { return '<dl class="kv">' + rows.filter(function (r) { return r[1]; }).map(function (r) { return '<dt>' + esc(r[0]) + '</dt><dd>' + esc(r[1]) + '</dd>'; }).join('') + '</dl>'; }
+  function kv(rows) { return '<dl class="kv">' + rows.filter(function (r) { return r[1]; }).map(function (r) { return '<dt>' + esc(r[0]) + '</dt><dd' + (r[2] ? (r[2] === 'pw' ? ' data-pw' : '') : ' data-noar') + '>' + esc(r[1]) + '</dd>'; }).join('') + '</dl>'; }
   function fields(s, sep) { var o = {}; s.replace(/([A-Z]+):((?:\\.|[^;])*);/g, function (_, k, v) { o[k] = v.replace(/\\(.)/g, '$1'); }); return o; }
   function verdict(level, title) { var c = { ok: 'var(--sat-b)', meh: 'var(--accent)', bad: 'var(--sat-c)', na: 'var(--ink)' }[level]; $('res').style.borderColor = c; return '<span class="label">This QR code</span><div class="big" style="color:' + c + '">' + esc(title) + '</div>'; }
   function analyse(text) {
     var t = text.trim(), low = t.toLowerCase(), h = '', f = [];
-    var rawHTML = '<div class="raw">' + esc(t) + '</div>';
+    var rawHTML = '<div class="raw" data-noar>' + esc(t) + '</div>';
     if (/^https?:\/\//i.test(t)) {
       var p = parse(t), r = p ? linkChecks(p) : { flags: [], score: 3 };
       f = r.flags;
@@ -142,14 +145,14 @@
       var lvl = r.score >= 3 ? 'bad' : r.score >= 1 ? 'meh' : 'ok';
       var shown = p ? esc(t).replace(esc(p.reg), '<mark>' + esc(p.reg) + '</mark>') : esc(t);
       h = verdict(lvl, lvl === 'bad' ? 'Don\'t open this link' : lvl === 'meh' ? 'Open with care' : 'A normal-looking link') +
-        '<div class="raw">' + shown + '</div><p style="margin:0;font-size:.88rem;color:var(--muted)">The highlighted part is who really runs the site.</p>' + list(f) +
+        '<div class="raw" data-noar>' + shown + '</div><p style="margin:0;font-size:.88rem;color:var(--muted)">The highlighted part is who really runs the site.</p>' + list(f) +
         '<div class="btns"><a class="sm" href="../inspect/?q=' + encodeURIComponent(t) + '">Check the site in depth →</a>' + (lvl !== 'bad' ? '<a class="sm" href="' + esc(t) + '" target="_blank" rel="noopener noreferrer">Open it ↗</a>' : '') + '</div>';
     } else if (/^wifi:/i.test(t)) {
       var w = fields(t.slice(5)), sec = (w.T || 'nopass').toUpperCase();
       f.push(sec === 'NOPASS' || sec === '' ? ['meh', 'An open network', 'Anyone nearby can see unencrypted traffic. Fine for browsing, but avoid banking without a VPN.'] : sec === 'WEP' ? ['bad', 'WEP security', 'WEP can be cracked in minutes. Treat it as an open network.'] : ['ok', sec + ' security', 'The network uses a password with modern encryption.']);
       f.push(['na', 'Check the name with staff', 'Fake hotspots copy café and hotel network names. Ask what the real name is before joining.']);
-      h = verdict(sec === 'WEP' ? 'bad' : 'na', 'Joins a Wi-Fi network') + kv([['Network', w.S], ['Security', sec === 'NOPASS' ? 'none' : sec], ['Password', w.P ? '••••••• (tap to show)' : ''], ['Hidden', w.H === 'true' ? 'yes' : '']]) + list(f);
-      setTimeout(function () { var dd = [].filter.call(document.querySelectorAll('.kv dd'), function (d) { return /tap to show/.test(d.textContent); })[0]; if (dd) { dd.style.cursor = 'pointer'; dd.onclick = function () { dd.textContent = w.P; }; } });
+      h = verdict(sec === 'WEP' ? 'bad' : 'na', 'Joins a Wi-Fi network') + kv([['Network', w.S], ['Security', sec === 'NOPASS' ? 'none' : sec, sec === 'NOPASS'], ['Password', w.P ? '••••••• (tap to show)' : '', 'pw'], ['Hidden', w.H === 'true' ? 'yes' : '', 1]]) + list(f);
+      setTimeout(function () { var dd = document.querySelector('.kv dd[data-pw]'); if (dd) { dd.style.cursor = 'pointer'; dd.onclick = function () { dd.setAttribute('data-noar', ''); dd.textContent = w.P; }; } });
     } else if (/^begin:vcard|^mecard:/i.test(t)) {
       var n = (t.match(/\nFN[^:]*:(.*)/i) || t.match(/N:([^;\n]*)/i) || [])[1], tel = (t.match(/TEL[^:]*:([^;\n]*)/i) || [])[1], em = (t.match(/EMAIL[^:]*:([^;\n]*)/i) || [])[1], url = (t.match(/URL[^:]*:([^\n;]*)/i) || [])[1];
       h = verdict('ok', 'Adds a contact') + kv([['Name', n], ['Phone', tel], ['Email', em], ['Website', url]]) + list([['ok', 'Harmless by itself', 'Your phone will ask before saving. Check the details match who gave you the code.']]) + rawHTML;

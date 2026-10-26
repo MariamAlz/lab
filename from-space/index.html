@@ -32,6 +32,7 @@
 .quest b { font-family: var(--font-display); font-size: 1.15rem; }
 .credit { font-size: 0.8rem; color: var(--muted); font-family: var(--font-mono); }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -173,7 +174,7 @@
     var SW = sg.width, SH = sg.height, muted = css('--muted'), acc = css('--accent');
     s2.clearRect(0, 0, SW, SH);
     var bw = (SW - 40) / 6;
-    s2.font = '500 11px "JetBrains Mono", monospace'; s2.textAlign = 'center'; s2.fillStyle = muted;
+    s2.font = window.LabAr && LabAr.on ? '500 11px "IBM Plex Sans Arabic", sans-serif' : '500 11px "JetBrains Mono", monospace'; s2.textAlign = 'center'; s2.fillStyle = muted;
     BANDS.forEach(function (b, i) {
       var h = Math.min(1, v[b.k] / 0.6) * (SH - 46), x = 20 + i * bw;
       s2.fillStyle = ['#5C7CFF', '#4FD3BD', '#F06B6B', '#E9B467', '#C08AF0', '#8A6BD9'][i];

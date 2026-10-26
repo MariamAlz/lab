@@ -1,0 +1,67 @@
+(function () {
+  var MO = { Jan: 'يناير', Feb: 'فبراير', Mar: 'مارس', Apr: 'أبريل', May: 'مايو', Jun: 'يونيو', Jul: 'يوليو', Aug: 'أغسطس', Sep: 'سبتمبر', Oct: 'أكتوبر', Nov: 'نوفمبر', Dec: 'ديسمبر' };
+  var Q = { good: 'عالية', fair: 'متوسطة', poor: 'ضعيفة' };
+  LabAr.add({
+    "Fingertip Pulse": "النبض من طرف الإصبع",
+    "Experiment · Signals · Camera": "تجربة · إشارات · كاميرا",
+    "Your pulse from a fingertip.": "نبضك من طرف إصبعك.",
+    "Rest a fingertip over your phone's rear camera and torch. Each heartbeat pushes a little more blood into your finger, which makes it slightly darker red. The camera sees that tiny change about once a second, and this page turns it into a waveform and a heart rate.": "ضع طرف إصبعك على الكاميرا الخلفية والفلاش في هاتفك. كل نبضة قلب تدفع قليلًا من الدم الإضافي إلى إصبعك فيصبح أحمر أغمق بقليل. تلتقط الكاميرا هذا التغير الصغير نحو مرة كل ثانية، وتحوّله هذه الصفحة إلى موجة ومعدل نبض.",
+    "BPM": "نبضة/دقيقة",
+    "Press start, then cover the camera.": "اضغط ابدأ، ثم غطِّ الكاميرا.",
+    "Live pulse waveform": "موجة النبض المباشرة",
+    "Torch": "الفلاش",
+    "Camera preview": "معاينة الكاميرا",
+    "Signal quality": "جودة الإشارة",
+    "Quality": "الجودة",
+    "Clean signal": "إشارة نظيفة",
+    "Beats seen": "النبضات المرصودة",
+    "<b>A demo, not a medical device.</b> The number is an estimate and can be wrong, especially with cold hands, movement or a weak torch. If you feel unwell, chest pain, or a racing or irregular heartbeat, talk to a doctor or call 998.": "<b>هذه تجربة وليست جهازًا طبيًا.</b> الرقم تقديري وقد يكون خاطئًا، خاصة مع برودة اليدين أو الحركة أو ضعف الفلاش. إذا شعرت بتوعك أو ألم في الصدر أو تسارع أو عدم انتظام في ضربات القلب، فاستشر طبيبًا أو اتصل بالرقم 998.",
+    "How to get a good reading": "كيف تحصل على قراءة جيدة",
+    "Sit down and rest for a minute first.": "اجلس واسترح دقيقة أولًا.",
+    "Rest your fingertip lightly over the camera <i>and</i> the torch. Don't press hard: squeezing pushes the blood out.": "ضع طرف إصبعك برفق على الكاميرا <i>و</i>الفلاش معًا. لا تضغط بقوة، فالضغط يدفع الدم إلى الخارج.",
+    "Keep your hand and phone still, resting on a table if you can.": "أبقِ يدك وهاتفك ثابتين، ومستندين إلى طاولة إن أمكن.",
+    "Wait about 20 seconds for a steady result.": "انتظر نحو 20 ثانية للحصول على نتيجة ثابتة.",
+    "Your readings (this device only)": "قراءاتك (على هذا الجهاز فقط)",
+    "Clear readings": "مسح القراءات",
+    "This is <b>photoplethysmography</b> (PPG), the same idea as the clip a nurse puts on your finger and the green lights under a smartwatch. Light goes into the skin and some bounces back. Blood absorbs light, so with every beat a little less comes back. The change is under 1% of the brightness, so the page averages every pixel's red value, removes slow drift, and keeps only the rhythms between 40 and 200 beats a minute. It then finds the repeat time of the wave (autocorrelation) and checks it against the gaps between individual peaks.": "هذه تقنية <b>تخطيط التحجم الضوئي</b> (PPG)، وهي الفكرة نفسها في المشبك الذي تضعه الممرضة على إصبعك، وفي الأضواء الخضراء أسفل الساعة الذكية. يدخل الضوء إلى الجلد وينعكس جزء منه. والدم يمتص الضوء، فمع كل نبضة يعود ضوء أقل بقليل. التغير أقل من 1% من السطوع، لذا تحسب الصفحة متوسط القيمة الحمراء لكل البكسلات، وتزيل الانجراف البطيء، ولا تُبقي إلا الإيقاعات بين 40 و200 نبضة في الدقيقة. ثم تجد زمن تكرار الموجة (الارتباط الذاتي) وتقارنه بالفواصل بين القمم المنفردة.",
+    "A typical resting heart rate for adults is 60 to 100 beats a minute. Fit people and athletes are often lower. Heat, caffeine, stress and dehydration all raise it, which is worth knowing in a UAE summer.": "معدل نبض القلب المعتاد للبالغين في الراحة بين 60 و100 نبضة في الدقيقة، وغالبًا ما يكون أقل لدى الرياضيين وأصحاب اللياقة العالية. الحر والكافيين والتوتر والجفاف كلها ترفعه، وهذا مفيد أن تعرفه في صيف الإمارات.",
+    "Too dark. Cover the camera and torch, with a light behind your finger if the torch is off.": "الصورة مظلمة جدًا. غطِّ الكاميرا والفلاش، وضع مصدر ضوء خلف إصبعك إن كان الفلاش مطفأً.",
+    "Cover the camera fully with your fingertip.": "غطِّ الكاميرا بالكامل بطرف إصبعك.",
+    "Too bright. Press a little more gently or tilt your finger.": "الإضاءة قوية جدًا. اضغط برفق أكثر أو أمِل إصبعك.",
+    "Keep still. Rest your hand on a table.": "اثبت. أسند يدك إلى طاولة.",
+    "Last steady reading. Cover the camera again to measure.": "آخر قراءة ثابتة. غطِّ الكاميرا مجددًا للقياس.",
+    "Waiting for a steady fingertip…": "بانتظار إصبع ثابت…",
+    "Finger found. Hold still…": "تم رصد الإصبع. اثبت…",
+    "Settling…": "جارٍ الاستقرار…",
+    "Weak pulse. Press more gently, or warm your hand and try again.": "النبض ضعيف. اضغط برفق أكثر، أو دفّئ يدك وحاول مجددًا.",
+    "Keep still. The signal is jumping around.": "اثبت. الإشارة متذبذبة.",
+    "Hold still and keep a light touch…": "اثبت وحافظ على لمسة خفيفة…",
+    "Good signal. Keep holding…": "الإشارة جيدة. استمر…",
+    "Steady reading.": "قراءة ثابتة.",
+    "Reading the rhythm…": "جارٍ قراءة الإيقاع…",
+    "Fair": "متوسطة",
+    "Poor": "ضعيفة",
+    "Waiting for a clean signal…": "بانتظار إشارة نظيفة…",
+    "The pulse wave appears here": "تظهر موجة النبض هنا",
+    "This browser cannot use the camera. Try Chrome or Safari on your phone.": "هذا المتصفح لا يستطيع استخدام الكاميرا. جرّب Chrome أو Safari على هاتفك.",
+    "Asking for the camera…": "نطلب الإذن باستخدام الكاميرا…",
+    "Camera access was blocked. Allow it in your browser settings and try again.": "تم حظر الوصول إلى الكاميرا. اسمح به من إعدادات المتصفح وحاول مجددًا.",
+    "Could not open the camera.": "تعذّر فتح الكاميرا.",
+    "No torch control here. Sit near a bright lamp so light shines through your finger.": "لا يمكن التحكم بالفلاش هنا. اجلس قرب مصباح ساطع ليمر الضوء عبر إصبعك.",
+    "This browser won't switch on the torch. Sit near a bright lamp so light shines through your finger.": "هذا المتصفح لا يشغّل الفلاش. اجلس قرب مصباح ساطع ليمر الضوء عبر إصبعك.",
+    "Good signal": "إشارة جيدة",
+    "Fair signal": "إشارة متوسطة",
+    "Poor signal": "إشارة ضعيفة",
+    "No readings yet. Steady 20-second readings are saved here.": "لا قراءات بعد. تُحفظ هنا القراءات الثابتة لمدة 20 ثانية."
+  }, [
+    [/^(\d+) s$/, '$1 ث'],
+    [/^(\d+) BPM$/, '$1 نبضة/دقيقة'],
+    [/^Provisional, (\d+) s to go$/, 'قراءة أولية، متبقٍ $1 ث'],
+    [/^Measured over (\d+) s · (good|fair|poor) confidence$/, function (m, s, q) { return 'مقيس على مدى ' + s + ' ث · ثقة ' + Q[q]; }],
+    [/^(\d+) (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec), (\d\d:\d\d)$/, function (m, d, mo, t) { return d + ' ' + MO[mo] + '، ' + t; }],
+    [/^.*[\u0600-\u06FF\u2066-\u2069].*$/, '$&']
+  ]);
+  // the waveform placeholder is drawn on the canvas before this file loads, so ask the page to redraw it
+  function rd() { window.dispatchEvent(new Event('resize')); }
+  if (document.readyState === 'complete') rd(); else window.addEventListener('load', rd);
+})();

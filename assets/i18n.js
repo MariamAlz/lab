@@ -68,7 +68,7 @@
 
   var SKIP = { SCRIPT: 1, STYLE: 1, NOSCRIPT: 1, CODE: 1, PRE: 1, TEXTAREA: 1 };
   var BLOCK = /^(P|LI|H1|H2|H3|H4|LABEL|DT|DD|TD|TH|SUMMARY|FIGCAPTION|SMALL|SPAN|A|BUTTON|B|STRONG|EM|DIV|OPTION|LEGEND)$/;
-  var ATTR = ['placeholder', 'title', 'aria-label', 'alt'];
+  var ATTR = ['placeholder', 'title', 'aria-label', 'alt', 'label'];
   function skip(el) { return el.closest && el.closest('[data-noar],[translate="no"],.leaflet-control-attribution'); }
   function doEl(el) {
     if (!el || el.nodeType !== 1 || (SKIP[el.tagName.toUpperCase()] && el.tagName !== 'TEXTAREA') || skip(el)) return;

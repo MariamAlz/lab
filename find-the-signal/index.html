@@ -23,7 +23,9 @@
 .sel b { color: var(--ink); font-weight: 500; }
 .snd { font-family: var(--font-mono); font-size: 0.8rem; padding: 7px 12px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--muted); cursor: pointer; }
 .snd[aria-pressed="true"] { color: var(--sat-b); border-color: var(--sat-b); }
+html.ar .sel, html.ar .result { letter-spacing: 0; font-family: "IBM Plex Sans Arabic", var(--font-mono), sans-serif; }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -74,6 +76,7 @@
 <footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
 <script>
 (function () {
+  var MONO = window.LabAr && LabAr.on ? '"IBM Plex Sans Arabic", sans-serif' : '"JetBrains Mono", monospace';
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   function css(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
   var $ = function (id) { return document.getElementById(id); };
@@ -137,7 +140,7 @@
     }
     var cx = ML + cur.i * gw, cy = MT + (NF - 1 - cur.j) * gh;
     g.strokeStyle = acc; g.lineWidth = 2.5; g.strokeRect(cx, cy, gw, gh);
-    g.fillStyle = muted; g.font = '500 13px "JetBrains Mono", monospace'; g.textAlign = 'right'; g.textBaseline = 'middle';
+    g.fillStyle = muted; g.font = '500 13px ' + MONO; g.textAlign = 'right'; g.textBaseline = 'middle';
     for (var f = -5; f <= 5; f += 2.5) g.fillText((f > 0 ? '+' : '') + f + 'k', ML - 8, MT + (NF - 1 - (f * 1000 - F0) / FS) * gh + gh / 2);
     g.textAlign = 'center'; g.textBaseline = 'top';
     for (var c = 0; c <= 1000; c += 250) g.fillText(c, ML + c / CHIPS * NC * gw, H - MB + 8);
@@ -157,7 +160,7 @@
     var cols = [css('--sat-a'), css('--accent'), css('--sat-c')], names = ['Early', 'Prompt', 'Late'], vals = [r.e, r.p, r.l];
     var bx = 70, bw = 70, base = 470, top = 90;
     g.strokeStyle = line; g.lineWidth = 1; g.beginPath(); g.moveTo(40, base + 0.5); g.lineTo(380, base + 0.5); g.stroke();
-    g.font = '500 14px "JetBrains Mono", monospace'; g.textAlign = 'center'; g.textBaseline = 'top';
+    g.font = '500 14px ' + MONO; g.textAlign = 'center'; g.textBaseline = 'top';
     for (var n = 0; n < 3; n++) {
       var v = Math.max(0.02, Math.min(1.05, vals[n] + (reduce ? 0 : s * 0.4 * gauss())));
       var h = v * (base - top), x = bx + n * (bw + 30);

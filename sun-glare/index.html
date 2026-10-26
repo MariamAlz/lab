@@ -37,6 +37,7 @@
 .stats span { font-size: 0.76rem; color: var(--muted); }
 .legs { font-family: var(--font-mono); font-size: 0.76rem; color: var(--muted); }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -202,8 +203,8 @@
     var cv = $('hm'), W = cv.clientWidth || 600, dpr = Math.min(2, window.devicePixelRatio || 1), H = 320;
     cv.width = W * dpr; cv.height = H * dpr; cv.style.height = H + 'px';
     var c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, W, H);
-    c.font = '11px JetBrains Mono, monospace'; c.fillStyle = '#8b93ad';
-    var L0 = 34, T0 = 8, B = 26, cw = (W - L0 - 6), ch = (H - T0 - B) / 12;
+    c.font = window.LabAr && LabAr.on ? '11px "IBM Plex Sans Arabic", sans-serif' : '11px JetBrains Mono, monospace'; c.fillStyle = '#8b93ad';
+    var L0 = window.LabAr && LabAr.on ? 50 : 34, T0 = 8, B = 26, cw = (W - L0 - 6), ch = (H - T0 - B) / 12;
     if (!cache) { c.fillText('Pick a route to see the map of glare.', L0, H / 2); return; }
     var g = cache.grid[view], sw = cw / cache.SN;
     g.forEach(function (row, i) {

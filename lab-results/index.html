@@ -42,7 +42,9 @@ select.sm { background: var(--bg); }
 .res .ask { font-size: 0.86rem; color: var(--muted); }
 .res .x { font: inherit; font-size: 0.75rem; color: var(--muted); background: none; border: 0; cursor: pointer; text-decoration: underline; padding: 0; }
 .note { padding: 12px 14px; border-radius: 12px; border: 1px solid var(--accent); font-size: 0.9rem; }
+html.ar .res .val span { unicode-bidi: plaintext; }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -70,7 +72,7 @@ Vitamin D (25-OH)  18 ng/mL"></textarea>
       <div class="add">
         <label class="fl">Test<select id="aTest"></select></label>
         <label class="fl">Result<input id="aVal" inputmode="decimal" placeholder="e.g. 5.4"></label>
-        <label class="fl">Unit<select id="aUnit"></select></label>
+        <label class="fl">Unit<select id="aUnit" data-noar></select></label>
         <button class="sm" type="button" id="aGo">Add</button>
       </div>
       <span class="label" style="margin-top:6px">About you</span>
@@ -297,7 +299,7 @@ Vitamin D (25-OH)  18 ng/mL"></textarea>
     var lines = ['Questions about my blood test'];
     st.rows.forEach(function (r) { var t = BY[r.key], u = t[4].filter(function (x) { return x.u === r.unit; })[0], S = status(t, u.to(r.v), rangeFor(t)); if (S.lvl) lines.push('- ' + t[2] + ' ' + fmt(r.v) + ' ' + u.u + ' (' + S.s.toLowerCase() + '): ' + t[9]); });
     if (lines.length === 1) lines.push('- Everything was inside the ranges. Is there anything I should keep an eye on?');
-    var txt = lines.join('\n');
+    var txt = (window.LabAr && LabAr.on ? lines.map(LabAr.t) : lines).join('\n');
     if (navigator.clipboard) navigator.clipboard.writeText(txt).then(function () { $('copy').textContent = 'Copied'; setTimeout(function () { $('copy').textContent = 'Copy questions for my doctor'; }, 1500); }, function () {});
   };
   // manual add

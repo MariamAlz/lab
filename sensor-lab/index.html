@@ -46,6 +46,7 @@
 .mini { width: 100%; height: 90px; display: block; border-radius: 10px; background: rgba(7,10,24,.6); border: 1px solid var(--line); }
 .tapper { font: inherit; font-weight: 600; width: 100%; padding: 18px; border-radius: var(--radius); border: 1px dashed var(--accent); background: var(--accent-soft); color: var(--ink); cursor: pointer; }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -136,6 +137,7 @@
 <script>
 (function () {
   'use strict';
+  var MONO = window.LabAr && LabAr.on ? '"IBM Plex Sans Arabic", sans-serif' : '"JetBrains Mono", monospace';
   var $ = function (id) { return document.getElementById(id); };
   var G0 = 9.80665, SPAN = 8000;
   var buf = []; // {t, a:[x,y,z], l:[x,y,z], g:[a,b,g]}
@@ -213,7 +215,7 @@
     label(g, '±' + (mx >= 100 ? Math.round(mx) : mx.toFixed(1)));
     if (!list.length) { g.fillStyle = '#A7ADCB'; g.font = '12px "Instrument Sans", sans-serif'; g.textAlign = 'center'; g.fillText(started ? 'No data from this sensor yet' : 'Press Start sensors', W / 2, H / 2 - 6); g.textAlign = 'left'; }
   }
-  function label(g, txt) { g.font = '10px "JetBrains Mono", monospace'; var w = g.measureText(txt).width; g.fillStyle = 'rgba(7,10,24,.85)'; g.fillRect(2, 2, w + 6, 13); g.fillStyle = '#A7ADCB'; g.fillText(txt, 5, 12); }
+  function label(g, txt) { g.font = '10px ' + MONO; var w = g.measureText(txt).width; g.fillStyle = 'rgba(7,10,24,.85)'; g.fillRect(2, 2, w + 6, 13); g.fillStyle = '#A7ADCB'; g.fillText(txt, 5, 12); }
   function vals(id, v, names) { $(id).innerHTML = v ? names.map(function (n, i) { return '<i style="color:' + COLS[i] + '">' + n + ' ' + f1(v[i]) + '</i>'; }).join('') : ''; }
   function draw() {
     plot('cA', buf, 'a'); plot('cL', buf, 'l'); plot('cG', buf, 'g'); plot('cO', ori, 'o', 180);
@@ -287,7 +289,7 @@
     if (c.width !== Math.round(W * dpr)) { c.width = Math.round(W * dpr); c.height = Math.round(H * dpr); }
     var g = c.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
     g.strokeStyle = 'rgba(120,132,190,.25)'; g.beginPath(); g.moveTo(0, H / 2); g.lineTo(W, H / 2); g.stroke();
-    var r = L.rec; g.fillStyle = '#A7ADCB'; g.font = '10px "JetBrains Mono", monospace';
+    var r = L.rec; g.fillStyle = '#A7ADCB'; g.font = '10px ' + MONO;
     if (!r.length) { g.textAlign = 'center'; g.fillText('Vertical push during the ride', W / 2, H / 2 - 6); g.textAlign = 'left'; return; }
     var t0 = r[0].t, T = Math.max(5000, r[r.length - 1].t - t0), mx = 0.5; r.forEach(function (p) { mx = Math.max(mx, Math.abs(p.a)); });
     g.strokeStyle = '#4FD3BD'; g.lineWidth = 1.5; g.beginPath();
