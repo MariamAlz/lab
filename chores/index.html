@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fair Chore Wheel · Mariam's Lab</title>
+<meta name="description" content="Split household chores fairly by time, availability and likes, rotate them every week, and share the plan with one link. No accounts.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/chores/">
+<meta property="og:title" content="Fair Chore Wheel · Mariam's Lab"><meta property="og:description" content="Chores split by minutes, not by guesswork. Rotates weekly, shares by link."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+body { --ar: 'IBM Plex Sans Arabic'; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm:hover { border-color: var(--muted); }
+.blk { display: grid; gap: 8px; }
+.blk h2 { font-size: 1.05rem; font-weight: 700; }
+.rowp, .rowc { display: grid; gap: 6px; align-items: center; padding: 8px; border: 1px solid var(--line); border-radius: 10px; }
+.rowp { grid-template-columns: minmax(0, 1fr) auto auto; }
+.rowc { grid-template-columns: minmax(0, 1fr) auto auto auto; }
+.rowp input, .rowc input, .rowc select { font: inherit; font-family: inherit, var(--ar); color: var(--ink); background: rgba(7, 10, 24, 0.6); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; min-width: 0; }
+.rowp input[type=number], .rowc input[type=number] { width: 4.6em; font-family: var(--font-mono); font-size: 0.85rem; }
+.rowc .prefs { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; }
+.pref { font-size: 0.76rem; padding: 2px 9px; border-radius: 99px; border: 1px solid var(--line); cursor: pointer; background: none; color: var(--muted); font-family: inherit; }
+.pref[data-v="1"] { color: var(--sat-b); border-color: var(--sat-b); }
+.pref[data-v="-1"] { color: var(--sat-c); border-color: var(--sat-c); }
+.pref[data-v="x"] { color: var(--muted); text-decoration: line-through; opacity: .6; }
+.x { background: none; border: 0; color: var(--muted); font-size: 1.2rem; cursor: pointer; }
+.unit { font-size: 0.74rem; color: var(--muted); }
+.week { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.week b { font-family: var(--font-display); font-size: 1.3rem; font-weight: 800; min-width: 9ch; text-align: center; }
+.plan { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.who { padding: 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); }
+.who h3 { font-size: 1.1rem; font-weight: 800; display: flex; justify-content: space-between; gap: 8px; }
+.who h3 small { font-family: var(--font-mono); font-size: 0.78rem; font-weight: 400; color: var(--muted); }
+.who ul { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 4px; font-size: 0.9rem; }
+.who li { display: flex; justify-content: space-between; gap: 8px; }
+.who li span:last-child { font-family: var(--font-mono); font-size: 0.78rem; color: var(--muted); white-space: nowrap; }
+.bar { height: 6px; border-radius: 99px; background: var(--line); margin-top: 10px; overflow: hidden; }
+.bar i { display: block; height: 100%; border-radius: inherit; }
+.fair { font-size: 0.78rem; color: var(--muted); margin-top: 4px; }
+.acts { display: flex; flex-wrap: wrap; gap: 10px; }
+@media print { .labbar, .labfoot, .sec-head p, .edit, .acts, .week button { display: none !important; } .who { break-inside: avoid; background: none; } body { background: #fff; color: #000; } }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Home</span>
+    <h1 style="font-size:var(--step-3)">Fair chore wheel.</h1>
+    <p>Chores are split by minutes, not by count, so "cook dinner" and "water the plants" don't weigh the same. People with less free time get less, likes and dislikes are respected where possible, and the unpopular jobs rotate every week. Share the plan with one link; no accounts.</p>
+  </div>
+  <div class="game">
+    <div style="display:grid;gap:16px">
+      <div class="week"><button class="sm" type="button" id="prev">← Last week</button><b id="wk">This week</b><button class="sm" type="button" id="next">Next week →</button></div>
+      <div class="plan" id="plan"></div>
+      <div class="acts"><button class="btn primary" type="button" id="share">Copy share link</button><button class="btn ghost" type="button" id="print">Print</button></div>
+      <p class="fact">Fair share means minutes in proportion to each person's free hours. Tap the names under a chore to cycle: <span style="color:var(--sat-b)">likes it</span>, <span style="color:var(--sat-c)">dislikes it</span>, <s>can't do it</s>, or neutral. The plan is saved on this device and inside the share link only.</p>
+    </div>
+    <div class="panel edit" style="display:grid;gap:18px">
+      <div class="blk"><h2>People</h2><span class="unit">name · free hours a week</span><div id="people" class="blk"></div><button class="sm" type="button" id="addP">+ Person</button></div>
+      <div class="blk"><h2>Chores</h2><span class="unit">chore · minutes each time · times a week</span><div id="chores" class="blk"></div><button class="sm" type="button" id="addC">+ Chore</button></div>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var COLORS = ['#E9B467', '#4FD3BD', '#84A0FF', '#F08AB3', '#B79CFF', '#8FD16A'];
+  var DEF = { p: [['Person A', 10], ['Person B', 6], ['Person C', 4]], c: [['Cook dinner', 45, 5, {}], ['Wash dishes', 20, 7, {}], ['Laundry', 30, 2, {}], ['Vacuum', 30, 2, {}], ['Bathrooms', 40, 1, {}], ['Take out rubbish', 5, 4, {}], ['Groceries', 60, 1, {}], ['Water plants', 5, 3, {}]] };
+  var st = null, week = 0;
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function thisWeek() { var d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - d.getDay()); return Math.round(d / 6048e5); } // weeks start Sunday
+  var base = thisWeek();
+
+  // one task per chore occurrence; greedy fill against each person's fair-share target, replaying weeks so repeats rotate
+  function assign(w) {
+    var P = st.p, C = st.c, cap = P.map(function (p) { return Math.max(0.5, +p[1] || 0); }), capT = cap.reduce(function (a, b) { return a + b; }, 0);
+    var last = {}, out = null;
+    for (var k = Math.max(0, w - 6); k <= w; k++) {
+      var tasks = [];
+      C.forEach(function (c, ci) { for (var n = 0; n < Math.max(1, Math.round(+c[2] || 1)); n++) tasks.push({ ci: ci, m: +c[1] || 0 }); });
+      var total = tasks.reduce(function (s, t) { return s + t.m; }, 0), target = cap.map(function (c) { return total * c / capT; });
+      var rot = (base + k) % 997;
+      tasks.sort(function (a, b) { return b.m - a.m || ((a.ci * 31 + rot) % 7) - ((b.ci * 31 + rot) % 7); });
+      var load = P.map(function () { return 0; }), got = P.map(function () { return {}; }), now = {};
+      tasks.forEach(function (t) {
+        var best = -1, bs = Infinity, pref = C[t.ci][3] || {};
+        P.forEach(function (p, pi) {
+          var v = pref[pi]; if (v === 'x') return;
+          var s = (load[pi] + t.m) / target[pi];
+          if (v === 1) s -= 0.18; if (v === -1) s += 0.22;
+          if (last[t.ci] && last[t.ci][pi]) s += 0.25;
+          s += ((pi + rot + t.ci) % P.length) * 1e-4;
+          if (s < bs) { bs = s; best = pi; }
+        });
+        if (best < 0) return;
+        load[best] += t.m; got[best][t.ci] = (got[best][t.ci] || 0) + 1;
+        now[t.ci] = now[t.ci] || {}; now[t.ci][best] = 1;
+      });
+      last = now; out = { load: load, got: got, target: target, total: total };
+    }
+    return out;
+  }
+  function hm(m) { m = Math.round(m); return m >= 60 ? Math.floor(m / 60) + ' h ' + (m % 60 ? (m % 60) + ' min' : '') : m + ' min'; }
+  function plan() {
+    var w = base + week, d = new Date(w * 6048e5); d.setHours(0, 0, 0, 0);
+    $('wk').textContent = week === 0 ? 'This week' : week === 1 ? 'Next week' : week === -1 ? 'Last week' : d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+    if (!st.p.length || !st.c.length) { $('plan').innerHTML = '<p class="fact">Add at least one person and one chore.</p>'; return; }
+    var r = assign(base + week);
+    $('plan').innerHTML = st.p.map(function (p, pi) {
+      var items = Object.keys(r.got[pi]).map(function (ci) { var c = st.c[ci], n = r.got[pi][ci]; return '<li><span dir="auto">' + esc(c[0]) + (n > 1 ? ' ×' + n : '') + '</span><span>' + hm(c[1] * n) + '</span></li>'; }).join('');
+      var pct = r.target[pi] ? r.load[pi] / r.target[pi] : 0;
+      return '<div class="who"><h3><span dir="auto">' + esc(p[0] || 'Someone') + '</span><small>' + hm(r.load[pi]) + '</small></h3><ul>' + (items || '<li><span>Nothing this week</span></li>') + '</ul><div class="bar"><i style="width:' + Math.min(100, pct * 100) + '%;background:' + COLORS[pi % COLORS.length] + '"></i></div><div class="fair">' + Math.round(pct * 100) + '% of a fair share (' + hm(r.target[pi]) + ')</div></div>';
+    }).join('');
+  }
+  function editor() {
+    $('people').innerHTML = st.p.map(function (p, i) { return '<div class="rowp" data-i="' + i + '"><input value="' + esc(p[0]) + '" data-k="0" aria-label="Name" dir="auto"><input type="number" min="0" max="80" value="' + p[1] + '" data-k="1" aria-label="Free hours a week"><button class="x" type="button" aria-label="Remove">×</button></div>'; }).join('');
+    $('chores').innerHTML = st.c.map(function (c, i) {
+      var prefs = st.p.map(function (p, pi) { var v = (c[3] || {})[pi]; return '<button class="pref" type="button" data-p="' + pi + '" data-v="' + (v == null ? '0' : v) + '">' + esc(p[0] || '?') + '</button>'; }).join('');
+      return '<div class="rowc" data-i="' + i + '"><input value="' + esc(c[0]) + '" data-k="0" aria-label="Chore" dir="auto"><input type="number" min="1" max="600" value="' + c[1] + '" data-k="1" aria-label="Minutes"><input type="number" min="1" max="21" value="' + c[2] + '" data-k="2" aria-label="Times a week"><button class="x" type="button" aria-label="Remove">×</button><div class="prefs">' + prefs + '</div></div>';
+    }).join('');
+  }
+  function save() { try { localStorage.setItem('chorePlan', JSON.stringify(st)); } catch (e) {} }
+  function changed(rebuild) { save(); if (rebuild) editor(); plan(); }
+  $('people').addEventListener('input', function (e) { var r = e.target.closest('.rowp'); if (!r) return; var k = +e.target.dataset.k; st.p[+r.dataset.i][k] = k ? +e.target.value : e.target.value; changed(false); });
+  $('people').addEventListener('change', function () { editor(); });
+  $('chores').addEventListener('input', function (e) { var r = e.target.closest('.rowc'); if (!r || !e.target.dataset.k) return; var k = +e.target.dataset.k; st.c[+r.dataset.i][k] = k ? +e.target.value : e.target.value; changed(false); });
+  function clicks(id) {
+    $(id).addEventListener('click', function (e) {
+      var r = e.target.closest('[data-i]'); if (!r) return; var i = +r.dataset.i;
+      if (e.target.classList.contains('x')) {
+        if (id === 'people') { st.p.splice(i, 1); st.c.forEach(function (c) { var n = {}; Object.keys(c[3] || {}).forEach(function (k) { k = +k; if (k < i) n[k] = c[3][k]; else if (k > i) n[k - 1] = c[3][k]; }); c[3] = n; }); }
+        else st.c.splice(i, 1);
+        changed(true); return;
+      }
+      if (e.target.classList.contains('pref')) {
+        var pi = +e.target.dataset.p, cur = e.target.dataset.v, nx = { '0': 1, '1': -1, '-1': 'x', 'x': 0 }[cur];
+        st.c[i][3] = st.c[i][3] || {}; if (nx === 0) delete st.c[i][3][pi]; else st.c[i][3][pi] = nx;
+        e.target.dataset.v = String(nx); changed(false);
+      }
+    });
+  }
+  clicks('people'); clicks('chores');
+  $('addP').onclick = function () { st.p.push(['Person ' + String.fromCharCode(65 + st.p.length), 5]); changed(true); };
+  $('addC').onclick = function () { st.c.push(['New chore', 15, 1, {}]); changed(true); var ins = $('chores').querySelectorAll('input[data-k="0"]'); ins[ins.length - 1].select(); };
+  $('prev').onclick = function () { week--; plan(); };
+  $('next').onclick = function () { week++; plan(); };
+  $('print').onclick = function () { window.print(); };
+  $('share').onclick = function () {
+    var enc = btoa(unescape(encodeURIComponent(JSON.stringify(st)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''), url = location.origin + location.pathname + '#p=' + enc, b = this;
+    history.replaceState(null, '', url);
+    if (navigator.clipboard) navigator.clipboard.writeText(url).then(function () { b.textContent = 'Link copied'; setTimeout(function () { b.textContent = 'Copy share link'; }, 1400); }, function () { b.textContent = 'Link is in the address bar'; });
+  };
+  var h = location.hash.match(/^#p=([\w-]+)/);
+  try { if (h) st = JSON.parse(decodeURIComponent(escape(atob(h[1].replace(/-/g, '+').replace(/_/g, '/'))))); } catch (e) {}
+  if (!st) try { st = JSON.parse(localStorage.getItem('chorePlan') || 'null'); } catch (e) {}
+  if (!st || !st.p || !st.c) st = JSON.parse(JSON.stringify(DEF));
+  editor(); plan();
+})();
+</script>
+</body>
+</html>

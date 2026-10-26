@@ -183,7 +183,7 @@
   $('clear').onclick = function () { $('opts').value = ''; lastWin = -1; parse(); draw(); $('opts').focus(); };
   $('share').onclick = function () {
     var url = location.origin + location.pathname + '#o=' + encodeURIComponent($('opts').value.trim()), b = this;
-    if (navigator.clipboard) navigator.clipboard.writeText(url).then(function () { b.textContent = 'Link copied'; setTimeout(function () { b.textContent = 'Copy share link'; }, 1400); });
+    if (navigator.clipboard) navigator.clipboard.writeText(url).then(function () { b.textContent = 'Link copied'; setTimeout(function () { b.textContent = 'Copy share link'; }, 1400); }, function () { b.textContent = 'Link is in the address bar'; });
     history.replaceState(null, '', url);
   };
   try { $('auto').checked = localStorage.getItem('wheelAuto') === '1'; } catch (e) {}
