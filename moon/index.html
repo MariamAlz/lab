@@ -30,6 +30,7 @@
 .cres p { color: var(--muted); font-size: 0.88rem; }
 .stats b { font-size: 1.25rem; }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -295,6 +296,7 @@
   };
   window.addEventListener('resize', function () { fit(); update(); });
   fit(); update();
+  if (window.LabAr && LabAr.on) window.addEventListener('load', function () { fit(); update(); }); // redraw the canvases (fit clears them) once the Arabic labels have loaded
   setInterval(function () { if (!playing && offH === 0) { base = Date.now(); update(); } }, 60000);
 })();
 </script>

@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Last Working Day · Mariam's Lab</title>
+<meta name="description" content="Resigning in the UAE? Work out your last working day from your notice period, how much annual leave you have built up, and roughly what unused leave pays, under Federal Decree-Law 33 of 2021.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/last-day/">
+<meta property="og:title" content="Last Working Day · Mariam's Lab"><meta property="og:description" content="Notice period, leave balance and leave payout for UAE private-sector jobs, as a timeline you can copy."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.form { display: grid; gap: 14px; }
+.f { display: grid; gap: 5px; min-width: 0; }
+.f > span, .sub { font-size: 0.84rem; color: var(--muted); }
+.f input, .f select { font: inherit; color: var(--ink); background: rgba(7, 10, 24, 0.6); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; min-width: 0; width: 100%; }
+.f input[type=number] { font-family: var(--font-mono); }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.chk { display: flex; gap: 8px; align-items: flex-start; font-size: 0.9rem; cursor: pointer; }
+.chk input { accent-color: var(--accent); width: 17px; height: 17px; margin: 2px 0 0; flex: none; }
+.sm { font: inherit; font-size: 0.84rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 13px; cursor: pointer; }
+.sm:hover { border-color: var(--muted); }
+.sm.pri { background: var(--accent); color: #1a1205; border-color: var(--accent); }
+.box { display: grid; gap: 12px; padding: 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); }
+.box h2 { font-size: 1.02rem; font-weight: 800; }
+.line { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.line li { position: relative; display: grid; grid-template-columns: 14px minmax(0, 1fr); gap: 12px; padding-bottom: 14px; }
+.line li::before { content: ""; width: 12px; height: 12px; border-radius: 50%; margin-top: 4px; background: var(--c, var(--muted)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--c, var(--muted)) 25%, transparent); }
+.line li::after { content: ""; position: absolute; inset-inline-start: 5px; top: 20px; bottom: 0; width: 2px; background: var(--line); }
+.line li:last-child::after { display: none; }
+.line .d { font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted); }
+.line .t { font-weight: 600; font-size: 0.94rem; }
+.line .s { font-size: 0.82rem; color: var(--muted); }
+.sum { font-size: 0.86rem; line-height: 1.55; padding: 12px; border-radius: 10px; background: rgba(7, 10, 24, 0.6); border: 1px solid var(--line); display: grid; gap: 2px; }
+.warn { padding: 10px 12px; border-radius: 10px; border: 1px solid color-mix(in srgb, var(--accent) 50%, var(--line)); font-size: 0.86rem; }
+.msg { font-size: 0.84rem; color: var(--muted); min-height: 1.2em; }
+.stats b { font-size: 1.25rem; }
+@media (max-width: 520px) { .stats b { font-size: 1.02rem; } .stats span { font-size: 0.76rem; } }
+[hidden] { display: none !important; }
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Work · UAE</span>
+    <h1 style="font-size:var(--step-3)">Last working day calculator.</h1>
+    <p>Handing in your resignation in the UAE private sector? Enter the date and your notice period to see your last working day, how much annual leave you have built up under Federal Decree-Law 33 of 2021, and roughly what any unused days pay. You get a timeline and a summary you can copy.</p>
+  </div>
+  <div class="game">
+    <div class="panel">
+      <div class="stats">
+        <div><b id="sEnd">—</b><span>last working day</span></div>
+        <div><b id="sBal">—</b><span>leave days left</span></div>
+        <div><b id="sPay">—</b><span>leave payout, estimate</span></div>
+      </div>
+      <div class="box">
+        <h2>Timeline</h2>
+        <ol class="line" id="tl"></ol>
+        <div class="warn" id="warn" hidden></div>
+      </div>
+      <div class="box">
+        <h2>Summary</h2>
+        <div class="sum" id="sum"></div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="sm pri" id="copy">Copy summary</button><span class="msg" id="msg"></span></div>
+      </div>
+    </div>
+    <div class="panel form">
+      <div class="two">
+        <label class="f"><span>Date you hand in notice</span><input type="date" id="resign"></label>
+        <label class="f"><span>First day at this job</span><input type="date" id="start"></label>
+      </div>
+      <div class="two">
+        <label class="f"><span>Notice period in your contract (days)</span><input type="number" id="notice" min="1" max="180" step="1" value="30"></label>
+        <label class="f"><span>Notice starts</span><select id="from"><option value="1">the next day</option><option value="0">the same day</option></select></label>
+      </div>
+      <span class="sub">The law lets the contract set notice between 30 and 90 days. Your contract or offer letter says which.</span>
+      <label class="f"><span>Basic monthly salary (AED), not including allowances</span><input type="number" id="basic" min="0" step="100" value="12000"></label>
+      <div class="two">
+        <label class="f"><span>Leave balance</span><select id="balMode"><option value="calc">Work it out from my dates</option><option value="known">I know my balance</option></select></label>
+        <label class="f" id="takenF"><span>Leave days already taken (whole job)</span><input type="number" id="taken" min="0" step="1" value="45"></label>
+        <label class="f" id="knownF" hidden><span>Leave days left today</span><input type="number" id="known" min="0" step="0.5" value="12"></label>
+      </div>
+      <span class="sub">Working it out assumes no leave was lost along the way. Many contracts limit how many unused days carry over to the next year, so if HR gives you a balance, use that.</span>
+      <label class="f"><span>Daily rate for leave pay</span><select id="daily"><option value="30">basic ÷ 30</option><option value="365">basic × 12 ÷ 365</option></select></label>
+      <label class="chk"><input type="checkbox" id="offset"><span>Use leave during the notice period (only if your employer agrees)</span></label>
+      <label class="f" id="useF" hidden><span>Leave days to use before the last day</span><input type="number" id="use" min="0" step="1" value="10"></label>
+      <div class="two">
+        <label class="f"><span>Weekend</span><select id="we"><option value="6,0">Saturday and Sunday</option><option value="5,6">Friday and Saturday</option><option value="0">Sunday only</option><option value="5">Friday only</option></select></label>
+        <label class="chk" style="align-self:end;padding-bottom:8px"><input type="checkbox" id="hols" checked><span>Show UAE public holidays</span></label>
+      </div>
+      <p class="fact">How leave builds up under the law: nothing is owed for the first six months, then 2 days for each month worked until the first year, then 30 days a year, counted pro rata for part of a year. Unused days you haven't taken are paid out on your basic salary when you leave.</p>
+      <p class="fact">Also worth knowing: if one side skips the notice period, it owes the other the pay for the notice days not worked. On probation, different notice rules apply. Final dues, including your <a href="../gratuity/">end-of-service gratuity</a>, are due within 14 days of the contract ending. This is an estimate, not legal advice: check your contract and MOHRE (80060), and free-zone or government jobs may follow other rules.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var DAY = 864e5, KEY = 'lastDay.v1';
+  var WD = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  var MON = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  function utc(y, m, d) { return new Date(Date.UTC(y, m, d)); }
+  function parse(v) { var p = (v || '').split('-'); return p.length === 3 ? utc(+p[0], +p[1] - 1, +p[2]) : null; }
+  function iso(d) { return d.toISOString().slice(0, 10); }
+  function add(d, n) { return new Date(+d + n * DAY); }
+  function fmt(d) { return WD[d.getUTCDay()] + ' ' + d.getUTCDate() + ' ' + MON[d.getUTCMonth()] + ' ' + d.getUTCFullYear(); }
+  function aed(v) { return 'AED ' + Math.round(v).toLocaleString('en'); }
+  function num(v) { return (Math.round(v * 10) / 10).toString(); }
+
+  // UAE public holidays; Islamic dates from the Umm al-Qura calendar, so they are estimates
+  var hijri = null;
+  try { hijri = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura-nu-latn', { day: 'numeric', month: 'numeric', year: 'numeric', timeZone: 'UTC' }); } catch (e) {}
+  var holCache = {};
+  function holidays(y) {
+    if (holCache[y]) return holCache[y];
+    var out = {};
+    out[iso(utc(y, 0, 1))] = 'New Year\'s Day';
+    if (hijri) for (var t = utc(y, 0, 1); t.getUTCFullYear() === y; t = add(t, 1)) {
+      var p = {}; hijri.formatToParts(t).forEach(function (x) { p[x.type] = +x.value; });
+      if (p.month === 10 && p.day <= 3) out[iso(t)] = 'Eid al-Fitr';
+      if (p.month === 12 && p.day === 9) out[iso(t)] = 'Arafat Day';
+      if (p.month === 12 && p.day >= 10 && p.day <= 12) out[iso(t)] = 'Eid al-Adha';
+      if (p.month === 1 && p.day === 1) out[iso(t)] = 'Islamic New Year';
+      if (p.month === 3 && p.day === 12) out[iso(t)] = 'Prophet\'s Birthday';
+    }
+    out[iso(utc(y, 11, 1))] = 'Commemoration Day'; out[iso(utc(y, 11, 2))] = 'National Day'; out[iso(utc(y, 11, 3))] = 'National Day';
+    return (holCache[y] = out);
+  }
+  function hol(d) { return $('hols').checked ? holidays(d.getUTCFullYear())[iso(d)] : null; }
+  function weekend(d) { return $('we').value.split(',').map(Number).indexOf(d.getUTCDay()) >= 0; }
+  function working(d) { return !weekend(d) && !hol(d); }
+
+  // annual leave earned between two dates under the 2021 law
+  function earned(st, en) {
+    var days = Math.round((en - st) / DAY) + 1, months = days / (365 / 12);
+    if (months < 6) return { days: 0, months: months };
+    if (months < 12) return { days: 2 * Math.floor(months), months: months };
+    return { days: 30 * days / 365, months: months };
+  }
+
+  function calc() {
+    var R = parse($('resign').value), S = parse($('start').value), N = Math.round(+$('notice').value || 0), from = +$('from').value;
+    var basic = +$('basic').value || 0, known = $('balMode').value === 'known';
+    $('takenF').hidden = known; $('knownF').hidden = !known; $('useF').hidden = !$('offset').checked;
+    var warns = [];
+    if (!R || !S || S > R || N < 1) {
+      $('tl').innerHTML = ''; $('sum').innerHTML = ''; ['sEnd', 'sBal', 'sPay'].forEach(function (k) { $(k).textContent = '—'; });
+      $('warn').hidden = false; $('warn').textContent = 'Check the dates: your first day should be before the day you hand in notice.'; return;
+    }
+    if (N < 30) warns.push('The law sets a minimum notice of 30 days, so a shorter period only works if both sides agree to waive part of it.');
+    if (N > 90) warns.push('The law caps notice at 90 days. A longer period in the contract may not be enforceable.');
+    var nStart = add(R, from), end = add(nStart, N - 1);
+    // the contract's last day is the end of notice; if it lands on a weekend or holiday, the last day you actually work is the working day before
+    var lastWork = end; while (!working(lastWork) && lastWork > nStart) lastWork = add(lastWork, -1);
+    var e = earned(S, end), bal, taken = +$('taken').value || 0;
+    if (known) {
+      var k = +$('known').value || 0;
+      // add what still builds up during the notice period
+      var extra = earned(S, end).days - earned(S, R).days;
+      bal = k + Math.max(0, extra);
+    } else bal = e.days - taken;
+    if (!known && e.months < 6) warns.push('You have worked under six months by the last day, so the law does not yet give annual leave. Your contract may.');
+    if (bal < 0) { warns.push('You have taken more leave than the law builds up for this period. Your employer may deduct the extra days from final pay.'); }
+    var used = 0, leaveStart = null, inOffice = lastWork;
+    if ($('offset').checked && bal > 0) {
+      var want = Math.max(0, Math.min(Math.floor(bal), Math.round(+$('use').value || 0)));
+      var d = lastWork;
+      while (used < want && d >= nStart) { if (working(d)) { used++; leaveStart = d; } d = add(d, -1); }
+      if (used) { inOffice = add(leaveStart, -1); while (!working(inOffice) && inOffice > R) inOffice = add(inOffice, -1); }
+      if (used < want) warns.push('Only ' + used + ' working days fit inside the notice period.');
+    }
+    var left = Math.max(0, bal - used), daily = $('daily').value === '30' ? basic / 30 : basic * 12 / 365, pay = left * daily;
+    var hs = []; for (var t = nStart; t <= end; t = add(t, 1)) { var h = hol(t); if (h && (!hs.length || hs[hs.length - 1].n !== h)) hs.push({ n: h, d: t }); }
+
+    var ev = [];
+    ev.push({ d: R, t: 'You hand in notice', s: 'Give it in writing and keep a dated copy or email.', c: 'var(--sat-b)' });
+    ev.push({ d: nStart, t: 'Notice period starts', s: N + (N === 1 ? ' day' : ' days') + ' of notice', c: 'var(--muted)' });
+    hs.forEach(function (h) { ev.push({ d: h.d, t: h.n, s: 'Public holiday (Islamic dates are estimates)', c: 'var(--sat-a)' }); });
+    if (used) {
+      ev.push({ d: inOffice, t: 'Last day in the office', s: 'Then ' + used + ' leave ' + (used === 1 ? 'day' : 'days') + ' to the end of notice', c: 'var(--accent)' });
+      ev.push({ d: leaveStart, t: 'Leave starts', s: 'Agreed with your employer', c: 'var(--muted)' });
+    }
+    ev.push({ d: end, t: 'Contract ends', s: lastWork < end ? 'Falls on a day off. Last day worked: ' + fmt(lastWork) : 'Your last working day', c: 'var(--accent)' });
+    ev.push({ d: add(end, 14), t: 'Final dues due by', s: 'Leave pay, gratuity and any wages owed, within 14 days', c: 'var(--sat-c)' });
+    ev.sort(function (a, b) { return a.d - b.d; });
+    $('tl').innerHTML = '';
+    ev.forEach(function (x) {
+      var li = document.createElement('li'); li.style.setProperty('--c', x.c);
+      var w = document.createElement('div');
+      [['d', fmt(x.d)], ['t', x.t], ['s', x.s]].forEach(function (p) { var el = document.createElement('div'); el.className = p[0]; el.textContent = p[1]; w.appendChild(el); });
+      li.appendChild(w); $('tl').appendChild(li);
+    });
+    $('sEnd').textContent = fmt(lastWork).replace(/^\w+ /, '').replace(/ (\w{3})\w* /, ' $1 ');
+    $('sBal').textContent = num(left);
+    $('sPay').textContent = aed(pay);
+    var lines = [
+      'Notice handed in: ' + fmt(R),
+      'Notice period: ' + N + (N === 1 ? ' day' : ' days'),
+      'Contract ends: ' + fmt(end),
+      'Last working day: ' + fmt(lastWork)
+    ];
+    if (used) lines.push('Last day in the office: ' + fmt(inOffice) + ', using ' + used + ' leave ' + (used === 1 ? 'day' : 'days'));
+    if (!known) lines.push('Leave earned under the law: ' + num(e.days) + ' days, taken: ' + num(taken));
+    lines.push('Leave days left at the end: ' + num(left));
+    lines.push('Leave payout estimate: ' + aed(pay) + ' (' + num(left) + ' × ' + aed(daily) + ' a day)');
+    lines.push('Final dues due by: ' + fmt(add(end, 14)));
+    $('sum').innerHTML = ''; lines.forEach(function (l) { var dv = document.createElement('div'); dv.textContent = l; $('sum').appendChild(dv); });
+    $('warn').hidden = !warns.length; $('warn').textContent = warns.join(' ');
+    save();
+  }
+  $('copy').addEventListener('click', function () {
+    var txt = [].map.call($('sum').children, function (x) { return x.textContent; }).join('\n');
+    function ok() { $('msg').textContent = 'Copied.'; setTimeout(function () { $('msg').textContent = ''; }, 2000); }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(ok, fallback); else fallback();
+    function fallback() { var ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); ok(); } catch (e) {} ta.remove(); }
+  });
+
+  var IDS = ['resign', 'start', 'notice', 'from', 'basic', 'balMode', 'taken', 'known', 'daily', 'offset', 'use', 'we', 'hols'];
+  function save() { try { var o = {}; IDS.forEach(function (k) { var el = $(k); o[k] = el.type === 'checkbox' ? el.checked : el.value; }); localStorage.setItem(KEY, JSON.stringify(o)); } catch (e) {} }
+  var now = new Date(), today = utc(now.getFullYear(), now.getMonth(), now.getDate()), st0 = utc(now.getFullYear() - 2, now.getMonth(), 1);
+  $('resign').value = iso(today); $('start').value = iso(st0);
+  try { var st = JSON.parse(localStorage.getItem(KEY) || 'null'); if (st) IDS.forEach(function (k) { if (st[k] == null) return; var el = $(k); if (el.type === 'checkbox') el.checked = !!st[k]; else el.value = st[k]; }); } catch (e) {}
+  IDS.forEach(function (k) { $(k).addEventListener('input', calc); $(k).addEventListener('change', calc); });
+  calc();
+})();
+</script>
+</body>
+</html>

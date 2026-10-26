@@ -1,0 +1,33 @@
+LabAr.add({
+  "Focus Timer": "مؤقت التركيز",
+  "Focus Timer · Mariam's Lab": "مؤقت التركيز · مختبر مريم",
+  "Tool · Focus · Sound": "أداة · تركيز · صوت",
+  "Focus timer.": "مؤقت التركيز.",
+  "Work in short, focused blocks with breaks in between (the Pomodoro method). The background sounds aren't recordings: rain, sea, desert wind and soft noise are generated live by your browser, so they never loop or repeat.": "اعمل على فترات قصيرة مركّزة تتخللها استراحات (طريقة بومودورو). أصوات الخلفية ليست تسجيلات: المطر والبحر ورياح الصحراء والضجيج الهادئ يولّدها متصفحك مباشرة، فلا تتكرر أبدًا.",
+  "Mode": "الوضع",
+  "Focus": "تركيز", "Short break": "استراحة قصيرة", "Long break": "استراحة طويلة",
+  "Ready to focus": "جاهز للتركيز", "Focusing": "تركيز الآن", "Paused": "متوقف مؤقتًا", "Time for a break": "حان وقت الاستراحة",
+  "Skip": "تخطٍّ",
+  "What are you working on?": "على ماذا تعمل؟",
+  "Task": "المهمة",
+  "Focus sessions before a long break": "جلسات التركيز قبل الاستراحة الطويلة",
+  "Background sound": "صوت الخلفية",
+  "Sound": "الصوت",
+  "Silence": "صمت", "Rain": "مطر", "Sea": "بحر", "Desert wind": "رياح الصحراء", "Soft noise": "ضجيج هادئ",
+  "Volume": "مستوى الصوت",
+  "Play sound during breaks too": "شغّل الصوت أثناء الاستراحات أيضًا",
+  "Chime when a block ends": "نغمة تنبيه عند انتهاء الفترة",
+  "Lengths (minutes)": "المدد (بالدقائق)",
+  "Long break after every": "استراحة طويلة بعد كل",
+  "Start the next block automatically": "ابدأ الفترة التالية تلقائيًا",
+  "Your week": "أسبوعك",
+  "Press the space bar to start or pause. The tab title shows the time left, and your browser can notify you when a block ends if you allow it. Everything is kept on this device only.": "اضغط مفتاح المسافة للبدء أو الإيقاف المؤقت. يعرض عنوان التبويب الوقت المتبقي، ويمكن لمتصفحك إشعارك عند انتهاء الفترة إذا سمحت بذلك. كل شيء محفوظ على هذا الجهاز فقط.",
+  "Last 7 days": "آخر 7 أيام",
+  "Days focused": "أيام التركيز",
+  "Focus block done. Take a break.": "انتهت فترة التركيز. خذ استراحة.",
+  "Break over. Back to it.": "انتهت الاستراحة. عُد إلى العمل.",
+  "Mo": "ن", "Tu": "ث", "We": "ر", "Th": "خ", "Fr": "ج", "Sa": "س", "Su": "ح"
+}, [
+  [/^(\d+(?:\.\d)?) h$/, '$1 س'],
+  [/^(\d\d:\d\d) · (Focus|Short break|Long break)$/, function (m, t, l) { return t + ' · ' + { 'Focus': 'تركيز', 'Short break': 'استراحة قصيرة', 'Long break': 'استراحة طويلة' }[l]; }]
+]);

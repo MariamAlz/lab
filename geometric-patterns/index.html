@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Islamic Pattern Maker · Mariam's Lab</title>
+<meta name="description" content="Make Islamic geometric star patterns from simple tilings with Hankin's polygons-in-contact method. Change the contact angle, weave the lines over and under, colour the regions, and export SVG for laser cutting or PNG.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/geometric-patterns/">
+<meta property="og:title" content="Islamic Pattern Maker · Mariam's Lab"><meta property="og:description" content="Star patterns from tilings, with weaving, colour and SVG export."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm[aria-pressed="true"], .sm.go { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.picks { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; font-size: 0.86rem; color: var(--muted); }
+.row label { display: flex; gap: 8px; align-items: center; }
+.row input[type=range] { width: 150px; }
+.fld { font: inherit; font-size: 0.88rem; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 6px 10px; }
+.val { font-family: var(--font-mono); color: var(--ink); min-width: 4.5ch; display: inline-block; }
+.stage { position: relative; width: 100%; height: min(70vh, 640px); min-height: 340px; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; touch-action: none; cursor: grab; background: #0b1026; }
+.stage svg { width: 100%; height: 100%; display: block; }
+.stage .zoom { position: absolute; top: 10px; inset-inline-end: 10px; display: grid; gap: 6px; }
+.stage .zoom button { width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--line); background: rgba(7,10,24,.8); color: var(--ink); font: 600 1.1rem var(--font-mono); cursor: pointer; }
+.stage .tip { position: absolute; bottom: 8px; inset-inline-start: 12px; font-size: 0.72rem; color: var(--muted); pointer-events: none; background: rgba(7,10,24,.6); padding: 2px 6px; border-radius: 6px; }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 0; }
+.diagram { width: 100%; max-width: 300px; display: block; margin: 0 auto; }
+.sw { display: inline-block; width: 14px; height: 14px; border-radius: 4px; vertical-align: -2px; border: 1px solid var(--line); }
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Art · Geometry</span>
+    <h1 style="font-size:var(--step-3)">Islamic pattern maker.</h1>
+    <p>The star patterns on mosque doors, mashrabiya screens and zellige walls can be drawn from plain tilings of squares, hexagons and octagons. Pick a tiling and a contact angle, and the stars grow by themselves. Weave the lines over and under, colour the shapes, and export the result for a print or a laser cutter.</p>
+  </div>
+  <div class="picks" id="presets" role="group" aria-label="Classic designs"></div>
+  <div class="game" style="margin-top:16px">
+    <div class="panel">
+      <div class="stage" id="stage">
+        <svg id="svg" xmlns="http://www.w3.org/2000/svg" aria-label="Pattern"></svg>
+        <div class="zoom"><button type="button" id="zIn" aria-label="Zoom in">+</button><button type="button" id="zOut" aria-label="Zoom out">−</button><button type="button" id="zHome" aria-label="Reset view">⌂</button></div>
+        <span class="tip">Drag to move · scroll or pinch to zoom · tap a shape to recolour it</span>
+      </div>
+      <div class="row">
+        <button class="sm go" type="button" id="exSvg">Export SVG for laser</button>
+        <button class="sm" type="button" id="exArt">Export SVG artwork</button>
+        <button class="sm" type="button" id="exPng">Export PNG</button>
+      </div>
+      <p class="msg" id="msg" role="status"></p>
+    </div>
+    <div class="panel">
+      <div class="row"><label>Tiling <select class="fld" id="tiling"></select></label></div>
+      <div class="row"><label>Contact angle <input type="range" id="theta" min="10" max="85" step="0.5" value="67.5"></label><span class="val" id="thetaV">67.5°</span></div>
+      <div class="row"><label>Offset <input type="range" id="delta" min="-0.3" max="0.2" step="0.01" value="0"></label><span class="val" id="deltaV">0.00</span></div>
+      <div class="row"><label>Line width <input type="range" id="lw" min="1" max="16" step="0.5" value="6"></label><span class="val" id="lwV">6</span></div>
+      <div class="row">
+        <label><input type="checkbox" id="weave" checked> Weave over and under</label>
+        <label><input type="checkbox" id="fill" checked> Colour the shapes</label>
+        <label><input type="checkbox" id="showTiles"> Show the tiling</label>
+      </div>
+      <div class="row"><label>Colours <select class="fld" id="pal"></select></label><span id="swatches"></span></div>
+      <div class="stats">
+        <div><b id="sStar">8</b><span>fold star</span></div>
+        <div><b id="sGroup">p4m</b><span>symmetry group</span></div>
+        <div><b id="sShapes">0</b><span>shape types</span></div>
+      </div>
+      <p class="fact" id="symTxt" style="margin:0"></p>
+      <svg class="diagram" id="diag" viewBox="-110 -70 220 120" aria-label="How a contact angle works"></svg>
+      <p class="fact" style="margin:0"><b>The contact angle.</b> In the 1920s the engineer Ernest Hanbury Hankin noticed how these patterns could be built. Take a tiling. From the middle of every edge, draw two lines into each tile, tilted by the same angle. Stop each line where it meets its partner from the next edge. Small angles give thin crosses, around 60 to 70 degrees gives classic stars, and large angles give wide rosettes. The offset splits each crossing point into two.</p>
+    </div>
+  </div>
+  <div class="game" style="margin-top:24px">
+    <div class="panel">
+      <p class="fact" style="margin:0"><b>Symmetry groups.</b> Every repeating flat pattern belongs to one of exactly 17 symmetry types, called wallpaper groups, proved in 1891. A square tiling gives p4m: it turns onto itself a quarter turn at a time and has mirror lines. Hexagon-based tilings give p6m, with sixth turns. Weaving breaks the mirror lines, because a mirror would swap over and under, and leaves the rotations.</p>
+    </div>
+    <div class="panel">
+      <p class="fact" style="margin:0"><b>Why there are no 10-fold tilings.</b> You can't tile a flat floor with regular decagons and nothing else, and no repeating pattern can have 5-fold or 10-fold turns. Craftsmen in Iran and Morocco got around this with patches built around one big star. The decagon rosette here is one: a decagon ringed by ten pentagons. For laser cutting, export the plain SVG. It has only the lines, as thin strokes with no fill.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var NS = 'http://www.w3.org/2000/svg', PI = Math.PI, S3 = Math.sqrt(3);
+  function reg(cx, cy, n, rot) { var R = 1 / (2 * Math.sin(PI / n)), v = []; for (var k = 0; k < n; k++) { var a = rot + k * 2 * PI / n; v.push([cx + R * Math.cos(a), cy + R * Math.sin(a)]); } return v; }
+  function onEdge(P, Q, n) { // regular n-gon on edge Q->P, turning left
+    var v = [Q, P], d = [P[0] - Q[0], P[1] - Q[1]], ex = 2 * PI / n;
+    for (var k = 2; k < n; k++) { var c = Math.cos(ex), s = Math.sin(ex); d = [d[0] * c - d[1] * s, d[0] * s + d[1] * c]; var L = v[v.length - 1]; v.push([L[0] + d[0], L[1] + d[1]]); }
+    return v;
+  }
+  var D = PI / 180, W48 = 1 + Math.SQRT2, I12 = 1 / (2 * Math.tan(15 * D)), D12 = 2 * I12 + 1;
+  var TILINGS = {
+    '4.4.4.4': { name: 'Squares (4.4.4.4)', a: [1, 0], b: [0, 1], cell: function (o) { return [reg(o[0] + .5, o[1] + .5, 4, 45 * D)]; }, group: 'p4m', orb: '*442', star: 4 },
+    '6.6.6': { name: 'Hexagons (6.6.6)', a: [S3, 0], b: [S3 / 2, 1.5], cell: function (o) { return [reg(o[0], o[1], 6, 30 * D)]; }, group: 'p6m', orb: '*632', star: 6 },
+    '3.6.3.6': { name: 'Triangles and hexagons (3.6.3.6)', a: [2, 0], b: [1, S3], cell: function (o) { var x = o[0], y = o[1], h = S3 / 2; return [reg(x, y, 6, 0), [[x + 1, y], [x + 1.5, y + h], [x + .5, y + h]], [[x + 1, y], [x + .5, y - h], [x + 1.5, y - h]]]; }, group: 'p6m', orb: '*632', star: 6 },
+    '4.8.8': { name: 'Octagons and squares (4.8.8)', a: [W48, 0], b: [0, W48], cell: function (o) { return [reg(o[0], o[1], 8, 22.5 * D), reg(o[0] + W48 / 2, o[1] + W48 / 2, 4, 0)]; }, group: 'p4m', orb: '*442', star: 8 },
+    '4.6.12': { name: 'Dodecagons, hexagons, squares (4.6.12)', a: [D12, 0], b: [D12 / 2, D12 * S3 / 2], cell: function (o) {
+      var x = o[0], y = o[1], t = [reg(x, y, 12, 15 * D)], r = I12 + .5;
+      [0, 60, 120].forEach(function (g) { t.push(reg(x + r * Math.cos(g * D), y + r * Math.sin(g * D), 4, (g + 45) * D)); });
+      var c1 = [(D12 + D12 / 2) / 3, (D12 * S3 / 2) / 3]; t.push(reg(x + c1[0], y + c1[1], 6, 0)); t.push(reg(x + 2 * c1[0], y + 2 * c1[1], 6, 0));
+      return t;
+    }, group: 'p6m', orb: '*632', star: 12 },
+    'rosette10': { name: 'Decagon rosette (10-fold patch)', patch: function () {
+      var dec = reg(0, 0, 10, 18 * D), t = [dec];
+      for (var i = 0; i < 10; i++) t.push(onEdge(dec[i], dec[(i + 1) % 10], 5));
+      return t;
+    }, group: 'D10', orb: '*10•', star: 10 }
+  };
+  var SYM = {
+    p4m: 'Group p4m (orbifold *442). The pattern repeats in two directions, turns onto itself every quarter turn around the star centres, and has mirror lines in four directions.',
+    p6m: 'Group p6m (orbifold *632). The pattern repeats in two directions, turns onto itself every sixth of a turn around the star centres, and has mirror lines in six directions. It is the most symmetric wallpaper group.',
+    D10: 'Dihedral group D10. A single rosette, not a repeating pattern: it turns onto itself every tenth of a turn and has ten mirror lines. No wallpaper group allows 10-fold turns.'
+  };
+  var PALS = {
+    'Zellige': ['#1f5f8b', '#e9b467', '#2a9d8f', '#f3e9d2', '#a23b2c', '#16324f'],
+    'Desert': ['#c97b4a', '#e8c58f', '#7a4b2a', '#f5e6c8', '#a8553a', '#4a2c1a'],
+    'Night': ['#16324f', '#e9b467', '#24406b', '#84a0ff', '#0f1d33', '#4fd3bd'],
+    'Garden': ['#2f6f4f', '#e8d7a8', '#8fbf6a', '#d46a6a', '#1d3f2f', '#f2c14e'],
+    'Ink': ['#111111', '#2a2a2a', '#444444', '#666666', '#1a1a1a', '#333333']
+  };
+  var PRESETS = [
+    ['8-fold khatam', '4.8.8', 67.5, 0, true, 'Zellige'],
+    ['12-fold star', '4.6.12', 70, 0, true, 'Desert'],
+    ['Hexagram', '6.6.6', 60, 0, true, 'Night'],
+    ['Six-point rosettes', '6.6.6', 72, 0, true, 'Garden'],
+    ['Square weave', '4.4.4.4', 60, 0, true, 'Zellige'],
+    ['Stars and hexagons', '3.6.3.6', 75, 0, true, 'Desert'],
+    ['10-fold rosette', 'rosette10', 54, 0, true, 'Zellige'],
+    ['Open rosettes', '4.8.8', 72, -0.06, false, 'Night', 3]
+  ];
+  Object.keys(TILINGS).forEach(function (k) { var o = document.createElement('option'); o.value = k; o.textContent = TILINGS[k].name; $('tiling').appendChild(o); });
+  Object.keys(PALS).forEach(function (k) { var o = document.createElement('option'); o.value = k; o.textContent = k; $('pal').appendChild(o); });
+
+  // ---- geometry
+  function tilesFor(key, box) {
+    var T = TILINGS[key]; if (T.patch) return T.patch();
+    var a = T.a, b = T.b, det = a[0] * b[1] - a[1] * b[0], out = [], is = [], js = [];
+    [[box[0], box[1]], [box[2], box[1]], [box[0], box[3]], [box[2], box[3]]].forEach(function (p) {
+      is.push((p[0] * b[1] - p[1] * b[0]) / det); js.push((a[0] * p[1] - a[1] * p[0]) / det);
+    });
+    var i0 = Math.floor(Math.min.apply(0, is)) - 1, i1 = Math.ceil(Math.max.apply(0, is)) + 1, j0 = Math.floor(Math.min.apply(0, js)) - 1, j1 = Math.ceil(Math.max.apply(0, js)) + 1;
+    for (var i = i0; i <= i1; i++) for (var j = j0; j <= j1; j++) {
+      var o = [i * a[0] + j * b[0], i * a[1] + j * b[1]];
+      T.cell(o).forEach(function (poly) { var c = cent(poly); if (c[0] > box[0] - 3 && c[0] < box[2] + 3 && c[1] > box[1] - 3 && c[1] < box[3] + 3) out.push(poly); });
+    }
+    return out;
+  }
+  function cent(p) { var x = 0, y = 0; p.forEach(function (v) { x += v[0]; y += v[1]; }); return [x / p.length, y / p.length]; }
+  function area(p) { var s = 0; for (var i = 0; i < p.length; i++) { var a = p[i], b = p[(i + 1) % p.length]; s += a[0] * b[1] - b[0] * a[1]; } return s / 2; }
+  function ccw(p) { return area(p) < 0 ? p.slice().reverse() : p; }
+  function lineX(p, d, q, e) { var den = d[0] * e[1] - d[1] * e[0]; if (Math.abs(den) < 1e-12) return null; var w = [q[0] - p[0], q[1] - p[1]]; return [(w[0] * e[1] - w[1] * e[0]) / den, (w[0] * d[1] - w[1] * d[0]) / den]; }
+  // Hankin's method on one tile: returns segments [[x1,y1],[x2,y2]]
+  function hankin(poly, th, dl) {
+    poly = ccw(poly);
+    var n = poly.length, F = [], B = [], segs = [], R = 0, c = cent(poly);
+    poly.forEach(function (v) { R = Math.max(R, Math.hypot(v[0] - c[0], v[1] - c[1])); });
+    for (var i = 0; i < n; i++) {
+      var p = poly[i], q = poly[(i + 1) % n], L = Math.hypot(q[0] - p[0], q[1] - p[1]), u = [(q[0] - p[0]) / L, (q[1] - p[1]) / L], nin = [-u[1], u[0]];
+      var m = [(p[0] + q[0]) / 2, (p[1] + q[1]) / 2], off = dl * L, ct = Math.cos(th), st = Math.sin(th);
+      F.push({ o: [m[0] + off * u[0], m[1] + off * u[1]], d: [ct * u[0] + st * nin[0], ct * u[1] + st * nin[1]] });
+      B.push({ o: [m[0] - off * u[0], m[1] - off * u[1]], d: [-ct * u[0] + st * nin[0], -ct * u[1] + st * nin[1]] });
+    }
+    for (var k = 0; k < n; k++) {
+      var f = F[k], g = B[(k + 1) % n], t = lineX(f.o, f.d, g.o, g.d), X;
+      if (!t) { // parallel: if the two rays run along one line towards each other, they meet halfway
+        var w = [g.o[0] - f.o[0], g.o[1] - f.o[1]], cr = w[0] * f.d[1] - w[1] * f.d[0];
+        if (Math.abs(cr) > 1e-9 || w[0] * f.d[0] + w[1] * f.d[1] <= 0) continue;
+        X = [(f.o[0] + g.o[0]) / 2, (f.o[1] + g.o[1]) / 2];
+      } else {
+        if (t[0] <= 1e-9 || t[1] <= 1e-9 || t[0] > 4 * R) continue;
+        X = [f.o[0] + f.d[0] * t[0], f.o[1] + f.d[1] * t[0]];
+      }
+      segs.push([f.o, X], [g.o, X]);
+    }
+    return segs;
+  }
+  function key(p) { return Math.round(p[0] * 1e5) + ',' + Math.round(p[1] * 1e5); }
+  function segX(a, b, c, d) { // proper intersection params
+    var r = [b[0] - a[0], b[1] - a[1]], s = [d[0] - c[0], d[1] - c[1]], den = r[0] * s[1] - r[1] * s[0]; if (Math.abs(den) < 1e-12) return null;
+    var w = [c[0] - a[0], c[1] - a[1]], t = (w[0] * s[1] - w[1] * s[0]) / den, u = (w[0] * r[1] - w[1] * r[0]) / den, e = 1e-7;
+    return t > e && t < 1 - e && u > e && u < 1 - e ? [t, u] : null;
+  }
+  // build everything: segments, strands, crossings with over/under, faces
+  function build(tiles, th, dl) {
+    var segs = [], cross = [];
+    tiles.forEach(function (poly) {
+      var s = hankin(poly, th, dl), base = segs.length;
+      s.forEach(function (x) { segs.push({ a: x[0], b: x[1], cr: [] }); });
+      for (var i = base; i < segs.length; i++) for (var j = i + 1; j < segs.length; j++) {
+        var r = segX(segs[i].a, segs[i].b, segs[j].a, segs[j].b);
+        if (r) { var c = { p: [segs[i].a[0] + (segs[i].b[0] - segs[i].a[0]) * r[0], segs[i].a[1] + (segs[i].b[1] - segs[i].a[1]) * r[0]], s: [i, j], over: -1 }; cross.push(c); segs[i].cr.push({ c: c, t: r[0] }); segs[j].cr.push({ c: c, t: r[1] }); }
+      }
+    });
+    // strands: follow segments end to end; where four segments meet (a crossing at an edge midpoint) go straight on
+    var at = {};
+    segs.forEach(function (s, i) { [key(s.a), key(s.b)].forEach(function (k) { (at[k] = at[k] || []).push(i); }); });
+    function other(i, k) { var s = segs[i]; return key(s.a) === k ? s.b : s.a; }
+    function here(i, k) { var s = segs[i]; return key(s.a) === k ? s.a : s.b; }
+    function dirAway(i, k) { var p = here(i, k), o = other(i, k), d = [o[0] - p[0], o[1] - p[1]], l = Math.hypot(d[0], d[1]); return [d[0] / l, d[1] / l]; }
+    function nextSeg(i, k, used) { // segment after i at node k; where four meet (a crossing), go straight on
+      var c = (at[k] || []).filter(function (x) { return x !== i; }); if (!c.length) return null;
+      var pick = c[0];
+      if (c.length > 1) {
+        var d = dirAway(i, k), bd = 2;
+        c.forEach(function (x) { var e = dirAway(x, k), dt = d[0] * e[0] + d[1] * e[1]; if (dt < bd) { bd = dt; pick = x; } });
+      }
+      return used && used[pick] ? null : pick;
+    }
+    var used = new Uint8Array(segs.length), strands = [];
+    function walk(i0) {
+      var cur = i0, endKey = key(segs[i0].a), guard = 0;
+      while (guard++ < segs.length) { var nb = nextSeg(cur, endKey, null); if (nb == null || nb === i0) break; endKey = key(segs[nb].a) === endKey ? key(segs[nb].b) : key(segs[nb].a); cur = nb; }
+      var path = [], i = cur, from = endKey; guard = 0;
+      while (i != null && !used[i] && guard++ < segs.length) {
+        used[i] = 1; var s = segs[i], fwd = key(s.a) === from; path.push({ i: i, f: fwd });
+        var to = fwd ? key(s.b) : key(s.a); i = nextSeg(i, to, used); from = to;
+      }
+      return path;
+    }
+    for (var i = 0; i < segs.length; i++) if (!used[i]) strands.push(walk(i));
+    // crossings where four segments meet: the two straight lines through the point
+    Object.keys(at).forEach(function (k) {
+      var L = at[k]; if (L.length !== 4) return;
+      var a0 = L[0], da = dirAway(a0, k), b0 = null;
+      for (var q = 1; q < 4; q++) { var e = dirAway(L[q], k); if (da[0] * e[0] + da[1] * e[1] > -0.999) { b0 = L[q]; break; } }
+      if (b0 == null) return;
+      var c = { p: here(a0, k), s: [a0, b0] };
+      cross.push(c); segs[a0].cr.push({ c: c, t: key(segs[a0].a) === k ? 0 : 1 }); segs[b0].cr.push({ c: c, t: key(segs[b0].a) === k ? 0 : 1 });
+    });
+    // visits of crossings in strand order; a crossing at a node is listed on one segment per line
+    var sOf = [];
+    strands.forEach(function (st, k) {
+      st.list = [];
+      st.forEach(function (e) { segs[e.i].cr.slice().sort(function (x, y) { return e.f ? x.t - y.t : y.t - x.t; }).forEach(function (c) { st.list.push({ c: c.c, seg: e.i }); }); sOf[e.i] = k; });
+    });
+    // over/under: alternate along each strand, propagating to the strands it crosses
+    var done = new Uint8Array(strands.length), queue = [];
+    for (var s0 = 0; s0 < strands.length; s0++) {
+      if (done[s0]) continue; queue.push(s0); done[s0] = 1;
+      while (queue.length) {
+        var k = queue.shift(), L = strands[k].list, par = 0;
+        for (var q = 0; q < L.length; q++) if (L[q].c.overSeg != null) { par = ((L[q].c.overSeg === L[q].seg) === (q % 2 === 0)) ? 0 : 1; break; }
+        L.forEach(function (v, q2) {
+          var c = v.c, oth = c.s[0] === v.seg ? c.s[1] : c.s[0];
+          if (c.overSeg == null) c.overSeg = (q2 + par) % 2 === 0 ? v.seg : oth;
+          var o2 = sOf[oth]; if (o2 != null && !done[o2]) { done[o2] = 1; queue.push(o2); }
+        });
+      }
+    }
+    return { segs: segs, strands: strands, cross: cross, faces: faces(segs) };
+  }
+  function faces(segs) {
+    var nodes = {}, edges = {};
+    function node(p) { var k = key(p); if (!nodes[k]) nodes[k] = { p: p, nb: [] }; return k; }
+    segs.forEach(function (s) {
+      var pts = [{ t: 0, p: s.a }].concat(s.cr.map(function (c) { return { t: c.t, p: c.c.p }; })).concat([{ t: 1, p: s.b }]).sort(function (x, y) { return x.t - y.t; });
+      for (var i = 0; i + 1 < pts.length; i++) {
+        var a = node(pts[i].p), b = node(pts[i + 1].p); if (a === b) continue;
+        var ek = a < b ? a + '|' + b : b + '|' + a; if (edges[ek]) continue; edges[ek] = 1;
+        nodes[a].nb.push(b); nodes[b].nb.push(a);
+      }
+    });
+    for (var k in nodes) { var n = nodes[k]; n.nb.sort(function (x, y) { var px = nodes[x].p, py = nodes[y].p; return Math.atan2(px[1] - n.p[1], px[0] - n.p[0]) - Math.atan2(py[1] - n.p[1], py[0] - n.p[0]); }); }
+    var seen = {}, out = [];
+    for (var u in nodes) nodes[u].nb.forEach(function (v) {
+      var hk = u + '>' + v; if (seen[hk]) return;
+      var poly = [], a = u, b = v, guard = 0;
+      while (!seen[a + '>' + b] && guard++ < 200) {
+        seen[a + '>' + b] = 1; poly.push(nodes[a].p);
+        var L = nodes[b].nb, idx = L.indexOf(a), c = L[(idx - 1 + L.length) % L.length];
+        a = b; b = c;
+      }
+      if (guard < 200 && poly.length >= 3) { var A = area(poly); if (A > 1e-6) out.push({ p: poly, a: A }); }
+    });
+    return out;
+  }
+
+  // ---- view state
+  var svg = $('svg'), st = { tiling: '4.8.8', th: 67.5, dl: 0, lw: 6, weave: true, fill: true, tiles: false, pal: 'Zellige' };
+  var view = { tx: 0, ty: 0, s: 60 }, built = null, box = null, classes = {}, classColor = {};
+  function size() { var r = svg.getBoundingClientRect(); return [r.width || 600, r.height || 400]; }
+  function home() { var sz = size(); view.s = st.tiling === 'rosette10' ? Math.min(sz[0], sz[1]) / 7.5 : Math.max(36, Math.min(sz[0], sz[1]) / 9); view.tx = sz[0] / 2; view.ty = sz[1] / 2; }
+  function visBox() { var sz = size(); return [(0 - view.tx) / view.s, (0 - view.ty) / view.s, (sz[0] - view.tx) / view.s, (sz[1] - view.ty) / view.s]; }
+  function regen() {
+    var vb = visBox(), w = vb[2] - vb[0], h = vb[3] - vb[1];
+    box = [vb[0] - w * .35, vb[1] - h * .35, vb[2] + w * .35, vb[3] + h * .35];
+    var tiles = tilesFor(st.tiling, box);
+    built = build(tiles, st.th * D, st.dl); built.tilesList = tiles;
+    // classify faces by shape so equal shapes share a colour
+    var maxTile = 0; tiles.forEach(function (t) { maxTile = Math.max(maxTile, Math.abs(area(t))); });
+    built.faces = built.faces.filter(function (f) { return f.a < maxTile * 1.5; });
+    var cls = {};
+    built.faces.forEach(function (f) { var per = 0; for (var i = 0; i < f.p.length; i++) { var a = f.p[i], b = f.p[(i + 1) % f.p.length]; per += Math.hypot(b[0] - a[0], b[1] - a[1]); } f.k = f.p.length + '_' + Math.round(f.a * 200) + '_' + Math.round(per * 20); cls[f.k] = (cls[f.k] || 0) + f.a; });
+    var keys = Object.keys(cls).sort(function (x, y) { return cls[y] - cls[x]; });
+    classes = {}; keys.forEach(function (k, i) { classes[k] = i; });
+    render();
+  }
+  function colorOf(k) { var P = PALS[st.pal]; var i = classColor[k] != null ? classColor[k] : classes[k]; return P[((i % P.length) + P.length) % P.length]; }
+  function inkColors() { return st.pal === 'Ink' ? ['#f5f1e6', '#111111'] : ['#f6efdc', '#0b1026']; }
+  function el(tag, attrs) { var e = document.createElementNS(NS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); return e; }
+  function pathOfStrand(stx) { var d = ''; stx.forEach(function (e, i) { var s = built.segs[e.i], a = e.f ? s.a : s.b, b = e.f ? s.b : s.a; if (!i) d += 'M' + f3(a[0]) + ' ' + f3(a[1]); d += 'L' + f3(b[0]) + ' ' + f3(b[1]); }); return d; }
+  function f3(x) { return Math.round(x * 1000) / 1000; }
+  // draws into an svg element g, in world units
+  function drawInto(g, opts) {
+    var ink = inkColors(), w = st.lw / 60, bw = Math.max(0.012, w * 0.22);
+    g.appendChild(el('rect', { x: box[0] - 50, y: box[1] - 50, width: box[2] - box[0] + 100, height: box[3] - box[1] + 100, fill: st.pal === 'Ink' ? '#f5f1e6' : '#0b1026' }));
+    if (st.fill) built.faces.forEach(function (f) { var d = 'M' + f.p.map(function (p) { return f3(p[0]) + ' ' + f3(p[1]); }).join('L') + 'Z'; g.appendChild(el('path', { d: d, fill: colorOf(f.k), 'data-k': f.k, stroke: colorOf(f.k), 'stroke-width': 0.01 })); });
+    if (st.tiles) { var td = ''; built.tilesList.forEach(function (t) { td += 'M' + t.map(function (p) { return f3(p[0]) + ' ' + f3(p[1]); }).join('L') + 'Z'; }); g.appendChild(el('path', { d: td, fill: 'none', stroke: '#84A0FF', 'stroke-width': 0.02, 'stroke-dasharray': '0.06 0.05', 'pointer-events': 'none' })); }
+    var all = ''; built.strands.forEach(function (s) { all += pathOfStrand(s); });
+    var lineInk = st.pal === 'Ink' ? '#111111' : ink[0];
+    if (st.weave) {
+      g.appendChild(el('path', { d: all, fill: 'none', stroke: ink[1], 'stroke-width': w + 2 * bw, 'stroke-linejoin': 'miter', 'stroke-miterlimit': 8, 'pointer-events': 'none' }));
+      g.appendChild(el('path', { d: all, fill: 'none', stroke: lineInk === '#111111' ? '#f5f1e6' : lineInk, 'stroke-width': w, 'stroke-linejoin': 'miter', 'stroke-miterlimit': 8, 'pointer-events': 'none' }));
+      var od = '', id = '';
+      built.cross.forEach(function (c) { var s = built.segs[c.overSeg]; if (!s) return; var dx = s.b[0] - s.a[0], dy = s.b[1] - s.a[1], l = Math.hypot(dx, dy); dx /= l; dy /= l;
+        var o = built.segs[c.s[0] === c.overSeg ? c.s[1] : c.s[0]], ex = o.b[0] - o.a[0], ey = o.b[1] - o.a[1], el2 = Math.hypot(ex, ey), sn = Math.abs(dx * ey / el2 - dy * ex / el2), L = (w / 2 + bw) / Math.max(0.3, sn) + bw * 1.5;
+        od += 'M' + f3(c.p[0] - dx * L) + ' ' + f3(c.p[1] - dy * L) + 'L' + f3(c.p[0] + dx * L) + ' ' + f3(c.p[1] + dy * L);
+        var L2 = L + bw; id += 'M' + f3(c.p[0] - dx * L2) + ' ' + f3(c.p[1] - dy * L2) + 'L' + f3(c.p[0] + dx * L2) + ' ' + f3(c.p[1] + dy * L2); });
+      g.appendChild(el('path', { d: od, fill: 'none', stroke: ink[1], 'stroke-width': w + 2 * bw, 'stroke-linecap': 'butt', 'pointer-events': 'none' }));
+      g.appendChild(el('path', { d: id, fill: 'none', stroke: lineInk === '#111111' ? '#f5f1e6' : lineInk, 'stroke-width': w, 'stroke-linecap': 'butt', 'pointer-events': 'none' }));
+    } else {
+      g.appendChild(el('path', { d: all, fill: 'none', stroke: lineInk, 'stroke-width': w, 'stroke-linejoin': 'round', 'stroke-linecap': 'round', 'pointer-events': 'none' }));
+    }
+  }
+  function render() {
+    var sz = size(); svg.setAttribute('viewBox', '0 0 ' + sz[0] + ' ' + sz[1]);
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    var g = el('g', { id: 'world', transform: tf() }); svg.appendChild(g); drawInto(g);
+    var T = TILINGS[st.tiling], P = PALS[st.pal];
+    $('sStar').textContent = T.star; $('sGroup').textContent = st.weave ? T.group.replace('m', '') : T.group; $('sShapes').textContent = Object.keys(classes).length;
+    $('symTxt').textContent = SYM[T.group] + (st.weave ? ' Weaving removes the mirrors.' : '');
+    $('swatches').innerHTML = P.map(function (c) { return '<span class="sw" style="background:' + c + '"></span>'; }).join(' ');
+  }
+  function tf() { return 'translate(' + f3(view.tx) + ' ' + f3(view.ty) + ') scale(' + f3(view.s) + ')'; }
+  function moved() { var g = $('world'); if (g) g.setAttribute('transform', tf()); clearTimeout(moved.t); moved.t = setTimeout(function () { var vb = visBox(); if (!box || vb[0] < box[0] || vb[1] < box[1] || vb[2] > box[2] || vb[3] > box[3] || (box[2] - box[0]) > (vb[2] - vb[0]) * 3) regen(); }, 140); }
+
+  // ---- interaction
+  var ptrs = {}, startPt = null, pinch = null, dragged = false;
+  svg.addEventListener('pointerdown', function (e) { svg.setPointerCapture(e.pointerId); ptrs[e.pointerId] = [e.clientX, e.clientY]; startPt = [e.clientX, e.clientY]; dragged = false; var ids = Object.keys(ptrs); if (ids.length === 2) { var a = ptrs[ids[0]], b = ptrs[ids[1]]; pinch = { d: Math.hypot(a[0] - b[0], a[1] - b[1]), s: view.s }; } });
+  svg.addEventListener('pointermove', function (e) {
+    if (!ptrs[e.pointerId]) return; var prev = ptrs[e.pointerId]; ptrs[e.pointerId] = [e.clientX, e.clientY];
+    var ids = Object.keys(ptrs);
+    if (ids.length === 2 && pinch) { var a = ptrs[ids[0]], b = ptrs[ids[1]], d = Math.hypot(a[0] - b[0], a[1] - b[1]), r = svg.getBoundingClientRect(); zoomAt((a[0] + b[0]) / 2 - r.left, (a[1] + b[1]) / 2 - r.top, pinch.s * d / pinch.d / view.s); dragged = true; return; }
+    view.tx += e.clientX - prev[0]; view.ty += e.clientY - prev[1];
+    if (Math.hypot(e.clientX - startPt[0], e.clientY - startPt[1]) > 4) dragged = true;
+    moved();
+  });
+  function up(e) {
+    delete ptrs[e.pointerId]; if (Object.keys(ptrs).length < 2) pinch = null;
+    if (!dragged && e.type === 'pointerup') { var t = document.elementFromPoint(e.clientX, e.clientY); var k = t && t.getAttribute && t.getAttribute('data-k'); if (k) { var P = PALS[st.pal]; classColor[k] = ((classColor[k] != null ? classColor[k] : classes[k]) + 1) % P.length; render(); } }
+  }
+  svg.addEventListener('pointerup', up); svg.addEventListener('pointercancel', up);
+  function zoomAt(x, y, f) { var ns = Math.max(28, Math.min(400, view.s * f)); f = ns / view.s; view.tx = x - (x - view.tx) * f; view.ty = y - (y - view.ty) * f; view.s = ns; moved(); }
+  svg.addEventListener('wheel', function (e) { e.preventDefault(); var r = svg.getBoundingClientRect(); zoomAt(e.clientX - r.left, e.clientY - r.top, Math.exp(-e.deltaY * 0.0015)); }, { passive: false });
+  $('zIn').onclick = function () { var sz = size(); zoomAt(sz[0] / 2, sz[1] / 2, 1.3); };
+  $('zOut').onclick = function () { var sz = size(); zoomAt(sz[0] / 2, sz[1] / 2, 1 / 1.3); };
+  $('zHome').onclick = function () { home(); regen(); };
+
+  function sync() {
+    $('tiling').value = st.tiling; $('theta').value = st.th; $('delta').value = st.dl; $('lw').value = st.lw; $('weave').checked = st.weave; $('fill').checked = st.fill; $('showTiles').checked = st.tiles; $('pal').value = st.pal;
+    $('thetaV').textContent = (+st.th).toFixed(1) + '°'; $('deltaV').textContent = (+st.dl).toFixed(2); $('lwV').textContent = st.lw;
+    [].forEach.call($('presets').children, function (b, i) { var p = PRESETS[i]; b.setAttribute('aria-pressed', p[1] === st.tiling && p[2] === +st.th && p[3] === +st.dl); });
+    diagram();
+    try { localStorage.setItem('geoPat', JSON.stringify(st)); } catch (e) {}
+  }
+  PRESETS.forEach(function (p) { var b = document.createElement('button'); b.type = 'button'; b.className = 'sm'; b.textContent = p[0]; b.onclick = function () { var nt = st.tiling !== p[1]; st.tiling = p[1]; st.th = p[2]; st.dl = p[3]; st.weave = p[4]; st.pal = p[5]; st.lw = p[6] || 6; classColor = {}; if (nt) home(); sync(); regen(); }; $('presets').appendChild(b); });
+  $('tiling').onchange = function () { st.tiling = $('tiling').value; st.star = TILINGS[st.tiling].star; classColor = {}; home(); sync(); regen(); };
+  $('theta').oninput = function () { st.th = +$('theta').value; classColor = {}; sync(); regen(); };
+  $('delta').oninput = function () { st.dl = +$('delta').value; classColor = {}; sync(); regen(); };
+  $('lw').oninput = function () { st.lw = +$('lw').value; sync(); render(); };
+  $('weave').onchange = function () { st.weave = $('weave').checked; sync(); render(); };
+  $('fill').onchange = function () { st.fill = $('fill').checked; sync(); render(); };
+  $('showTiles').onchange = function () { st.tiles = $('showTiles').checked; sync(); render(); };
+  $('pal').onchange = function () { st.pal = $('pal').value; classColor = {}; sync(); render(); };
+  window.addEventListener('resize', function () { clearTimeout(window.__rz); window.__rz = setTimeout(function () { regen(); }, 150); });
+
+  // ---- the little explainer diagram: one edge, its midpoint and the two rays
+  function diagram() {
+    var th = st.th * D, off = st.dl * 160, L = 70, ct = Math.cos(th), s = Math.sin(th);
+    var h = '<line x1="-80" y1="40" x2="80" y2="40" stroke="#84A0FF" stroke-width="2"/><circle cx="0" cy="40" r="3" fill="#84A0FF"/>';
+    h += '<line x1="' + f3(off) + '" y1="40" x2="' + f3(off + ct * L) + '" y2="' + f3(40 - s * L) + '" stroke="#E9B467" stroke-width="2.5"/>';
+    h += '<line x1="' + f3(-off) + '" y1="40" x2="' + f3(-off - ct * L) + '" y2="' + f3(40 - s * L) + '" stroke="#E9B467" stroke-width="2.5"/>';
+    var r = 26, pts = []; for (var k = 0; k <= 12; k++) { var a = th * k / 12; pts.push(f3(off + r * Math.cos(a)) + ',' + f3(40 - r * Math.sin(a))); }
+    h += '<polyline points="' + pts.join(' ') + '" fill="none" stroke="#4FD3BD" stroke-width="1.5"/>';
+    h += '<text x="' + f3(off + 34) + '" y="30" fill="#4FD3BD" font-size="11" font-family="JetBrains Mono, monospace">' + (+st.th).toFixed(1) + '°</text>';
+    $('diag').innerHTML = h;
+  }
+
+  // ---- export
+  function download(name, blob) { var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000); }
+  function clip(a, b, r) { // Liang-Barsky
+    var t0 = 0, t1 = 1, dx = b[0] - a[0], dy = b[1] - a[1], p = [-dx, dx, -dy, dy], q = [a[0] - r[0], r[2] - a[0], a[1] - r[1], r[3] - a[1]];
+    for (var i = 0; i < 4; i++) { if (p[i] === 0) { if (q[i] < 0) return null; } else { var t = q[i] / p[i]; if (p[i] < 0) { if (t > t1) return null; if (t > t0) t0 = t; } else { if (t < t0) return null; if (t < t1) t1 = t; } } }
+    return [[a[0] + dx * t0, a[1] + dy * t0], [a[0] + dx * t1, a[1] + dy * t1]];
+  }
+  $('exSvg').onclick = function () {
+    var vb = visBox(), mm = 200 / (vb[2] - vb[0]), d = '', n = 0; // 200 mm wide
+    built.segs.forEach(function (s) { var c = clip(s.a, s.b, vb); if (c) { n++; d += 'M' + f3((c[0][0] - vb[0]) * mm) + ' ' + f3((c[0][1] - vb[1]) * mm) + 'L' + f3((c[1][0] - vb[0]) * mm) + ' ' + f3((c[1][1] - vb[1]) * mm); } });
+    var W = 200, H = f3((vb[3] - vb[1]) * mm);
+    var out = '<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="' + W + 'mm" height="' + H + 'mm" viewBox="0 0 ' + W + ' ' + H + '">\n<rect x="0" y="0" width="' + W + '" height="' + H + '" fill="none" stroke="#ff0000" stroke-width="0.1"/>\n<path d="' + d + '" fill="none" stroke="#000000" stroke-width="0.1"/>\n</svg>\n';
+    download('pattern-laser.svg', new Blob([out], { type: 'image/svg+xml' }));
+    $('msg').textContent = 'Saved pattern-laser.svg: ' + n + ' lines, 200 mm wide, cut lines in black and the frame in red.';
+  };
+  function artSvg(scale) {
+    var sz = size(), s = el('svg', { xmlns: NS, width: sz[0] * scale, height: sz[1] * scale, viewBox: '0 0 ' + sz[0] + ' ' + sz[1] });
+    var g = el('g', { transform: tf() }); s.appendChild(g); drawInto(g);
+    return new XMLSerializer().serializeToString(s);
+  }
+  $('exArt').onclick = function () { download('pattern.svg', new Blob([artSvg(1)], { type: 'image/svg+xml' })); $('msg').textContent = 'Saved pattern.svg with colours and weaving.'; };
+  $('exPng').onclick = function () {
+    var sz = size(), k = 2, img = new Image(), url = URL.createObjectURL(new Blob([artSvg(k)], { type: 'image/svg+xml' }));
+    img.onload = function () {
+      var c = document.createElement('canvas'); c.width = sz[0] * k; c.height = sz[1] * k; c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
+      c.toBlob(function (b) { if (b) { download('pattern.png', b); $('msg').textContent = 'Saved pattern.png at ' + c.width + ' × ' + c.height + ' pixels.'; } });
+    };
+    img.onerror = function () { $('msg').textContent = 'PNG export failed in this browser. Try the SVG instead.'; };
+    img.src = url;
+  };
+
+  window.__geo = { build: build, tilesFor: tilesFor, hankin: hankin, state: st, get: function () { return built; } };
+  try { var sv = JSON.parse(localStorage.getItem('geoPat') || 'null'); if (sv && TILINGS[sv.tiling]) for (var k in st) if (sv[k] != null) st[k] = sv[k]; } catch (e) {}
+  home(); sync(); regen();
+})();
+</script>
+</body>
+</html>

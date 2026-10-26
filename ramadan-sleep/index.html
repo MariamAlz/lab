@@ -36,7 +36,9 @@
 .tips { margin: 0; padding-inline-start: 18px; display: grid; gap: 6px; font-size: 0.9rem; }
 .ar { font-family: 'IBM Plex Sans Arabic', sans-serif; }
 .stats span { font-size: 0.76rem; color: var(--muted); }
+html.ar #rinfo .ar { display: none; }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -251,8 +253,8 @@
   function save() { try { localStorage.setItem('ramSleep', JSON.stringify({ loc: loc, suh: $('suh').dataset.auto === '1' ? '' : $('suh').value, ws: $('ws').value, we: $('we').value, com: $('com').value, prep: $('prep').value, tar: $('tar').value, goal: $('goal').value, meth: $('meth').value })); } catch (e) {} }
   try { var st = JSON.parse(localStorage.getItem('ramSleep') || 'null'); if (st) { if (st.loc) loc = st.loc; ['ws', 'we', 'com', 'prep', 'tar', 'goal', 'meth'].forEach(function (k) { if (st[k] != null) $(k).value = st[k]; }); if (st.suh) { $('suh').value = st.suh; $('suh').dataset.auto = '0'; } } } catch (e) {}
 
-  PLACES.forEach(function (p) { var b = document.createElement('button'); b.className = 'sm'; b.type = 'button'; b.textContent = p[0]; b.setAttribute('aria-pressed', p[0] === loc.name); b.onclick = function () { loc = { name: p[0], lat: p[1], lon: p[2], tz: 4 }; mark(); rinfo(); render(); }; $('where').appendChild(b); });
-  function mark() { [].forEach.call($('where').querySelectorAll('.sm'), function (b) { b.setAttribute('aria-pressed', b.textContent === loc.name); }); }
+  PLACES.forEach(function (p) { var b = document.createElement('button'); b.className = 'sm'; b.type = 'button'; b.textContent = p[0]; b.dataset.n = p[0]; b.setAttribute('aria-pressed', p[0] === loc.name); b.onclick = function () { loc = { name: p[0], lat: p[1], lon: p[2], tz: 4 }; mark(); rinfo(); render(); }; $('where').appendChild(b); });
+  function mark() { [].forEach.call($('where').querySelectorAll('.sm'), function (b) { b.setAttribute('aria-pressed', b.dataset.n === loc.name); }); } // data-n, not the label, so it still works when the label is translated
   $('me').onclick = function () {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(function (p) { loc = { name: 'your location', lat: p.coords.latitude, lon: p.coords.longitude, tz: -new Date().getTimezoneOffset() / 60 }; mark(); rinfo(); render(); }, function () { $('rinfo').textContent = 'Location not available. Pick an emirate instead.'; }, { timeout: 10000, maximumAge: 6e5 });

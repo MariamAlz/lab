@@ -30,6 +30,7 @@
 select { font: inherit; color: var(--ink); background: rgba(7,10,24,.7); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -72,7 +73,7 @@ select { font: inherit; color: var(--ink); background: rgba(7,10,24,.7); border:
   var R = Math.PI / 180, cv = $('cv'), c = cv.getContext('2d'), W = 0, H = 0, dpr = 1;
   var loc = { lat: 24.4539, lon: 54.3773, name: 'Abu Dhabi' }, lang = 'en', mode = null, sats = [], target = null, picked = null;
   var basis = null, sm = null, look = { az: 180, alt: 30 }, lastSensor = 0, hits = [];
-  try { lang = localStorage.getItem('skyCamLang') || 'en'; } catch (e) {}
+  try { lang = localStorage.getItem('skyCamLang') || (window.LabAr && LabAr.on ? 'ar' : 'en'); } catch (e) {} // Arabic page: Arabic star names by default
   function size() { var r = $('view').getBoundingClientRect(); dpr = Math.min(2, window.devicePixelRatio || 1); W = r.width; H = r.height; cv.width = W * dpr; cv.height = H * dpr; c.setTransform(dpr, 0, 0, dpr, 0, 0); }
   window.addEventListener('resize', size); size();
   // vector helpers: world frame x=East, y=North, z=Up

@@ -34,6 +34,7 @@
 .week div { display: grid; gap: 4px; justify-items: center; align-content: end; height: 100%; font-size: 0.7rem; color: var(--muted); font-family: var(--font-mono); }
 .week div i { width: 100%; max-width: 28px; border-radius: 4px 4px 0 0; background: var(--sat-b); min-height: 2px; }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -80,6 +81,7 @@
   try { Object.assign(st, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) {}
   function save() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} }
   var mode = 'focus', total = st.lf * 60, left = total, endAt = 0, running = false, timer = 0, done = 0;
+  var T = window.LabAr && LabAr.on ? LabAr.t : function (x) { return x; }; // the tab title and notifications are outside the page the Arabic layer translates
   var LABEL = { focus: 'Focus', short: 'Short break', long: 'Long break' };
   function mins(m) { return { focus: st.lf, short: st.ls, long: st.ll }[m]; }
   function fmt(s) { s = Math.max(0, Math.ceil(s)); return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); }
@@ -88,7 +90,7 @@
     $('arc').style.strokeDashoffset = 282.74 * (1 - left / total);
     $('arc').style.stroke = mode === 'focus' ? 'var(--accent)' : 'var(--sat-b)';
     $('sub').textContent = running ? (mode === 'focus' ? (st.task || 'Focusing') : LABEL[mode]) : (left < total ? 'Paused' : mode === 'focus' ? 'Ready to focus' : 'Time for a break');
-    document.title = running ? fmt(left) + ' · ' + LABEL[mode] : 'Focus Timer · Mariam\'s Lab';
+    document.title = T(running ? fmt(left) + ' · ' + LABEL[mode] : 'Focus Timer · Mariam\'s Lab');
     $('toggle').textContent = running ? 'Pause' : left < total ? 'Resume' : 'Start';
     $('dots').innerHTML = Array.from({ length: st.ln }, function (_, i) { return '<i class="' + (i < done % st.ln || (done && done % st.ln === 0 && mode === 'long') ? 'on' : '') + '"></i>'; }).join('');
   }
@@ -106,7 +108,7 @@
     if (mode === 'focus') { var used = (total - Math.max(0, left)) / 60; counted = used >= mins('focus') / 2; if (counted) done++; var d = new Date().toISOString().slice(0, 10); if (used >= 0.5) { st.log[d] = (st.log[d] || 0) + Math.round(used); save(); week(); } }
     if (st.chime && left <= 0) bell();
     var next = mode === 'focus' ? (counted && done % st.ln === 0 ? 'long' : 'short') : 'focus';
-    try { if (document.hidden && window.Notification && Notification.permission === 'granted') new Notification(mode === 'focus' ? 'Focus block done. Take a break.' : 'Break over. Back to it.'); } catch (e) {}
+    try { if (document.hidden && window.Notification && Notification.permission === 'granted') new Notification(T(mode === 'focus' ? 'Focus block done. Take a break.' : 'Break over. Back to it.')); } catch (e) {}
     setMode(next); if (st.auto) start();
   }
   $('toggle').onclick = function () { if (running) pause(); else { start(); try { if (window.Notification && Notification.permission === 'default') Notification.requestPermission(); } catch (e) {} } };

@@ -414,3 +414,15 @@ LabAr.add({
  "Simulate a falcon's stoop: wing shape, drag, terminal speed and the g-force of the pull-out.": "حاكِ انقضاضة الصقر: شكل الجناحين ومقاومة الهواء والسرعة الحدية وقوة الخروج من الانقضاض.",
  "Dive →": "انقضّ ←"
 });
+LabAr.add({ "Zoom in": "تكبير", "Zoom out": "تصغير", "Close popup": "إغلاق النافذة" });
+/* index cards for newer tools */
+LabAr.add({
+ "Tool · Art": "أداة · فن",
+ "Islamic pattern maker": "صانع الزخارف الإسلامية",
+ "Grow 8, 10 and 12-fold star patterns from tilings, weave and colour them, and export SVG for laser cutting.": "كوّن زخارف نجمية ثمانية وعشرية واثني عشرية من التبليطات، وانسجها ولوّنها، وصدّرها SVG للقص بالليزر.",
+ "Design →": "صمّم ←",
+ "Tool · Work · UAE": "أداة · العمل · الإمارات",
+ "Last working day calculator": "حاسبة آخر يوم عمل",
+ "Resigning in the UAE? Your last day from the notice period, the leave you have built up and what unused days pay, as a timeline you can copy.": "ستستقيل في الإمارات؟ اعرف آخر يوم عمل من مدة الإشعار، ورصيد إجازتك المتراكم، وبدل الأيام غير المستخدمة، في جدول زمني يمكنك نسخه.",
+ "Work it out →": "احسبها ←"
+});

@@ -67,7 +67,10 @@ section.pg[hidden] { display: none; }
   .pcl th, .pcl td { border: 1px solid #999; padding: 3px 6px; text-align: left; }
   .pcl h2 { font-size: 13pt; margin: 10px 0 4px; }
 }
+html.ar .aid ol { padding-left: 0; padding-right: 20px; }
+@media print { html.ar .pcl th, html.ar .pcl td { text-align: right; } }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -212,6 +215,8 @@ section.pg[hidden] { display: none; }
   function daysTo(s) { return Math.round((parse(s) - today()) / 864e5); }
   function fmt(s) { return parse(s).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }); }
   var SOON = 60;
+  // the shopping list lives in a textarea and in notifications/.ics, which the Arabic layer can't reach, so translate those strings here
+  var T = window.LabAr && LabAr.on ? LabAr.t : function (x) { return x; };
   function active() { return ITEMS.filter(function (it) { return it[1] === 'base' || it[1] === 'heat' || st.hh[it[1]]; }); }
   function flag(dateStr) { if (!dateStr) return ''; var d = daysTo(dateStr); return d < 0 ? 'x' : d <= SOON ? 's' : ''; }
 
@@ -253,10 +258,11 @@ section.pg[hidden] { display: none; }
     if (unk) att.push('<li><span>' + unk + ' item' + (unk > 1 ? 's' : '') + ' not checked yet</span><span class="flag">–</span></li>');
     $('att').innerHTML = att.join('') || '<li><span>Nothing expired or missing. Check again in a few months.</span></li>';
     var shop = [];
-    A.forEach(function (it) { if (st.have[it[0]] === 0) shop.push(it[2]); else if (flag(st.exp[it[0]]) === 'x') shop.push(it[2] + ' (replace, expired)'); else if (flag(st.exp[it[0]]) === 's') shop.push(it[2] + ' (expires soon)'); });
-    st.meds.forEach(function (m) { if (m.exp && daysTo(m.exp) < 0) shop.push(m.name + ' (replace, expired)'); });
-    $('shop').value = shop.length ? 'First-aid shopping list\n' + shop.map(function (s) { return '- ' + s; }).join('\n') : '';
-    $('shop').placeholder = 'Mark items as missing, or add expiry dates, and the list builds here.';
+    A.forEach(function (it) { if (st.have[it[0]] === 0) shop.push(T(it[2])); else if (flag(st.exp[it[0]]) === 'x') shop.push(T(it[2]) + ' ' + T('(replace, expired)')); else if (flag(st.exp[it[0]]) === 's') shop.push(T(it[2]) + ' ' + T('(expires soon)')); });
+    st.meds.forEach(function (m) { if (m.exp && daysTo(m.exp) < 0) shop.push(m.name + ' ' + T('(replace, expired)')); });
+    $('shop').value = shop.length ? T('First-aid shopping list') + '\n' + shop.map(function (s) { return '- ' + s; }).join('\n') : '';
+    $('shop').placeholder = T('Mark items as missing, or add expiry dates, and the list builds here.');
+    $('shop').setAttribute('aria-label', T('Shopping list'));
     renderPrint();
   }
   $('copy').onclick = function () {
@@ -274,7 +280,7 @@ section.pg[hidden] { display: none; }
     var stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, ''), L = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Mariams Lab//First aid kit//EN', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH'];
     D.forEach(function (d, i) {
       var e = parse(d.exp), n = new Date(e.getTime() + 864e5), nx = n.getFullYear() + ('0' + (n.getMonth() + 1)).slice(-2) + ('0' + n.getDate()).slice(-2);
-      L.push('BEGIN:VEVENT', 'UID:fa-' + i + '-' + ymd(d.exp) + '-' + Math.random().toString(36).slice(2, 8) + '@lab.mariamalzaabi.ae', 'DTSTAMP:' + stamp, 'DTSTART;VALUE=DATE:' + ymd(d.exp), 'DTEND;VALUE=DATE:' + nx, 'SUMMARY:' + icsEsc('Expires: ' + d.name), 'DESCRIPTION:' + icsEsc('First-aid kit item expires today. Replace it, and take the old one to a pharmacy for disposal.'), 'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:' + icsEsc(d.name + ' expires in 2 weeks'), 'TRIGGER:-P14D', 'END:VALARM', 'END:VEVENT');
+      L.push('BEGIN:VEVENT', 'UID:fa-' + i + '-' + ymd(d.exp) + '-' + Math.random().toString(36).slice(2, 8) + '@lab.mariamalzaabi.ae', 'DTSTAMP:' + stamp, 'DTSTART;VALUE=DATE:' + ymd(d.exp), 'DTEND;VALUE=DATE:' + nx, 'SUMMARY:' + icsEsc(T('Expires: ' + d.name)), 'DESCRIPTION:' + icsEsc(T('First-aid kit item expires today. Replace it, and take the old one to a pharmacy for disposal.')), 'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:' + icsEsc(T(d.name + ' expires in 2 weeks')), 'TRIGGER:-P14D', 'END:VALARM', 'END:VEVENT');
     });
     L.push('END:VCALENDAR');
     var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([L.join('\r\n') + '\r\n'], { type: 'text/calendar' })); a.download = 'first-aid-expiry.ics'; document.body.appendChild(a); a.click();
@@ -284,7 +290,7 @@ section.pg[hidden] { display: none; }
   function notifyNow() {
     if (!st.notify || !('Notification' in window) || Notification.permission !== 'granted') return;
     var D = allDated().filter(function (d) { return daysTo(d.exp) <= 30; });
-    if (D.length) try { new Notification('First-aid kit', { body: D.length + ' item' + (D.length > 1 ? 's are' : ' is') + ' expired or expiring within 30 days: ' + D.slice(0, 3).map(function (d) { return d.name; }).join(', ') }); } catch (e) {}
+    if (D.length) try { new Notification(T('First-aid kit'), { body: T(D.length + ' item' + (D.length > 1 ? 's are' : ' is') + ' expired or expiring within 30 days: ' + D.slice(0, 3).map(function (d) { return d.name; }).join(', ')) }); } catch (e) {}
   }
   $('ntf').onclick = function () {
     if (!('Notification' in window)) { $('out').textContent = 'This browser does not support notifications. Use the .ics reminders instead.'; return; }
@@ -350,6 +356,7 @@ section.pg[hidden] { display: none; }
   // tabs
   [].forEach.call(document.querySelectorAll('[data-t]'), function (b) { b.onclick = function () { [].forEach.call(document.querySelectorAll('[data-t]'), function (x) { x.setAttribute('aria-pressed', x === b); $('p-' + x.dataset.t).hidden = x !== b; }); }; });
   renderKit(); renderMeds(); notifyNow();
+  if (window.LabAr && LabAr.on) window.addEventListener('load', summary); // the Arabic dictionaries arrive after the first render
 })();
 </script>
 </body>

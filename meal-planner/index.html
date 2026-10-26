@@ -73,7 +73,12 @@ details.add summary { cursor: pointer; font-weight: 600; font-size: 0.92rem; }
   .panel { break-inside: avoid; }
   .week .hd, .week .dy { color: #000 !important; }
 }
+html.ar .lib .ar { display: none; }
+html.ar .slot { padding: 7px 8px 7px 26px; }
+html.ar .week { grid-template-columns: 4em repeat(3, minmax(0, 1fr)); }
+@media (max-width: 520px) { html.ar .slot { padding: 6px 6px 6px 20px; } html.ar .week { grid-template-columns: 3.4em repeat(3, minmax(0, 1fr)); } html.ar .week .dy { font-size: 0.8rem; } }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -137,6 +142,9 @@ details.add summary { cursor: pointer; font-weight: 600; font-size: 0.92rem; }
   'use strict';
   var $ = function (id) { return document.getElementById(id); };
   var SEC = { v: 'Produce', m: 'Meat & fish', d: 'Dairy & eggs', b: 'Bakery', p: 'Pantry', s: 'Spices', f: 'Frozen' };
+  // the WhatsApp/copy text and the textarea placeholder are outside what the Arabic layer can reach
+  var T = window.LabAr && LabAr.on ? LabAr.t : function (x) { return x; };
+  if (window.LabAr && LabAr.on) window.addEventListener('load', function () { $('aIng').placeholder = T($('aIng').placeholder); renderShop(); });
   var SECORD = ['v', 'm', 'd', 'b', 'f', 'p', 's'];
   var BASICS = { 'salt': 1, 'black pepper': 1, 'cooking oil': 1, 'sugar': 1, 'water': 1 };
   // [name, arabic, types, serves, ingredients "qty unit name#section|…"]
@@ -387,9 +395,9 @@ details.add summary { cursor: pointer; font-weight: 600; font-size: 0.92rem; }
     $('wa').href = 'https://wa.me/?text=' + encodeURIComponent(listText());
   }
   function listText() {
-    var L = buildList(), by = {}, lines = ['Shopping list for ' + S.ppl + ' people (' + L.meals + ' meals)'];
+    var L = buildList(), by = {}, lines = [T('Shopping list for ' + S.ppl + ' people (' + L.meals + ' meals)')];
     for (var k in L.items) { if (S.ticks[k]) continue; var it = L.items[k]; (by[it.s] = by[it.s] || []).push(it); }
-    SECORD.forEach(function (s) { if (!by[s]) return; lines.push('', '*' + SEC[s] + '*'); by[s].sort(function (a, b) { return a.n.localeCompare(b.n); }).forEach(function (it) { lines.push('- ' + it.n + ': ' + fmtQty([it.q, it.u])); }); });
+    SECORD.forEach(function (s) { if (!by[s]) return; lines.push('', '*' + T(SEC[s]) + '*'); by[s].sort(function (a, b) { return a.n.localeCompare(b.n); }).forEach(function (it) { lines.push('- ' + T(it.n) + ': ' + T(fmtQty([it.q, it.u]))); }); });
     return lines.join('\n');
   }
   $('shop').addEventListener('change', function (e) { var k = e.target.dataset.tick; if (k == null) return; if (e.target.checked) S.ticks[k] = 1; else delete S.ticks[k]; save(); renderShop(); });

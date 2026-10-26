@@ -44,7 +44,9 @@
 .toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 90; padding: 10px 16px; border-radius: 12px; background: var(--c, #4fd3bd); color: #0b1020; font-weight: 600; max-width: calc(100vw - 32px); }
 .stats span { font-size: 0.76rem; color: var(--muted); }
 [hidden] { display: none !important; }
+html.ar .stats b { white-space: nowrap; }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -100,6 +102,7 @@
   var profiles = [], log = [], ac = null, an = null, proc = null, src = null, stream = null, fbuf = null, bands = null;
   var frames = [], MAXF = 600, floorHist = [], noise = -70, listening = false, testMode = false, rec = null, wake = null, lastHit = {}, streak = {}, tick = 0, live = {};
   var replayPCM = {};
+  var T = window.LabAr && LabAr.on ? LabAr.t : function (x) { return x; }; // the tab title is outside what the Arabic layer watches
 
   // ---- storage ----
   function load() { try { profiles = JSON.parse(localStorage.getItem('sndAlertProfiles') || '[]'); log = JSON.parse(localStorage.getItem('sndAlertLog') || '[]'); var s = localStorage.getItem('sndAlertSens'); if (s != null) $('sens').value = s; } catch (e) { profiles = []; log = []; } }
@@ -192,7 +195,7 @@
     log.unshift({ t: Date.now(), name: p.name, colour: p.colour, sc: +sc.toFixed(2) }); save(); renderLog();
     $('alarm').style.setProperty('--c', p.colour); $('aName').textContent = p.name; $('aTime').textContent = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }); $('alarm').hidden = false;
     try { navigator.vibrate && navigator.vibrate([400, 150, 400, 150, 800]); } catch (e) {}
-    try { document.title = '🔔 ' + p.name + ' · Home Sound Alerts'; } catch (e) {}
+    try { document.title = T('🔔 ' + p.name + ' · Home Sound Alerts'); } catch (e) {}
   }
   function toast(t, c) { var el = $('toast'); el.textContent = t; el.style.setProperty('--c', c); el.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(function () { el.hidden = true; }, 2500); }
 
@@ -273,7 +276,7 @@
     if (!profiles.some(function (p) { return p.samples.length; })) { $('msg').textContent = 'Teach at least one sound first.'; return; }
     ensureAudio().then(function () { listening = true; setTest(false); $('listen').textContent = 'Stop listening'; $('listen').classList.add('stop'); $('msg').textContent = 'Listening. Keep this tab open and the screen on.'; lockOn(); }).catch(micErr);
   };
-  $('alarm').onclick = function () { $('alarm').hidden = true; document.title = 'Home Sound Alerts · Mariam\'s Lab'; };
+  $('alarm').onclick = function () { $('alarm').hidden = true; document.title = T('Home Sound Alerts · Mariam\'s Lab'); };
   $('sens').oninput = function () { $('sensO').textContent = $('sens').value + ' (match above ' + threshold().toFixed(2) + ')'; save(); render(); };
   $('clearLog').onclick = function () { log = []; save(); renderLog(); };
   load(); $('sens').oninput(); render(); renderLog();

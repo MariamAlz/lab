@@ -36,7 +36,9 @@
 .weak { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
 .weak li { font-size: 0.82rem; padding: 3px 10px; border-radius: 99px; border: 1px solid var(--sat-c); color: var(--sat-c); }
 .hist { font-family: var(--font-mono); font-size: 0.78rem; color: var(--muted); }
+html.ar .kb div:not([dir]) { direction: ltr; }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -57,7 +59,7 @@
     <button class="sm" type="button" id="new" style="margin-inline-start:auto">New text</button>
   </div>
   <div class="box" id="box">
-    <div class="txt" id="txt"></div>
+    <div class="txt" id="txt" data-noar></div>
     <textarea class="hid" id="inp" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="Type here"></textarea>
     <div class="cover" id="cover"><span><b>Tap here and start typing</b>The timer starts with your first key.</span></div>
   </div>
@@ -150,6 +152,7 @@
   [].forEach.call(document.querySelectorAll('[data-s]'), function (b) { b.onclick = function () { secs = +b.dataset.s; [].forEach.call(document.querySelectorAll('[data-s]'), function (x) { x.setAttribute('aria-pressed', x === b); }); reset(); }; });
   $('new').onclick = function () { reset(); $('inp').focus(); };
   try { history(JSON.parse(localStorage.getItem('typingHist') || '[]')); } catch (e) {}
+  if (window.LabAr && LabAr.on) { lang = 'ar'; [].forEach.call(document.querySelectorAll('[data-l]'), function (x) { x.setAttribute('aria-pressed', x.dataset.l === 'ar'); }); }
   reset();
 })();
 </script>
