@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Car Cabin Melt Timer · Mariam's Lab</title>
+<meta name="description" content="How hot will your parked car get, and how long before the chocolate melts, the insulin spoils or the phone shuts down? A live estimate from the weather where you are, in sun or shade.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/car-cabin/">
+<meta property="og:title" content="Car Cabin Melt Timer · Mariam's Lab"><meta property="og:description" content="Minutes until things left in a parked car are at risk, from live weather."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.opts { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm:hover { border-color: var(--muted); }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.grp { display: grid; gap: 6px; }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; }
+.pick { font: inherit; font-size: 0.85rem; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; max-width: 100%; }
+.tog { display: inline-flex; gap: 6px; align-items: center; font-size: 0.85rem; color: var(--muted); }
+.tog input { accent-color: var(--accent); width: 16px; height: 16px; }
+.never { padding: 16px 18px; border-radius: var(--radius); border: 2px solid #FF4F6D; background: rgba(255, 79, 109, .1); display: grid; gap: 4px; }
+.never b { font-family: var(--font-display); font-size: 1.3rem; color: #FF6F88; }
+.never p { margin: 0; font-size: 0.92rem; }
+.stats b { font-family: var(--font-display); font-size: 1.35rem; line-height: 1.15; }
+.stats span { font-size: 0.76rem; color: var(--muted); }
+.chart { position: relative; }
+.chart svg { width: 100%; height: auto; display: block; touch-action: pan-y; }
+.chart text { fill: var(--muted); font-family: var(--font-mono); font-size: 10px; }
+.tip { position: absolute; top: 4px; pointer-events: none; background: #0d1230; border: 1px solid var(--line); border-radius: 8px; padding: 6px 9px; font-size: 0.78rem; line-height: 1.35; white-space: nowrap; display: none; }
+.tip b { font-family: var(--font-mono); font-weight: 500; }
+.key { display: flex; gap: 14px; flex-wrap: wrap; font-size: 0.78rem; color: var(--muted); }
+.key i { display: inline-block; width: 18px; height: 0; border-top: 2px solid var(--c); vertical-align: middle; margin-inline-end: 6px; }
+.key i.dash { border-top-style: dashed; }
+.items { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+.items th { text-align: start; font-weight: 500; font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; padding: 4px 6px; border-bottom: 1px solid var(--line); }
+.items th.n, .items td.n { text-align: end; white-space: nowrap; }
+.items td { padding: 8px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.items td small { display: block; color: var(--muted); font-size: 0.76rem; line-height: 1.35; }
+.items td.n b { font-family: var(--font-mono); font-size: 0.82rem; font-weight: 500; }
+@media (max-width: 480px) { .items td.n b::before { display: block; margin: 0 0 4px auto; } .items td { padding: 8px 4px; } }
+.items td.n b::before { content: ''; display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-inline-end: 6px; background: var(--c); vertical-align: 1px; }
+.tips { margin: 0; padding-inline-start: 18px; display: grid; gap: 6px; font-size: 0.92rem; }
+.tips li::marker { color: var(--accent); }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Car · Weather · Live</span>
+    <h1 style="font-size:var(--step-3)">Car cabin melt timer.</h1>
+    <p>"I'll only be ten minutes." A parked car in the sun gets about 20°C hotter than outside within the hour, and most of that happens in the first half hour. This estimates how hot your car will get from the live weather where you are, and how long things left inside have before they're at risk.</p>
+  </div>
+  <div class="never" role="alert"><b>Children and pets: never.</b><p>Never leave a child or an animal in a parked car, not for one minute, not with the windows open, not in the shade. <span id="neverT"></span> If you see one alone in a car, call 999.</p></div>
+  <div class="opts" id="where" style="margin-top:16px"><button class="sm" type="button" id="me">📍 Use my location</button></div>
+  <p class="msg" id="msg" role="status"></p>
+  <div class="game" style="margin-top:12px">
+    <div class="panel">
+      <div class="grp">
+        <span class="label">Parking</span>
+        <div class="opts"><select class="pick" id="when" aria-label="When you park"><option value="now">Now (live)</option></select></div>
+        <div class="opts" id="spot"></div>
+        <div class="opts"><label class="tog"><input type="checkbox" id="tint"> Tinted windows</label><label class="tog"><input type="checkbox" id="shield"> Windscreen sunshade</label></div>
+        <div class="opts" id="place"></div>
+      </div>
+      <div class="stats">
+        <div><b id="s1">—</b><span>outside air</span></div>
+        <div><b id="s2">—</b><span>cabin after 30 min</span></div>
+        <div><b id="s3">—</b><span>cabin after 1 hour</span></div>
+      </div>
+      <div class="grp">
+        <span class="label">Cabin air over two hours parked</span>
+        <div class="key"><span><i style="--c:#FF8A4C"></i>In sun</span><span><i style="--c:#4FD3BD"></i>In shade</span><span><i class="dash" style="--c:#A7ADCB"></i>Outside air</span></div>
+        <div class="chart" id="chart"><svg id="svg" viewBox="0 0 600 220" role="img" aria-label="Cabin temperature over time"></svg><div class="tip" id="tip"></div></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="grp">
+        <span class="label">Phone and gadgets · time until at risk</span>
+        <table class="items" id="gadgets"></table>
+      </div>
+      <div class="grp">
+        <span class="label">Food, medicine and other things</span>
+        <table class="items" id="others"></table>
+      </div>
+    </div>
+  </div>
+  <div class="game" style="margin-top:28px">
+    <div class="panel">
+      <span class="label">Keeping things safe</span>
+      <ul class="tips">
+        <li>Take your phone, laptop and power bank with you. The glovebox and boot get hot too, just a little more slowly.</li>
+        <li>Never charge a phone or power bank in a hot parked car. If one is swollen, smells or is hot to touch, leave it to cool away from the car and don't use it.</li>
+        <li>If your phone shows a temperature warning, turn it off, move it to the shade or air conditioning, and let it cool on its own. Don't put it in the fridge.</li>
+        <li>Carry insulin and other medicines in a cool bag, and check the leaflet for its storage temperature.</li>
+        <li>Make the supermarket your last stop, and keep a cool bag in the boot for dairy, meat and eggs.</li>
+        <li>Don't leave water bottles to bake in the car for days. Use a fresh one.</li>
+        <li>Lighters, aerosol cans and perfume can leak or burst in extreme heat. Keep them out of the car in summer.</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <p class="fact" style="margin:0"><b>How it works.</b> Sunlight passes through the glass and warms the seats and dashboard, which then heat the air. That heat can't get back out through the glass, the same greenhouse effect as a glasshouse. Studies of parked cars (McLaren and colleagues, 2005; Vanos and colleagues, 2018) found the cabin rises by about 20 to 25°C over the outside air in an hour of full sun, with around 80% of that in the first 30 minutes. Cracking a window made little difference.</p>
+      <p class="fact" style="margin:0">This page models the cabin as warming towards outside air plus a sun boost, with a 19-minute time constant. The boost scales with live sunshine and is cut to about a third in shade, by 15% for tinted windows and 20% for a sunshade. Items start at about 25°C, as if just taken from an air-conditioned car or home, and each one warms more slowly than the air around it. Limits are typical: check your device or medicine's own guidance. It's an estimate, not medical or safety advice. Weather from Open-Meteo.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var NS = 'http://www.w3.org/2000/svg';
+  var PLACES = [['Dubai', 25.2048, 55.2708], ['Abu Dhabi', 24.4539, 54.3773], ['Sharjah', 25.3463, 55.4209], ['Al Ain', 24.2075, 55.7447], ['Ras Al Khaimah', 25.7895, 55.9432], ['Fujairah', 25.1288, 56.3265]];
+  // lim: °C; lag: minutes the item takes to follow the cabin air; plus: extra minutes after reaching the limit (food rule)
+  var GADGETS = [
+    { name: 'Phone (stops working well)', lim: 35, lag: 12, note: 'Most phones are rated to run up to about 35°C. Above that they dim the screen, slow charging and show a heat warning.' },
+    { name: 'Phone (storage limit)', lim: 45, lag: 12, note: 'Above about 45°C iOS and Android shut down to protect the battery, and the battery wears faster.' },
+    { name: 'Laptop', lim: 45, lag: 25, note: 'Typical storage limit. Heat ages the battery for good.' },
+    { name: 'Power bank', lim: 60, lag: 15, fire: true, note: 'Lithium cells near 60°C can swell, leak or catch fire. Don\'t leave one in a parked car in summer.' },
+    { name: 'Sunglasses', lim: 60, lag: 5, note: 'Plastic frames can warp and lens coatings can crack, especially on the dashboard.' }
+  ];
+  var OTHERS = [
+    { name: 'Chocolate', lim: 30, lag: 10, note: 'Starts to soften at about 30°C and melts by 34°C.' },
+    { name: 'Insulin and most medicines', lim: 30, lag: 15, note: 'Most are stored below 25 to 30°C. Heat can make insulin less effective. Check the leaflet or ask a pharmacist.' },
+    { name: 'Eggs, milk, meat, groceries', lim: 32, lag: 25, plus: 60, cap: 120, note: 'Food safety guidance: perishables shouldn\'t sit above 32°C for more than an hour, or two hours in total.' },
+    { name: 'Perfume', lim: 35, lag: 20, note: 'Heat slowly breaks down the scent. Not dangerous, but it can leak.' },
+    { name: 'Crayons', lim: 40, lag: 8, note: 'Wax crayons soften at about 40°C and melt into the seat.' },
+    { name: 'Lipstick', lim: 45, lag: 8, note: 'Softens and loses shape above about 45°C.' },
+    { name: 'Plastic water bottle', lim: 50, lag: 30, note: 'More chemicals move from the plastic into the water as it heats. Drink a fresh bottle instead.' }
+  ];
+  var SPOTS = [{ id: 'sun', name: 'Full sun' }, { id: 'shade', name: 'Shade' }];
+  var PLACE = [{ id: 'bag', name: 'In a bag or glovebox', lagX: 1.6, boost: 0 }, { id: 'seat', name: 'On a seat or dashboard', lagX: 1, boost: 1 }];
+  var st = { spot: 'sun', place: 'bag', tint: false, shield: false }, rows = null, curT = null, curS = null, startH = 0;
+  try { var sv = JSON.parse(localStorage.getItem('cabinPrefs')); if (sv) Object.keys(st).forEach(function (k) { if (sv[k] != null) st[k] = sv[k]; }); } catch (e) {}
+  $('tint').checked = st.tint; $('shield').checked = st.shield;
+
+  // ---- model ----
+  var TAU = 19; // minutes; gives ~80% of the rise in 30 min and ~96% in 60 min
+  function at(key, h) { var i = Math.max(0, Math.min(rows.length - 2, Math.floor(h))), f = Math.max(0, Math.min(1, h - i)); return rows[i][key] + (rows[i + 1][key] - rows[i][key]) * f; }
+  function air(min) { var T = at('T', startH + min / 60); if ($('when').value === 'now' && curT != null) T += (curT - at('T', startH)) * Math.max(0, 1 - min / 60); return T; }
+  function sunW(min) { var S = at('sw', startH + min / 60); if ($('when').value === 'now' && curS != null) S += (curS - at('sw', startH)) * Math.max(0, 1 - min / 60); return Math.max(0, Math.min(1000, S)); }
+  function boostF(shade) { return (shade ? 0.3 : 1) * (st.tint ? 0.85 : 1) * (st.shield ? 0.8 : 1); }
+  // cabin air: dT/dt = (air + rise - T) / TAU, rise = 3 °C + 22 °C × (sunshine / 850 W/m²) × factors
+  function cabin(shade, mins) {
+    var T = air(0), out = [T], f = boostF(shade);
+    for (var m = 1; m <= mins; m++) { var target = air(m) + 3 + 22 * sunW(m) / 850 * f; T += (target - T) / TAU; out.push(T); }
+    return out;
+  }
+  function itemMinutes(it, cab, shade) {
+    var pl = PLACE.filter(function (p) { return p.id === st.place; })[0], lag = it.lag * pl.lagX, T = Math.min(25, cab[0]), extra = pl.boost * (shade ? 2 : 10);
+    for (var m = 1; m < cab.length; m++) {
+      var target = cab[m] + extra * sunW(m) / 850;  // things in direct sun through the glass run hotter than the air
+      T += (target - T) / lag;
+      if (T >= it.lim) return it.plus ? Math.min(m + it.plus, it.cap) : m;
+    }
+    return it.cap || null; // perishables: two hours at most even below 32 °C
+  }
+  function mtxt(m) { return m == null ? '4h+' : m < 1 ? 'now' : m < 60 ? m + ' min' : Math.floor(m / 60) + 'h' + (m % 60 ? ' ' + m % 60 + 'm' : ''); }
+  function col(m) { return m == null ? '#4FD3BD' : m <= 15 ? '#FF4F6D' : m <= 60 ? '#FF8A4C' : '#FFC857'; }
+
+  // ---- data ----
+  function get(u) { return fetch(u).then(function (r) { if (!r.ok) throw 0; return r.json(); }); }
+  var nowH = 0;
+  function load(lat, lon, name) {
+    $('msg').textContent = 'Fetching the weather for ' + name + '…';
+    get('https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon + '&current=temperature_2m,shortwave_radiation&hourly=temperature_2m,shortwave_radiation&timezone=auto&forecast_days=3').then(function (j) {
+      var W = j.hourly;
+      rows = W.time.map(function (t, i) { return { t: t, T: W.temperature_2m[i], sw: W.shortwave_radiation[i] || 0 }; });
+      curT = j.current && j.current.temperature_2m != null ? j.current.temperature_2m : null;
+      curS = j.current && j.current.shortwave_radiation != null ? j.current.shortwave_radiation : null;
+      var local = new Date(Date.now() + j.utc_offset_seconds * 1000).toISOString();
+      var i0 = Math.max(0, rows.findIndex(function (x) { return x.t.slice(0, 13) === local.slice(0, 13); }));
+      nowH = i0 + (+local.slice(14, 16)) / 60;
+      var keep = $('when').value, opts = '<option value="now">Now (live)</option>';
+      var tom = null; for (var i = i0 + 1; i < rows.length - 3; i++) { if (rows[i].t.slice(0, 10) !== rows[i0].t.slice(0, 10)) { if (tom && rows[i].t.slice(0, 10) !== tom) break; tom = rows[i].t.slice(0, 10); } opts += '<option value="' + i + '">' + label(rows[i].t, i0) + '</option>'; }
+      $('when').innerHTML = opts; if ([].some.call($('when').options, function (o) { return o.value === keep; })) $('when').value = keep;
+      $('msg').textContent = name + ' · ' + Math.round(curT != null ? curT : rows[i0].T) + '°C outside';
+      render();
+    }).catch(function () { $('msg').textContent = 'Couldn\'t reach the weather service. Check your connection and try again.'; });
+  }
+  function label(t, i0) { var h = +t.slice(11, 13), d = t.slice(0, 10) === rows[i0].t.slice(0, 10) ? 'Today' : 'Tomorrow'; return d + ' ' + (h % 12 || 12) + (h < 12 ? ' am' : ' pm'); }
+
+  function table(id, list, cs, cz) {
+    $(id).innerHTML = '<tr><th>Item</th><th class="n">Sun</th><th class="n">Shade</th></tr>' + list.map(function (it) {
+      var a = itemMinutes(it, cs, false), b = itemMinutes(it, cz, true);
+      var warn = it.fire && a != null && a <= 240 ? ' <small style="color:#FF6F88">Fire risk if left in the sun.</small>' : '';
+      return '<tr><td>' + it.name + ' <small>' + it.lim + '°C · ' + it.note + '</small>' + warn + '</td><td class="n"><b style="--c:' + col(a) + '">' + mtxt(a) + '</b></td><td class="n"><b style="--c:' + col(b) + '">' + mtxt(b) + '</b></td></tr>';
+    }).join('');
+  }
+  function render() {
+    if (!rows) return;
+    var w = $('when').value; startH = w === 'now' ? nowH : +w;
+    var shade = st.spot === 'shade', cs = cabin(false, 240), cz = cabin(true, 240), c = shade ? cz : cs;
+    $('s1').textContent = Math.round(air(0)) + '°C';
+    $('s2').textContent = Math.round(c[30]) + '°C';
+    $('s3').textContent = Math.round(c[60]) + '°C';
+    $('neverT').textContent = 'Here, ' + (w === 'now' ? 'right now' : 'at that time') + ', a car in the sun reaches about ' + Math.round(cs[10]) + '°C in 10 minutes and ' + Math.round(cs[30]) + '°C in 30.';
+    table('gadgets', GADGETS, cs, cz); table('others', OTHERS, cs, cz);
+    chart(cs, cz);
+    try { localStorage.setItem('cabinPrefs', JSON.stringify(st)); } catch (e) {}
+  }
+  function el(n, a, p) { var e = document.createElementNS(NS, n); for (var k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; }
+  function chart(cs, cz) {
+    var svg = $('svg'); svg.innerHTML = '';
+    var W = Math.max(300, Math.round($('chart').clientWidth || 600)), H = W < 500 ? 190 : 220, L = 34, R = 10, T = 12, B = 26, N = 120;
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    var a = []; for (var m = 0; m <= N; m++) a.push(air(m));
+    var lo = Math.floor(Math.min.apply(null, a.concat(cz.slice(0, N + 1))) / 10) * 10, hi = Math.ceil(Math.max.apply(null, cs.slice(0, N + 1)) / 10) * 10; if (hi - lo < 20) hi = lo + 20;
+    function X(k) { return L + k / N * (W - L - R); } function Y(v) { return T + (hi - v) / (hi - lo) * (H - T - B); }
+    for (var v = lo; v <= hi; v += 10) { el('line', { x1: L, x2: W - R, y1: Y(v), y2: Y(v), stroke: 'rgba(120,132,190,.18)' }, svg); el('text', { x: L - 6, y: Y(v) + 3, 'text-anchor': 'end' }, svg).textContent = v + '°'; }
+    for (m = 0; m <= N; m += 30) el('text', { x: X(m), y: H - 8, 'text-anchor': m === 0 ? 'start' : m === N ? 'end' : 'middle' }, svg).textContent = m === 0 ? 'park' : m + ' min';
+    function path(arr) { var d = ''; for (var k = 0; k <= N; k++) d += (k ? 'L' : 'M') + X(k).toFixed(1) + ' ' + Y(arr[k]).toFixed(1); return d; }
+    el('path', { d: path(a), fill: 'none', stroke: '#A7ADCB', 'stroke-width': 2, 'stroke-dasharray': '5 4' }, svg);
+    el('path', { d: path(cz), fill: 'none', stroke: '#4FD3BD', 'stroke-width': 2 }, svg);
+    el('path', { d: path(cs), fill: 'none', stroke: '#FF8A4C', 'stroke-width': 2 }, svg);
+    var cross = el('line', { y1: T, y2: H - B, stroke: 'rgba(238,240,250,.5)', visibility: 'hidden' }, svg);
+    var d1 = el('circle', { r: 4.5, fill: '#FF8A4C', stroke: '#070A18', 'stroke-width': 2, visibility: 'hidden' }, svg), d2 = el('circle', { r: 4.5, fill: '#4FD3BD', stroke: '#070A18', 'stroke-width': 2, visibility: 'hidden' }, svg);
+    var hit = el('rect', { x: L, y: 0, width: W - L - R, height: H, fill: 'transparent' }, svg);
+    function move(e) {
+      var b = svg.getBoundingClientRect(), x = (e.clientX - b.left) / b.width * W, k = Math.max(0, Math.min(N, Math.round((x - L) / (W - L - R) * N)));
+      cross.setAttribute('x1', X(k)); cross.setAttribute('x2', X(k)); cross.setAttribute('visibility', 'visible');
+      d1.setAttribute('cx', X(k)); d1.setAttribute('cy', Y(cs[k])); d1.setAttribute('visibility', 'visible');
+      d2.setAttribute('cx', X(k)); d2.setAttribute('cy', Y(cz[k])); d2.setAttribute('visibility', 'visible');
+      var tip = $('tip'); tip.style.display = 'block';
+      tip.innerHTML = k + ' min parked<br>Sun <b>' + Math.round(cs[k]) + '°C</b> · Shade <b>' + Math.round(cz[k]) + '°C</b><br>Outside <b>' + Math.round(a[k]) + '°C</b>';
+      var px = X(k) / W * b.width, tw = tip.offsetWidth;
+      tip.style.left = Math.max(0, Math.min(b.width - tw, px + (px > b.width / 2 ? -tw - 10 : 10))) + 'px';
+    }
+    hit.addEventListener('pointermove', move); hit.addEventListener('pointerdown', move);
+    hit.addEventListener('pointerleave', function () { $('tip').style.display = 'none'; [cross, d1, d2].forEach(function (x) { x.setAttribute('visibility', 'hidden'); }); });
+  }
+
+  function group(elId, list, key) {
+    list.forEach(function (o) {
+      var b = document.createElement('button'); b.className = 'sm'; b.type = 'button'; b.textContent = o.name; b.setAttribute('aria-pressed', st[key] === o.id);
+      b.onclick = function () { st[key] = o.id; [].forEach.call($(elId).children, function (x) { x.setAttribute('aria-pressed', x === b); }); render(); };
+      $(elId).appendChild(b);
+    });
+  }
+  group('spot', SPOTS, 'spot'); group('place', PLACE, 'place');
+  $('tint').onchange = function () { st.tint = this.checked; render(); };
+  $('shield').onchange = function () { st.shield = this.checked; render(); };
+  $('when').onchange = render;
+  var rt = 0; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(render, 150); });
+  function pick(b) { [].forEach.call(document.querySelectorAll('#where .sm'), function (x) { x.setAttribute('aria-pressed', x === b); }); }
+  var last = null;
+  PLACES.forEach(function (p, i) {
+    var b = document.createElement('button'); b.className = 'sm'; b.type = 'button'; b.textContent = p[0]; b.setAttribute('aria-pressed', 'false');
+    b.onclick = function () { pick(b); last = [p[1], p[2], p[0]]; load(p[1], p[2], p[0]); try { localStorage.setItem('cabinPlace', i); } catch (e) {} };
+    $('where').appendChild(b);
+  });
+  $('me').onclick = function () {
+    if (!navigator.geolocation) { $('msg').textContent = 'Your browser can\'t share a location.'; return; }
+    $('msg').textContent = 'Asking for your location…';
+    navigator.geolocation.getCurrentPosition(function (p) { pick($('me')); last = [p.coords.latitude.toFixed(3), p.coords.longitude.toFixed(3), 'Your location']; load(last[0], last[1], last[2]); }, function () { $('msg').textContent = 'Location was not shared. Pick a city instead.'; }, { maximumAge: 6e5, timeout: 10000 });
+  };
+  // live: refresh every 10 minutes while the page is open
+  setInterval(function () { if (last && $('when').value === 'now' && !document.hidden) load(last[0], last[1], last[2]); }, 600000);
+  var i0 = 0; try { var s = localStorage.getItem('cabinPlace'); if (s != null && PLACES[+s]) i0 = +s; } catch (e) {}
+  document.querySelectorAll('#where .sm')[i0 + 1].click();
+})();
+</script>
+</body>
+</html>

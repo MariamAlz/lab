@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Shady Walk · Mariam's Lab</title>
+<meta name="description" content="Find the shadiest walking route between two points. Uses building heights from OpenStreetMap and the sun's position to work out where the shadows fall, then trades a little distance for a lot of shade.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/shade-route/">
+<meta property="og:title" content="Shady Walk · Mariam's Lab"><meta property="og:description" content="The shadiest walking route, worked out from building shadows."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="stylesheet" href="../assets/vendor/leaflet/leaflet.css">
+<style>
+.leaflet-container { font-family: 'Instrument Sans', sans-serif; background: #0b1020; }
+#map { height: min(62vh, 560px); min-height: 360px; border-radius: var(--radius); border: 1px solid var(--line); }
+#map .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(.85) contrast(.9) saturate(.4); }
+.ctl { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm:hover { border-color: var(--muted); }
+.sm.pri { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.rng { display: grid; gap: 4px; font-size: 0.86rem; }
+.rng span { display: flex; justify-content: space-between; gap: 10px; }
+.rng output { font-family: var(--font-mono); font-size: 0.8rem; color: var(--accent); }
+.rng input { width: 100%; accent-color: var(--accent); }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; }
+.stats b { font-family: var(--font-display); font-size: 1.5rem; }
+.stats span { font-size: 0.76rem; color: var(--muted); }
+.key { display: flex; gap: 14px; flex-wrap: wrap; font-size: 0.8rem; color: var(--muted); }
+.key i { display: inline-block; width: 22px; height: 0; border-top: 4px solid var(--c); vertical-align: middle; margin-inline-end: 6px; border-radius: 2px; }
+.key i.dash { border-top-style: dashed; }
+.key i.box { height: 12px; border: 0; background: var(--c); vertical-align: -2px; }
+.cmp { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.cmp li { padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; font-size: 0.9rem; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; }
+.cmp li small { display: block; color: var(--muted); font-size: 0.78rem; }
+.cmp li b { font-family: var(--font-mono); font-size: 0.85rem; text-align: end; }
+.bar { height: 8px; border-radius: 4px; background: rgba(255, 200, 87, .55); overflow: hidden; margin-top: 6px; }
+.bar u { display: block; height: 100%; background: var(--sat-b); text-decoration: none; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Outdoors · Sun · Maps</span>
+    <h1 style="font-size:var(--step-3)">Shady walk.</h1>
+    <p>Map apps find the shortest walk. On a hot afternoon you'd happily walk a bit further to stay out of the sun. Pick a start and an end, and this works out where the building shadows fall at that time and finds the route with the most shade.</p>
+  </div>
+  <div class="game">
+    <div class="panel">
+      <div class="ctl">
+        <button class="sm" type="button" id="me">📍 Start from my location</button>
+        <button class="sm" type="button" id="demo">Try Dubai Marina</button>
+        <button class="sm" type="button" id="clear">Clear</button>
+      </div>
+      <div id="map" role="application" aria-label="Map. Tap to set the start, then tap again to set the end."></div>
+      <div class="key"><span><i style="--c:#4FD3BD"></i>Shadiest route</span><span><i class="dash" style="--c:#F08AB3"></i>Shortest route</span><span><i class="box" style="--c:rgba(20,24,60,.75);outline:1px solid var(--line)"></i>Building shadow</span></div>
+      <p class="msg" id="msg" role="status">Tap the map to set your start, then tap again for your end.</p>
+    </div>
+    <div class="panel">
+      <label class="rng"><span>When you'll walk <output id="tOut">Now</output></span><input type="range" id="t" min="0" max="0" value="0" step="1"></label>
+      <p class="msg" id="sun" style="margin-top:-8px"></p>
+      <label class="rng"><span>How much you want to avoid the sun <output id="kOut"></output></span><input type="range" id="k" min="0" max="10" value="4" step="1"></label>
+      <div class="stats">
+        <div><b id="s1">—</b><span>shade on the shady route</span></div>
+        <div><b id="s2">—</b><span>shade on the shortest</span></div>
+        <div><b id="s3">—</b><span>extra walking</span></div>
+      </div>
+      <ul class="cmp" id="cmp"></ul>
+      <p class="fact"><b>How it works.</b> A building of height <i>h</i> casts a shadow <i>h</i> ÷ tan(sun altitude) long, pointing away from the sun. At 4 pm in Dubai the sun is about 25° up, so a 10 m villa throws a 21 m shadow and a 100 m tower more than 200 m. The route finder treats a sunny metre as costing more than a shady one (1 + your setting), then picks the cheapest path.</p>
+      <p class="fact">Building outlines, heights and paths come from OpenStreetMap. Where a height is missing it uses floors × 3.2 m, or 3 floors. Trees, arcades and shade sails are not counted, and many buildings are mapped roughly, so treat it as a good guess. Keep the start and end within about 2 km.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script src="../assets/vendor/leaflet/leaflet.js"></script>
+<script src="../assets/sky.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var OVERPASS = 'https://overpass-api.de/api/interpreter';
+  var map = L.map('map', { preferCanvas: true }).setView([25.0805, 55.1403], 16);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap contributors' }).addTo(map);
+  var shadowLayer = L.layerGroup().addTo(map), routeLayer = L.layerGroup().addTo(map);
+  var start = null, end = null, data = null, loading = false, t0 = Date.now();
+
+  // ---- local flat projection (metres east/north of an origin) ----
+  var O = [0, 0], KX = 1, KY = 110540;
+  function setOrigin(lat, lon) { O = [lat, lon]; KX = 111320 * Math.cos(lat * Math.PI / 180); }
+  function P(lat, lon) { return [(lon - O[1]) * KX, (lat - O[0]) * KY]; }
+  function U(x, y) { return [y / KY + O[0], x / KX + O[1]]; }
+
+  // ---- sun ----
+  function sunAt(ms, lat, lon) { var b = Sky.bodies(ms)[0]; return Sky.toHoriz(b.ra, b.dec, Sky.lst(ms, lon), lat); }
+  function fmt(ms) { return new Date(ms).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }); }
+  function slotMs() { return t0 + (+$('t').value) * 600000; }
+  function setupTime() {
+    var c = map.getCenter(), n = 0, now = Date.now();
+    t0 = now - now % 600000 + 600000; // next 10-minute mark
+    var endDay = new Date(now); endDay.setHours(23, 50, 0, 0);
+    // offer times until shortly after sunset (or 11:50 pm)
+    for (var ms = t0; ms <= endDay.getTime(); ms += 600000) { n++; if (sunAt(ms, c.lat, c.lng).alt < -1) break; }
+    t0 = now; $('t').max = Math.max(0, n - 1); $('t').value = 0;
+  }
+
+  // ---- shadows ----
+  function heightOf(tags) {
+    var h = parseFloat(tags.height);
+    if (isFinite(h) && h > 0) return h;
+    var lv = parseFloat(tags['building:levels']);
+    if (isFinite(lv) && lv > 0) return lv * 3.2 + (tags.building === 'roof' ? 0 : 1);
+    if (tags.building === 'roof') return 4;
+    return 3 * 3.2;
+  }
+  function inPoly(x, y, pts, dx, dy) {
+    var c = false;
+    for (var i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+      var xi = pts[i][0] + dx, yi = pts[i][1] + dy, xj = pts[j][0] + dx, yj = pts[j][1] + dy;
+      if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c;
+    }
+    return c;
+  }
+  // a building's shadow is the footprint swept along the shadow vector d: footprint, shifted footprint, and one parallelogram per wall
+  function inShadow(x, y, s) {
+    if (x < s.bb[0] || x > s.bb[2] || y < s.bb[1] || y > s.bb[3]) return false;
+    var p = s.pts, dx = s.d[0], dy = s.d[1];
+    if (inPoly(x, y, p, 0, 0) || inPoly(x, y, p, dx, dy)) return true;
+    for (var i = 0; i < p.length - 1; i++) {
+      var ex = p[i + 1][0] - p[i][0], ey = p[i + 1][1] - p[i][1], det = ex * dy - ey * dx;
+      if (Math.abs(det) < 1e-9) continue;
+      var wx = x - p[i][0], wy = y - p[i][1], u = (wx * dy - wy * dx) / det, v = (ex * wy - ey * wx) / det;
+      if (u >= 0 && u <= 1 && v >= 0 && v <= 1) return true;
+    }
+    return false;
+  }
+  function hull(pts) {
+    pts = pts.slice().sort(function (a, b) { return a[0] - b[0] || a[1] - b[1]; });
+    function cr(o, a, b) { return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]); }
+    var lo = [], up = [], i;
+    for (i = 0; i < pts.length; i++) { while (lo.length >= 2 && cr(lo[lo.length - 2], lo[lo.length - 1], pts[i]) <= 0) lo.pop(); lo.push(pts[i]); }
+    for (i = pts.length - 1; i >= 0; i--) { while (up.length >= 2 && cr(up[up.length - 2], up[up.length - 1], pts[i]) <= 0) up.pop(); up.push(pts[i]); }
+    return lo.slice(0, -1).concat(up.slice(0, -1));
+  }
+  var CELL = 40;
+  function buildShadows(sun) {
+    var out = [], grid = {};
+    if (sun.alt <= 0.5) return { list: out, grid: grid, night: true };
+    var a = sun.alt * Math.PI / 180, az = sun.az * Math.PI / 180, tanA = Math.tan(a);
+    data.buildings.forEach(function (b) {
+      var L = Math.min(b.h / tanA, 600), d = [-Math.sin(az) * L, -Math.cos(az) * L];
+      var bb = [Infinity, Infinity, -Infinity, -Infinity];
+      b.pts.forEach(function (q) { [[q[0], q[1]], [q[0] + d[0], q[1] + d[1]]].forEach(function (r) { bb[0] = Math.min(bb[0], r[0]); bb[1] = Math.min(bb[1], r[1]); bb[2] = Math.max(bb[2], r[0]); bb[3] = Math.max(bb[3], r[1]); }); });
+      var s = { pts: b.pts, d: d, bb: bb, idx: out.length };
+      out.push(s);
+      for (var i = Math.floor(bb[0] / CELL); i <= Math.floor(bb[2] / CELL); i++) for (var j = Math.floor(bb[1] / CELL); j <= Math.floor(bb[3] / CELL); j++) { var k = i + ',' + j; (grid[k] || (grid[k] = [])).push(s); }
+    });
+    return { list: out, grid: grid };
+  }
+  function shaded(x, y, SH) {
+    if (SH.night) return true;
+    var c = SH.grid[Math.floor(x / CELL) + ',' + Math.floor(y / CELL)];
+    if (!c) return false;
+    for (var i = 0; i < c.length; i++) if (inShadow(x, y, c[i])) return true;
+    return false;
+  }
+
+  // ---- Overpass ----
+  function bboxStr(b) { return b[0].toFixed(5) + ',' + b[1].toFixed(5) + ',' + b[2].toFixed(5) + ',' + b[3].toFixed(5); }
+  function pad(lat1, lon1, lat2, lon2, m) {
+    var dl = m / 110540, dn = m / (111320 * Math.cos(lat1 * Math.PI / 180));
+    return [Math.min(lat1, lat2) - dl, Math.min(lon1, lon2) - dn, Math.max(lat1, lat2) + dl, Math.max(lon1, lon2) + dn];
+  }
+  var BAD = /^(motorway|motorway_link|trunk|trunk_link|construction|proposed|raceway|bus_guideway|abandoned|platform|elevator)$/;
+  function fetchData(rb, bb) {
+    var q = '[out:json][timeout:40];(way["building"](' + bboxStr(bb) + ');way["highway"](' + bboxStr(rb) + '););out body geom;';
+    return fetch(OVERPASS, { method: 'POST', body: 'data=' + encodeURIComponent(q), headers: { 'Content-Type': 'application/x-www-form-urlencoded' } })
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function (j) {
+        var buildings = [], nodes = [], key = {}, adj = [], edges = [];
+        function node(g) {
+          var k = g.lat.toFixed(7) + ',' + g.lon.toFixed(7);
+          if (key[k] == null) { key[k] = nodes.length; nodes.push(P(g.lat, g.lon)); adj.push([]); }
+          return key[k];
+        }
+        (j.elements || []).forEach(function (e) {
+          if (e.type !== 'way' || !e.geometry || e.geometry.length < 2) return;
+          var t = e.tags || {};
+          var g = e.geometry.filter(function (p) { return p && isFinite(p.lat); });
+          if (t.building && g.length >= 4 && t.building !== 'no') {
+            var pts = g.map(function (p) { return P(p.lat, p.lon); });
+            if (pts[0][0] !== pts[pts.length - 1][0] || pts[0][1] !== pts[pts.length - 1][1]) pts.push(pts[0]);
+            buildings.push({ pts: pts, h: heightOf(t) });
+          } else if (t.highway && !BAD.test(t.highway) && t.foot !== 'no' && t.access !== 'private' && t.area !== 'yes') {
+            for (var i = 0; i < g.length - 1; i++) {
+              var a = node(g[i]), b = node(g[i + 1]); if (a === b) continue;
+              var len = Math.hypot(nodes[a][0] - nodes[b][0], nodes[a][1] - nodes[b][1]);
+              adj[a].push(edges.length); adj[b].push(edges.length); edges.push({ a: a, b: b, len: len, sun: 1 });
+            }
+          }
+        });
+        return { buildings: buildings, nodes: nodes, adj: adj, edges: edges, rb: rb };
+      });
+  }
+
+  // ---- graph ----
+  function scoreEdges(SH) {
+    data.edges.forEach(function (e) {
+      var A = data.nodes[e.a], B = data.nodes[e.b], n = Math.max(2, Math.ceil(e.len / 4)), lit = 0;
+      for (var i = 0; i < n; i++) { var f = (i + 0.5) / n; if (!shaded(A[0] + (B[0] - A[0]) * f, A[1] + (B[1] - A[1]) * f, SH)) lit++; }
+      e.sun = lit / n;
+    });
+  }
+  function nearest(p) {
+    var best = -1, bd = Infinity;
+    data.nodes.forEach(function (q, i) { if (!data.adj[i].length) return; var d = (q[0] - p[0]) * (q[0] - p[0]) + (q[1] - p[1]) * (q[1] - p[1]); if (d < bd) { bd = d; best = i; } });
+    return { i: best, d: Math.sqrt(bd) };
+  }
+  function dijkstra(s, t, k) {
+    var n = data.nodes.length, dist = new Float64Array(n).fill(Infinity), prev = new Int32Array(n).fill(-1), done = new Uint8Array(n), heap = [];
+    function push(d, v) { heap.push([d, v]); var i = heap.length - 1; while (i > 0) { var p = (i - 1) >> 1; if (heap[p][0] <= heap[i][0]) break; var tmp = heap[p]; heap[p] = heap[i]; heap[i] = tmp; i = p; } }
+    function pop() { var top = heap[0], last = heap.pop(); if (heap.length) { heap[0] = last; var i = 0; for (;;) { var l = 2 * i + 1, r = l + 1, m = i; if (l < heap.length && heap[l][0] < heap[m][0]) m = l; if (r < heap.length && heap[r][0] < heap[m][0]) m = r; if (m === i) break; var tmp = heap[m]; heap[m] = heap[i]; heap[i] = tmp; i = m; } } return top; }
+    dist[s] = 0; push(0, s);
+    while (heap.length) {
+      var it = pop(), u = it[1]; if (done[u]) continue; done[u] = 1; if (u === t) break;
+      data.adj[u].forEach(function (ei) {
+        var e = data.edges[ei], v = e.a === u ? e.b : e.a, c = e.len * (1 + k * e.sun);
+        if (dist[u] + c < dist[v]) { dist[v] = dist[u] + c; prev[v] = ei; push(dist[v], v); }
+      });
+    }
+    if (!isFinite(dist[t])) return null;
+    var path = [t], len = 0, shade = 0, v = t;
+    while (v !== s) { var e = data.edges[prev[v]]; len += e.len; shade += e.len * (1 - e.sun); v = e.a === v ? e.b : e.a; path.push(v); }
+    return { path: path.reverse(), len: len, shade: shade };
+  }
+
+  // ---- UI ----
+  var mStart = null, mEnd = null, needFit = false;
+  function pin(ll, col, label) {
+    var m = L.circleMarker(ll, { radius: 9, color: '#070A18', weight: 2, fillColor: col, fillOpacity: 1, bubblingMouseEvents: false }).addTo(map).bindTooltip(label, { permanent: false });
+    return m;
+  }
+  function setPoint(ll) {
+    if (!start || (start && end)) { clearAll(); start = ll; mStart = pin(ll, '#E9B467', 'Start'); $('msg').textContent = 'Now tap where you want to go.'; return; }
+    end = ll; mEnd = pin(ll, '#84A0FF', 'End'); needFit = true; run();
+  }
+  function clearAll() {
+    start = end = null; if (mStart) map.removeLayer(mStart); if (mEnd) map.removeLayer(mEnd); mStart = mEnd = null;
+    routeLayer.clearLayers(); shadowLayer.clearLayers(); ['s1', 's2', 's3'].forEach(function (id) { $(id).textContent = '—'; }); $('cmp').innerHTML = '';
+    $('msg').textContent = 'Tap the map to set your start, then tap again for your end.';
+  }
+  map.on('click', function (e) { if (!loading) setPoint(e.latlng); });
+  $('clear').onclick = clearAll;
+  $('demo').onclick = function () { clearAll(); map.setView([25.0775, 55.1385], 16); setPoint(L.latLng(25.0727, 55.1343)); setPoint(L.latLng(25.0820, 55.1447)); };
+  $('me').onclick = function () {
+    if (!navigator.geolocation) { $('msg').textContent = 'Your browser can\'t share a location.'; return; }
+    $('msg').textContent = 'Asking for your location…';
+    navigator.geolocation.getCurrentPosition(function (p) { clearAll(); var ll = L.latLng(p.coords.latitude, p.coords.longitude); map.setView(ll, 16); setPoint(ll); }, function () { $('msg').textContent = 'Location was not shared. Tap the map instead.'; }, { maximumAge: 6e4, timeout: 10000 });
+  };
+  function covers(rb, a, b) { return rb && [a, b].every(function (p) { return p.lat > rb[0] + 0.0012 && p.lat < rb[2] - 0.0012 && p.lng > rb[1] + 0.0012 && p.lng < rb[3] - 0.0012; }); }
+  function run() {
+    if (!start || !end) return;
+    var dist = start.distanceTo(end);
+    if (dist > 2200) { $('msg').textContent = 'Those points are ' + (dist / 1000).toFixed(1) + ' km apart. Keep them within about 2 km so the map data stays small.'; return; }
+    if (data && covers(data.rb, start, end)) { compute(); return; }
+    loading = true; $('msg').textContent = 'Fetching buildings and paths from OpenStreetMap…';
+    setOrigin((start.lat + end.lat) / 2, (start.lng + end.lng) / 2);
+    var rb = pad(start.lat, start.lng, end.lat, end.lng, 220), bb = pad(start.lat, start.lng, end.lat, end.lng, 380);
+    fetchData(rb, bb).then(function (d) { data = d; loading = false; compute(); }).catch(function () {
+      loading = false; $('msg').textContent = 'Couldn\'t reach the OpenStreetMap server (it gets busy). Wait a moment and tap Clear to try again.';
+    });
+  }
+  function drawShadows(SH) {
+    shadowLayer.clearLayers();
+    var view = map.getBounds().pad(0.3);
+    SH.list.forEach(function (s) {
+      var pts = s.pts.concat(s.pts.map(function (q) { return [q[0] + s.d[0], q[1] + s.d[1]]; }));
+      var ll = hull(pts).map(function (q) { return U(q[0], q[1]); });
+      if (!view.intersects(L.latLngBounds(ll))) return;
+      L.polygon(ll, { stroke: false, fillColor: '#141a44', fillOpacity: 0.55, interactive: false }).addTo(shadowLayer);
+    });
+  }
+  function pct(r) { return r.len ? Math.round(100 * r.shade / r.len) : 0; }
+  function walk(m) { return Math.round(m / 80) + ' min'; }
+  function compute() {
+    var ms = slotMs(), c = start, sun = sunAt(ms, c.lat, c.lng);
+    $('tOut').textContent = (+$('t').value === 0 ? 'Now · ' : '') + fmt(ms);
+    $('sun').textContent = sun.alt > 0.5 ? 'Sun ' + Math.round(sun.alt) + '° up, from the ' + compass(sun.az) + '. Shadows are ' + (1 / Math.tan(sun.alt * Math.PI / 180)).toFixed(1) + '× building height.' : 'The sun is down at this time, so every route is in shade.';
+    if (!data || !data.edges.length) { $('msg').textContent = 'No walkable paths are mapped here. Try two points along streets.'; return; }
+    var SH = buildShadows(sun);
+    scoreEdges(SH); drawShadows(SH);
+    var a = nearest(P(start.lat, start.lng)), b = nearest(P(end.lat, end.lng));
+    var short = dijkstra(a.i, b.i, 0), shady = dijkstra(a.i, b.i, +$('k').value);
+    routeLayer.clearLayers();
+    if (!short) { $('msg').textContent = 'The start and end aren\'t connected by mapped paths. Try moving them onto streets.'; return; }
+    function line(r, opt) { return L.polyline(r.path.map(function (i) { return U(data.nodes[i][0], data.nodes[i][1]); }), opt).addTo(routeLayer); }
+    var ls = line(short, { color: '#F08AB3', weight: 4, dashArray: '8 8', opacity: 0.95 });
+    if (needFit) { needFit = false; map.fitBounds(ls.getBounds().extend(start).extend(end), { padding: [30, 30] }); drawShadows(SH); }
+    line(shady, { color: '#4FD3BD', weight: 5, opacity: 0.95 });
+    if (mStart) mStart.bringToFront(); if (mEnd) mEnd.bringToFront();
+    var extra = shady.len - short.len;
+    $('s1').textContent = pct(shady) + '%'; $('s2').textContent = pct(short) + '%';
+    $('s3').textContent = extra < 5 ? '0 m' : '+' + Math.round(extra) + ' m';
+    $('cmp').innerHTML = [['Shadiest route', shady], ['Shortest route', short]].map(function (x) {
+      var r = x[1];
+      return '<li><span>' + x[0] + '<small>' + Math.round(r.len) + ' m · about ' + walk(r.len) + ' · ' + Math.round(r.len - r.shade) + ' m in the sun</small><div class="bar" aria-hidden="true"><u style="width:' + pct(r) + '%"></u></div></span><b>' + pct(r) + '% shade</b></li>';
+    }).join('');
+    var gain = Math.round(short.len - short.shade - (shady.len - shady.shade));
+    $('msg').textContent = SH.night ? 'Sun is down, so the shortest route is the one to take.' : extra < 5 ? (pct(shady) > pct(short) + 2 ? 'Same distance, but ' + (pct(shady) - pct(short)) + ' points more shade: the teal route picks the shady side streets.' : 'The shortest route is already the shadiest one. Drag the time slider to compare.') : 'Walking ' + Math.round(extra) + ' m further saves you ' + Math.max(0, gain) + ' m in direct sun. ' + data.buildings.length + ' buildings checked.';
+    if (a.d > 80 || b.d > 80) $('msg').textContent += ' Note: a point is ' + Math.round(Math.max(a.d, b.d)) + ' m from the nearest mapped path.';
+  }
+  function compass(az) { return ['north', 'north-east', 'east', 'south-east', 'south', 'south-west', 'west', 'north-west'][Math.round(az / 45) % 8]; }
+  var timer = 0;
+  function later() { clearTimeout(timer); timer = setTimeout(function () { if (data && start && end && !loading) compute(); else updateTimeLabel(); }, 60); }
+  function updateTimeLabel() { var c = map.getCenter(), ms = slotMs(), sun = sunAt(ms, c.lat, c.lng); $('tOut').textContent = (+$('t').value === 0 ? 'Now · ' : '') + fmt(ms); $('sun').textContent = sun.alt > 0.5 ? 'Sun ' + Math.round(sun.alt) + '° up, from the ' + compass(sun.az) + '.' : 'The sun is down at this time.'; }
+  $('t').oninput = later;
+  $('k').oninput = function () { $('kOut').textContent = +$('k').value === 0 ? 'not at all' : 'a sunny metre counts as ' + (1 + +$('k').value) + ' m'; try { localStorage.setItem('shadeK', $('k').value); } catch (e) {} later(); };
+  try { var sk = localStorage.getItem('shadeK'); if (sk != null) $('k').value = sk; } catch (e) {}
+  map.on('moveend', function () { if (data && start && end && !loading) { var SH = buildShadows(sunAt(slotMs(), start.lat, start.lng)); drawShadows(SH); } });
+  setupTime(); $('k').oninput(); updateTimeLabel();
+})();
+</script>
+</body>
+</html>

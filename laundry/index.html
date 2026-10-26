@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Laundry Dry Time · Mariam's Lab</title>
+<meta name="description" content="How long will your washing take to dry if you hang it now? Uses live temperature, humidity, wind, sunshine and dust for your spot in the UAE, with presets for t-shirts, jeans, towels and bedsheets.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/laundry/">
+<meta property="og:title" content="Laundry Dry Time · Mariam's Lab"><meta property="og:description" content="Minutes to dry if you hang it now, the best hour today, and when to bring it in before the dust."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.opts { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm:hover { border-color: var(--muted); }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.grp { display: grid; gap: 6px; }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; }
+.verdict { padding: 20px; border-radius: var(--radius); border: 1px solid var(--line); background: rgba(7,10,24,.82); display: grid; gap: 6px; }
+.verdict b { font-family: var(--font-display); font-size: clamp(1.6rem, 5vw, 2.6rem); font-weight: 800; line-height: 1.05; color: var(--sat-b); }
+.verdict p { margin: 0; color: var(--muted); }
+.warn { padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(255, 138, 76, .6); background: rgba(255, 138, 76, .1); font-size: 0.92rem; }
+.warn:empty { display: none; }
+.stats b { font-family: var(--font-display); font-size: 1.3rem; }
+.stats span { font-size: 0.76rem; color: var(--muted); }
+.hrs { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(34px, 1fr); gap: 3px; overflow-x: auto; padding-bottom: 6px; align-items: end; height: 132px; }
+.hrs div { display: flex; flex-direction: column; justify-content: flex-end; height: 100%; gap: 2px; text-align: center; font-family: var(--font-mono); font-size: 0.62rem; color: var(--muted); cursor: default; }
+.hrs div i { display: block; border-radius: 4px 4px 0 0; background: var(--sat-b); min-height: 3px; }
+.hrs div.slow i { background: #6b7299; }
+.hrs div.dusty i { background: repeating-linear-gradient(135deg, #ff8a4c 0 4px, rgba(255,138,76,.45) 4px 8px); }
+.hrs div.best i { background: var(--accent); }
+.hrs div.now { color: var(--ink); }
+.legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 0.76rem; color: var(--muted); }
+.legend span::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-inline-end: 5px; vertical-align: -1px; background: var(--c); }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Home · Weather · Live</span>
+    <h1 style="font-size:var(--step-3)">Laundry dry time.</h1>
+    <p>In a UAE summer a t-shirt can dry on the balcony faster than the next load washes. On a humid night it can sit damp until morning, and a dusty afternoon can undo the wash. This uses the live forecast for your spot to tell you how long it will take, the best hour to hang it today, and when to bring it in.</p>
+  </div>
+  <div class="opts" id="where"><button class="sm" type="button" id="me">📍 Use my location</button></div>
+  <p class="msg" id="msg" role="status"></p>
+  <div class="game" style="margin-top:12px">
+    <div class="panel">
+      <div class="grp"><span class="label">What are you drying?</span><div class="opts" id="fab"></div></div>
+      <div class="grp"><span class="label">Where will it hang?</span><div class="opts" id="spot"></div></div>
+      <div class="verdict" id="verdict"><span class="label">If you hang it now</span><b>Loading…</b></div>
+      <div class="warn" id="warn" role="alert"></div>
+      <div class="stats">
+        <div><b id="s1">—</b><span>best time to hang today</span></div>
+        <div><b id="s2">—</b><span>dry time then</span></div>
+        <div><b id="s3">—</b><span>dust now, µg/m³</span></div>
+      </div>
+      <div class="grp">
+        <span class="label">Minutes to dry if hung at each hour</span>
+        <div class="hrs" id="hrs"></div>
+        <div class="legend"><span style="--c:#4FD3BD">Quick</span><span style="--c:#6b7299">Slow (over 3 h)</span><span style="--c:#E9B467">Best today</span><span style="--c:#ff8a4c">Dusty or rain</span></div>
+      </div>
+    </div>
+    <div class="panel">
+      <span class="label">Conditions now</span>
+      <div class="stats" id="now"></div>
+      <p class="fact"><b>How it works.</b> Drying is evaporation, and two things drive it. The first is how thirsty the air is: the vapour pressure deficit, or how much more water the air could hold. Hot dry air in June can take four times as much as a humid August evening on the coast. The second is energy: sunlight on the cloth supplies the heat that turns water into vapour, and wind carries the damp air away. This page combines them with the Penman equation, the same one farmers use to estimate how fast fields lose water.</p>
+      <p class="fact">The fabric numbers are typical: how much water each item holds after a normal spin, its hanging area, and a slow-down for thick cloth whose inside dries last. Indoors assumes an air-conditioned room at about 24°C and 50% humidity with little air flow. Your machine, your balcony and your towels will differ, so treat the times as a guide. Weather and dust from Open-Meteo forecasts.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var PLACES = [['Dubai', 25.2048, 55.2708], ['Abu Dhabi', 24.4539, 54.3773], ['Sharjah', 25.3463, 55.4209], ['Al Ain', 24.2075, 55.7447], ['Ras Al Khaimah', 25.7895, 55.9432], ['Fujairah', 25.1288, 56.3265]];
+  // water: kg held after a normal spin; area: m² of one face as hung; slow: falling-rate factor for thick cloth
+  var FABRIC = [
+    { id: 'tee', name: 'Cotton t-shirt', water: 0.11, area: 0.35, slow: 1.3 },
+    { id: 'jeans', name: 'Jeans', water: 0.45, area: 0.6, slow: 1.7 },
+    { id: 'towel', name: 'Bath towel', water: 0.55, area: 0.5, slow: 1.6 },
+    { id: 'sheet', name: 'Bedsheet', water: 0.4, area: 2.0, slow: 1.3 }
+  ];
+  var SPOT = [
+    { id: 'sun', name: 'Balcony in sun', sun: 0.5, wind: 0.4 },
+    { id: 'shade', name: 'Balcony in shade', sun: 0.12, wind: 0.35 },
+    { id: 'in', name: 'Indoors (AC)', indoor: true }
+  ];
+  var DUSTY = 150, st = { fab: 'tee', spot: 'sun' }, rows = null, nowI = 0;
+  try { var sv = JSON.parse(localStorage.getItem('laundryPrefs')); if (sv) { st.fab = sv.fab || st.fab; st.spot = sv.spot || st.spot; } } catch (e) {}
+
+  // ---- physics ----
+  function es(T) { return 0.6108 * Math.exp(17.27 * T / (T + 237.3)); } // kPa
+  // evaporation rate per m² of wet surface, kg/m²/s (Penman combination form)
+  function evap(T, RH, u, Sv) {
+    var e = es(T), vpd = Math.max(0, e * (1 - RH / 100)), D = 4098 * e / Math.pow(T + 237.3, 2), g = 0.0665;
+    var h = 5.7 + 3.8 * u;           // convective transfer coefficient, W/m²K (McAdams)
+    var Rn = 0.6 * Sv / 2;           // sunlight absorbed by the cloth, shared by its two faces
+    var LE = (D * Rn + h * vpd) / (D + g);
+    return Math.max(0, LE) / 2.45e6;
+  }
+  function condAt(i, f, spot) { // interpolated conditions at fractional hour i+f
+    var a = rows[i], b = rows[Math.min(rows.length - 1, i + 1)];
+    function m(k) { return a[k] + (b[k] - a[k]) * f; }
+    if (spot.indoor) return { T: 24, RH: 50, u: 0.15, S: 0 };
+    return { T: m('T'), RH: m('rh'), u: Math.max(0.3, m('wind') * spot.wind), S: Math.max(0, m('sw')) * spot.sun };
+  }
+  // minutes to remove 95% of the water, starting at hour index i (+ fraction f). null if not within the forecast
+  function dryTime(i, f, fab, spot) {
+    var left = fab.water * 0.95, t = 0, step = 5;
+    while (left > 0) {
+      var x = i + f + t / 60, k = Math.floor(x);
+      if (k >= rows.length - 1) return null;
+      var c = condAt(k, x - k, spot), rate = evap(c.T, c.RH, c.u, c.S) * 2 * fab.area / fab.slow; // kg/s
+      left -= rate * step * 60; t += step;
+      if (t > 36 * 60) return null;
+    }
+    return t;
+  }
+  function dustBetween(i0, i1) {
+    for (var k = Math.max(0, Math.floor(i0)); k <= Math.min(rows.length - 1, Math.floor(i1)); k++) if (rows[k].dust != null && rows[k].dust >= DUSTY) return k;
+    return -1;
+  }
+  function rainBetween(i0, i1) {
+    for (var k = Math.max(0, Math.floor(i0)); k <= Math.min(rows.length - 1, Math.floor(i1)); k++) if (rows[k].rain >= 0.2) return k;
+    return -1;
+  }
+  function dur(m) { if (m == null) return 'over a day'; if (m < 60) return m + ' min'; var h = Math.floor(m / 60), r = Math.round((m % 60) / 5) * 5; return h + ' h' + (r ? ' ' + r + ' min' : ''); }
+  function hLabel(t) { var h = +t.slice(11, 13); return (h % 12 || 12) + (h < 12 ? 'am' : 'pm'); }
+  function clock(i) { var x = Math.round(i * 60), h = Math.floor(x / 60), base = rows[Math.min(rows.length - 1, h)]; var hh = +base.t.slice(11, 13), mm = x % 60; return (hh % 12 || 12) + (mm ? ':' + (mm < 10 ? '0' : '') + mm : '') + (hh < 12 ? ' am' : ' pm'); }
+
+  // ---- data ----
+  function get(u) { return fetch(u).then(function (r) { if (!r.ok) throw 0; return r.json(); }); }
+  var nowFrac = 0;
+  function load(lat, lon, name) {
+    $('msg').textContent = 'Fetching the forecast for ' + name + '…';
+    var w = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon + '&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m,shortwave_radiation,precipitation&wind_speed_unit=ms&timezone=auto&forecast_days=3';
+    var a = 'https://air-quality-api.open-meteo.com/v1/air-quality?latitude=' + lat + '&longitude=' + lon + '&hourly=dust,pm10&timezone=auto&forecast_days=3';
+    Promise.all([get(w), get(a).catch(function () { return null; })]).then(function (r) {
+      var W = r[0].hourly, A = r[1] && r[1].hourly;
+      rows = W.time.map(function (t, i) { var j = A ? A.time.indexOf(t) : -1; return { t: t, T: W.temperature_2m[i], rh: W.relative_humidity_2m[i], wind: W.wind_speed_10m[i], sw: W.shortwave_radiation[i], rain: (W.precipitation || [])[i] || 0, dust: j >= 0 ? A.dust[j] : null, pm10: j >= 0 ? A.pm10[j] : null }; });
+      var local = new Date(Date.now() + r[0].utc_offset_seconds * 1000).toISOString();
+      nowI = Math.max(0, rows.findIndex(function (x) { return x.t.slice(0, 13) === local.slice(0, 13); }));
+      nowFrac = +local.slice(14, 16) / 60;
+      $('msg').textContent = name + (A ? '' : ' · dust forecast unavailable right now');
+      render();
+    }).catch(function () { $('msg').textContent = 'Couldn\'t reach the forecast service. Check your connection and try again.'; $('verdict').innerHTML = '<span class="label">If you hang it now</span><b>No data</b>'; });
+  }
+
+  function render() {
+    if (!rows) return;
+    var fab = FABRIC.filter(function (f) { return f.id === st.fab; })[0], spot = SPOT.filter(function (s) { return s.id === st.spot; })[0];
+    var n = rows[nowI], m0 = dryTime(nowI, nowFrac, fab, spot);
+    var doneAt = m0 == null ? null : nowI + nowFrac + m0 / 60;
+    $('verdict').innerHTML = '<span class="label">' + fab.name + ' · ' + spot.name.toLowerCase() + ' · hung now</span><b>' + (m0 == null ? 'Not today' : dur(m0)) + '</b><p>' + (m0 == null ? 'The air is too humid to dry it in the next day. Try indoors with the AC or a fan.' : 'Dry at about ' + clock(doneAt) + '.' + (m0 > 240 && !spot.indoor ? ' Slow going. Indoors under the AC may be quicker.' : '')) + '</p>';
+    // warnings (outdoors only)
+    var w = [];
+    if (!spot.indoor) {
+      var end = doneAt == null ? nowI + 12 : doneAt;
+      var dk = dustBetween(nowI, end), rk = rainBetween(nowI, end);
+      if (dk === nowI) w.push('It\'s dusty outside now (' + Math.round(n.dust) + ' µg/m³). Dry it indoors today if you can.');
+      else if (dk > 0) w.push('Dust picks up around ' + hLabel(rows[dk].t) + '. Bring it in before ' + hLabel(rows[dk].t) + '.');
+      else { var later = dustBetween(end, nowI + 18); if (later > 0) w.push('Dusty from about ' + hLabel(rows[later].t) + ', so don\'t leave it out after it\'s dry.'); }
+      if (rk >= 0) w.push('Rain is forecast around ' + hLabel(rows[rk].t) + '.');
+      if (n.rh >= 85 && n.sw < 50) w.push('Humidity is ' + Math.round(n.rh) + '%, so clothes left out overnight may pick up dew.');
+    }
+    $('warn').innerHTML = w.join('<br>');
+    // best start time for the rest of today (until 10 pm local)
+    var day = rows[nowI].t.slice(0, 10), best = null, cells = [];
+    for (var i = nowI; i < Math.min(rows.length - 1, nowI + 24); i++) {
+      var f = i === nowI ? nowFrac : 0, m = dryTime(i, f, fab, spot), e = m == null ? i + 36 : i + f + m / 60;
+      var bad = !spot.indoor && (dustBetween(i, e) >= 0 || rainBetween(i, e) >= 0);
+      cells.push({ i: i, m: m, bad: bad });
+      var h = +rows[i].t.slice(11, 13);
+      if (rows[i].t.slice(0, 10) === day && h <= 22 && m != null && !bad && (!best || m < best.m - 2)) best = { i: i, m: m };
+    }
+    $('s1').textContent = best ? (best.i === nowI ? 'Now' : hLabel(rows[best.i].t)) : 'Tomorrow';
+    $('s2').textContent = best ? dur(best.m) : '—';
+    $('s3').textContent = n.dust == null ? '—' : Math.round(n.dust);
+    var max = Math.max.apply(null, cells.map(function (c) { return Math.min(c.m == null ? 600 : c.m, 600); }).concat([60]));
+    $('hrs').innerHTML = cells.map(function (c) {
+      var v = Math.min(c.m == null ? 600 : c.m, 600), cls = (c.i === nowI ? 'now ' : '') + (c.bad ? 'dusty' : best && c.i === best.i ? 'best' : (c.m == null || c.m > 180) ? 'slow' : '');
+      return '<div class="' + cls + '" title="Hang at ' + hLabel(rows[c.i].t) + ': ' + dur(c.m) + (c.bad ? ' (dust or rain while drying)' : '') + '"><span>' + (c.m == null ? '—' : c.m < 60 ? c.m : (c.m / 60).toFixed(1) + 'h') + '</span><i style="height:' + Math.max(3, v / max * 90) + 'px"></i><span>' + (c.i === nowI ? 'now' : hLabel(rows[c.i].t)) + '</span></div>';
+    }).join('');
+    var vpd = es(n.T) * (1 - n.rh / 100);
+    $('now').innerHTML = [[Math.round(n.T) + '°C', 'air, ' + Math.round(n.rh) + '% humidity'], [vpd.toFixed(1) + ' kPa', 'drying power (vapour pressure deficit)'], [Math.round(n.wind * 3.6) + ' km/h', 'wind, sun ' + Math.round(n.sw) + ' W/m²']].map(function (x) { return '<div><b>' + x[0] + '</b><span>' + x[1] + '</span></div>'; }).join('');
+    try { localStorage.setItem('laundryPrefs', JSON.stringify(st)); } catch (e) {}
+  }
+
+  function group(el, list, key) {
+    list.forEach(function (o) {
+      var b = document.createElement('button'); b.className = 'sm'; b.type = 'button'; b.textContent = o.name; b.setAttribute('aria-pressed', st[key] === o.id);
+      b.onclick = function () { st[key] = o.id; [].forEach.call($(el).children, function (x) { x.setAttribute('aria-pressed', x === b); }); render(); };
+      $(el).appendChild(b);
+    });
+  }
+  group('fab', FABRIC, 'fab'); group('spot', SPOT, 'spot');
+  function pick(b) { [].forEach.call(document.querySelectorAll('#where .sm'), function (x) { x.setAttribute('aria-pressed', x === b); }); }
+  PLACES.forEach(function (p, i) {
+    var b = document.createElement('button'); b.className = 'sm'; b.type = 'button'; b.textContent = p[0]; b.setAttribute('aria-pressed', 'false');
+    b.onclick = function () { pick(b); load(p[1], p[2], p[0]); try { localStorage.setItem('laundryPlace', i); } catch (e) {} };
+    $('where').appendChild(b);
+  });
+  $('me').onclick = function () {
+    if (!navigator.geolocation) { $('msg').textContent = 'Your browser can\'t share a location.'; return; }
+    $('msg').textContent = 'Asking for your location…';
+    navigator.geolocation.getCurrentPosition(function (p) { pick($('me')); load(p.coords.latitude.toFixed(3), p.coords.longitude.toFixed(3), 'Your location'); }, function () { $('msg').textContent = 'Location was not shared. Pick a city instead.'; }, { maximumAge: 6e5, timeout: 10000 });
+  };
+  var i0 = 0; try { var s = localStorage.getItem('laundryPlace'); if (s != null && PLACES[+s]) i0 = +s; } catch (e) {}
+  document.querySelectorAll('#where .sm')[i0 + 1].click();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Car in the Shade? · Mariam's Lab</title>
+<meta name="description" content="Mark where you parked and see, for every 10 minutes of today, whether the spot is in the shadow of a building or tree. Find out when the sun will reach your car.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/car-shade/">
+<meta property="og:title" content="Car in the Shade? · Mariam's Lab"><meta property="og:description" content="Will your parked car be in shade? A timeline for today from building shadows."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="stylesheet" href="../assets/vendor/leaflet/leaflet.css">
+<style>
+.leaflet-container { font-family: 'Instrument Sans', sans-serif; background: #0b1020; }
+#map { height: min(58vh, 520px); min-height: 340px; border-radius: var(--radius); border: 1px solid var(--line); }
+#map .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(.85) contrast(.9) saturate(.4); }
+.ctl { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm:hover { border-color: var(--muted); }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; }
+.now-box { padding: 18px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); display: grid; gap: 4px; }
+.now-box b { font-family: var(--font-display); font-size: clamp(1.4rem, 4vw, 2rem); font-weight: 800; line-height: 1.1; }
+.now-box p { margin: 0; color: var(--muted); }
+.stats b { font-family: var(--font-display); font-size: 1.2rem; line-height: 1.15; }
+.stats span { font-size: 0.76rem; color: var(--muted); }
+.tl { display: grid; grid-template-columns: repeat(144, minmax(0, 1fr)); height: 46px; border-radius: 8px; overflow: hidden; border: 1px solid var(--line); cursor: pointer; position: relative; }
+.tl i { display: block; }
+.tl .mk { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--ink); pointer-events: none; }
+.tl .cur { position: absolute; top: -2px; bottom: -2px; width: 3px; background: #E9B467; box-shadow: 0 0 0 1px #070A18; pointer-events: none; }
+.ticks { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 0.68rem; color: var(--muted); }
+.legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 0.76rem; color: var(--muted); }
+.legend span::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-inline-end: 5px; vertical-align: -1px; background: var(--c); }
+.rng { display: grid; gap: 4px; font-size: 0.86rem; }
+.rng span { display: flex; justify-content: space-between; gap: 10px; }
+.rng output { font-family: var(--font-mono); font-size: 0.8rem; color: var(--accent); }
+.rng input { width: 100%; accent-color: var(--accent); }
+.tog { display: flex; gap: 8px; align-items: center; font-size: 0.86rem; color: var(--muted); }
+.tog input { accent-color: var(--accent); width: 16px; height: 16px; }
+.spans { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 0.88rem; }
+.spans li { display: flex; justify-content: space-between; gap: 10px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 8px; }
+.spans li b { font-family: var(--font-mono); font-size: 0.8rem; font-weight: 500; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Outdoors · Sun · Maps</span>
+    <h1 style="font-size:var(--step-3)">Will my car be in the shade?</h1>
+    <p>You found a shady spot at 9 am. By noon the shadow has moved and your steering wheel is too hot to touch. Mark where you parked and this shows, for every 10 minutes of today, whether the spot is in the shadow of a building or a tree, and when that changes.</p>
+  </div>
+  <div class="game">
+    <div class="panel">
+      <div class="ctl">
+        <button class="sm" type="button" id="me">📍 I'm at my car</button>
+        <button class="sm" type="button" id="demo">Try Downtown Dubai</button>
+        <label class="tog"><input type="checkbox" id="trees" checked> Count trees</label>
+      </div>
+      <div id="map" role="application" aria-label="Map. Tap where you parked."></div>
+      <label class="rng"><span>Shadows on the map at <output id="tOut">—</output></span><input type="range" id="t" min="0" max="143" value="0" step="1"></label>
+      <p class="msg" id="msg" role="status">Tap the map where you parked.</p>
+    </div>
+    <div class="panel">
+      <div class="now-box" id="now"><span class="label">Your spot</span><b>Tap the map</b><p>Mark the parking spot to see today's shade.</p></div>
+      <div class="stats">
+        <div><b id="s1">—</b><span>in shade today</span></div>
+        <div><b id="s2">—</b><span>in direct sun</span></div>
+        <div><b id="s3">—</b><span>next change</span></div>
+      </div>
+      <div style="display:grid;gap:6px">
+        <span class="label">Today, every 10 minutes</span>
+        <div class="tl" id="tl" role="img" aria-label="Shade timeline for today"></div>
+        <div class="ticks"><span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>12am</span></div>
+        <div class="legend"><span style="--c:#4FD3BD">Shade</span><span style="--c:#9FB98A">Partly shaded</span><span style="--c:#FFC857">Sun</span><span style="--c:#1d2246">Night</span></div>
+      </div>
+      <ul class="spans" id="spans"></ul>
+      <p class="fact"><b>How it works.</b> For each 10-minute step it finds where the sun is, then casts every nearby building's shadow along the ground: a building of height <i>h</i> throws a shadow <i>h</i> ÷ tan(sun altitude) long, pointing away from the sun. It checks five points around your car. Building heights come from OpenStreetMap, or floors × 3.2 m, or 3 floors if nothing is mapped. Trees are taken as 6 m tall with a 5 m crown unless mapped.</p>
+      <p class="fact">This is an estimate. It doesn't know about car park roofs, shade sails, parking canopies or trees that aren't on the map, so a covered spot will look sunnier here than it is.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script src="../assets/vendor/leaflet/leaflet.js"></script>
+<script src="../assets/sky.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var OVERPASS = 'https://overpass-api.de/api/interpreter';
+  var map = L.map('map', { preferCanvas: true }).setView([25.1972, 55.2744], 16);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap contributors' }).addTo(map);
+  var shadowLayer = L.layerGroup().addTo(map), carMk = null, car = null, data = null, slots = [], day0 = 0;
+  var COL = { shade: '#4FD3BD', part: '#9FB98A', sun: '#FFC857', night: '#1d2246' };
+
+  // local flat projection, origin at the car (metres east, north)
+  var O = [0, 0], KX = 1, KY = 110540;
+  function P(lat, lon) { return [(lon - O[1]) * KX, (lat - O[0]) * KY]; }
+  function U(x, y) { return [y / KY + O[0], x / KX + O[1]]; }
+  function sunAt(ms) { var b = Sky.bodies(ms)[0]; return Sky.toHoriz(b.ra, b.dec, Sky.lst(ms, car.lng), car.lat); }
+  function fmt(ms) { return new Date(ms).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }); }
+  function slotMs(i) { return day0 + i * 600000; }
+
+  function heightOf(t) {
+    var h = parseFloat(t.height); if (isFinite(h) && h > 0) return h;
+    var lv = parseFloat(t['building:levels']); if (isFinite(lv) && lv > 0) return lv * 3.2 + (t.building === 'roof' ? 0 : 1);
+    return t.building === 'roof' ? 4 : 9.6;
+  }
+  function inPoly(x, y, p, dx, dy) {
+    var c = false;
+    for (var i = 0, j = p.length - 1; i < p.length; j = i++) {
+      var xi = p[i][0] + dx, yi = p[i][1] + dy, xj = p[j][0] + dx, yj = p[j][1] + dy;
+      if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c;
+    }
+    return c;
+  }
+  // footprint swept along the shadow vector: footprint, shifted footprint, plus one parallelogram per wall
+  function inBuildingShadow(x, y, p, dx, dy) {
+    if (inPoly(x, y, p, 0, 0) || inPoly(x, y, p, dx, dy)) return true;
+    for (var i = 0; i < p.length - 1; i++) {
+      var ex = p[i + 1][0] - p[i][0], ey = p[i + 1][1] - p[i][1], det = ex * dy - ey * dx;
+      if (Math.abs(det) < 1e-9) continue;
+      var wx = x - p[i][0], wy = y - p[i][1], u = (wx * dy - wy * dx) / det, v = (ex * wy - ey * wx) / det;
+      if (u >= 0 && u <= 1 && v >= 0 && v <= 1) return true;
+    }
+    return false;
+  }
+  function vec(sun, h) { var L = Math.min(h / Math.tan(sun.alt * Math.PI / 180), 800), az = sun.az * Math.PI / 180; return [-Math.sin(az) * L, -Math.cos(az) * L]; }
+  var PTS = [[0, 0], [1.6, 0], [-1.6, 0], [0, 1.6], [0, -1.6]]; // car centre and four points 1.6 m out
+  function shadeFrac(sun) {
+    var useTrees = $('trees').checked, hit = 0;
+    PTS.forEach(function (q) {
+      var x = q[0], y = q[1], s = false;
+      for (var i = 0; i < data.b.length && !s; i++) { var b = data.b[i], d = vec(sun, b.h); if (inBuildingShadow(x, y, b.pts, d[0], d[1])) s = true; }
+      if (!s && useTrees) for (var j = 0; j < data.t.length && !s; j++) {
+        var t = data.t[j], dt = vec(sun, t.h * 0.7); // crown centre at ~70% of tree height
+        if (Math.hypot(x - t.p[0] - dt[0], y - t.p[1] - dt[1]) < t.r) s = true;
+      }
+      if (s) hit++;
+    });
+    return hit / PTS.length;
+  }
+  function state(i) { var s = slots[i]; return s.night ? 'night' : s.f >= 0.8 ? 'shade' : s.f >= 0.4 ? 'part' : 'sun'; }
+  var WORD = { shade: 'In the shade', part: 'Partly shaded', sun: 'In direct sun', night: 'Sun is down' };
+
+  function load() {
+    $('msg').textContent = 'Fetching nearby buildings and trees from OpenStreetMap…';
+    var q = '[out:json][timeout:30];(way["building"](around:400,' + car.lat.toFixed(6) + ',' + car.lng.toFixed(6) + ');node["natural"="tree"](around:40,' + car.lat.toFixed(6) + ',' + car.lng.toFixed(6) + '););out body geom;';
+    fetch(OVERPASS, { method: 'POST', body: 'data=' + encodeURIComponent(q), headers: { 'Content-Type': 'application/x-www-form-urlencoded' } })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (j) {
+        var b = [], t = [];
+        (j.elements || []).forEach(function (e) {
+          var g = e.tags || {};
+          if (e.type === 'way' && g.building && g.building !== 'no' && e.geometry && e.geometry.length >= 4) {
+            var pts = e.geometry.filter(function (p) { return p && isFinite(p.lat); }).map(function (p) { return P(p.lat, p.lon); });
+            if (pts[0][0] !== pts[pts.length - 1][0] || pts[0][1] !== pts[pts.length - 1][1]) pts.push(pts[0]);
+            b.push({ pts: pts, h: heightOf(g) });
+          } else if (e.type === 'node' && g.natural === 'tree') {
+            var th = parseFloat(g.height), cr = parseFloat(g.diameter_crown);
+            t.push({ p: P(e.lat, e.lon), h: isFinite(th) && th > 0 ? th : 6, r: isFinite(cr) && cr > 0 ? cr / 2 : 2.5 });
+          }
+        });
+        data = { b: b, t: t }; compute();
+        $('msg').textContent = b.length + ' buildings and ' + t.length + ' mapped trees nearby.' + (b.length + t.length === 0 ? ' Nothing mapped here, so the spot is in sun all day.' : '');
+      })
+      .catch(function () { $('msg').textContent = 'Couldn\'t reach the OpenStreetMap server (it gets busy). Tap your spot again in a moment.'; });
+  }
+  function setCar(ll) {
+    car = ll; O = [ll.lat, ll.lng]; KX = 111320 * Math.cos(ll.lat * Math.PI / 180);
+    if (carMk) map.removeLayer(carMk);
+    carMk = L.circleMarker(ll, { radius: 8, color: '#070A18', weight: 2, fillColor: '#E9B467', fillOpacity: 1 }).addTo(map).bindTooltip('Your car');
+    try { localStorage.setItem('carShadeSpot', JSON.stringify([ll.lat, ll.lng])); } catch (e) {}
+    data = null; shadowLayer.clearLayers(); load();
+  }
+  function compute() {
+    var d = new Date(); d.setHours(0, 0, 0, 0); day0 = d.getTime();
+    slots = [];
+    for (var i = 0; i < 144; i++) { var ms = slotMs(i) + 300000, sun = sunAt(ms); slots.push(sun.alt <= 0.5 ? { night: true, f: 1 } : { f: shadeFrac(sun) }); }
+    var nowI = Math.min(143, Math.floor((Date.now() - day0) / 600000));
+    $('tl').innerHTML = slots.map(function (s, i) { var st = state(i); return '<i style="background:' + COL[st] + '" title="' + fmt(slotMs(i)) + ': ' + WORD[st] + '"></i>'; }).join('') + '<span class="mk" style="left:' + (nowI / 144 * 100) + '%" title="Now"></span><span class="cur" id="cur"></span>';
+    var sh = 0, su = 0; slots.forEach(function (s, i) { var st = state(i); if (st === 'shade') sh++; else if (st === 'part') { sh += 0.5; su += 0.5; } else if (st === 'sun') su++; });
+    function hrs(n) { var m = Math.round(n * 10); return m < 60 ? m + 'm' : Math.floor(m / 60) + 'h' + (m % 60 ? ' ' + m % 60 + 'm' : ''); }
+    $('s1').textContent = hrs(sh); $('s2').textContent = hrs(su);
+    // next change: first later slot whose state differs (night counts as shade for the car)
+    function bucket(st) { return st === 'night' || st === 'shade' ? 'cool' : st; }
+    var cur = state(nowI), nx = -1;
+    for (var k = nowI + 1; k < 144; k++) if (bucket(state(k)) !== bucket(cur)) { nx = k; break; }
+    $('s3').textContent = nx < 0 ? 'none today' : fmt(slotMs(nx));
+    var line = nx < 0 ? 'No change for the rest of today.' : (state(nx) === 'sun' ? 'Direct sun reaches it at ' : state(nx) === 'part' ? 'Part of the car gets sun from ' : state(nx) === 'night' ? 'The sun sets at about ' : 'Shade arrives at about ') + fmt(slotMs(nx)) + '.';
+    $('now').style.borderColor = COL[cur];
+    $('now').innerHTML = '<span class="label">Right now</span><b style="color:' + (cur === 'night' ? 'var(--sat-a)' : COL[cur]) + '">' + WORD[cur] + '</b><p>' + line + '</p>';
+    // spans list
+    var sp = [], a = 0;
+    for (var m = 1; m <= 144; m++) if (m === 144 || state(m) !== state(a)) { if (state(a) !== 'night') sp.push([a, m, state(a)]); a = m; }
+    $('spans').innerHTML = sp.map(function (s) { return '<li><span style="color:' + COL[s[2]] + '">' + WORD[s[2]] + '</span><b>' + fmt(slotMs(s[0])) + ' to ' + fmt(slotMs(s[1])) + '</b></li>'; }).join('');
+    $('t').value = nowI; draw();
+  }
+  function hull(pts) {
+    pts = pts.slice().sort(function (a, b) { return a[0] - b[0] || a[1] - b[1]; });
+    function cr(o, a, b) { return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]); }
+    var lo = [], up = [], i;
+    for (i = 0; i < pts.length; i++) { while (lo.length >= 2 && cr(lo[lo.length - 2], lo[lo.length - 1], pts[i]) <= 0) lo.pop(); lo.push(pts[i]); }
+    for (i = pts.length - 1; i >= 0; i--) { while (up.length >= 2 && cr(up[up.length - 2], up[up.length - 1], pts[i]) <= 0) up.pop(); up.push(pts[i]); }
+    return lo.slice(0, -1).concat(up.slice(0, -1));
+  }
+  function draw() {
+    var i = +$('t').value, ms = slotMs(i) + 300000;
+    $('tOut').textContent = fmt(slotMs(i)) + (slots.length ? ' · ' + WORD[state(i)].toLowerCase() : '');
+    if ($('cur')) $('cur').style.left = ((i + 0.5) / 144 * 100) + '%';
+    shadowLayer.clearLayers();
+    if (!data || !car) return;
+    var sun = sunAt(ms);
+    if (sun.alt <= 0.5) return;
+    var st = { stroke: false, fillColor: '#141a44', fillOpacity: 0.55, interactive: false };
+    data.b.forEach(function (b) {
+      var d = vec(sun, b.h), pts = b.pts.concat(b.pts.map(function (q) { return [q[0] + d[0], q[1] + d[1]]; }));
+      L.polygon(hull(pts).map(function (q) { return U(q[0], q[1]); }), st).addTo(shadowLayer);
+    });
+    if ($('trees').checked) data.t.forEach(function (t) { var d = vec(sun, t.h * 0.7); L.circle(U(t.p[0] + d[0], t.p[1] + d[1]), { radius: t.r, stroke: false, fillColor: '#1b5e52', fillOpacity: 0.6, interactive: false }).addTo(shadowLayer); });
+    carMk.bringToFront();
+  }
+  $('t').oninput = draw;
+  $('tl').onclick = function (e) { var r = this.getBoundingClientRect(); $('t').value = Math.max(0, Math.min(143, Math.floor((e.clientX - r.left) / r.width * 144))); draw(); };
+  $('trees').onchange = function () { if (data) compute(); };
+  map.on('click', function (e) { setCar(e.latlng); });
+  $('demo').onclick = function () { var ll = L.latLng(25.1949, 55.2785); map.setView(ll, 17); setCar(ll); };
+  $('me').onclick = function () {
+    if (!navigator.geolocation) { $('msg').textContent = 'Your browser can\'t share a location.'; return; }
+    $('msg').textContent = 'Asking for your location…';
+    navigator.geolocation.getCurrentPosition(function (p) { var ll = L.latLng(p.coords.latitude, p.coords.longitude); map.setView(ll, 18); setCar(ll); }, function () { $('msg').textContent = 'Location was not shared. Tap the map instead.'; }, { maximumAge: 3e4, timeout: 10000, enableHighAccuracy: true });
+  };
+  var d0 = new Date(); d0.setHours(0, 0, 0, 0); day0 = d0.getTime(); $('t').value = Math.floor((Date.now() - day0) / 600000); $('tOut').textContent = fmt(slotMs(+$('t').value));
+  try { var s = JSON.parse(localStorage.getItem('carShadeSpot')); if (s && isFinite(s[0])) { map.setView(s, 17); setCar(L.latLng(s[0], s[1])); } } catch (e) {}
+})();
+</script>
+</body>
+</html>
