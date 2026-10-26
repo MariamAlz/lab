@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rain Radar UAE · Mariam's Lab</title>
+<meta name="description" content="Live rain radar over the UAE for the past two hours, animated, with what the colours mean and how to stay safe near wadis and flooded roads.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/rain-radar/">
+<meta property="og:title" content="Rain Radar UAE · Mariam's Lab"><meta property="og:description" content="Live animated rain radar over the UAE, with wadi and flood safety tips."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="stylesheet" href="../assets/vendor/leaflet/leaflet.css">
+<style>
+.leaflet-container { font-family: 'Instrument Sans', sans-serif; background: #0b1020; }
+#map { height: min(64vh, 560px); min-height: 360px; border-radius: var(--radius); border: 1px solid var(--line); }
+.btns { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 10px 0; }
+.player { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; margin: 12px 0 6px; }
+.play { width: 44px; height: 44px; border-radius: 50%; border: 0; background: var(--accent); color: #1a1205; font-size: 1.05rem; cursor: pointer; display: grid; place-items: center; }
+.player input { width: 100%; accent-color: var(--accent); }
+.clock { font-family: var(--font-mono); font-size: 0.9rem; text-align: end; min-width: 6.5em; }
+.clock small { display: block; color: var(--muted); font-size: 0.72rem; }
+.ticks { position: relative; height: 14px; margin: 2px 8px 0; font-family: var(--font-mono); font-size: 0.66rem; color: var(--muted); }
+.ticks span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
+.ramp { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
+.ramp div { display: grid; gap: 4px; align-content: start; font-size: 0.76rem; color: var(--muted); }
+.ramp i { height: 12px; border-radius: 4px; background: var(--c); }
+.ramp b { color: var(--ink); font-weight: 600; font-size: 0.8rem; }
+.safe { margin: 0; padding-left: 1.1em; display: grid; gap: 6px; font-size: 0.9rem; }
+.safe li::marker { color: var(--sat-c); }
+@media (max-width: 520px) { .ramp { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Earth · Weather · Live</span>
+    <h1 style="font-size:var(--step-3)">Rain radar, UAE.</h1>
+    <p>Rain in the UAE is rare, but when it comes it can be heavy and fast. This plays back the last two hours of weather radar so you can see where the storms are and which way they are moving. Press play, or drag the slider to step through time.</p>
+  </div>
+  <div class="btns" id="where"></div>
+  <div class="player">
+    <button class="play" type="button" id="play" aria-label="Play">▶</button>
+    <div style="min-width:0"><input type="range" id="slide" min="0" max="0" value="0" aria-label="Radar time"><div class="ticks" id="ticks" aria-hidden="true"></div></div>
+    <span class="clock" id="clock">--:--<small>loading</small></span>
+  </div>
+  <p class="msg" id="msg" role="status"></p>
+  <div id="map" role="region" aria-label="Rain radar map"></div>
+  <div class="btns" style="margin-top:10px">
+    <label class="sm" style="display:inline-flex;gap:6px;align-items:center"><input type="checkbox" id="cov"> Show where there's no radar</label>
+    <label class="sm" style="display:inline-flex;gap:6px;align-items:center" id="irWrap" hidden><input type="checkbox" id="ir"> Cloud (infrared satellite)</label>
+    <label class="sm" style="display:inline-flex;gap:6px;align-items:center"><input type="checkbox" id="smooth" checked> Smooth</label>
+  </div>
+  <div class="game" style="margin-top:20px">
+    <div class="panel" style="align-content:start">
+      <span class="label">What the colours mean</span>
+      <div class="ramp">
+        <div><i style="--c:#9be1f2"></i><b>Light</b>Drizzle, light shower</div>
+        <div><i style="--c:#1f8fd6"></i><b>Moderate</b>Steady rain, wet roads</div>
+        <div><i style="--c:#ffe24a"></i><b>Heavy</b>Puddles form fast</div>
+        <div><i style="--c:#ff7a2e"></i><b>Very heavy</b>Thunderstorm, flooding likely</div>
+        <div><i style="--c:#ff6fd8"></i><b>Extreme</b>Hail possible</div>
+      </div>
+      <p class="fact" style="margin:0">Radar sends out radio pulses and listens for echoes off raindrops. Bigger and more numerous drops send back more energy, measured in dBZ. Each step of 10 dBZ is ten times more echo, which is why the scale jumps so quickly from drizzle to downpour. The colours are approximate. Radar can also show false echoes near mountains and the coast, and dust in the air can create faint speckles on a clear day.</p>
+      <p class="fact" style="margin:0" id="nowcastNote">Watch the last few frames to see which way a storm is drifting. Storms over the Hajar mountains in summer afternoons often build quickly and stay over the same valleys for an hour or more.</p>
+    </div>
+    <div class="panel" style="align-content:start">
+      <span class="label">Wadis and flooded roads</span>
+      <ul class="safe">
+        <li><b>Stay out of wadis when rain is anywhere upstream.</b> A storm over the mountains can send a flash flood down a dry valley where the sky above you is still blue.</li>
+        <li><b>Don't drive into moving water.</b> About 30 cm of flowing water can float a car. Underpasses fill first.</li>
+        <li><b>Park on high ground</b> and away from wadi beds when camping or hiking in Hatta, Ras Al Khaimah or Fujairah.</li>
+        <li><b>Follow official warnings.</b> The National Center of Meteorology issues yellow, orange and red alerts, and police may close roads and wadis. Those come first, not this map.</li>
+        <li><b>In an emergency call 999.</b></li>
+      </ul>
+      <p class="fact" style="margin:0">Radar images from RainViewer, which combines national weather radar networks. Coverage over the UAE and the sea around it can be patchy; tick "Show where there's no radar" to check. Map © OpenStreetMap contributors, © CARTO.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script src="../assets/vendor/leaflet/leaflet.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var API = 'https://api.rainviewer.com/public/weather-maps.json';
+  var VIEWS = [['Whole UAE', 24.4, 54.6, 7], ['Dubai & Sharjah', 25.2, 55.4, 9], ['Abu Dhabi', 24.4, 54.5, 9], ['East coast & Hajar', 25.3, 56.1, 8], ['Al Ain', 24.2, 55.75, 9], ['Region', 25.5, 55.5, 5]];
+  var map = L.map('map', { zoomControl: true, minZoom: 4, maxZoom: 10 }).setView([24.4, 54.6], 7);
+  map.attributionControl.setPrefix(false);
+  map.createPane('radar'); map.getPane('radar').style.zIndex = 300;
+  map.createPane('labels'); map.getPane('labels').style.zIndex = 450; map.getPane('labels').style.pointerEvents = 'none';
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png', { subdomains: 'abcd', maxZoom: 10, attribution: '© OpenStreetMap, © CARTO' }).addTo(map);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}.png', { subdomains: 'abcd', maxZoom: 10, pane: 'labels' }).addTo(map);
+
+  VIEWS.forEach(function (v, i) {
+    var b = document.createElement('button'); b.className = 'sm'; b.type = 'button'; b.textContent = v[0]; b.setAttribute('aria-pressed', i === 0);
+    b.onclick = function () { map.flyTo([v[1], v[2]], v[3]); [].forEach.call(document.querySelectorAll('#where .sm'), function (x) { x.setAttribute('aria-pressed', x === b); }); };
+    $('where').appendChild(b);
+  });
+
+  var host = '', frames = [], layers = [], cur = -1, playing = false, timer = null, nPast = 0, covLayer = null, irLayer = null, irFrames = [];
+  function smooth() { return $('smooth').checked ? 1 : 0; }
+  function tileUrl(f) { return host + f.path + '/256/{z}/{x}/{y}/2/' + smooth() + '_1.png'; }
+  function makeLayer(f) { return L.tileLayer(tileUrl(f), { pane: 'radar', opacity: 0, maxNativeZoom: 7, maxZoom: 10, tileSize: 256, attribution: 'Radar © RainViewer' }); }
+  function hhmm(t) { return new Date(t * 1000).toLocaleTimeString('en-GB', { timeZone: 'Asia/Dubai', hour: '2-digit', minute: '2-digit' }); }
+  function show(i) {
+    if (!frames.length) return;
+    i = (i + frames.length) % frames.length;
+    // preload the next frame so playback doesn't flicker
+    [i, (i + 1) % frames.length].forEach(function (k) { if (!layers[k]) layers[k] = makeLayer(frames[k]); if (!map.hasLayer(layers[k])) layers[k].addTo(map); });
+    layers.forEach(function (l, k) { if (l) l.setOpacity(k === i ? 0.82 : 0); });
+    cur = i; $('slide').value = i;
+    var f = frames[i], fut = i >= nPast, mins = Math.round((f.time - frames[nPast - 1].time) / 60);
+    $('clock').innerHTML = hhmm(f.time) + '<small>' + (fut ? 'forecast +' + mins + ' min' : i === nPast - 1 ? 'latest' : Math.abs(mins) + ' min ago') + '</small>';
+    $('clock').style.color = fut ? 'var(--sat-b)' : '';
+    if (irLayer && irFrames.length) {
+      var best = irFrames.reduce(function (a, b) { return Math.abs(b.time - f.time) < Math.abs(a.time - f.time) ? b : a; });
+      irLayer.setUrl(host + best.path + '/256/{z}/{x}/{y}/0/0_0.png');
+    }
+  }
+  function setPlay(on) {
+    playing = on; $('play').textContent = on ? '❚❚' : '▶'; $('play').setAttribute('aria-label', on ? 'Pause' : 'Play');
+    clearTimeout(timer);
+    if (on) (function step() { show(cur + 1); timer = setTimeout(step, cur === nPast - 1 || cur === frames.length - 1 ? 1600 : 550); })();
+  }
+  $('play').onclick = function () { setPlay(!playing); };
+  $('slide').oninput = function () { setPlay(false); show(+this.value); };
+  document.addEventListener('keydown', function (e) { if (e.target.tagName === 'INPUT') return; if (e.key === ' ' && document.activeElement === document.body) { setPlay(!playing); e.preventDefault(); } });
+  $('smooth').onchange = function () { layers.forEach(function (l, k) { if (l) l.setUrl(tileUrl(frames[k])); }); };
+  $('cov').onchange = function () {
+    if (this.checked) { covLayer = L.tileLayer(host + '/v2/coverage/0/256/{z}/{x}/{y}/0/0_0.png', { pane: 'radar', opacity: 0.45, maxNativeZoom: 7, maxZoom: 10, zIndex: 5 }).addTo(map); }
+    else if (covLayer) { map.removeLayer(covLayer); covLayer = null; }
+  };
+  $('ir').onchange = function () {
+    if (this.checked && irFrames.length) { irLayer = L.tileLayer('', { pane: 'radar', opacity: 0.55, maxNativeZoom: 7, maxZoom: 10, zIndex: 0 }).addTo(map); show(cur); }
+    else if (irLayer) { map.removeLayer(irLayer); irLayer = null; }
+  };
+
+  function load() {
+    $('msg').textContent = 'Fetching radar frames…';
+    fetch(API).then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(function (j) {
+      var past = (j.radar && j.radar.past) || [], now = (j.radar && j.radar.nowcast) || [];
+      if (!past.length) throw 0;
+      host = j.host || 'https://tilecache.rainviewer.com';
+      layers.forEach(function (l) { if (l) map.removeLayer(l); });
+      frames = past.concat(now); nPast = past.length; layers = new Array(frames.length);
+      irFrames = (j.satellite && j.satellite.infrared) || [];
+      $('irWrap').hidden = !irFrames.length;
+      $('slide').max = frames.length - 1;
+      $('nowcastNote').textContent = now.length ? 'The last ' + now.length + ' frames, with the time in teal, are a short forecast (nowcast) that moves the current rain along its recent track. It is a guess that gets worse with each step, and it can\'t predict new storms forming.' : $('nowcastNote').textContent;
+      // time ticks under the slider
+      $('ticks').innerHTML = [[0, 'translateX(0)'], [nPast - 1, nPast === frames.length ? 'translateX(-100%)' : 'translateX(-50%)'], [frames.length - 1, 'translateX(-100%)']].filter(function (x, k) { return k < 2 || (x[0] - nPast + 1) / Math.max(1, frames.length - 1) > 0.3; }).map(function (x) { return '<span style="left:' + (x[0] / Math.max(1, frames.length - 1) * 100) + '%;transform:' + x[1] + '">' + (x[0] === nPast - 1 && nPast < frames.length ? 'now ' : '') + hhmm(frames[x[0]].time) + '</span>'; }).join('');
+      $('msg').textContent = past.length + ' radar frames' + (now.length ? ' plus ' + now.length + ' forecast frames' : '') + ', every 10 minutes. Times are UAE time. Updated ' + hhmm(j.generated || past[past.length - 1].time) + '.';
+      show(nPast - 1);
+      setTimeout(load, 10 * 60 * 1000);
+    }).catch(function () { $('msg').textContent = 'Couldn\'t reach the radar service. Check your connection and try again shortly.'; $('clock').innerHTML = '--:--<small>no data</small>'; setTimeout(load, 60 * 1000); });
+  }
+  load();
+})();
+</script>
+</body>
+</html>

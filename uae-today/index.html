@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>UAE From Space Today · Mariam's Lab</title>
+<meta name="description" content="Today's satellite photo of the UAE from NASA, with a date picker and a guide to spotting dust storms, fog, cloud and algal blooms.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/uae-today/">
+<meta property="og:title" content="UAE From Space Today · Mariam's Lab"><meta property="og:description" content="Today's NASA satellite view of the UAE, and how to spot dust, fog and blooms."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="stylesheet" href="../assets/vendor/leaflet/leaflet.css">
+<style>
+.leaflet-container { font-family: 'Instrument Sans', sans-serif; background: #0b1020; }
+#map { height: min(68vh, 600px); min-height: 380px; border-radius: var(--radius); border: 1px solid var(--line); }
+.btns { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 8px; }
+.btns .label { margin-inline-end: 4px; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.sm:disabled { opacity: .4; cursor: default; }
+.datebar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
+.datebar input[type=date] { font: inherit; font-size: 0.9rem; background: transparent; color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 5px 8px; color-scheme: dark; }
+.datebar b { font-family: var(--font-display); font-size: 1.15rem; }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 8px 0; }
+.guide { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.guide li { padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; font-size: 0.9rem; display: grid; grid-template-columns: 14px minmax(0, 1fr); gap: 10px; cursor: pointer; }
+.guide li:hover, .guide li:focus-visible { border-color: var(--accent); }
+.guide i { width: 14px; height: 14px; border-radius: 4px; margin-top: 3px; background: var(--c); }
+.guide b { display: block; }
+.guide small { color: var(--muted); font-size: 0.83rem; }
+.guide em { font-style: normal; color: var(--accent); font-size: 0.78rem; font-family: var(--font-mono); }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Space · Earth · Live</span>
+    <h1 style="font-size:var(--step-3)">The UAE from space, today.</h1>
+    <p>Four NASA and NOAA satellites photograph the whole country every day, and the pictures are online within a few hours. Look for dust blowing in from the north-west, fog over the coast on winter mornings, and green or red patches in the sea. Pick a satellite and a day, then zoom in.</p>
+  </div>
+  <div class="datebar">
+    <button class="sm" type="button" id="prev" aria-label="Previous day">◀ Day before</button>
+    <input type="date" id="date" aria-label="Date">
+    <button class="sm" type="button" id="next" aria-label="Next day">Day after ▶</button>
+    <button class="sm" type="button" id="today">Latest</button>
+  </div>
+  <div class="btns" id="sats"><span class="label">Satellite</span></div>
+  <div class="btns">
+    <label class="sm" style="display:inline-flex;gap:6px;align-items:center"><input type="checkbox" id="lab" checked> Place names</label>
+  </div>
+  <p class="msg" id="msg" role="status"></p>
+  <div id="map" role="region" aria-label="Satellite image map"></div>
+  <div class="game" style="margin-top:20px">
+    <div class="panel" style="align-content:start">
+      <span class="label">What to look for · tap to zoom there</span>
+      <ul class="guide" id="guide"></ul>
+    </div>
+    <div class="panel" style="align-content:start">
+      <span class="label">About the pictures</span>
+      <p class="fact" style="margin:0"><b>Morning or afternoon.</b> Terra passes over the UAE in the morning, and Aqua, Suomi NPP and NOAA-20 in the early afternoon. Morning is better for fog, afternoon for dust that builds up as the ground heats.</p>
+      <p class="fact" style="margin:0"><b>Why there are stripes or black wedges.</b> Each satellite sees a strip about 2,300 to 3,000 km wide. Some days the UAE falls at the edge of a strip, where the view is stretched and hazy, or in a gap between two passes. Try another satellite for the same day.</p>
+      <p class="fact" style="margin:0"><b>The "false colour" view</b> uses infrared light that people can't see. Cloud made of ice turns bright cyan, vegetation turns green, bare desert is pinkish brown and dust stays a soft beige. It helps tell high cloud from a dust plume when both look white in true colour.</p>
+      <p class="fact" style="margin:0">Imagery from NASA GIBS and Worldview: MODIS on Terra and Aqua, VIIRS on Suomi NPP and NOAA-20. Each pixel is about 250 to 500 metres, so you'll see islands and cities, not buildings. Place names © OpenStreetMap contributors, © CARTO.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script src="../assets/vendor/leaflet/leaflet.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var GIBS = 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/';
+  var SATS = [
+    ['VIIRS_NOAA20_CorrectedReflectance_TrueColor', 'NOAA-20', 'about 1:30 pm', 'jpg'],
+    ['VIIRS_SNPP_CorrectedReflectance_TrueColor', 'Suomi NPP', 'about 1:30 pm', 'jpg'],
+    ['MODIS_Aqua_CorrectedReflectance_TrueColor', 'Aqua', 'early afternoon', 'jpg'],
+    ['MODIS_Terra_CorrectedReflectance_TrueColor', 'Terra', 'mid-morning', 'jpg'],
+    ['MODIS_Terra_CorrectedReflectance_Bands721', 'False colour (Terra)', 'mid-morning', 'jpg']
+  ];
+  var GUIDE = [
+    ['#d9b77a', 'Dust storms', 'A soft beige or brown veil that hides the ground and spills out over the blue sea. Shamal winds push it from Iraq and Kuwait down the Gulf, so look to the north-west first. Summer is the main season.', 'North-west Gulf', 26.5, 52.5, 6],
+    ['#f2f4f8', 'Fog', 'Smooth, flat, bright white that hugs the coast and low ground, with sharp edges that follow the shoreline. It shows up best on the morning (Terra) picture between November and February, and is often gone by the afternoon pass.', 'Abu Dhabi coast', 24.3, 54.4, 8],
+    ['#c8d6ea', 'Cloud', 'Lumpy, textured white that casts shadows. Summer storm clouds bubble up over the Hajar mountains on the east side in the afternoon. Thin high cloud looks like brush strokes you can see the ground through.', 'Hajar mountains', 25.0, 56.1, 8],
+    ['#3f9e6b', 'Algal blooms', 'Swirls of green, brown or rusty red in the sea, often off the east coast in the Gulf of Oman in winter. A large "red tide" bloom here in 2008 to 2009 closed beaches and forced some desalination plants to shut down for a while.', 'Gulf of Oman', 25.2, 56.8, 8],
+    ['#6fd3e0', 'Bright turquoise sea', 'Not a bloom. The southern Gulf is very shallow, so sunlight reflects off white sand and coral near the surface. The lighter the blue, the shallower the water.', 'Western islands', 24.2, 53.2, 8],
+    ['#b97a4c', 'Sand and sabkha', 'Red-orange dunes of the Rub\' al Khali to the south, and pale white salt flats (sabkha) along the western coast. The green dots in Liwa and Al Ain are farms and date palms.', 'Liwa', 23.1, 53.8, 8]
+  ];
+  // last date a satellite's daily picture is likely to be complete: pictures are dated in UTC and appear a few hours after the afternoon pass
+  function latest() { var n = new Date(); var d = new Date(Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), n.getUTCDate())); if (n.getUTCHours() < 12) d = new Date(d.getTime() - 864e5); return d; }
+  function ymd(d) { return d.toISOString().slice(0, 10); }
+  var st = { sat: 0, date: latest() };
+  try { var s = +localStorage.getItem('uaeTodaySat'); if (SATS[s]) st.sat = s; } catch (e) {}
+
+  var map = L.map('map', { zoomControl: true, minZoom: 4, maxZoom: 9 }).setView([24.4, 54.5], 7);
+  map.attributionControl.setPrefix(false);
+  map.createPane('labels'); map.getPane('labels').style.zIndex = 450; map.getPane('labels').style.pointerEvents = 'none';
+  var labels = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}.png', { subdomains: 'abcd', maxZoom: 9, pane: 'labels', attribution: '© OpenStreetMap, © CARTO' }).addTo(map);
+  $('lab').onchange = function () { if (this.checked) labels.addTo(map); else map.removeLayer(labels); };
+  var img = null;
+
+  function draw() {
+    var S = SATS[st.sat], d = ymd(st.date);
+    if (img) map.removeLayer(img);
+    var errs = 0, oks = 0;
+    img = L.tileLayer(GIBS + S[0] + '/default/' + d + '/GoogleMapsCompatible_Level9/{z}/{y}/{x}.' + S[3], { maxNativeZoom: 9, maxZoom: 9, attribution: 'NASA GIBS · ' + S[1] });
+    var mine = img;
+    img.on('tileerror', function () { errs++; if (errs >= 4 && !oks && mine === img) $('msg').textContent = 'No picture from ' + S[1] + ' for ' + d + '.' + (st.date.getTime() >= latest().getTime() ? ' Pictures appear a few hours after the satellite passes.' : ' The satellite may have been off or in maintenance that day.') + ' Try the day before or another satellite.'; });
+    img.on('tileload', function () { oks++; });
+    img.on('load', function () { if (mine === img && oks) $('msg').textContent = S[1] + ', ' + new Date(d + 'T00:00:00Z').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }) + ', passing ' + S[2] + ' UAE time.'; });
+    img.addTo(map);
+    $('msg').textContent = 'Loading ' + S[1] + ' for ' + d + '…';
+    $('date').value = d;
+    $('next').disabled = st.date.getTime() >= latest().getTime() + 864e5;
+    [].forEach.call(document.querySelectorAll('#sats .sm'), function (b, i) { b.setAttribute('aria-pressed', i === st.sat); });
+  }
+  SATS.forEach(function (S, i) {
+    var b = document.createElement('button'); b.className = 'sm'; b.type = 'button'; b.textContent = S[1]; b.title = 'Passes ' + S[2];
+    b.onclick = function () { st.sat = i; try { localStorage.setItem('uaeTodaySat', i); } catch (e) {} draw(); };
+    $('sats').appendChild(b);
+  });
+  $('date').min = '2012-01-20';
+  $('date').max = ymd(new Date(latest().getTime() + 864e5));
+  $('date').onchange = function () { if (!this.value) return; st.date = new Date(this.value + 'T00:00:00Z'); draw(); };
+  $('prev').onclick = function () { st.date = new Date(st.date.getTime() - 864e5); draw(); };
+  $('next').onclick = function () { st.date = new Date(st.date.getTime() + 864e5); draw(); };
+  $('today').onclick = function () { st.date = latest(); draw(); };
+
+  $('guide').innerHTML = GUIDE.map(function (g, i) { return '<li tabindex="0" data-i="' + i + '"><i style="--c:' + g[0] + '"></i><span><b>' + g[1] + '</b><small>' + g[2] + '</small> <em>→ ' + g[3] + '</em></span></li>'; }).join('');
+  function go(e) { var li = e.target.closest('[data-i]'); if (!li) return; var g = GUIDE[+li.dataset.i]; map.flyTo([g[4], g[5]], g[6]); $('map').scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+  $('guide').addEventListener('click', go);
+  $('guide').addEventListener('keydown', function (e) { if (e.key === 'Enter') go(e); });
+  draw();
+})();
+</script>
+</body>
+</html>

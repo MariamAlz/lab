@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Space Weather Now · Mariam's Lab</title>
+<meta name="description" content="Space weather right now from NOAA, in plain words: what today's geomagnetic and solar activity means for GPS accuracy, HF radio and satellites.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/space-weather/">
+<meta property="og:title" content="Space Weather Now · Mariam's Lab"><meta property="og:description" content="What the Sun is doing to GPS, radio and satellites today, in plain words."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 10px 0; }
+.top { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 24px; align-items: center; margin-bottom: 18px; }
+@media (max-width: 700px) { .top { grid-template-columns: 1fr; } }
+.gauge { width: 100%; max-width: 300px; justify-self: center; display: block; }
+.gauge text { font-family: var(--font-mono); fill: var(--muted); font-size: 11px; }
+.gauge .big { font-family: var(--font-display); font-weight: 800; font-size: 46px; fill: var(--ink); }
+.headline { display: grid; gap: 8px; }
+.headline b { font-family: var(--font-display); font-size: clamp(1.4rem, 4vw, 2.1rem); font-weight: 800; line-height: 1.12; }
+.headline p { margin: 0; color: var(--muted); }
+.impact { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.impact li { padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); display: grid; gap: 4px; border-left: 4px solid var(--c, var(--line)); }
+.impact li b { font-family: var(--font-display); font-size: 1.05rem; }
+.impact li em { font-style: normal; font-family: var(--font-mono); font-size: 0.78rem; color: var(--c); }
+.impact li span { color: var(--muted); font-size: 0.9rem; }
+.chart { width: 100%; height: auto; display: block; }
+.chart text { font-family: var(--font-mono); font-size: 10px; fill: var(--muted); }
+.legend { display: flex; gap: 10px; flex-wrap: wrap; font-size: 0.75rem; color: var(--muted); }
+.legend span::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-inline-end: 4px; vertical-align: -1px; background: var(--c); }
+.alerts { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; font-size: 0.86rem; }
+.alerts li { padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; }
+.alerts small { display: block; color: var(--muted); font-family: var(--font-mono); font-size: 0.72rem; margin-bottom: 2px; }
+.stats small { color: var(--muted); font-size: 0.74rem; }
+@media (max-width: 520px) { .stats b { font-size: 1.15rem; } .stats span { font-size: 0.8rem; } }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Space · GNSS · Signals · Live</span>
+    <h1 style="font-size:var(--step-3)">Space weather now.</h1>
+    <p>The Sun constantly throws out light, particles and magnetic fields. When it gets stormy, the upper atmosphere is disturbed, and that can bend GPS signals, black out long-range radio and drag on satellites. This reads NOAA's live space weather data and explains what today's levels mean.</p>
+  </div>
+  <div class="top">
+    <svg class="gauge" id="gauge" viewBox="0 0 300 192" role="img" aria-label="Kp index gauge"></svg>
+    <div class="headline" id="headline"><b>Loading…</b></div>
+  </div>
+  <p class="msg" id="msg" role="status"></p>
+  <div class="stats" id="stats"></div>
+  <div class="game" style="margin-top:20px">
+    <div class="panel" style="align-content:start">
+      <span class="label">What it means right now</span>
+      <ul class="impact" id="impact"></ul>
+      <span class="label" style="margin-top:6px">Geomagnetic activity · past day and next 3 days (Kp)</span>
+      <svg class="chart" id="chart" viewBox="0 0 640 220" role="img" aria-label="Kp index bar chart"></svg>
+      <div class="legend"><span style="--c:#4fd3bd">Quiet (0–3)</span><span style="--c:#ffc857">Unsettled (4)</span><span style="--c:#ff8a4c">Minor storm G1 (5)</span><span style="--c:#ff4f6d">Moderate or worse G2+ (6–9)</span><span style="--c:rgba(167,173,203,.35)">Forecast bars are paler</span></div>
+    </div>
+    <div class="panel" style="align-content:start">
+      <span class="label">Latest NOAA alerts</span>
+      <ul class="alerts" id="alerts"><li>Loading…</li></ul>
+      <p class="fact" style="margin:0"><b>Why the UAE gets its own kind of GPS trouble.</b> The UAE sits under the northern edge of a band of extra-dense ionosphere that follows the magnetic equator. In the hours after sunset, especially in spring and autumn and in years near solar maximum, this layer can break into bubbles that make satellite signals twinkle, a bit like stars twinkling through hot air. Phones barely notice, but precise GPS used for surveying, farming, drones and aviation can lose accuracy, even on days when Kp is low.</p>
+    </div>
+  </div>
+  <div class="game" style="margin-top:20px">
+    <p class="fact" style="margin:0"><b>Kp</b> is a 0 to 9 score of how disturbed Earth's magnetic field is, updated every three hours from magnetometers around the world. NOAA turns Kp 5 to 9 into storm levels G1 to G5. <b>X-ray flares</b> (classes A, B, C, M, X, each ten times stronger than the last) affect the sunlit side of Earth within minutes and set the radio blackout level R1 to R5.</p>
+    <p class="fact" style="margin:0">This page is for general interest and learning. For aviation, marine or survey work, follow official NOTAMs, notices and your equipment's own integrity warnings. Data from NOAA's Space Weather Prediction Center, refreshed every ten minutes.</p>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var S = 'https://services.swpc.noaa.gov/';
+  var URLS = {
+    kp: S + 'products/noaa-planetary-k-index.json',
+    fc: S + 'products/noaa-planetary-k-index-forecast.json',
+    plasma: S + 'products/solar-wind/plasma-1-day.json',
+    mag: S + 'products/solar-wind/mag-1-day.json',
+    xray: S + 'json/goes/primary/xrays-1-day.json',
+    alerts: S + 'products/alerts.json',
+    scales: S + 'products/noaa-scales.json'
+  };
+  var lastChart = null;
+  var KCOL = function (k) { k = Math.round(k); return k >= 6 ? '#ff4f6d' : k >= 5 ? '#ff8a4c' : k >= 4 ? '#ffc857' : '#4fd3bd'; };
+  function get(u) { return fetch(u).then(function (r) { if (!r.ok) throw 0; return r.json(); }).catch(function () { return null; }); }
+  // SWPC "products" files are a header row then data rows; newer files may be arrays of objects. Normalise to objects.
+  function rows(j) {
+    if (!j || !j.length) return [];
+    if (Array.isArray(j[0])) { var h = j[0]; return j.slice(1).map(function (r) { var o = {}; h.forEach(function (k, i) { o[k] = r[i]; }); return o; }); }
+    return j;
+  }
+  function num(v) { var n = parseFloat(v); return isFinite(n) ? n : null; }
+  function t(s) { if (!s) return null; s = String(s).replace(' ', 'T'); if (!/Z|[+-]\d\d:?\d\d$/.test(s)) s += 'Z'; return new Date(s); }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function uae(d, opt) { return d.toLocaleString('en-GB', Object.assign({ timeZone: 'Asia/Dubai' }, opt || { weekday: 'short', hour: '2-digit', minute: '2-digit' })); }
+  function flareClass(f) {
+    if (f == null || f <= 0) return null;
+    var cls = f >= 1e-4 ? 'X' : f >= 1e-5 ? 'M' : f >= 1e-6 ? 'C' : f >= 1e-7 ? 'B' : 'A';
+    var base = { X: 1e-4, M: 1e-5, C: 1e-6, B: 1e-7, A: 1e-8 }[cls];
+    return cls + (f / base).toFixed(1);
+  }
+
+  function gauge(kp) {
+    var cx = 150, cy = 160, r = 120, out = [];
+    function pt(v, rr) { var a = Math.PI * (1 - v / 9); return [cx + rr * Math.cos(a), cy - rr * Math.sin(a)]; }
+    function arc(a, b, col) { var p = pt(a, r), q = pt(b, r); return '<path d="M' + p[0].toFixed(1) + ' ' + p[1].toFixed(1) + ' A' + r + ' ' + r + ' 0 0 1 ' + q[0].toFixed(1) + ' ' + q[1].toFixed(1) + '" stroke="' + col + '" stroke-width="20" fill="none"/>'; }
+    out.push(arc(0, 3.95, '#4fd3bd'), arc(4.05, 4.95, '#ffc857'), arc(5.05, 5.95, '#ff8a4c'), arc(6.05, 9, '#ff4f6d'));
+    for (var i = 0; i <= 9; i++) { var p = pt(i, r - 24); out.push('<text x="' + p[0].toFixed(1) + '" y="' + (p[1] + 4).toFixed(1) + '" text-anchor="middle">' + i + '</text>'); }
+    if (kp != null) {
+      var n = pt(Math.min(9, kp), r + 12), m = pt(Math.min(9, kp), r - 36);
+      out.push('<line x1="' + m[0].toFixed(1) + '" y1="' + m[1].toFixed(1) + '" x2="' + n[0].toFixed(1) + '" y2="' + n[1].toFixed(1) + '" stroke="#EEF0FA" stroke-width="5" stroke-linecap="round"/>');
+    }
+    out.push('<text class="big" x="' + cx + '" y="' + (cy + 4) + '" text-anchor="middle" dy="-8">' + (kp == null ? '–' : kp.toFixed(kp % 1 ? 1 : 0)) + '</text>');
+    out.push('<text x="' + cx + '" y="186" text-anchor="middle">Kp index now</text>');
+    $('gauge').innerHTML = out.join('');
+  }
+
+  function chart(list) {
+    var W = Math.max(300, Math.round($('chart').getBoundingClientRect().width) || 640), H = 220, L = 26, R = 6, T = 12, B = 34, now = Date.now();
+    if (!list.length) { $('chart').innerHTML = '<text x="20" y="40">No Kp data</text>'; return; }
+    var t0 = list[0].t.getTime(), t1 = list[list.length - 1].t.getTime() + 3 * 3600e3;
+    var x = function (tt) { return L + (tt - t0) / (t1 - t0) * (W - L - R); }, y = function (k) { return T + (9 - k) / 9 * (H - T - B); };
+    var o = [];
+    for (var k = 0; k <= 9; k += 3) o.push('<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(k) + '" y2="' + y(k) + '" stroke="rgba(120,132,190,.18)"/><text x="' + (L - 6) + '" y="' + (y(k) + 3) + '" text-anchor="end">' + k + '</text>');
+    o.push('<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(5) + '" y2="' + y(5) + '" stroke="#ff8a4c" stroke-dasharray="3 4" opacity=".6"/><text x="' + (W - R) + '" y="' + (y(5) - 4) + '" text-anchor="end" style="fill:#ff8a4c">storm</text>');
+    var bw = (W - L - R) / list.length;
+    list.forEach(function (d) {
+      var xx = x(d.t.getTime()), hh = Math.max(1.5, y(0) - y(d.kp));
+      o.push('<rect x="' + (xx + 1).toFixed(1) + '" y="' + (y(0) - hh).toFixed(1) + '" width="' + Math.max(1, bw - 2).toFixed(1) + '" height="' + hh.toFixed(1) + '" rx="2" fill="' + KCOL(d.kp) + '" opacity="' + (d.fc ? 0.42 : 0.95) + '"><title>' + uae(d.t) + ' UAE: Kp ' + d.kp.toFixed(2) + (d.fc ? ' (forecast)' : '') + '</title></rect>');
+    });
+    // day labels at UAE midnight
+    var d0 = new Date(t0); d0 = new Date(Date.UTC(d0.getUTCFullYear(), d0.getUTCMonth(), d0.getUTCDate()) - 4 * 3600e3);
+    for (var d = d0.getTime(); d < t1; d += 864e5) {
+      if (d < t0) continue;
+      o.push('<line x1="' + x(d) + '" x2="' + x(d) + '" y1="' + T + '" y2="' + (y(0) + 4) + '" stroke="rgba(120,132,190,.25)"/><text x="' + (x(d) + 4) + '" y="' + (H - 16) + '">' + uae(new Date(d), { weekday: 'short', day: 'numeric' }) + '</text>'.replace(/<text[^>]*>[^<]*<\/text>$/, x(d) > W - 44 ? '' : '$&'));
+    }
+    if (now > t0 && now < t1) o.push('<line x1="' + x(now) + '" x2="' + x(now) + '" y1="' + T + '" y2="' + y(0) + '" stroke="#E9B467" stroke-width="2"/><text x="' + (x(now) + 4) + '" y="' + (T + 10) + '" style="fill:#E9B467">now</text>');
+    o.push('<text x="' + L + '" y="' + (H - 2) + '">UAE time · 3-hour blocks</text>');
+    $('chart').setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    $('chart').innerHTML = o.join('');
+  }
+
+  function render(D) {
+    var kpRows = rows(D.kp).map(function (r) { return { t: t(r.time_tag), kp: num(r.Kp != null ? r.Kp : r.kp != null ? r.kp : r.kp_index) }; }).filter(function (r) { return r.t && r.kp != null; });
+    var fcRows = rows(D.fc).map(function (r) { return { t: t(r.time_tag), kp: num(r.kp != null ? r.kp : r.Kp), fc: r.observed === 'predicted' }; }).filter(function (r) { return r.t && r.kp != null; });
+    var latest = kpRows.length ? kpRows[kpRows.length - 1] : null;
+    if (!latest) { var obs = fcRows.filter(function (r) { return !r.fc; }); latest = obs[obs.length - 1] || null; }
+    var kp = latest ? latest.kp : null, K = kp == null ? null : Math.round(kp); // 4.67 is "5-", which already counts as G1
+    gauge(kp);
+    // chart: last 24h of observed + forecast
+    var cut = Date.now() - 864e5;
+    lastChart = fcRows.filter(function (r) { return r.t.getTime() >= cut - 3 * 3600e3; });
+    chart(lastChart);
+    var maxFc = fcRows.filter(function (r) { return r.fc; }).reduce(function (m, r) { return Math.max(m, r.kp); }, 0);
+
+    // solar wind
+    var pl = rows(D.plasma).filter(function (r) { return num(r.speed) != null; }), mg = rows(D.mag).filter(function (r) { return num(r.bz_gsm) != null; });
+    var sp = pl.length ? num(pl[pl.length - 1].speed) : null, dens = pl.length ? num(pl[pl.length - 1].density) : null;
+    var bz = mg.length ? num(mg[mg.length - 1].bz_gsm) : null;
+    // x-ray: long channel (0.1-0.8 nm), latest value and 24 h max
+    var xr = (D.xray || []).filter(function (r) { return r.energy === '0.1-0.8nm' && num(r.flux) != null; });
+    var xNow = xr.length ? num(xr[xr.length - 1].flux) : null, xMax = xr.reduce(function (m, r) { return Math.max(m, num(r.flux)); }, 0) || null;
+    var sc = D.scales && D.scales['0'];
+    var gS = sc && sc.G ? +sc.G.Scale || 0 : kp != null ? Math.max(0, K - 4) : 0;
+    var rS = sc && sc.R ? +sc.R.Scale || 0 : 0, sS = sc && sc.S ? +sc.S.Scale || 0 : 0;
+
+    $('stats').innerHTML = [
+      [sp != null ? Math.round(sp) + ' km/s' : '–', 'solar wind speed', sp == null ? '' : sp > 600 ? 'fast' : sp > 450 ? 'a bit fast' : 'normal'],
+      [bz != null ? (bz > 0 ? '+' : '') + bz.toFixed(1) + ' nT' : '–', 'magnetic field Bz', bz == null ? '' : bz < -10 ? 'strongly south: storm fuel' : bz < -5 ? 'southward' : 'calm'],
+      [flareClass(xNow) || '–', 'X-rays now', xMax ? '24 h peak ' + flareClass(xMax) : '']
+    ].map(function (s) { return '<div><b>' + s[0] + '</b><span>' + s[1] + '</span><small>' + s[2] + '</small></div>'; }).join('');
+
+    // headline
+    var word = kp == null ? 'No reading' : K >= 7 ? 'Strong geomagnetic storm' : K >= 5 ? 'Geomagnetic storm' : K >= 4 ? 'Unsettled' : 'Quiet';
+    var hcol = kp == null ? 'var(--muted)' : KCOL(kp);
+    $('headline').innerHTML = '<span class="label">Right now' + (latest ? ' · ' + uae(latest.t) + ' UAE' : '') + '</span><b style="color:' + hcol + '">' + word + (gS ? ' (G' + gS + ')' : '') + '</b><p>' + (kp == null ? 'The Kp feed did not answer.' : K >= 5 ? 'Earth\'s magnetic field is being shaken by the solar wind. Precise GPS and HF radio can be affected for hours.' : K >= 4 ? 'A little more activity than usual. Everyday GPS is fine.' : 'Space weather is calm. Your phone\'s GPS should be as good as it gets.') + (maxFc ? ' Highest Kp forecast in the next 3 days: <b style="font-size:inherit;color:' + KCOL(maxFc) + '">' + maxFc.toFixed(1) + '</b>' + (maxFc >= 5 ? ', a storm watch.' : '.') : '') + '</p>';
+
+    // impacts
+    var gps, hf, sat;
+    if (kp == null) gps = ['var(--muted)', 'Unknown', 'No Kp reading right now.'];
+    else if (K >= 7) gps = ['#ff4f6d', 'Degraded', 'Precise GPS (survey, farming, drones) may be off by metres or lose its fix. Phones and car navigation may wander a little more than usual. Aviation systems that use GPS corrections may flag warnings.'];
+    else if (K >= 5) gps = ['#ff8a4c', 'Some errors possible', 'Phones are fine. High-precision users may see slower fixes and errors of tens of centimetres to a few metres, mostly after dark.'];
+    else gps = ['#4fd3bd', 'Normal', 'Phones get the usual 3 to 5 metres outdoors. Any error you see is far more likely to be tall buildings, a cheap antenna or interference than the Sun.' + (K >= 4 ? ' Slightly unsettled conditions only matter for centimetre-level work.' : '')];
+    var xc = flareClass(xNow) || '', rNow = xNow >= 1e-3 ? 5 : xNow >= 1e-4 ? 3 : xNow >= 5e-5 ? 2 : xNow >= 1e-5 ? 1 : 0; rNow = Math.max(rNow, rS);
+    if (xNow == null && !sc) hf = ['var(--muted)', 'Unknown', 'No X-ray reading right now.'];
+    else if (rNow >= 3) hf = ['#ff4f6d', 'Blackout on the day side (R' + rNow + ')', 'A strong flare is under way. Long-distance HF radio on the sunlit half of Earth can fade out for an hour or more. Ships and aircraft switch to satellite links.'];
+    else if (rNow >= 1) hf = ['#ff8a4c', 'Minor fade-outs (R' + rNow + ')', 'A medium flare can weaken HF signals on the sunlit side for minutes to an hour. Radio amateurs notice; most people don\'t.'];
+    else hf = [K >= 5 ? '#ffc857' : '#4fd3bd', K >= 5 ? 'Patchy at night' : 'Normal', (xc ? 'X-rays are at ' + xc + ', no flare blackout. ' : '') + (K >= 5 ? 'The storm can make HF paths noisy and unreliable, especially at night and on routes toward the poles.' : 'Long-distance HF radio conditions are normal.')];
+    if (sS >= 2 || K >= 7) sat = ['#ff4f6d', 'Under stress', 'The heated upper atmosphere puffs up and drags on low satellites, nudging their orbits. ' + (sS >= 1 ? 'There is also a solar radiation storm (S' + sS + '), which can upset electronics and raise doses on polar flights.' : 'Operators may see charging and glitches.')];
+    else if (sS >= 1 || K >= 5) sat = ['#ff8a4c', 'Some effects', (sS >= 1 ? 'A minor solar radiation storm (S1) is in progress. ' : '') + 'Low satellites feel a bit more drag. Satellite TV and internet should be fine.'];
+    else sat = ['#4fd3bd', 'Normal', 'Satellites, including the UAE\'s own Earth observation and communication satellites, are operating in calm conditions.'];
+    $('impact').innerHTML = [['GPS and positioning', gps], ['HF radio', hf], ['Satellites', sat]].map(function (x) { return '<li style="--c:' + x[1][0] + '"><b>' + x[0] + '</b><em>' + x[1][1] + '</em><span>' + x[1][2] + '</span></li>'; }).join('');
+
+    // alerts
+    var al = (D.alerts || []).slice().sort(function (a, b) { return (t(b.issue_datetime) || 0) - (t(a.issue_datetime) || 0); }).slice(0, 5);
+    $('alerts').innerHTML = al.length ? al.map(function (a) {
+      var m = String(a.message || ''), title = (m.match(/^(ALERT|WARNING|WATCH|SUMMARY|EXTENDED WARNING|CANCEL[^:]*):?\s*(.*)$/m) || [])[0] || m.split('\n').filter(function (l) { return l.trim(); })[2] || 'Notice';
+      var d = t(a.issue_datetime);
+      return '<li><small>' + (d ? uae(d, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) + ' UAE' : '') + '</small>' + esc(title.slice(0, 160)) + '</li>';
+    }).join('') : '<li>No recent alerts.</li>';
+  }
+
+  function load() {
+    $('msg').textContent = 'Reading NOAA space weather data…';
+    var keys = Object.keys(URLS);
+    Promise.all(keys.map(function (k) { return get(URLS[k]); })).then(function (res) {
+      var D = {}; keys.forEach(function (k, i) { D[k] = res[i]; });
+      var ok = res.filter(Boolean).length;
+      if (!ok) { $('msg').textContent = 'Couldn\'t reach NOAA\'s data service. Check your connection and try again shortly.'; $('headline').innerHTML = '<b>No data</b>'; gauge(null); return; }
+      render(D);
+      $('msg').textContent = 'Updated ' + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) + (ok < keys.length ? '. Some feeds didn\'t answer, so parts may be missing.' : '.');
+    });
+  }
+  var rz; window.addEventListener('resize', function () { clearTimeout(rz); rz = setTimeout(function () { if (lastChart) chart(lastChart); }, 200); });
+  gauge(null);
+  load();
+  setInterval(load, 10 * 60 * 1000);
+})();
+</script>
+</body>
+</html>

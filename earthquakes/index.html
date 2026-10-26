@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Did I Feel That? · Mariam's Lab</title>
+<meta name="description" content="Live earthquakes around the UAE from USGS, with an estimate of how strongly each one might have been felt where you are.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/earthquakes/">
+<meta property="og:title" content="Did I Feel That? · Mariam's Lab"><meta property="og:description" content="Live earthquakes around the UAE and how strongly you might have felt them."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="stylesheet" href="../assets/vendor/leaflet/leaflet.css">
+<style>
+.leaflet-container { font-family: 'Instrument Sans', sans-serif; background: #0b1020; }
+#map { height: min(60vh, 520px); min-height: 340px; border-radius: var(--radius); border: 1px solid var(--line); }
+#map .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(.85) contrast(.9) saturate(.4); }
+.leaflet-popup-content { font-size: 0.85rem; line-height: 1.4; }
+.btns { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 8px; }
+.btns .label { margin-inline-end: 4px; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 10px 0; }
+.felt { margin-bottom: 16px; padding: 18px 20px; border-radius: var(--radius); border: 1px solid var(--line); background: rgba(7,10,24,.82); display: grid; gap: 6px; }
+.felt b { font-family: var(--font-display); font-size: clamp(1.35rem, 4vw, 2rem); font-weight: 800; line-height: 1.15; }
+.felt p { margin: 0; color: var(--muted); }
+.quakes { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.quakes li { display: grid; grid-template-columns: 3.2em minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; cursor: pointer; font-size: 0.9rem; }
+.quakes li:hover, .quakes li:focus-visible { border-color: var(--accent); }
+.quakes .mg { font-family: var(--font-display); font-weight: 800; font-size: 1.25rem; text-align: center; border-radius: 8px; padding: 4px 0; color: #0a0d1c; }
+.quakes small { display: block; color: var(--muted); font-size: 0.8rem; }
+.quakes .iv { text-align: end; font-family: var(--font-mono); font-size: 0.8rem; max-width: 9.5em; }
+.scale { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 0.84rem; }
+.scale li { display: grid; grid-template-columns: 2.6em minmax(0, 1fr); gap: 8px; align-items: center; }
+.scale b { font-family: var(--font-mono); text-align: center; border-radius: 6px; color: #0a0d1c; padding: 2px 0; }
+.list-wrap { max-height: 560px; overflow-y: auto; padding-right: 2px; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Earth · Live · Earthquakes</span>
+    <h1 style="font-size:var(--step-3)">Did I just feel that?</h1>
+    <p>The UAE itself is quiet, but the mountains of southern Iran across the Gulf are one of the most active earthquake zones on Earth. Big ones there are sometimes felt in Dubai towers. This lists recent earthquakes in the region and estimates how strongly each one might have reached you.</p>
+  </div>
+  <div class="btns" id="where"><span class="label">You are</span><button class="sm" type="button" id="me">📍 Use my location</button></div>
+  <div class="btns" id="win"><span class="label">Time</span></div>
+  <div class="btns" id="mags"><span class="label">Size</span></div>
+  <p class="msg" id="msg" role="status"></p>
+  <div class="felt" id="felt"><b>Loading…</b></div>
+  <div class="stats" id="stats" style="margin-bottom:16px"></div>
+  <div class="game">
+    <div class="panel" style="align-content:start">
+      <div id="map" role="region" aria-label="Earthquake map"></div>
+      <span class="label">How strongly you might feel it</span>
+      <ul class="scale" id="scale"></ul>
+    </div>
+    <div class="panel" style="align-content:start">
+      <span class="label" id="lhead">Earthquakes</span>
+      <div class="list-wrap"><ul class="quakes" id="list"></ul></div>
+    </div>
+  </div>
+  <div class="game" style="margin-top:20px">
+    <p class="fact" style="margin:0"><b>How the estimate works.</b> Shaking at your spot depends mostly on two things: how big the earthquake was, and how far away you are. Each step up in magnitude releases about 32 times more energy. The shaking then fades with distance, quickly at first and then more slowly. We use a published formula (Atkinson, Worden and Wald, 2014) that turns magnitude and distance into a shaking level on the Modified Mercalli scale, from I (not felt) to X (very destructive). It counts the quake's depth as part of the distance.</p>
+    <p class="fact" style="margin:0"><b>Why towers feel more.</b> Distant large earthquakes send out slow, rolling waves. Tall buildings sway in step with them, so people on high floors in Dubai or Abu Dhabi can feel a quake that people on the ground miss. This is an estimate, not a measurement, and local ground and buildings change it a lot. The UAE's National Center of Meteorology runs its own seismic network and reports small local quakes that may not appear here. Data from the USGS, refreshed every five minutes.</p>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script src="../assets/vendor/leaflet/leaflet.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var FEED = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/';
+  var BOX = { s: 10, n: 40, w: 42, e: 72 }; // Gulf, Iran, Oman, Pakistan, Yemen, Afghanistan
+  var PLACES = [['Dubai', 25.2048, 55.2708], ['Abu Dhabi', 24.4539, 54.3773], ['Sharjah', 25.3463, 55.4209], ['Ras Al Khaimah', 25.7895, 55.9432], ['Fujairah', 25.1288, 56.3265], ['Al Ain', 24.2075, 55.7447]];
+  var WINS = [['Past day', 'all_day'], ['Past week', 'all_week'], ['Past month', '2.5_month']];
+  var MAGS = [['All', 0], ['2.5+', 2.5], ['4+', 4], ['5+', 5]];
+  var MMI = [
+    ['I', 'Not felt', '#3a4466'], ['II', 'Weak. Felt by a few people at rest, mostly on upper floors', '#9fb6ff'], ['III', 'Weak. Felt indoors, like a passing lorry', '#7fe0d2'], ['IV', 'Light. Felt by most indoors, windows and dishes rattle', '#a6e36c'],
+    ['V', 'Moderate. Felt by nearly everyone, small objects fall', '#ffe066'], ['VI', 'Strong. Frightening, some plaster cracks', '#ffb347'], ['VII', 'Very strong. Damage to poorly built buildings', '#ff7a45'], ['VIII', 'Severe. Damage to ordinary buildings', '#ff4f6d'], ['IX', 'Violent', '#e0306a'], ['X', 'Extreme', '#b0204f']
+  ];
+  var st = { place: PLACES[0], win: 1, mag: 0, data: null };
+  try { var sv = JSON.parse(localStorage.getItem('quakePrefs') || 'null'); if (sv) { if (WINS[sv.win]) st.win = sv.win; if (MAGS[sv.mag]) st.mag = sv.mag; if (PLACES[sv.p]) st.place = PLACES[sv.p]; } } catch (e) {}
+  function save() { try { localStorage.setItem('quakePrefs', JSON.stringify({ win: st.win, mag: st.mag, p: PLACES.indexOf(st.place) })); } catch (e) {} }
+
+  function distKm(a, b, c, d) {
+    var r = Math.PI / 180, x = Math.sin((c - a) * r / 2), y = Math.sin((d - b) * r / 2);
+    return 2 * 6371 * Math.asin(Math.sqrt(x * x + Math.cos(a * r) * Math.cos(c * r) * y * y));
+  }
+  // Atkinson, Worden & Wald (2014) intensity prediction equation, hypocentral distance
+  function mmiAt(M, epiKm, depth) {
+    var Rh = Math.sqrt(epiKm * epiKm + Math.max(0, depth || 10) * Math.max(0, depth || 10));
+    var R = Math.sqrt(Rh * Rh + 14 * 14), lr = Math.log(R) / Math.LN10, B = Math.max(0, Math.log(R / 50) / Math.LN10);
+    var I = 0.309 + 1.864 * M - 1.672 * lr - 0.00219 * R + 1.77 * B - 0.383 * M * lr;
+    return Math.max(1, Math.min(10, I));
+  }
+  function lvl(I) { return Math.max(0, Math.min(9, Math.round(I) - 1)); }
+  function magCol(m) { return m >= 6 ? '#ff4f6d' : m >= 5 ? '#ff8a4c' : m >= 4 ? '#ffc857' : m >= 3 ? '#c9e264' : '#4fd3bd'; }
+  function ago(t) { var s = (Date.now() - t) / 1000; if (s < 3600) return Math.max(1, Math.round(s / 60)) + ' min ago'; if (s < 86400 * 2) return Math.round(s / 3600) + ' h ago'; return Math.round(s / 86400) + ' days ago'; }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function uaeTime(t) { return new Date(t).toLocaleString('en-GB', { timeZone: 'Asia/Dubai', weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) + ' UAE'; }
+
+  var map = L.map('map', { zoomControl: true, worldCopyJump: true }).setView([27, 56], 5);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 10, attribution: '© OpenStreetMap contributors' }).addTo(map);
+  var qLayer = L.layerGroup().addTo(map), meMark = null, markers = {};
+
+  $('scale').innerHTML = MMI.slice(0, 8).map(function (m) { return '<li><b style="background:' + m[2] + '">' + m[0] + '</b><span>' + m[1] + '</span></li>'; }).join('');
+
+  function btn(parent, text, on) { var b = document.createElement('button'); b.className = 'sm'; b.type = 'button'; b.textContent = text; b.onclick = on; $(parent).appendChild(b); return b; }
+  function press(parent, b) { [].forEach.call($(parent).querySelectorAll('.sm'), function (x) { x.setAttribute('aria-pressed', x === b); }); }
+  PLACES.forEach(function (p) { var b = btn('where', p[0], function () { st.place = p; press('where', b); save(); render(); }); if (p === st.place) b.setAttribute('aria-pressed', 'true'); });
+  WINS.forEach(function (w, i) { var b = btn('win', w[0], function () { st.win = i; press('win', b); save(); load(); }); b.setAttribute('aria-pressed', i === st.win); });
+  MAGS.forEach(function (m, i) { var b = btn('mags', m[0], function () { st.mag = i; press('mags', b); save(); render(); }); b.setAttribute('aria-pressed', i === st.mag); });
+  $('me').onclick = function () {
+    if (!navigator.geolocation) { $('msg').textContent = 'Your browser can\'t share a location.'; return; }
+    $('msg').textContent = 'Asking for your location…';
+    navigator.geolocation.getCurrentPosition(function (p) { st.place = ['your location', p.coords.latitude, p.coords.longitude]; press('where', $('me')); $('msg').textContent = ''; render(); }, function () { $('msg').textContent = 'Location was not shared, so we\'re using ' + st.place[0] + '.'; }, { maximumAge: 6e5, timeout: 10000 });
+  };
+
+  var timer = null;
+  function load() {
+    clearTimeout(timer);
+    $('msg').textContent = 'Fetching earthquakes from the USGS…';
+    fetch(FEED + WINS[st.win][1] + '.geojson').then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(function (j) {
+      st.data = (j.features || []).filter(function (f) { var c = f.geometry && f.geometry.coordinates; return c && c[1] >= BOX.s && c[1] <= BOX.n && c[0] >= BOX.w && c[0] <= BOX.e && f.properties.mag != null; });
+      st.when = j.metadata && j.metadata.generated;
+      $('msg').textContent = 'Updated ' + new Date(st.when || Date.now()).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) + '. Refreshes every five minutes.';
+      render();
+      timer = setTimeout(load, 5 * 60 * 1000);
+    }).catch(function () { $('msg').textContent = 'Couldn\'t reach the USGS feed. Check your connection and try again in a minute.'; $('felt').innerHTML = '<b>No data</b>'; timer = setTimeout(load, 60 * 1000); });
+  }
+  function render() {
+    if (!st.data) return;
+    var P = st.place, minM = MAGS[st.mag][1];
+    var qs = st.data.filter(function (f) { return f.properties.mag >= minM; }).map(function (f) {
+      var c = f.geometry.coordinates, d = distKm(P[1], P[2], c[1], c[0]), I = mmiAt(f.properties.mag, d, c[2]);
+      return { f: f, id: f.id, lat: c[1], lon: c[0], dep: c[2], M: f.properties.mag, d: d, I: I, t: f.properties.time, place: f.properties.place, url: f.properties.url };
+    }).sort(function (a, b) { return b.t - a.t; });
+    // map
+    qLayer.clearLayers(); markers = {};
+    if (meMark) map.removeLayer(meMark);
+    meMark = L.circleMarker([P[1], P[2]], { radius: 7, color: '#fff', weight: 2, fillColor: '#84A0FF', fillOpacity: 1 }).bindTooltip('You: ' + P[0]).addTo(map);
+    qs.forEach(function (q) {
+      var mk = L.circleMarker([q.lat, q.lon], { radius: Math.max(3, q.M * 2.6), color: '#0a0d1c', weight: 1, fillColor: magCol(q.M), fillOpacity: 0.85 })
+        .bindPopup('<b>M' + q.M.toFixed(1) + '</b> · ' + esc(q.place) + '<br>' + uaeTime(q.t) + '<br>Depth ' + Math.round(q.dep) + ' km · ' + Math.round(q.d) + ' km from ' + esc(P[0]) + '<br>Estimated at ' + esc(P[0]) + ': <b>' + MMI[lvl(q.I)][0] + '</b> (' + MMI[lvl(q.I)][1].split('.')[0].toLowerCase() + ')' + (q.url ? '<br><a href="' + esc(q.url) + '" target="_blank" rel="noopener">USGS page ↗</a>' : ''));
+      mk.addTo(qLayer); markers[q.id] = mk;
+    });
+    // headline: the most strongly felt quake in the last 24 h
+    var day = qs.filter(function (q) { return Date.now() - q.t < 86400000; });
+    var top = day.slice().sort(function (a, b) { return b.I - a.I; })[0], L0;
+    if (top && top.I >= 1.5) {
+      L0 = lvl(top.I);
+      $('felt').style.borderColor = MMI[L0][2];
+      $('felt').innerHTML = '<span class="label">Last 24 hours at ' + esc(P[0]) + '</span><b style="color:' + MMI[L0][2] + '">Maybe. Estimated level ' + MMI[L0][0] + ', ' + MMI[L0][1].split('.')[0].toLowerCase() + '.</b><p>A magnitude ' + top.M.toFixed(1) + ' earthquake ' + esc(top.place) + ', ' + ago(top.t) + ', about ' + Math.round(top.d) + ' km from you. ' + (L0 <= 1 ? 'Most people would not notice it, but you might if you were sitting still on a high floor.' : L0 === 2 ? 'People resting indoors may have noticed a light rattle or sway.' : 'Many people nearby would have noticed it.') + '</p>';
+    } else {
+      $('felt').style.borderColor = '';
+      $('felt').innerHTML = '<span class="label">Last 24 hours at ' + esc(P[0]) + '</span><b>Probably not.</b><p>' + (day.length ? 'There ' + (day.length === 1 ? 'was 1 earthquake' : 'were ' + day.length + ' earthquakes') + ' in the region, but none close or big enough to be felt where you are.' : 'No earthquakes in the region matching your filters in the last day.') + ' If you felt something, it may have been a lorry, construction, or wind on a tall building.</p>';
+    }
+    var biggest = qs.reduce(function (m, q) { return !m || q.M > m.M ? q : m; }, null);
+    var nearest = qs.reduce(function (m, q) { return !m || q.d < m.d ? q : m; }, null);
+    $('stats').innerHTML = '<div><b>' + qs.length + '</b><span>earthquakes, ' + WINS[st.win][0].toLowerCase() + '</span></div><div><b>' + (biggest ? 'M' + biggest.M.toFixed(1) : '—') + '</b><span>biggest</span></div><div><b>' + (nearest ? Math.round(nearest.d) + ' km' : '—') + '</b><span>nearest to you</span></div>';
+    $('lhead').textContent = qs.length ? 'Earthquakes, newest first · tap to see on the map' : 'Earthquakes';
+    $('list').innerHTML = qs.length ? qs.slice(0, 150).map(function (q) {
+      var l = lvl(q.I);
+      return '<li tabindex="0" data-id="' + esc(q.id) + '"><span class="mg" style="background:' + magCol(q.M) + '">' + q.M.toFixed(1) + '</span><span>' + esc(q.place || 'Unknown place') + '<small>' + ago(q.t) + ' · ' + Math.round(q.d) + ' km away · ' + Math.round(q.dep) + ' km deep</small></span><span class="iv" style="color:' + (l ? MMI[l][2] : 'var(--muted)') + '">' + MMI[l][0] + '<small>' + (l ? MMI[l][1].split('.')[0] : 'not felt') + '</small></span></li>';
+    }).join('') : '<li style="cursor:default">No earthquakes match these filters. Try a longer time or a smaller size.</li>';
+  }
+  function focusQ(e) { var li = e.target.closest('[data-id]'); if (!li) return; var m = markers[li.dataset.id]; if (m) { map.setView(m.getLatLng(), Math.max(map.getZoom(), 6)); m.openPopup(); $('map').scrollIntoView({ behavior: 'smooth', block: 'center' }); } }
+  $('list').addEventListener('click', focusQ);
+  $('list').addEventListener('keydown', function (e) { if (e.key === 'Enter') focusQ(e); });
+  load();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Beach &amp; Sea Now · Mariam's Lab</title>
+<meta name="description" content="Waves, wind and sea temperature at UAE beaches right now, with simple verdicts for swimming, kitesurfing, paddleboarding and a boat trip, and the next 48 hours.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/sea-now/">
+<meta property="og:title" content="Beach &amp; Sea Now · Mariam's Lab"><meta property="og:description" content="Is it a good sea day? Waves, wind and water temperature at UAE beaches."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.where { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin-top: 8px; }
+.verdicts { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 14px; }
+.vd { padding: 14px 16px; border-radius: var(--radius); border: 1px solid var(--line); border-top: 4px solid var(--c, var(--line)); background: rgba(7,10,24,.82); display: grid; gap: 4px; align-content: start; }
+.vd span { font-size: 0.8rem; color: var(--muted); }
+.vd b { font-family: var(--font-display); font-size: 1.35rem; font-weight: 800; color: var(--c); line-height: 1.15; }
+.vd p { margin: 0; font-size: 0.86rem; color: var(--muted); }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 12px; }
+.tile { padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.tile span { font-size: 0.78rem; color: var(--muted); display: block; }
+.tile b { font-family: var(--font-display); font-size: 1.5rem; display: block; }
+.tile small { font-size: 0.78rem; }
+.arrow { display: inline-block; font-style: normal; font-size: 1.1rem; color: var(--sat-b); transition: transform .3s; }
+.strip { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(30px, 1fr); gap: 2px; overflow-x: auto; padding-bottom: 6px; }
+.strip div { height: 58px; border-radius: 5px; position: relative; display: flex; align-items: flex-end; justify-content: center; font-family: var(--font-mono); font-size: 0.6rem; color: rgba(0,0,0,.78); padding-bottom: 3px; }
+.strip div.night { opacity: .55; }
+.strip div.now { outline: 2px solid var(--ink); outline-offset: 1px; }
+.strip div.day0 { margin-left: 6px; }
+.strip div i { position: absolute; top: 4px; left: 0; right: 0; text-align: center; font-style: normal; font-weight: 600; font-size: 0.62rem; }
+.legend { display: flex; gap: 10px; flex-wrap: wrap; font-size: 0.75rem; color: var(--muted); margin-top: 6px; }
+.legend span::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-inline-end: 4px; vertical-align: -1px; background: var(--c); }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Sea · UAE · Live</span>
+    <h1 style="font-size:var(--step-3)">Beach and sea now.</h1>
+    <p>Is today a good sea day? Pick a beach to see waves, wind and water temperature, with a simple verdict for swimming, kitesurfing, paddleboarding and a boat trip. The strip below shows the best hours over the next two days.</p>
+  </div>
+  <div class="where" id="where"><button class="sm" type="button" id="me">📍 Use my location</button></div>
+  <p class="msg" id="msg" role="status"></p>
+  <div class="verdicts" id="verdicts"><div class="vd"><b>Loading…</b></div></div>
+  <div class="tiles" id="tiles"></div>
+  <div class="game" style="margin-top:18px">
+    <div class="panel" style="display:grid;gap:10px;min-width:0">
+      <span class="label">Next 48 hours</span>
+      <div class="where" id="acts"></div>
+      <div class="strip" id="strip"></div>
+      <div class="legend"><span style="--c:#4fd3bd">Good</span><span style="--c:#ffc857">OK, with care</span><span style="--c:#ff4f6d">Not advised</span><span style="--c:#59607e">Too light (kite)</span><span>Faded = dark</span></div>
+      <p class="fact" style="margin:0" id="why"></p>
+    </div>
+    <div class="panel" style="display:grid;gap:10px">
+      <span class="label">How the verdicts work</span>
+      <p class="fact" style="margin:0"><b>Waves</b> here are the significant wave height: the average of the biggest third of waves. About one wave in a hundred is nearly twice that size. <b>Period</b> is the time between waves. Long-period swell, which reaches the east coast from the Arabian Sea, carries more power than its height suggests.</p>
+      <p class="fact" style="margin:0"><b>Wind direction matters as much as speed.</b> Onshore wind (from the sea) brings chop but pushes you back to the beach. Offshore wind (from the land) looks calm near the shore but can blow a paddleboard, kite or swimmer out to sea, so the verdicts get stricter. In winter, the shamal wind from the north-west can rise quickly on the Gulf coast.</p>
+      <p class="fact" style="margin:0">These are model forecasts from Open-Meteo, not readings from a buoy at the beach, and a guide rather than safety advice. Swim at beaches with lifeguards, follow the beach flags and coast guard warnings, and check with your boat operator. In an emergency call 999.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  // name, lat, lon (just offshore), direction the beach faces out to sea (degrees)
+  var BEACHES = [['Kite Beach, Dubai', 25.163, 55.195, 315], ['Saadiyat', 24.552, 54.425, 330], ['Corniche, Abu Dhabi', 24.482, 54.33, 320], ['Al Mamzar', 25.305, 55.345, 330], ['Al Aqah, Fujairah', 25.495, 56.375, 80], ['Khor Fakkan', 25.345, 56.37, 75], ['Al Marjan, RAK', 25.675, 55.73, 315]];
+  var COL = { 0: '#4fd3bd', 1: '#ffc857', 2: '#ff4f6d', L: '#59607e' };
+  var WORD = { 0: 'Good', 1: 'OK, with care', 2: 'Not advised', L: 'Too light' };
+  var ACTS = [['swim', 'Swimming'], ['kite', 'Kitesurfing'], ['sup', 'Paddleboarding'], ['boat', 'Boat trip']];
+  var st = { act: 'swim', rows: null, place: null };
+  function angDiff(a, b) { var d = Math.abs(((a - b) % 360 + 540) % 360 - 180); return d; }
+  // wind relative to the shore: 'on' (from the sea), 'off' (from the land), 'side'
+  function rel(h, face) { if (face == null || h.wdir == null) return 'side'; var d = angDiff(h.wdir, face); return d <= 55 ? 'on' : d >= 125 ? 'off' : 'side'; }
+  function judge(act, h, face) {
+    var w = h.wave == null ? 0 : h.wave, k = h.wind, g = h.gust, r = rel(h, face), gusty = g - k > 10, why = [];
+    if (act === 'swim') {
+      var l = w < 0.5 ? 0 : w < 1 ? 1 : 2; if (w >= 0.5) why.push(w < 1 ? 'some waves' : 'rough water');
+      if (k >= 20) { l = Math.max(l, 2); why.push('strong wind'); } else if (k >= 14) { l = Math.max(l, 1); why.push('breezy'); }
+      if (r === 'off' && k >= 10) { l = Math.max(l, 1); why.push('offshore wind can carry floats out'); }
+      if (!h.day) { l = Math.max(l, 2); why.push('after dark: most public beaches ban night swimming'); }
+      if (h.sst != null && h.sst < 20) why.push('chilly water');
+      if (h.sst != null && h.sst > 32) why.push('bath-warm water, check for jellyfish');
+      return { l: l, why: why };
+    }
+    if (act === 'kite') {
+      var lk = k < 10 ? 'L' : k < 12 ? 1 : k <= 25 ? 0 : k <= 30 ? 1 : 2;
+      if (k < 10) why.push('not enough wind'); else if (k < 12) why.push('light: big kite needed'); else if (k > 25) why.push(k > 30 ? 'too strong' : 'strong: small kite, experts');
+      if (lk !== 'L') {
+        if (r === 'off') { lk = 2; why.push('offshore wind, never kite in it'); }
+        else if (gusty) { lk = lk === 0 ? 1 : lk; why.push('gusty'); }
+        if (w >= 1.5) { lk = Math.max(lk, 1); why.push('big waves'); }
+        if (!h.day) { lk = 2; why.push('dark'); }
+      }
+      return { l: lk, why: why };
+    }
+    if (act === 'sup') {
+      var ls = k < 10 && w < 0.4 ? 0 : k < 14 && w < 0.7 ? 1 : 2;
+      if (k >= 10) why.push(k >= 14 ? 'too windy' : 'some wind'); if (w >= 0.4) why.push(w >= 0.7 ? 'too choppy' : 'small chop');
+      if (r === 'off' && k >= 7) { ls = 2; why.push('offshore wind pushes boards out to sea'); }
+      if (!h.day) { ls = 2; why.push('dark'); }
+      return { l: ls, why: why };
+    }
+    var lb = w < 1 && k < 15 ? 0 : w < 1.5 && k < 20 ? 1 : 2;
+    if (w >= 1) why.push(w >= 1.5 ? 'rough sea' : 'moderate sea'); if (k >= 15) why.push(k >= 20 ? 'strong wind' : 'fresh wind');
+    if (h.period != null && h.period < 4 && w >= 0.8) { lb = Math.max(lb, 1); why.push('short, steep waves: a bumpy ride'); }
+    if (gusty && k >= 12) { lb = Math.max(lb, 1); why.push('gusty'); }
+    return { l: lb, why: why };
+  }
+  function compass(d) { return d == null ? '' : ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'][Math.round(d / 45) % 8]; }
+  function hh(t) { return t.slice(11, 13); }
+  function fmtH(t) { var h = +hh(t); return (h % 12 || 12) + (h < 12 ? 'am' : 'pm'); }
+  function get(u) { return fetch(u).then(function (r) { if (!r.ok) throw 0; return r.json(); }); }
+  function load(lat, lon, name, face) {
+    $('msg').textContent = 'Fetching the sea forecast for ' + name + '…';
+    var m = 'https://marine-api.open-meteo.com/v1/marine?latitude=' + lat + '&longitude=' + lon + '&hourly=wave_height,wave_period,wave_direction,swell_wave_height,swell_wave_period,sea_surface_temperature&timezone=auto&forecast_days=3&cell_selection=sea';
+    var w = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon + '&hourly=wind_speed_10m,wind_gusts_10m,wind_direction_10m,temperature_2m,uv_index,is_day&wind_speed_unit=kn&timezone=auto&forecast_days=3';
+    Promise.all([get(m), get(w)]).then(function (r) {
+      var M = r[0].hourly, W = r[1].hourly, rows = [];
+      var nowLocal = new Date(Date.now() + r[1].utc_offset_seconds * 1000).toISOString().slice(0, 13);
+      W.time.forEach(function (t, i) {
+        var j = M.time.indexOf(t);
+        rows.push({ t: t, wind: W.wind_speed_10m[i], gust: W.wind_gusts_10m[i], wdir: W.wind_direction_10m[i], air: W.temperature_2m[i], uv: W.uv_index[i], day: W.is_day[i], wave: j >= 0 ? M.wave_height[j] : null, period: j >= 0 ? M.wave_period[j] : null, wavedir: j >= 0 ? M.wave_direction[j] : null, swell: j >= 0 ? M.swell_wave_height[j] : null, speriod: j >= 0 ? M.swell_wave_period[j] : null, sst: j >= 0 ? M.sea_surface_temperature[j] : null });
+      });
+      var k = Math.max(0, rows.findIndex(function (x) { return x.t.slice(0, 13) === nowLocal; }));
+      rows = rows.slice(k, k + 48);
+      var hasSea = rows.some(function (x) { return x.wave != null; });
+      st.rows = rows; st.face = face; st.name = name;
+      $('msg').textContent = name + (hasSea ? '' : ' · no sea data here. Pick a spot on the coast, or a beach above.') + (face == null && hasSea ? ' · we don\'t know which way this shore faces, so offshore wind isn\'t checked.' : '');
+      render();
+    }).catch(function () { $('msg').textContent = 'Couldn\'t reach the forecast service. Check your connection and try again.'; $('verdicts').innerHTML = '<div class="vd"><b>No data</b></div>'; });
+  }
+  function render() {
+    var rows = st.rows; if (!rows || !rows.length) return;
+    var n = rows[0];
+    $('verdicts').innerHTML = ACTS.map(function (a) {
+      var j = judge(a[0], n, st.face);
+      return '<div class="vd" style="--c:' + COL[j.l] + '"><span>' + a[1] + '</span><b>' + WORD[j.l] + '</b><p>' + (j.why.length ? j.why.join(', ').replace(/^./, function (c) { return c.toUpperCase(); }) + '.' : 'Conditions look fine right now.') + '</p></div>';
+    }).join('');
+    var r = rel(n, st.face), relWord = st.face == null ? '' : r === 'on' ? 'onshore' : r === 'off' ? 'offshore' : 'cross-shore';
+    var t = [
+      ['Waves', n.wave == null ? '—' : n.wave.toFixed(1) + ' m', n.period == null ? '' : 'every ' + Math.round(n.period) + ' s'],
+      ['Swell', n.swell == null ? '—' : n.swell.toFixed(1) + ' m', n.speriod == null ? '' : Math.round(n.speriod) + ' s period'],
+      ['Wind', Math.round(n.wind) + ' kn <i class="arrow" aria-hidden="true" style="transform:rotate(' + (n.wdir + 180) + 'deg)">↑</i>', 'from ' + compass(n.wdir) + (relWord ? ', ' + relWord : '') + ' · gusts ' + Math.round(n.gust)],
+      ['Water', n.sst == null ? '—' : Math.round(n.sst) + '°C', n.sst == null ? '' : n.sst < 22 ? 'cool, a wetsuit helps' : n.sst < 28 ? 'pleasant' : n.sst < 32 ? 'warm' : 'very warm'],
+      ['Air', Math.round(n.air) + '°C', 'UV ' + (n.uv == null ? '—' : Math.round(n.uv))]
+    ];
+    $('tiles').innerHTML = t.map(function (x) { return '<div class="tile"><span>' + x[0] + '</span><b>' + x[1] + '</b><small>' + x[2] + '</small></div>'; }).join('');
+    var act = st.act, label = ACTS.filter(function (a) { return a[0] === act; })[0][1];
+    $('strip').innerHTML = rows.map(function (h, i) {
+      var j = judge(act, h, st.face), top = act === 'kite' ? Math.round(h.wind) : h.wave == null ? '–' : h.wave.toFixed(1);
+      return '<div class="' + (i === 0 ? 'now ' : '') + (h.day ? '' : 'night ') + (i > 0 && hh(h.t) === '00' ? 'day0' : '') + '" style="background:' + COL[j.l] + '" title="' + h.t.slice(5, 10) + ' ' + fmtH(h.t) + ': ' + WORD[j.l] + (j.why.length ? ' (' + j.why.join(', ') + ')' : '') + '. Waves ' + (h.wave == null ? '–' : h.wave.toFixed(1) + ' m') + ', wind ' + Math.round(h.wind) + ' kn from ' + compass(h.wdir) + '"><i>' + top + '</i>' + (i === 0 ? 'now' : hh(h.t)) + '</div>';
+    }).join('');
+    // best daylight window for the chosen activity
+    var best = rows.filter(function (h) { return h.day && judge(act, h, st.face).l === 0; })[0] || null;
+    $('why').innerHTML = 'Numbers on top are ' + (act === 'kite' ? 'wind in knots' : 'wave height in metres') + '. A gap marks midnight. ' + (best ? '<b>Next good hour for ' + label.toLowerCase() + ':</b> ' + (best === rows[0] ? 'now' : (best.t.slice(0, 10) === rows[0].t.slice(0, 10) ? 'today' : new Date(best.t.slice(0, 10) + 'T12:00:00Z').toLocaleDateString('en-GB', { weekday: 'long', timeZone: 'UTC' })) + ' at ' + fmtH(best.t)) + '.' : 'No clearly good daylight hour for ' + label.toLowerCase() + ' in the next 48 hours.');
+  }
+  BEACHES.forEach(function (p, i) {
+    var b = document.createElement('button'); b.className = 'sm'; b.type = 'button'; b.textContent = p[0]; b.setAttribute('aria-pressed', 'false');
+    b.onclick = function () { pick('where', b); load(p[1], p[2], p[0], p[3]); try { localStorage.setItem('seaPlace', i); } catch (e) {} };
+    $('where').appendChild(b);
+  });
+  ACTS.forEach(function (a) {
+    var b = document.createElement('button'); b.className = 'sm'; b.type = 'button'; b.textContent = a[1]; b.setAttribute('aria-pressed', a[0] === st.act);
+    b.onclick = function () { st.act = a[0]; pick('acts', b); render(); try { localStorage.setItem('seaAct', a[0]); } catch (e) {} };
+    $('acts').appendChild(b);
+  });
+  function pick(id, b) { [].forEach.call(document.querySelectorAll('#' + id + ' .sm'), function (x) { x.setAttribute('aria-pressed', x === b); }); }
+  $('me').onclick = function () {
+    if (!navigator.geolocation) { $('msg').textContent = 'Your browser can\'t share a location.'; return; }
+    $('msg').textContent = 'Asking for your location…';
+    navigator.geolocation.getCurrentPosition(function (p) { pick('where', $('me')); load(p.coords.latitude.toFixed(3), p.coords.longitude.toFixed(3), 'Your location', null); }, function () { $('msg').textContent = 'Location was not shared. Pick a beach instead.'; }, { maximumAge: 6e5, timeout: 10000 });
+  };
+  try { var sa = localStorage.getItem('seaAct'); if (sa && ACTS.some(function (a) { return a[0] === sa; })) { st.act = sa; pick('acts', $('acts').querySelectorAll('.sm')[ACTS.map(function (a) { return a[0]; }).indexOf(sa)]); } } catch (e) {}
+  var i0 = 0; try { var s = localStorage.getItem('seaPlace'); if (s != null && BEACHES[+s]) i0 = +s; } catch (e) {}
+  document.querySelectorAll('#where .sm')[i0 + 1].click();
+})();
+</script>
+</body>
+</html>
