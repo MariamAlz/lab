@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DNS Checker · Mariam's Lab</title>
+<meta name="description" content="Look up any domain's DNS over encrypted DNS-over-HTTPS and grade its security: DNSSEC, HTTPS, Encrypted Client Hello, CAA, SPF, DMARC and MTA-STS. Check if it's flagged as malicious, and which encrypted resolver is fastest for you.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/dns/">
+<meta property="og:title" content="DNS Checker · Mariam's Lab"><meta property="og:description" content="DNS lookup and security grade for any domain, over encrypted DNS."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.q { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 22px; }
+.q input { flex: 1 1 260px; min-width: 0; font: inherit; font-family: var(--font-mono); font-size: 1rem; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 12px 20px; }
+.q input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.grid2 { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+@media (max-width: 900px) { .grid2 { grid-template-columns: 1fr; } }
+.score { display: flex; align-items: center; gap: 18px; padding: 18px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); margin-bottom: 14px; }
+.score .big { font-family: var(--font-display); font-weight: 800; font-size: 3rem; line-height: 1; min-width: 2ch; }
+.score p { color: var(--muted); font-size: 0.92rem; }
+.checks { display: grid; gap: 8px; padding: 0; margin: 0; list-style: none; }
+.checks li { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 10px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); }
+.checks li b { display: block; }
+.checks li p { color: var(--muted); font-size: 0.86rem; margin-top: 2px; }
+.checks .i { font-size: 1.05rem; line-height: 1.3; text-align: center; }
+.ok { color: var(--sat-b); } .warn { color: var(--accent); } .bad { color: var(--sat-c); } .na { color: var(--muted); }
+.recs { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+.recs th, .recs td { text-align: start; padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.recs th { color: var(--muted); font-weight: 500; font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: .08em; text-transform: uppercase; }
+.recs td:first-child { font-family: var(--font-mono); color: var(--accent); white-space: nowrap; }
+.recs td:last-child { font-family: var(--font-mono); word-break: break-all; }
+.box { padding: 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); display: grid; gap: 10px; }
+.box h2 { font-size: 1.15rem; font-weight: 800; }
+.box p { color: var(--muted); font-size: 0.9rem; }
+.res { display: grid; gap: 6px; padding: 0; margin: 0; list-style: none; }
+.res li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: 0.88rem; }
+.res .bar { grid-column: 1 / -1; height: 6px; border-radius: 99px; background: rgba(120, 132, 190, 0.18); overflow: hidden; }
+.res .bar i { display: block; height: 100%; background: var(--sat-b); }
+.res span:nth-child(2) { font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted); }
+.flag { padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); font-size: 0.9rem; }
+.flag.bad { border-color: var(--sat-c); } .flag.ok { border-color: var(--sat-b); }
+details { border-radius: 12px; border: 1px solid var(--line); background: var(--surface); padding: 10px 14px; }
+details summary { cursor: pointer; font-weight: 600; }
+details p, details li { color: var(--muted); font-size: 0.88rem; }
+details ol { margin: 8px 0 0; padding-inline-start: 20px; display: grid; gap: 4px; }
+.msg { color: var(--muted); font-size: 0.88rem; min-height: 1.3em; }
+.sec { margin-top: 34px; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Security · DNS</span>
+    <h1 style="font-size:var(--step-3)">DNS checker.</h1>
+    <p>Look up any domain and grade how well it's protected: signed DNS, HTTPS, encrypted connections and email anti-spoofing. Every lookup goes over DNS-over-HTTPS, so it's encrypted between your browser and the resolver.</p>
+  </div>
+  <form class="q" id="form">
+    <label class="sr-only" for="dom">Domain</label>
+    <input id="dom" type="text" inputmode="url" autocomplete="off" spellcheck="false" placeholder="example.com" value="mariamalzaabi.ae">
+    <button class="btn primary" type="submit">Check</button>
+  </form>
+  <p class="msg" id="status" role="status"></p>
+  <div class="grid2">
+    <div>
+      <div class="score" id="score" hidden><span class="big" id="grade"></span><p id="gradeText"></p></div>
+      <ul class="checks" id="checks"></ul>
+    </div>
+    <div style="display:grid;gap:14px">
+      <div class="flag" id="flag" hidden></div>
+      <div class="box"><h2>Records</h2><div style="overflow-x:auto"><table class="recs" id="recs"><tbody><tr><td colspan="3" class="na">Run a check to see records.</td></tr></tbody></table></div></div>
+    </div>
+  </div>
+
+  <div class="sec grid2">
+    <div class="box">
+      <h2>Which encrypted resolver is fastest for you?</h2>
+      <p>Times a few lookups from your browser to public DNS-over-HTTPS resolvers. Lower is better.</p>
+      <ul class="res" id="race"></ul>
+      <div><button class="btn ghost" type="button" id="raceBtn">Run the race</button></div>
+    </div>
+    <div class="box">
+      <h2>Is your own DNS encrypted?</h2>
+      <p>Normally your phone asks "where is example.com?" in plain text, so your network or internet provider can see every site you visit. Encrypted DNS hides those questions. A web page can't reliably see how your device sends its DNS, so instead: switch it on, then confirm with <a href="https://one.one.one.one/help/" target="_blank" rel="noopener">Cloudflare's test page ↗</a> if you use 1.1.1.1.</p>
+      <details><summary>iPhone and iPad</summary><ol><li>Install a DNS profile from your chosen provider (for example 1.1.1.1's app, or a profile from Quad9 or NextDNS).</li><li>Open Settings, General, VPN &amp; Device Management, DNS, and choose it.</li></ol></details>
+      <details><summary>Android</summary><ol><li>Settings, Network &amp; internet, Private DNS.</li><li>Choose "Private DNS provider hostname" and type <code>one.one.one.one</code> or <code>dns.quad9.net</code>.</li></ol></details>
+      <details><summary>Windows 11</summary><ol><li>Settings, Network &amp; internet, your connection, Hardware properties, DNS server assignment, Edit.</li><li>Set the DNS to 1.1.1.1 (or 9.9.9.9) and DNS over HTTPS to On (automatic template).</li></ol></details>
+      <details><summary>Mac</summary><ol><li>macOS needs a DNS profile, like iPhone, or a provider's app.</li><li>Or turn on secure DNS in your browser (below).</li></ol></details>
+      <details><summary>Chrome, Edge, Firefox</summary><ol><li>Chrome and Edge: Settings, Privacy and security, Use secure DNS, pick a provider.</li><li>Firefox: Settings, Privacy &amp; Security, DNS over HTTPS, Increased or Max Protection.</li></ol></details>
+    </div>
+  </div>
+  <p class="fact" style="margin-top:24px">DNS was designed in 1983, when nobody encrypted anything. Its fixes arrived piece by piece: DNSSEC signs answers so they can't be forged, DNS-over-HTTPS and DNS-over-TLS hide the questions, and Encrypted Client Hello hides the last plain-text clue, the site name in the HTTPS handshake. This page checks which pieces a domain has switched on.</p>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var TYPES = { 1: 'A', 2: 'NS', 5: 'CNAME', 6: 'SOA', 15: 'MX', 16: 'TXT', 28: 'AAAA', 43: 'DS', 48: 'DNSKEY', 65: 'HTTPS', 257: 'CAA' };
+  var RESOLVERS = [
+    { n: 'Cloudflare 1.1.1.1', u: 'https://cloudflare-dns.com/dns-query', hdr: true },
+    { n: 'Google 8.8.8.8', u: 'https://dns.google/resolve' },
+    { n: 'Quad9', u: 'https://dns.quad9.net:5053/dns-query', hdr: true },
+    { n: 'AdGuard', u: 'https://dns.adguard-dns.com/resolve' },
+    { n: 'AliDNS', u: 'https://dns.alidns.com/resolve' }
+  ];
+  function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function doh(name, type, r) {
+    r = r || RESOLVERS[0];
+    var url = r.u + '?name=' + encodeURIComponent(name) + '&type=' + type + '&do=1';
+    return fetch(url, r.hdr ? { headers: { accept: 'application/dns-json' } } : {}).then(function (x) { if (!x.ok) throw new Error(x.status); return x.json(); });
+  }
+  function q(name, type) { return doh(name, type).catch(function () { return doh(name, type, RESOLVERS[1]); }).catch(function () { return { Status: -1 }; }); }
+  function ans(res, type) { return (res.Answer || []).filter(function (a) { return !type || TYPES[a.type] === type; }).map(function (a) { return String(a.data).replace(/^"|"$/g, '').replace(/" "/g, ''); }); }
+  function clean(d) { d = d.trim().toLowerCase().replace(/^[a-z]+:\/\//, '').replace(/[\/?#].*$/, '').replace(/\.$/, '').replace(/^www\./, ''); return /^[a-z0-9.-]+\.[a-z0-9-]{2,}$/.test(d) || /^xn--/.test(d) ? d : null; }
+
+  function check(domain) {
+    $('status').textContent = 'Asking the resolvers about ' + domain + '…'; $('checks').innerHTML = ''; $('score').hidden = true; $('flag').hidden = true;
+    var names = [[domain, 'A'], [domain, 'AAAA'], [domain, 'NS'], [domain, 'MX'], [domain, 'TXT'], [domain, 'CAA'], [domain, 'HTTPS'], [domain, 'DS'], [domain, 'SOA'],
+      ['_dmarc.' + domain, 'TXT'], ['_mta-sts.' + domain, 'TXT'], ['_smtp._tls.' + domain, 'TXT'], ['www.' + domain, 'A']];
+    var https = fetch('https://' + domain + '/', { mode: 'no-cors', cache: 'no-store' }).then(function () { return true; }).catch(function () { return false; });
+    var timeout = new Promise(function (r) { setTimeout(function () { r(null); }, 8000); });
+    var safety = doh(domain, 'A', { u: 'https://security.cloudflare-dns.com/dns-query', hdr: true }).catch(function () { return null; });
+    Promise.all([Promise.all(names.map(function (n) { return q(n[0], n[1]); })), Promise.race([https, timeout]), safety]).then(function (all) {
+      var r = {}; names.forEach(function (n, i) { r[n[0] + ' ' + n[1]] = all[0][i]; });
+      var base = r[domain + ' A'];
+      if (base.Status === 3 && !ans(r[domain + ' NS']).length) { $('status').textContent = domain + ' doesn\'t exist (NXDOMAIN).'; $('recs').innerHTML = ''; return; }
+      if (base.Status === -1) { $('status').textContent = 'Couldn\'t reach the DNS resolvers from this browser. A content blocker may be stopping them.'; return; }
+      render(domain, r, all[1], all[2]);
+      $('status').textContent = 'Checked ' + domain + ' just now.';
+      try { history.replaceState(null, '', '?d=' + encodeURIComponent(domain)); } catch (e) {}
+    });
+  }
+
+  function render(d, r, httpsOk, safety) {
+    var get = function (n, t) { return ans(r[n + ' ' + t] || {}, t); };
+    var checks = [], pts = 0, max = 0;
+    function add(state, title, text, weight) { checks.push([state, title, text]); if (weight) { max += weight; pts += state === 'ok' ? weight : state === 'warn' ? weight / 2 : 0; } }
+    // DNSSEC
+    var ad = !!(r[d + ' A'] || {}).AD, ds = get(d, 'DS').length > 0;
+    add(ad ? 'ok' : ds ? 'warn' : 'bad', ad ? 'DNSSEC: signed and verified' : ds ? 'DNSSEC: set up but not verifying' : 'DNSSEC: not signed',
+      ad ? 'Answers for this domain carry a cryptographic signature, so a hacked network can\'t quietly send you to a fake server.' : 'Without DNSSEC, a compromised network or resolver could hand out forged answers. It signs answers; it doesn\'t hide them.', 2);
+    // HTTPS reachability
+    add(httpsOk === true ? 'ok' : httpsOk === false ? 'bad' : 'na', httpsOk === true ? 'HTTPS: works' : httpsOk === false ? 'HTTPS: didn\'t connect' : 'HTTPS: no answer in time',
+      httpsOk === true ? 'Your browser opened an encrypted connection to the site with a valid certificate.' : 'The browser couldn\'t complete an encrypted connection. The site may be HTTP-only, down, or blocking this check.', httpsOk === null ? 0 : 3);
+    // HTTPS record: HTTP/3 and ECH
+    var hr = get(d, 'HTTPS').join(' ');
+    var ech = /ech=/.test(hr), h3 = /alpn="?[^ ]*h3/.test(hr);
+    add(ech ? 'ok' : 'na', ech ? 'Encrypted Client Hello: supported' : 'Encrypted Client Hello: not advertised',
+      ech ? 'Even the site name is hidden inside the encrypted handshake, so someone watching the network can\'t tell which site on this server you opened.' : 'Without ECH, the site name is still sent in plain text when the HTTPS connection starts. Only a few providers offer ECH yet, so this is a bonus, not a failing.', 0);
+    add(h3 ? 'ok' : 'na', h3 ? 'HTTP/3: advertised' : 'HTTP/3: not advertised in DNS', h3 ? 'Browsers can connect with the newer, faster QUIC protocol straight away.' : 'An HTTPS DNS record can tell browsers to use HTTP/3 from the first visit. Optional.', 0);
+    // CAA
+    var caa = get(d, 'CAA');
+    add(caa.length ? 'ok' : 'warn', caa.length ? 'CAA: certificate issuers limited' : 'CAA: any certificate authority may issue',
+      caa.length ? 'Only these may issue certificates: ' + esc(caa.map(function (c) { var m = c.match(/issue(?:wild)?\s+"?([^";\s]+)/); return m ? m[1] : c; }).filter(function (v, i, a) { return a.indexOf(v) === i; }).join(', ')) + '.' : 'A CAA record tells certificate authorities who is allowed to issue certificates for this domain, which makes mis-issued ones harder.', 1);
+    // Email
+    var mx = get(d, 'MX'), txt = get(d, 'TXT'), spf = txt.filter(function (t) { return /^v=spf1/i.test(t); })[0], dmarc = get('_dmarc.' + d, 'TXT').filter(function (t) { return /^v=DMARC1/i.test(t); })[0];
+    var mta = get('_mta-sts.' + d, 'TXT').some(function (t) { return /v=STSv1/i.test(t); }), tlsrpt = get('_smtp._tls.' + d, 'TXT').some(function (t) { return /v=TLSRPTv1/i.test(t); });
+    var nullMx = mx.length === 1 && /^0 \.$/.test(mx[0].trim());
+    if (spf) { var all = (spf.match(/[-~?+]all/) || [''])[0]; add(all === '-all' ? 'ok' : all === '~all' ? 'warn' : 'bad', 'SPF: ' + (all === '-all' ? 'strict' : all === '~all' ? 'soft' : all === '+all' ? 'allows anyone (bad)' : 'present, no clear rule'), 'Lists the servers allowed to send email as @' + esc(d) + '. ' + (all === '-all' ? 'Everyone else is rejected.' : all === '~all' ? 'Others are only marked as suspicious.' : 'This doesn\'t stop spoofing well.'), 2); }
+    else add('bad', 'SPF: missing', 'Anyone can claim to send email from @' + esc(d) + ' and receivers have no list to check against.' + (mx.length ? '' : ' (Even domains that send no email should publish "v=spf1 -all".)'), 2);
+    if (dmarc) { var p = ((dmarc.match(/;\s*p=(\w+)/i) || [])[1] || '').toLowerCase(); add(p === 'reject' ? 'ok' : p === 'quarantine' ? 'ok' : 'warn', 'DMARC: p=' + (p || '?'), p === 'reject' ? 'Fake emails using this domain are rejected outright.' : p === 'quarantine' ? 'Fake emails using this domain go to spam.' : 'DMARC is only monitoring; fakes are still delivered. Move to quarantine or reject.', 2); }
+    else add('bad', 'DMARC: missing', 'Without DMARC, receivers don\'t know what to do with emails that fail SPF or DKIM, so spoofed mail from this domain can get through.', 2);
+    if (mx.length && !nullMx) add(mta ? 'ok' : 'na', mta ? 'MTA-STS: on' : 'MTA-STS: off', mta ? 'Mail servers must use encrypted, verified connections when delivering email here.' : 'Email to this domain may fall back to unencrypted delivery if an attacker interferes. MTA-STS forces encryption.', mta ? 1 : 0);
+    if (mx.length && !nullMx) add(tlsrpt ? 'ok' : 'na', tlsrpt ? 'TLS reporting: on' : 'TLS reporting: off', 'Sends the owner reports when encrypted email delivery fails.', 0);
+    // grade
+    var pct = max ? pts / max : 0, grade = pct > 0.9 ? 'A' : pct > 0.75 ? 'B' : pct > 0.55 ? 'C' : pct > 0.35 ? 'D' : 'F';
+    $('grade').textContent = grade; $('grade').className = 'big ' + (grade <= 'B' ? 'ok' : grade === 'C' ? 'warn' : 'bad');
+    $('gradeText').innerHTML = '<b>' + esc(d) + '</b> scored ' + Math.round(pct * 100) + '% on the checks that matter most: DNSSEC, HTTPS, CAA, SPF and DMARC. ECH, HTTP/3 and MTA-STS are bonuses.';
+    $('score').hidden = false;
+    var icon = { ok: '✓', warn: '!', bad: '✗', na: '·' };
+    $('checks').innerHTML = checks.map(function (c) { return '<li><span class="i ' + c[0] + '" aria-hidden="true">' + icon[c[0]] + '</span><div><b>' + c[1] + '</b><p>' + c[2] + '</p></div></li>'; }).join('');
+    // safety
+    if (safety) {
+      var ips = ans(safety, 'A'), blocked = ips.some(function (ip) { return ip === '0.0.0.0'; });
+      $('flag').hidden = false; $('flag').className = 'flag ' + (blocked ? 'bad' : 'ok');
+      $('flag').innerHTML = blocked ? '<b class="bad">Flagged.</b> Cloudflare\'s malware-blocking resolver (1.1.1.2) refuses to answer for this domain, which means it\'s on a list of known malware or phishing sites.' : '<b class="ok">Not flagged</b> by Cloudflare\'s malware-blocking resolver (1.1.1.2). That\'s a good sign, not a guarantee.';
+    }
+    // records table
+    var rows = [];
+    [[d, 'A'], [d, 'AAAA'], ['www.' + d, 'A'], [d, 'NS'], [d, 'MX'], [d, 'TXT'], [d, 'CAA'], [d, 'HTTPS'], [d, 'DS'], [d, 'SOA'], ['_dmarc.' + d, 'TXT'], ['_mta-sts.' + d, 'TXT'], ['_smtp._tls.' + d, 'TXT']].forEach(function (k) {
+      (r[k[0] + ' ' + k[1]].Answer || []).forEach(function (a) { rows.push([TYPES[a.type] || a.type, a.name.replace(/\.$/, ''), a.data]); });
+    });
+    var seen = {}; rows = rows.filter(function (x) { var key = x.join('|'); if (seen[key]) return false; seen[key] = 1; return true; });
+    $('recs').innerHTML = '<thead><tr><th>Type</th><th>Name</th><th>Value</th></tr></thead><tbody>' + (rows.map(function (x) { return '<tr><td>' + esc(x[0]) + '</td><td>' + esc(x[1]) + '</td><td>' + esc(x[2]) + '</td></tr>'; }).join('') || '<tr><td colspan="3">No records found.</td></tr>') + '</tbody>';
+  }
+
+  $('form').addEventListener('submit', function (e) { e.preventDefault(); var d = clean($('dom').value); if (!d) { $('status').textContent = 'That doesn\'t look like a domain. Try something like example.com.'; return; } $('dom').value = d; check(d); });
+
+  // resolver race
+  $('raceBtn').onclick = function () {
+    var btn = this; btn.disabled = true; var names = ['example.com', 'wikipedia.org', 'gov.ae'], results = RESOLVERS.map(function (r) { return { r: r, t: null }; });
+    function show() {
+      var ok = results.filter(function (x) { return x.t !== null && x.t >= 0; }), mx = Math.max.apply(null, ok.map(function (x) { return x.t; }).concat([1]));
+      results.slice().sort(function (a, b) { return (a.t < 0 ? 1e9 : a.t === null ? 1e8 : a.t) - (b.t < 0 ? 1e9 : b.t === null ? 1e8 : b.t); });
+      $('race').innerHTML = results.slice().sort(function (a, b) { return (a.t === null || a.t < 0 ? 1e9 : a.t) - (b.t === null || b.t < 0 ? 1e9 : b.t); }).map(function (x) {
+        return '<li><span>' + x.r.n + '</span><span>' + (x.t === null ? '…' : x.t < 0 ? 'not reachable from a browser' : Math.round(x.t) + ' ms') + '</span><span class="bar"><i style="width:' + (x.t > 0 ? Math.max(4, x.t / mx * 100) : 0) + '%"></i></span></li>';
+      }).join('');
+    }
+    show();
+    var chain = Promise.resolve();
+    results.forEach(function (x) {
+      chain = chain.then(function () {
+        var times = [];
+        return names.reduce(function (p, n) { return p.then(function () { var t0 = performance.now(); return doh(n, 'A', x.r).then(function () { times.push(performance.now() - t0); }); }); }, doh('example.org', 'A', x.r))
+          .then(function () { times.sort(function (a, b) { return a - b; }); x.t = times[Math.floor(times.length / 2)]; }).catch(function () { x.t = -1; }).then(show);
+      });
+    });
+    chain.then(function () { btn.disabled = false; btn.textContent = 'Run it again'; });
+  };
+
+  var start = null; try { start = new URLSearchParams(location.search).get('d'); } catch (e) {}
+  if (start && clean(start)) $('dom').value = clean(start);
+  check(clean($('dom').value));
+})();
+</script>
+</body>
+</html>

@@ -8,10 +8,13 @@ import datetime
 import io
 import json
 import os
+import re
 import time
 import urllib.request
 
 UA = {"User-Agent": "lab.mariamalzaabi.ae UAE in orbit"}
+# Not shown: the Hope probe orbits Mars, and defence and commercial radar satellites are left out on purpose.
+SKIP = re.compile(r"HOPE|AL-AMAL|FALCON EYE|ICEYE")
 
 
 def get(url):
@@ -35,7 +38,13 @@ def main():
     print(len(uae), "UAE payloads on orbit:", [(r["OBJECT_NAME"], r["NORAD_CAT_ID"], r.get("OPS_STATUS_CODE")) for r in uae])
     out = []
     for r in uae:
-        tle = get("https://celestrak.org/NORAD/elements/gp.php?CATNR=%s&FORMAT=tle" % r["NORAD_CAT_ID"]).strip().splitlines()
+        if SKIP.search(r["OBJECT_NAME"]):
+            continue
+        try:
+            tle = get("https://celestrak.org/NORAD/elements/gp.php?CATNR=%s&FORMAT=tle" % r["NORAD_CAT_ID"]).strip().splitlines()
+        except Exception as e:
+            print("no elements for", r["OBJECT_NAME"], e)
+            continue
         time.sleep(0.5)
         if len(tle) < 3 or not tle[1].startswith("1 "):
             print("no elements for", r["OBJECT_NAME"])
