@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mangrove Watch · Mariam's Lab</title>
+<meta name="description" content="Ten autumns of Sentinel-2 images over Abu Dhabi's eastern mangroves. Watch the green change year by year and see where it grew or thinned.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/mangroves/">
+<meta property="og:title" content="Mangrove Watch · Mariam's Lab"><meta property="og:description" content="Abu Dhabi's mangroves from space, 2017 to today."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.view { position: relative; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); background: #0a1020; }
+.view canvas { width: 100%; display: block; }
+.ctrls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; }
+.ctrls input[type=range] { flex: 1 1 200px; accent-color: var(--accent); min-width: 0; }
+.yr { font-family: var(--font-display); font-weight: 800; font-size: 1.6rem; min-width: 3.2ch; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.chart { border-radius: 12px; border: 1px solid var(--line); background: var(--surface); padding: 10px; }
+.chart canvas { width: 100%; height: 180px; display: block; cursor: pointer; }
+.key { display: flex; flex-wrap: wrap; gap: 12px; font-size: 0.82rem; color: var(--muted); }
+.key i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -2px; margin-inline-end: 5px; }
+.credit { font-size: 0.8rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Experiment · Earth observation · UAE</span>
+    <h1 style="font-size:var(--step-3)">Mangrove watch.</h1>
+    <p>One clear Sentinel-2 picture from every autumn since 2017, over Abu Dhabi's eastern mangroves and Mangrove National Park. Plants reflect near-infrared light strongly, so a simple index, NDVI, shows how green each 10 m pixel is.</p>
+  </div>
+  <div class="game">
+    <div>
+      <div class="view"><canvas id="cv" role="img" aria-label="Satellite view of the mangroves for the chosen year"></canvas></div>
+      <div class="ctrls">
+        <span class="yr" id="yr">2026</span>
+        <input type="range" id="year" min="0" max="9" value="9" aria-label="Year">
+        <button class="sm" type="button" id="play">Play</button>
+      </div>
+      <div class="ctrls" role="group" aria-label="View">
+        <button class="sm" type="button" data-v="rgb" aria-pressed="false">True colour</button>
+        <button class="sm" type="button" data-v="ndvi" aria-pressed="true">Greenness (NDVI)</button>
+        <button class="sm" type="button" data-v="diff" aria-pressed="false">Change since 2017</button>
+      </div>
+      <div class="key" id="key" style="margin-top:10px"></div>
+    </div>
+    <div class="panel">
+      <div class="stats">
+        <div><span class="label">Green area</span><b id="sA">—</b></div>
+        <div><span class="label">vs 2017</span><b id="sD">—</b></div>
+        <div><span class="label">Picture</span><b id="sP" style="font-size:1rem">—</b></div>
+      </div>
+      <div class="chart"><canvas id="ch" aria-label="Green area each year. Click a bar to jump to that year."></canvas></div>
+      <p class="fact">The UAE has pledged to plant 100 million mangroves by 2030. Mangroves store carbon in their mud, shelter young fish and protect the coast from waves. "Green area" here counts every pixel with NDVI above 0.3 inside this box, so parks and lawns count too, and the tide and season nudge it from year to year.</p>
+      <p class="credit">Contains modified Copernicus Sentinel-2 data.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var meta = null, years = [], idx = 0, view = 'ndvi', imgs = {}, ndvis = {}, playing = null;
+  var cv = $('cv'), g = cv.getContext('2d');
+  function load(src) { return new Promise(function (res, rej) { var i = new Image(); i.onload = function () { res(i); }; i.onerror = rej; i.src = src; }); }
+  function pixels(img) { var c = document.createElement('canvas'); c.width = img.width; c.height = img.height; var x = c.getContext('2d'); x.drawImage(img, 0, 0); var d = x.getImageData(0, 0, c.width, c.height).data, a = new Float32Array(c.width * c.height); for (var i = 0; i < a.length; i++) a[i] = d[i * 4] / 255 * 2 - 1; return a; }
+  var RAMP = [[-1, [26, 46, 92]], [0, [120, 104, 84]], [0.2, [190, 170, 110]], [0.35, [120, 170, 70]], [0.55, [40, 140, 60]], [0.8, [10, 90, 40]]];
+  function ramp(v) { for (var i = 1; i < RAMP.length; i++) if (v <= RAMP[i][0]) { var a = RAMP[i - 1], b = RAMP[i], t = (v - a[0]) / (b[0] - a[0]); return [0, 1, 2].map(function (k) { return a[1][k] + (b[1][k] - a[1][k]) * t; }); } return RAMP[RAMP.length - 1][1]; }
+  function draw() {
+    var y = years[idx]; if (!y) return; $('yr').textContent = y.year;
+    var w = meta.w, h = meta.h; cv.width = w; cv.height = h;
+    if (view === 'rgb') { g.drawImage(imgs[y.year], 0, 0); }
+    else {
+      var a = ndvis[y.year], b = ndvis[years[0].year], im = g.createImageData(w, h), d = im.data;
+      for (var i = 0; i < a.length; i++) {
+        var c;
+        if (view === 'ndvi') c = ramp(a[i]);
+        else {
+          var dv = a[i] - b[i], gray = 70;
+          if (a[i] < -0.5 && b[i] < -0.5) c = [20, 32, 64];
+          else if (dv > 0.15 && a[i] > 0.3) c = [79, 211, 189];
+          else if (dv < -0.15 && b[i] > 0.3) c = [240, 138, 179];
+          else c = a[i] > 0.3 ? [60, 110, 70] : [gray, gray, gray + 6];
+        }
+        d[i * 4] = c[0]; d[i * 4 + 1] = c[1]; d[i * 4 + 2] = c[2]; d[i * 4 + 3] = 255;
+      }
+      g.putImageData(im, 0, 0);
+    }
+    $('sA').textContent = y.green_km2.toFixed(1) + ' km²';
+    var d0 = y.green_km2 - years[0].green_km2; $('sD').textContent = (d0 >= 0 ? '+' : '') + d0.toFixed(1);
+    var p = y.date.split('-'); $('sP').textContent = +p[2] + ' ' + ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][+p[1] - 1];
+    key(); chart();
+  }
+  function key() {
+    var k = view === 'ndvi' ? [['#1a2e5c', 'water'], ['#bea96e', 'bare sand'], ['#78aa46', 'some plants'], ['#0a5a28', 'dense mangrove']]
+      : view === 'diff' ? [['#4FD3BD', 'greener than 2017'], ['#F08AB3', 'less green than 2017'], ['#3c6e46', 'green both years'], ['#46464c', 'no change']] : [];
+    $('key').innerHTML = k.map(function (x) { return '<span><i style="background:' + x[0] + '"></i>' + x[1] + '</span>'; }).join('');
+  }
+  function chart() {
+    var c = $('ch'), dpr = Math.min(window.devicePixelRatio || 1, 2), r = c.getBoundingClientRect(); c.width = r.width * dpr; c.height = r.height * dpr;
+    var x = c.getContext('2d'), W = c.width, H = c.height, mx = Math.max.apply(null, years.map(function (y) { return y.green_km2; })) * 1.12, bw = (W - 20 * dpr) / years.length;
+    x.clearRect(0, 0, W, H); x.font = (10 * dpr) + 'px "JetBrains Mono", monospace';
+    years.forEach(function (y, i) {
+      var bh = y.green_km2 / mx * (H - 34 * dpr), bx = 10 * dpr + i * bw;
+      x.fillStyle = i === idx ? '#E9B467' : 'rgba(79,211,189,0.6)'; x.fillRect(bx + 3 * dpr, H - 18 * dpr - bh, bw - 6 * dpr, bh);
+      x.fillStyle = 'rgba(167,173,203,0.85)'; x.textAlign = 'center'; x.fillText("'" + String(y.year).slice(2), bx + bw / 2, H - 4 * dpr);
+      if (i === idx) { x.fillStyle = '#EEF0FA'; x.fillText(y.green_km2.toFixed(1), bx + bw / 2, H - 22 * dpr - bh); }
+    });
+    x.textAlign = 'start'; x.fillStyle = 'rgba(167,173,203,0.7)'; x.fillText('green area, km²', 10 * dpr, 12 * dpr);
+  }
+  $('ch').addEventListener('click', function (e) { var r = this.getBoundingClientRect(), i = Math.floor((e.clientX - r.left - 10) / ((r.width - 20) / years.length)); if (i >= 0 && i < years.length) { idx = i; $('year').value = i; draw(); } });
+  $('year').addEventListener('input', function () { idx = +this.value; draw(); });
+  [].forEach.call(document.querySelectorAll('[data-v]'), function (b) { b.onclick = function () { view = b.dataset.v; [].forEach.call(document.querySelectorAll('[data-v]'), function (x) { x.setAttribute('aria-pressed', x === b); }); draw(); }; });
+  $('play').onclick = function () {
+    if (playing) { clearInterval(playing); playing = null; this.textContent = 'Play'; return; }
+    this.textContent = 'Pause'; idx = 0; $('year').value = 0; draw(); var btn = this;
+    playing = setInterval(function () { if (idx >= years.length - 1) { clearInterval(playing); playing = null; btn.textContent = 'Play'; return; } idx++; $('year').value = idx; draw(); }, 900);
+  };
+  fetch('../assets/eo/mangrove/meta.json').then(function (r) { return r.json(); }).then(function (m) {
+    meta = m; years = m.years; idx = years.length - 1; $('year').max = years.length - 1; $('year').value = idx;
+    return Promise.all(years.map(function (y) {
+      return Promise.all([load('../assets/eo/mangrove/' + y.year + '-rgb.jpg'), load('../assets/eo/mangrove/' + y.year + '-ndvi.png')]).then(function (r) { imgs[y.year] = r[0]; ndvis[y.year] = pixels(r[1]); });
+    }));
+  }).then(draw);
+  window.addEventListener('resize', chart);
+})();
+</script>
+</body>
+</html>
