@@ -339,3 +339,14 @@ LabAr.add({
  "37 quick questions on posts, accounts, devices, home and travel, scored by area, with a step-by-step fix plan.": "37 سؤالًا سريعًا عن منشوراتك وحساباتك وأجهزتك ومنزلك وسفرك، مع نتيجة لكل مجال وخطة إصلاح خطوة بخطوة.",
  "Start the audit →": "ابدأ التدقيق ←"
 });
+/* index cards for newer tools */
+LabAr.add({
+ "Privacy · Maps": "الخصوصية · الخرائط",
+ "Is your home in your running routes?": "هل يظهر منزلك في مسارات جريك؟",
+ "Load GPX, TCX or FIT files to see where your runs keep starting and ending, what a privacy zone still gives away, and save trimmed copies.": "حمّل ملفات GPX أو TCX أو FIT لترى أين تبدأ أنشطتك وتنتهي باستمرار، وما تكشفه منطقة الخصوصية رغم ذلك، واحفظ نسخًا مقصوصة.",
+ "Check my routes →": "افحص مساراتي ←",
+ "Learn · Chemistry": "تعلّم · كيمياء",
+ "Molecule shapes": "أشكال الجزيئات",
+ "Build molecules from atoms and lone pairs and see their 3D VSEPR shape, angles and polarity.": "ابنِ جزيئات من الذرات والأزواج الحرة وشاهد شكلها الثلاثي الأبعاد وزواياها وقطبيتها.",
+ "Build →": "ابنِ ←"
+});

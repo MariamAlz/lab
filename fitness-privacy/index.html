@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Is Your Home in Your Running Routes · Mariam's Lab</title>
+<meta name="description" content="Load your GPX, TCX or FIT files and see whether your runs and rides point to your home and workplace, what a privacy zone hides, and what it still gives away.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/fitness-privacy/">
+<meta property="og:title" content="Is Your Home in Your Running Routes · Mariam's Lab"><meta property="og:description" content="See whether your workout routes give away where you live, and fix it."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="stylesheet" href="../assets/vendor/leaflet/leaflet.css">
+<style>
+.privacy { display: flex; gap: 10px; align-items: center; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--sat-b); color: var(--ink); font-size: 0.92rem; margin-bottom: 18px; background: rgba(79,211,189,.08); }
+.privacy b { color: var(--sat-b); }
+.btns { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.sm { font: inherit; font-size: 0.85rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 7px 14px; cursor: pointer; text-decoration: none; display: inline-block; }
+.sm.pri { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.drop { border: 1px dashed var(--line); border-radius: 14px; padding: 20px 16px; text-align: center; color: var(--muted); font-size: 0.9rem; display: grid; gap: 10px; justify-items: center; }
+.drop.over { border-color: var(--accent); color: var(--ink); }
+.pane { padding: 18px; border-radius: var(--radius); border: 1px solid var(--line); background: rgba(7,10,24,.82); display: grid; gap: 12px; min-width: 0; }
+.pane h2 { font-size: 1.2rem; margin: 0; }
+#map { height: 440px; border-radius: 12px; border: 1px solid var(--line); background: #0b1020; }
+@media (max-width: 600px) { #map { height: 340px; } }
+.spots { display: grid; gap: 10px; }
+.spot { border: 1px solid var(--line); border-inline-start: 4px solid var(--c); border-radius: 12px; padding: 12px 14px; display: grid; gap: 8px; }
+.spot h3 { margin: 0; font-size: 1.05rem; }
+.spot p { margin: 0; font-size: 0.86rem; color: var(--muted); }
+.bars { display: grid; grid-template-columns: repeat(24, 1fr); gap: 2px; align-items: end; height: 46px; direction: ltr; }
+.bars.wk { grid-template-columns: repeat(7, 1fr); }
+.bars i { display: block; background: var(--c); border-radius: 2px 2px 0 0; min-height: 2px; opacity: .85; }
+.ticks { display: grid; grid-template-columns: repeat(4, 1fr); font-family: var(--font-mono); font-size: 0.66rem; color: var(--muted); direction: ltr; }
+.ticks.wk { grid-template-columns: repeat(7, 1fr); text-align: center; }
+.two { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 12px; }
+@media (max-width: 480px) { .two { grid-template-columns: minmax(0, 1fr); } }
+.leakbox { padding: 12px 14px; border-radius: 10px; border: 1px solid var(--line); font-size: 0.9rem; display: grid; gap: 6px; }
+.leakbox b.big { font-family: var(--font-display); font-size: 1.15rem; }
+.ok { color: var(--sat-b); } .bad { color: var(--sat-c); } .meh { color: var(--accent); }
+.opts { display: grid; gap: 8px; font-size: 0.88rem; }
+.opts label { display: block; line-height: 2; }
+.opts label input { margin-inline-end: 6px; vertical-align: middle; }
+.opts select { font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 4px 8px; }
+.tips { margin: 0; padding-inline-start: 1.1em; display: grid; gap: 6px; font-size: 0.88rem; color: var(--muted); }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 0; }
+.flist2 { font-size: 0.8rem; color: var(--muted); word-break: break-word; }
+[hidden] { display: none !important; }
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Privacy · Maps</span>
+    <h1 style="font-size:var(--step-3)">Is your home in your running routes?</h1>
+    <p>Most runs and rides start and end at your front door. Post enough of them and the map points straight at your home, and often at your office, with the times you leave and come back. Load your own activity files to see what they reveal, how much a privacy zone really hides, and save trimmed copies.</p>
+  </div>
+  <div class="privacy" role="note"><span aria-hidden="true">🔒</span><span><b>Your routes never leave this device.</b> Files are read inside this browser tab. Nothing is uploaded. Only map tiles are loaded from the internet.</span></div>
+  <div class="game">
+    <div class="panel" style="align-content:start">
+      <div class="drop" id="drop">
+        <span>Drop activity files here, or</span>
+        <div class="btns" style="justify-content:center"><label class="sm pri" style="cursor:pointer">Choose files<input type="file" id="file" accept=".gpx,.tcx,.fit,.csv" multiple hidden></label><button class="sm" type="button" id="demo">Load sample routes</button></div>
+        <span style="font-size:.8rem">GPX, TCX, FIT, or a CSV with latitude and longitude columns. Select many at once. Most apps let you export them from each activity or from a full data download.</span>
+      </div>
+      <p class="msg" id="msg" role="status"></p>
+      <div id="mapWrap" hidden><div id="map"></div></div>
+      <div class="pane" id="zonePane" hidden>
+        <span class="label">Try a privacy zone</span>
+        <div class="btns" id="zones"><button class="sm" type="button" data-r="0" aria-pressed="true">Off</button><button class="sm" type="button" data-r="200" aria-pressed="false">200 m</button><button class="sm" type="button" data-r="500" aria-pressed="false">500 m</button><button class="sm" type="button" data-r="1000" aria-pressed="false">1 km</button></div>
+        <label class="opts" style="display:flex;gap:8px;align-items:flex-start;line-height:1.4"><input type="checkbox" id="shift"> <span>Shift each zone's centre away from the spot, like newer app versions do</span></label>
+        <div id="leak"></div>
+      </div>
+      <div class="pane" id="exportPane" hidden>
+        <span class="label">Save trimmed copies</span>
+        <div class="opts">
+          <label><input type="radio" name="how" value="trim" checked> <span>Cut the first and last</span> <select id="trimM"><option value="200">200 m</option><option value="500" selected>500 m</option><option value="1000">1 km</option></select> <span>of every route</span></label>
+          <label><input type="radio" name="how" value="zone"> <span>Remove everything inside the privacy zones chosen above</span></label>
+          <label><input type="checkbox" id="dropTime"> <span>Also remove timestamps</span></label>
+        </div>
+        <div class="btns"><button class="sm pri" type="button" id="export">Download trimmed GPX</button></div>
+        <p class="msg" id="emsg" role="status"></p>
+      </div>
+    </div>
+    <div class="panel" style="align-content:start">
+      <div class="stats"><div><b id="sA">0</b><span>activities</span></div><div><b id="sS">0</b><span>repeat start or end spots</span></div><div><b id="sT">0</b><span>at the top spot</span></div></div>
+      <div class="spots" id="spots"></div>
+      <div class="pane">
+        <span class="label">Settings to check in your apps</span>
+        <ul class="tips">
+          <li><b>Default visibility.</b> Set new activities to followers only or private. In most apps this is under privacy or social settings.</li>
+          <li><b>Hide start and end.</b> Many apps (Strava, Garmin Connect, Komoot, Suunto, Polar and others) can hide the first and last part of every route, or hide a zone around an address. Turn it on for home and work.</li>
+          <li><b>Pick a zone centre that isn't your door.</b> A zone centred exactly on your home can be found again from where routes cross its edge. Centre it a few streets away, or use a large radius.</li>
+          <li><b>Check older activities.</b> New settings may not apply to activities posted before. Look for an option to apply them to past activities.</li>
+          <li><b>Leaderboards, heatmaps and "people nearby".</b> Opt out of public segments, heatmap contributions and flyby features if you don't need them.</li>
+          <li><b>Linked accounts.</b> Watches and phone health apps can sync to several services. Each one needs its own privacy settings.</li>
+          <li><b>Vary where you start.</b> Start recording a few hundred metres from home, or drive to a different start sometimes.</li>
+        </ul>
+      </div>
+      <p class="fact" style="margin:0"><b>How it works.</b> The page takes the first and last point of every activity and groups points that are within 150 m of each other (a method called DBSCAN). A spot where many activities begin or end, at the same hours, is almost always a home or a workplace. The times of day and days of the week show your routine.</p>
+      <p class="fact" style="margin:0"><b>Why zones leak.</b> A privacy zone hides the route inside a circle, but every route still appears at the circle's edge. With a few routes, the points where they appear sit on that circle, and the centre of the circle is your door. That is why apps now shift zone centres randomly, and why a bigger zone helps.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script src="../assets/vendor/leaflet/leaflet.js"></script>
+<script src="../assets/vendor/jszip.min.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var AR = !!(window.LabAr && LabAr.on);
+  function T(s) { return AR ? LabAr.t(s) : s; }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  var R = 6371000, D2R = Math.PI / 180;
+  function dist(a, b) { var dl = (b[0] - a[0]) * D2R, dn = (b[1] - a[1]) * D2R, x = Math.sin(dl / 2) * Math.sin(dl / 2) + Math.cos(a[0] * D2R) * Math.cos(b[0] * D2R) * Math.sin(dn / 2) * Math.sin(dn / 2); return 2 * R * Math.asin(Math.min(1, Math.sqrt(x))); }
+  var tracks = [], clusters = [], zoneR = 0, map = null, layers = null;
+
+  // ---------- parsers ----------
+  function xmlPts(doc, sel, latF, lonF, timeF) {
+    return [].map.call(doc.getElementsByTagNameNS('*', sel), function (e) { var la = latF(e), lo = lonF(e), t = timeF(e); return [+la, +lo, t ? Date.parse(t) : null]; }).filter(function (p) { return isFinite(p[0]) && isFinite(p[1]) && !(p[0] === 0 && p[1] === 0); });
+  }
+  function child(e, n) { var c = e.getElementsByTagNameNS('*', n)[0]; return c ? c.textContent.trim() : ''; }
+  function parseGpx(text) { var d = new DOMParser().parseFromString(text, 'application/xml'); var p = xmlPts(d, 'trkpt', function (e) { return e.getAttribute('lat'); }, function (e) { return e.getAttribute('lon'); }, function (e) { return child(e, 'time'); }); if (!p.length) p = xmlPts(d, 'rtept', function (e) { return e.getAttribute('lat'); }, function (e) { return e.getAttribute('lon'); }, function (e) { return child(e, 'time'); }); return [p]; }
+  function parseTcx(text) { var d = new DOMParser().parseFromString(text, 'application/xml'); return [].map.call(d.getElementsByTagNameNS('*', 'Activity'), function (a) { return xmlPts(a, 'Trackpoint', function (e) { return child(e, 'LatitudeDegrees'); }, function (e) { return child(e, 'LongitudeDegrees'); }, function (e) { return child(e, 'Time'); }); }); }
+  function parseCsv(text) {
+    var rows = text.split(/\r?\n/).filter(function (l) { return l.trim(); }).map(function (l) { return l.split(/[,;\t]/).map(function (c) { return c.trim().replace(/^"|"$/g, ''); }); });
+    if (!rows.length) return [];
+    var head = rows[0].map(function (h) { return h.toLowerCase(); }), hasHead = head.some(function (h) { return /[a-z]/.test(h); });
+    var la = head.findIndex(function (h) { return /^(lat|latitude)/.test(h); }), lo = head.findIndex(function (h) { return /^(lon|lng|long|longitude)/.test(h); }), ti = head.findIndex(function (h) { return /time|date/.test(h); }), id = head.findIndex(function (h) { return /^(activity|activity_id|id|track|name|file)/.test(h); });
+    if (!hasHead || la < 0 || lo < 0) { la = 0; lo = 1; ti = -1; id = -1; }
+    var groups = {}, order = [];
+    rows.slice(hasHead ? 1 : 0).forEach(function (r) { var k = id >= 0 ? r[id] : '1', p = [+r[la], +r[lo], ti >= 0 ? Date.parse(r[ti]) || null : null]; if (!isFinite(p[0]) || !isFinite(p[1])) return; if (!groups[k]) { groups[k] = []; order.push(k); } groups[k].push(p); });
+    return order.map(function (k) { return groups[k]; });
+  }
+  // Minimal FIT reader: record messages (global 20) with position_lat/long (semicircles) and timestamp
+  function parseFit(buf) {
+    var dv = new DataView(buf), u8 = new Uint8Array(buf), hs = u8[0], end = hs + dv.getUint32(4, true), pos = hs, defs = {}, pts = [], last = 0, SC = 180 / 2147483648;
+    if (String.fromCharCode(u8[8], u8[9], u8[10], u8[11]) !== '.FIT') throw new Error('not a FIT file');
+    end = Math.min(end, u8.length);
+    while (pos < end) {
+      var h = u8[pos++], local, d;
+      if (h & 0x80) { local = (h >> 5) & 3; d = defs[local]; if (!d) break; var rec = readData(d); var off = h & 31; var ts = (last & ~31) + off; if (off < (last & 31)) ts += 32; last = ts; if (d.g === 20) pushRec(rec, ts); continue; }
+      local = h & 15;
+      if (h & 0x40) {
+        pos++; var le = u8[pos++] === 0, g = le ? dv.getUint16(pos, true) : dv.getUint16(pos, false); pos += 2; var n = u8[pos++], fields = [];
+        for (var i = 0; i < n; i++) { fields.push([u8[pos], u8[pos + 1], u8[pos + 2]]); pos += 3; }
+        var dev = 0; if (h & 0x20) { var nd = u8[pos++]; for (i = 0; i < nd; i++) { dev += u8[pos + 1]; pos += 3; } }
+        defs[local] = { g: g, le: le, f: fields, dev: dev };
+      } else { d = defs[local]; if (!d) break; var r2 = readData(d); if (r2[253] != null) last = r2[253]; if (d.g === 20) pushRec(r2, r2[253] != null ? r2[253] : last); }
+    }
+    function readData(d) {
+      var o = {};
+      d.f.forEach(function (f) { var num = f[0], size = f[1], bt = f[2] & 31; if ((bt === 5 || bt === 6) && size === 4) o[num] = bt === 5 ? dv.getInt32(pos, d.le) : dv.getUint32(pos, d.le); pos += size; });
+      pos += d.dev; return o;
+    }
+    function pushRec(o, ts) { var la = o[0], lo = o[1]; if (la == null || lo == null || la === 0x7FFFFFFF || lo === 0x7FFFFFFF) return; pts.push([la * SC, lo * SC, ts ? (ts + 631065600) * 1000 : null]); }
+    return [pts];
+  }
+  function loadFiles(list) {
+    $('msg').textContent = 'Reading ' + list.length + (list.length === 1 ? ' file…' : ' files…');
+    var bad = 0;
+    Promise.all([].map.call(list, function (f) {
+      var ext = (f.name.split('.').pop() || '').toLowerCase();
+      var p = ext === 'fit' ? f.arrayBuffer().then(parseFit) : f.text().then(function (t) { return ext === 'tcx' || /<TrainingCenterDatabase/.test(t.slice(0, 400)) ? parseTcx(t) : ext === 'csv' ? parseCsv(t) : parseGpx(t); });
+      return p.then(function (ts) { return ts.filter(function (t) { return t.length > 1; }).map(function (t, i) { return { name: f.name + (ts.length > 1 ? ' #' + (i + 1) : ''), pts: t }; }); }).catch(function () { bad++; return []; });
+    })).then(function (r) {
+      var add = [].concat.apply([], r);
+      tracks = tracks.concat(add);
+      $('msg').textContent = add.length ? '' : 'No routes with GPS points found in ' + (list.length === 1 ? 'that file.' : 'those files.');
+      if (bad) $('msg').textContent += (bad === 1 ? ' 1 file couldn\'t be read.' : ' ' + bad + ' files couldn\'t be read.');
+      analyse();
+    });
+  }
+
+  // ---------- analysis ----------
+  function dbscan(points, eps, minPts) {
+    var lab = new Array(points.length).fill(-2), c = -1;
+    function nb(i) { var o = []; for (var j = 0; j < points.length; j++) if (dist(points[i].p, points[j].p) <= eps) o.push(j); return o; }
+    for (var i = 0; i < points.length; i++) {
+      if (lab[i] !== -2) continue; var N = nb(i); if (N.length < minPts) { lab[i] = -1; continue; }
+      c++; lab[i] = c; var q = N.slice();
+      while (q.length) { var j = q.shift(); if (lab[j] === -1) lab[j] = c; if (lab[j] !== -2) continue; lab[j] = c; var N2 = nb(j); if (N2.length >= minPts) q = q.concat(N2); }
+    }
+    var out = []; for (var k = 0; k <= c; k++) out.push(points.filter(function (_, i) { return lab[i] === k; }));
+    return out;
+  }
+  function analyse() {
+    var ends = [];
+    tracks.forEach(function (t, ti) { var a = t.pts[0], b = t.pts[t.pts.length - 1]; ends.push({ p: [a[0], a[1]], t: a[2], ti: ti, kind: 'start' }); ends.push({ p: [b[0], b[1]], t: b[2] || a[2], ti: ti, kind: 'end' }); });
+    clusters = dbscan(ends, 150, 2).map(function (m) {
+      var la = 0, lo = 0; m.forEach(function (e) { la += e.p[0]; lo += e.p[1]; }); var c = [la / m.length, lo / m.length];
+      var hours = new Array(24).fill(0), days = new Array(7).fill(0), acts = {};
+      m.forEach(function (e) { acts[e.ti] = 1; if (e.t) { var d = new Date(e.t); hours[d.getHours()]++; days[d.getDay()]++; } });
+      var rad = Math.max.apply(0, m.map(function (e) { return dist(c, e.p); }));
+      return { c: c, members: m, n: m.length, acts: Object.keys(acts).length, hours: hours, days: days, rad: rad };
+    }).filter(function (k) { return k.acts >= 2; }).sort(function (a, b) { return b.n - a.n; });
+    clusters.forEach(function (k, i) {
+      var day = k.hours.slice(8, 17).reduce(function (a, b) { return a + b; }, 0), all = k.hours.reduce(function (a, b) { return a + b; }, 0) || 1;
+      k.label = i === 0 ? 'Likely home' : day / all > 0.5 || i === 1 ? 'Likely work or a regular spot' : 'A regular spot';
+      k.color = ['#ff4f6d', '#ffc857', '#84a0ff', '#4fd3bd'][Math.min(i, 3)];
+    });
+    $('sA').textContent = tracks.length; $('sS').textContent = clusters.length; $('sT').textContent = clusters[0] ? clusters[0].acts : 0;
+    $('mapWrap').hidden = !tracks.length; $('zonePane').hidden = !clusters.length; $('exportPane').hidden = !tracks.length;
+    drawSpots(); drawMap();
+  }
+  var DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  function pattern(k) {
+    var all = k.hours.reduce(function (a, b) { return a + b; }, 0); if (!all) return 'No times in these files.';
+    var best = 0, bi = 0; for (var h = 0; h < 24; h++) { var s = k.hours[h] + k.hours[(h + 1) % 24]; if (s > best) { best = s; bi = h; } }
+    var wk = k.days[1] + k.days[2] + k.days[3] + k.days[4] + k.days[5];
+    var share = Math.round(best / all * 100), pad = function (n) { return (n < 10 ? '0' : '') + n; };
+    return share + '% between ' + pad(bi) + ':00 and ' + pad((bi + 2) % 24) + ':00. ' + (wk / all > 0.7 ? 'Mostly on weekdays.' : wk / all < 0.3 ? 'Mostly at weekends.' : 'Weekdays and weekends.');
+  }
+  function bars(arr, cls) { var mx = Math.max.apply(0, arr) || 1; return '<div class="bars ' + (cls || '') + '">' + arr.map(function (v) { return '<i style="height:' + Math.max(4, v / mx * 100) + '%;' + (v ? '' : 'opacity:.2') + '"></i>'; }).join('') + '</div>'; }
+  function drawSpots() {
+    if (!tracks.length) { $('spots').innerHTML = ''; return; }
+    if (!clusters.length) { $('spots').innerHTML = '<div class="pane"><b class="ok">No repeat start or end spots</b><p class="msg">None of these activities begin or end within 150 m of each other. Load more activities for a fair test.</p></div>'; return; }
+    $('spots').innerHTML = clusters.slice(0, 4).map(function (k, i) {
+      var starts = k.members.filter(function (e) { return e.kind === 'start'; }).length;
+      return '<div class="spot" style="--c:' + k.color + '"><h3>' + (i + 1) + '. ' + T(k.label) + '</h3><p>' + k.acts + ' activities · ' + starts + ' starts, ' + (k.n - starts) + ' ends · all within ' + Math.max(10, Math.round(k.rad / 10) * 10) + ' m</p><p>' + pattern(k) + '</p>' +
+        '<div class="two"><div><span class="label">Time of day</span>' + bars(k.hours) + '<div class="ticks"><span>0</span><span>6</span><span>12</span><span>18</span></div></div><div><span class="label">Day</span>' + bars(k.days, 'wk') + '<div class="ticks wk">' + DAYS.map(function (d, i) { return '<span>' + (AR ? 'حنثرخجس'[i] : d[0]) + '</span>'; }).join('') + '</div></div></div></div>';
+    }).join('') + (clusters.length > 4 ? '<p class="msg">' + (clusters.length - 4) + ' more spots on the map.</p>' : '');
+  }
+
+  // ---------- privacy zone ----------
+  function zc(k, i) { if (!$('shift').checked) return k.c; var a = (i * 2.39996 + 0.7), m = zoneR * 0.6, la = k.c[0] + m * Math.cos(a) / 110540, lo = k.c[1] + m * Math.sin(a) / (111320 * Math.cos(k.c[0] * D2R)); return [la, lo]; }
+  function inZone(p) { if (!zoneR) return false; for (var i = 0; i < clusters.length; i++) if (dist(zc(clusters[i], i), p) < zoneR) return i; return false; }
+  function isIn(p) { return inZone(p) !== false; }
+  function circleFit(P) {
+    // Kasa fit in a local flat projection
+    var o = P[0], kx = Math.cos(o[0] * D2R) * 111320, ky = 110540, xs = P.map(function (p) { return [(p[1] - o[1]) * kx, (p[0] - o[0]) * ky]; });
+    var n = xs.length, sx = 0, sy = 0, sxx = 0, syy = 0, sxy = 0, sxz = 0, syz = 0, sz = 0;
+    xs.forEach(function (q) { var x = q[0], y = q[1], z = x * x + y * y; sx += x; sy += y; sxx += x * x; syy += y * y; sxy += x * y; sxz += x * z; syz += y * z; sz += z; });
+    var A = [[sxx, sxy, sx], [sxy, syy, sy], [sx, sy, n]], B = [-sxz, -syz, -sz], s = solve3(A, B); if (!s) return null;
+    var cx = -s[0] / 2, cy = -s[1] / 2; return [o[0] + cy / ky, o[1] + cx / kx];
+  }
+  function solve3(A, b) { var M = A.map(function (r, i) { return r.concat([b[i]]); }); for (var i = 0; i < 3; i++) { var p = i; for (var j = i + 1; j < 3; j++) if (Math.abs(M[j][i]) > Math.abs(M[p][i])) p = j; var t = M[i]; M[i] = M[p]; M[p] = t; if (Math.abs(M[i][i]) < 1e-9) return null; for (j = 0; j < 3; j++) if (j !== i) { var f = M[j][i] / M[i][i]; for (var k = i; k < 4; k++) M[j][k] -= f * M[i][k]; } } return [M[0][3] / M[0][0], M[1][3] / M[1][1], M[2][3] / M[2][2]]; }
+  function leakReport() {
+    if (!zoneR) { $('leak').innerHTML = '<p class="msg">Pick a radius to see what a zone around each spot hides, and what it doesn\'t.</p>'; return; }
+    var h = '';
+    clusters.slice(0, 2).forEach(function (k, ci) {
+      var edge = [], Z = zc(k, ci);
+      tracks.forEach(function (t) {
+        var pts = t.pts, i;
+        if (dist(Z, pts[0]) < zoneR) { for (i = 0; i < pts.length && dist(Z, pts[i]) < zoneR; i++); if (i < pts.length) edge.push(pts[i]); }
+        if (dist(Z, pts[pts.length - 1]) < zoneR) { for (i = pts.length - 1; i >= 0 && dist(Z, pts[i]) < zoneR; i--); if (i >= 0) edge.push(pts[i]); }
+      });
+      var est = edge.length >= 3 ? circleFit(edge) : null, err = est ? dist(est, k.c) : null;
+      k.edge = edge; k.est = est;
+      var cls = err == null ? 'ok' : err < zoneR * 0.25 ? 'bad' : err < zoneR * 0.6 ? 'meh' : 'ok';
+      h += '<div class="leakbox" style="border-color:' + k.color + '"><b class="big ' + cls + '">' + T(k.label) + ': ' + (err == null ? T('hidden') : 'found again within ' + Math.round(err) + ' m') + '</b>' +
+        '<span class="msg">' + (err == null ? 'Fewer than 3 routes cross the edge, so the centre can\'t be worked out from them.' : edge.length + ' routes appear at the edge of the ' + zoneR + ' m zone. A circle drawn through those points has its centre ' + Math.round(err) + ' m from the real spot (shown as a dashed cross).' + ($('shift').checked ? ' Shifting the centre moves the guess away from your door, but your door is still somewhere inside the circle.' : ' A zone centred on your door points right back at it.')) + '</span></div>';
+    });
+    h += '<p class="msg">What still leaks: the route shapes funnel into the zone along the same streets, and the start and end times stay the same. Shifting the zone centre away from your door, a bigger radius, or trimming different lengths each time all help.</p>';
+    $('leak').innerHTML = h;
+  }
+  $('shift').onchange = function () { drawMap(); };
+  $('zones').onclick = function (e) {
+    var b = e.target.closest('[data-r]'); if (!b) return; zoneR = +b.dataset.r;
+    [].forEach.call(this.querySelectorAll('[data-r]'), function (x) { x.setAttribute('aria-pressed', x === b); });
+    drawMap();
+  };
+
+  // ---------- map ----------
+  function drawMap() {
+    if (!tracks.length) return;
+    leakReport();
+    if (typeof L === 'undefined') return;
+    if (!map) { try { map = L.map('map', { scrollWheelZoom: false }); L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', { subdomains: 'abcd', maxZoom: 19, attribution: '© OpenStreetMap, © CARTO' }).addTo(map); } catch (er) { return; } }
+    if (layers) layers.remove(); layers = L.layerGroup().addTo(map);
+    var all = [];
+    tracks.forEach(function (t) {
+      var seg = [], segs = [], hid = [], hsegs = [];
+      t.pts.forEach(function (p) { all.push([p[0], p[1]]); var inz = isIn(p); if (inz) { if (seg.length) { segs.push(seg); seg = []; } hid.push([p[0], p[1]]); } else { if (hid.length) { hsegs.push(hid); hid = []; } seg.push([p[0], p[1]]); } });
+      if (seg.length) segs.push(seg); if (hid.length) hsegs.push(hid);
+      segs.forEach(function (s) { L.polyline(s, { color: '#84a0ff', weight: 2, opacity: .7 }).addTo(layers); });
+      hsegs.forEach(function (s) { L.polyline(s, { color: '#ffffff', weight: 1, opacity: .25, dashArray: '3 5' }).addTo(layers); });
+    });
+    clusters.forEach(function (k, i) {
+      if (zoneR) L.circle(zc(k, i), { radius: zoneR, color: k.color, weight: 1, fillOpacity: .12 }).addTo(layers);
+      k.members.forEach(function (e) { L.circleMarker(e.p, { radius: 3, color: k.color, weight: 1, fillOpacity: .9 }).addTo(layers); });
+      if (!zoneR) L.circle(k.c, { radius: Math.max(40, k.rad), color: k.color, weight: 2, fillOpacity: .15 }).addTo(layers).bindTooltip((i + 1) + '. ' + T(k.label));
+      if (zoneR && k.edge) k.edge.forEach(function (p) { L.circleMarker([p[0], p[1]], { radius: 4, color: '#fff', weight: 2, fillColor: k.color, fillOpacity: 1 }).addTo(layers); });
+      if (zoneR && k.est) { L.polyline([[k.est[0] - 0.0004, k.est[1]], [k.est[0] + 0.0004, k.est[1]]], { color: '#fff', weight: 2, dashArray: '2 3' }).addTo(layers); L.polyline([[k.est[0], k.est[1] - 0.0004], [k.est[0], k.est[1] + 0.0004]], { color: '#fff', weight: 2, dashArray: '2 3' }).addTo(layers); }
+    });
+    if (!map._fitted && all.length) { map.fitBounds(L.latLngBounds(all).pad(0.05)); map._fitted = true; }
+  }
+
+  // ---------- export ----------
+  function trimmed(t) {
+    var how = document.querySelector('input[name="how"]:checked').value, pts = t.pts;
+    if (how === 'zone') return pts.filter(function (p) { return !isIn(p); });
+    var m = +$('trimM').value, acc = 0, a = 0, b = pts.length - 1;
+    for (a = 1; a < pts.length && acc < m; a++) acc += dist(pts[a - 1], pts[a]);
+    acc = 0; for (b = pts.length - 2; b > a && acc < m; b--) acc += dist(pts[b + 1], pts[b]);
+    return pts.slice(a, b + 1);
+  }
+  function gpx(name, pts, noTime) {
+    return '<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="trimmed in browser" xmlns="http://www.topografix.com/GPX/1/1"><trk><name>' + esc(name) + '</name><trkseg>\n' +
+      pts.map(function (p) { return '<trkpt lat="' + p[0].toFixed(6) + '" lon="' + p[1].toFixed(6) + '">' + (p[2] && !noTime ? '<time>' + new Date(p[2]).toISOString() + '</time>' : '') + '</trkpt>'; }).join('\n') + '\n</trkseg></trk></gpx>\n';
+  }
+  function save(blob, name) { var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(function () { a.remove(); }, 1000); }
+  $('export').onclick = function () {
+    var how = document.querySelector('input[name="how"]:checked').value;
+    if (how === 'zone' && !zoneR) { $('emsg').textContent = 'Pick a privacy zone radius above first.'; return; }
+    var noTime = $('dropTime').checked, out = tracks.map(function (t) { return { name: t.name.replace(/\.(gpx|tcx|fit|csv)( #\d+)?$/i, function (m, e, n) { return (n ? n.replace(' #', '-') : ''); }) + '-trimmed.gpx', pts: trimmed(t), src: t.name }; }).filter(function (o) { return o.pts.length > 1; });
+    var skipped = tracks.length - out.length;
+    if (!out.length) { $('emsg').textContent = 'Nothing would be left of these routes. Try a smaller trim.'; return; }
+    if (out.length === 1) save(new Blob([gpx(out[0].src, out[0].pts, noTime)], { type: 'application/gpx+xml' }), out[0].name);
+    else { var z = new JSZip(), used = {}; out.forEach(function (o) { var n = o.name; while (used[n]) n = n.replace(/\.gpx$/, '-1.gpx'); used[n] = 1; z.file(n, gpx(o.src, o.pts, noTime)); }); z.generateAsync({ type: 'blob' }).then(function (b) { save(b, 'trimmed-routes.zip'); }); }
+    $('emsg').textContent = (out.length === 1 ? 'Saved 1 trimmed route.' : 'Saved ' + out.length + ' trimmed routes.') + (skipped ? ' ' + skipped + ' were too short and left out.' : '');
+  };
+
+  // ---------- inputs ----------
+  $('file').onchange = function () { if (this.files.length) loadFiles(this.files); this.value = ''; };
+  var dr = $('drop');
+  dr.addEventListener('dragover', function (e) { e.preventDefault(); dr.classList.add('over'); });
+  dr.addEventListener('dragleave', function () { dr.classList.remove('over'); });
+  dr.addEventListener('drop', function (e) { e.preventDefault(); dr.classList.remove('over'); if (e.dataTransfer.files.length) loadFiles(e.dataTransfer.files); });
+
+  // ---------- sample data: fictional routes from made-up points in two public parks ----------
+  function sample() {
+    var seed = 7; function rnd() { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }
+    var HOME = [25.2329, 55.2981], GATE = [25.2339, 55.2992], WORK = [25.2405, 55.3255];
+    function move(p, brg, m) { var dLat = m * Math.cos(brg) / 110540, dLon = m * Math.sin(brg) / (111320 * Math.cos(p[0] * D2R)); return [p[0] + dLat, p[1] + dLon]; }
+    function jitter(p, m) { return move(p, rnd() * 6.283, rnd() * m); }
+    function route(start, via, km, t0, back) {
+      var pts = [], p = jitter(start, 35), t = t0, step = 15, pace = 0.27 + rnd() * 0.06; // seconds per metre
+      function add(q) { pts.push([q[0], q[1], t]); }
+      add(p);
+      function walkTo(q) { while (dist(p, q) > step) { var brg = Math.atan2((q[1] - p[1]) * Math.cos(p[0] * D2R), q[0] - p[0]); p = move(p, brg + (rnd() - 0.5) * 0.3, step); t += step * pace * 1000; add(p); } }
+      if (via) walkTo(via);
+      var brg = rnd() * 6.283, out = km * 500;
+      for (var d = 0; d < out; d += step) { brg += (rnd() - 0.5) * 0.25; p = move(p, brg, step); t += step * pace * 1000; add(p); }
+      if (via) walkTo(via); walkTo(jitter(back || start, 30)); add(p);
+      return pts;
+    }
+    var list = [], day = new Date(2026, 8, 6).getTime(); // a Sunday in September 2026, in the viewer's own time zone
+    for (var i = 0; i < 16; i++) {
+      var dd = [1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 6, 0, 1, 3, 5, 6][i] + 7 * Math.floor(i / 5);
+      var weekend = dd % 7 === 0 || dd % 7 === 6, hour = weekend ? 7 + rnd() * 2 : 5.4 + rnd() * 0.9;
+      var t0 = day + dd * 864e5 + hour * 36e5;
+      list.push({ name: 'Morning run ' + (i + 1) + '.gpx', pts: route(HOME, GATE, 4 + rnd() * 5, t0) });
+    }
+    for (i = 0; i < 6; i++) { var d2 = [1, 2, 3, 4, 5, 2][i] + 7 * i; list.push({ name: 'Lunch run ' + (i + 1) + '.gpx', pts: route(WORK, null, 3 + rnd() * 2, day + d2 * 864e5 + (12.5 + rnd() * 0.5) * 36e5) }); }
+    for (i = 0; i < 3; i++) { var d3 = [4, 11, 18][i]; list.push({ name: 'Ride to the office ' + (i + 1) + '.gpx', pts: route(HOME, GATE, 0.4, day + d3 * 864e5 + 7.1 * 36e5, WORK) }); }
+    return list;
+  }
+  $('demo').onclick = function () { tracks = sample(); if (map) map._fitted = false; $('msg').textContent = 'Sample: 25 fictional activities around made-up points in Zabeel Park and Dubai Creek Park. Not a real home.'; analyse(); };
+  window.FITPRIV = { parseFit: parseFit, parseCsv: parseCsv, tracks: function () { return tracks; }, clusters: function () { return clusters; } };
+})();
+</script>
+</body>
+</html>
