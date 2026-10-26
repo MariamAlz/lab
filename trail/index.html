@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Trail Sketcher · Mariam's Lab</title>
+<meta name="description" content="Plan a hike on a topographic map: mark points, draw a route, see distance and climb, record your walk, and export GPX for Hatta, Jebel Jais or anywhere.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/trail/">
+<meta property="og:title" content="Trail Sketcher · Mariam's Lab"><meta property="og:description" content="Sketch a hike, see the climb, export GPX."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="stylesheet" href="../assets/vendor/leaflet/leaflet.css">
+<style>
+#map { height: 520px; border-radius: var(--radius); border: 1px solid var(--line); background: #0b1124; }
+.leaflet-container { font-family: var(--font-body, 'Instrument Sans'), sans-serif; }
+.ctrls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm:hover { border-color: var(--muted); }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.lbl { font-size: 0.8rem; color: var(--muted); }
+.prof { width: 100%; height: 130px; display: block; border-radius: 10px; border: 1px solid var(--line); background: rgba(7,10,24,.6); }
+.pts { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; max-height: 220px; overflow: auto; }
+.pts li { display: flex; gap: 8px; align-items: center; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; font-size: 0.85rem; }
+.pts input { flex: 1; min-width: 0; font: inherit; color: var(--ink); background: transparent; border: 0; border-bottom: 1px dashed var(--line); }
+.pts small { font-family: var(--font-mono); color: var(--muted); font-size: 0.72rem; white-space: nowrap; }
+.x { background: none; border: 0; color: var(--muted); font-size: 1.1rem; cursor: pointer; }
+.msg { font-size: 0.84rem; color: var(--muted); min-height: 1.2em; }
+.pin { width: 14px; height: 14px; border-radius: 50%; background: #E9B467; border: 2px solid #070A18; box-shadow: 0 0 0 2px #E9B467; }
+.me { width: 14px; height: 14px; border-radius: 50%; background: #84A0FF; border: 3px solid #fff; }
+@media (max-width: 700px) { #map { height: 420px; } }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Outdoors · UAE</span>
+    <h1 style="font-size:var(--step-3)">Trail sketcher.</h1>
+    <p>Plan a hike on a topographic map: drop points, draw your route, and see how far it is and how much you'll climb. Record your walk as you go, then export a GPX file for any hiking app. Map areas you've looked at stay available when you lose signal.</p>
+  </div>
+  <div class="game">
+    <div>
+      <div id="map" role="application" aria-label="Map"></div>
+      <div class="ctrls" role="group" aria-label="Tool">
+        <button class="sm" type="button" data-m="route" aria-pressed="true">Draw route</button>
+        <button class="sm" type="button" data-m="point" aria-pressed="false">Add point</button>
+        <button class="sm" type="button" data-m="pan" aria-pressed="false">Just look</button>
+        <button class="sm" type="button" id="undo">Undo</button>
+        <button class="sm" type="button" id="clear">Clear</button>
+        <span class="lbl" style="margin-inline-start:auto">Map</span>
+        <button class="sm" type="button" data-l="topo" aria-pressed="true">Topo</button>
+        <button class="sm" type="button" data-l="osm" aria-pressed="false">Streets</button>
+      </div>
+      <div class="ctrls">
+        <span class="lbl">Go to</span>
+        <button class="sm" type="button" data-go="24.80,56.13,13">Hatta</button>
+        <button class="sm" type="button" data-go="25.95,56.13,12">Jebel Jais</button>
+        <button class="sm" type="button" data-go="25.11,56.03,13">Wadi Shawka</button>
+        <button class="sm" type="button" data-go="24.06,55.78,12">Jebel Hafeet</button>
+        <button class="sm" type="button" id="me">My location</button>
+      </div>
+    </div>
+    <div class="panel" style="display:grid;gap:12px">
+      <div class="stats">
+        <div><span class="label">Distance</span><b id="sD">0 km</b></div>
+        <div><span class="label">Climb</span><b id="sC">—</b></div>
+        <div><span class="label">Walking time</span><b id="sT">—</b></div>
+      </div>
+      <canvas class="prof" id="prof" aria-label="Elevation profile"></canvas>
+      <p class="msg" id="msg">Tap the map to start drawing your route.</p>
+      <span class="label">Points</span>
+      <ul class="pts" id="pts"><li><small>No points yet</small></li></ul>
+      <div class="ctrls" style="margin:0">
+        <button class="btn primary" type="button" id="gpx">Export GPX</button>
+        <label class="btn ghost" style="cursor:pointer">Import GPX<input type="file" id="imp" accept=".gpx,application/gpx+xml" hidden></label>
+        <button class="sm" type="button" id="rec" aria-pressed="false">● Record my walk</button>
+      </div>
+      <p class="fact">Walking time uses Naismith's rule: 5 km an hour plus an hour for every 600 m of climbing. In UAE mountains, start at dawn, carry at least 3 litres of water each, tell someone your route, and avoid wadis when rain is forecast anywhere upstream.</p>
+      <p class="lbl">Map © OpenStreetMap contributors · Topo © OpenTopoMap (CC BY-SA) · Heights: Open-Meteo</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script src="../assets/vendor/leaflet/leaflet.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {});
+  var map = L.map('map', { zoomControl: true, attributionControl: true }).setView([24.80, 56.13], 13);
+  var layers = {
+    topo: L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { maxZoom: 17, subdomains: 'abc', attribution: '© OpenStreetMap contributors, SRTM · © OpenTopoMap (CC BY-SA)' }),
+    osm: L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap contributors' })
+  };
+  var base = layers.topo.addTo(map);
+  var st = { route: [], points: [] }, mode = 'route', elev = [], line = L.polyline([], { color: '#E9B467', weight: 4 }).addTo(map), vtx = L.layerGroup().addTo(map), ptl = L.layerGroup().addTo(map);
+  var recLine = L.polyline([], { color: '#84A0FF', weight: 4, dashArray: '6 6' }).addTo(map), recWatch = null, rec = [], meMark = null;
+  var history = [];
+
+  function save() { try { localStorage.setItem('trailPlan', JSON.stringify(st)); } catch (e) {} }
+  function km(a, b) { return map.distance(a, b) / 1000; }
+  function length(r) { var d = 0; for (var i = 1; i < r.length; i++) d += km(r[i - 1], r[i]); return d; }
+  function redraw() {
+    line.setLatLngs(st.route); vtx.clearLayers(); ptl.clearLayers();
+    st.route.forEach(function (p, i) { if (i === 0 || i === st.route.length - 1) L.circleMarker(p, { radius: 6, color: '#070A18', weight: 2, fillColor: i ? '#F08AB3' : '#4FD3BD', fillOpacity: 1 }).addTo(vtx); });
+    st.points.forEach(function (p, i) {
+      var m = L.marker([p.lat, p.lng], { draggable: true, icon: L.divIcon({ className: '', html: '<div class="pin"></div>', iconSize: [14, 14] }) }).bindTooltip(p.name || 'Point ' + (i + 1)).addTo(ptl);
+      m.on('dragend', function () { var ll = m.getLatLng(); p.lat = ll.lat; p.lng = ll.lng; list(); save(); });
+    });
+    var d = length(st.route); $('sD').textContent = d < 1 ? Math.round(d * 1000) + ' m' : d.toFixed(2) + ' km';
+    list(); save(); heights();
+  }
+  function list() {
+    $('pts').innerHTML = st.points.length ? st.points.map(function (p, i) { return '<li data-i="' + i + '"><input value="' + (p.name || '').replace(/"/g, '&quot;') + '" placeholder="Point ' + (i + 1) + '" aria-label="Name"><small>' + p.lat.toFixed(4) + ', ' + p.lng.toFixed(4) + '</small><button class="x" type="button" aria-label="Remove">×</button></li>'; }).join('') : '<li><small>No points yet</small></li>';
+  }
+  $('pts').addEventListener('input', function (e) { var li = e.target.closest('li'); st.points[+li.dataset.i].name = e.target.value; save(); });
+  $('pts').addEventListener('change', redraw);
+  $('pts').addEventListener('click', function (e) { if (e.target.classList.contains('x')) { var i = +e.target.closest('li').dataset.i; history.push(JSON.stringify(st)); st.points.splice(i, 1); redraw(); } });
+
+  // sample the route every ~50 m and ask Open-Meteo for heights (100 per request)
+  var hTimer = null;
+  function sampled() {
+    var r = st.route, out = [], step = Math.max(0.05, length(r) / 300);
+    if (r.length < 2) return out;
+    out.push(L.latLng(r[0]));
+    for (var i = 1; i < r.length; i++) {
+      var a = L.latLng(r[i - 1]), b = L.latLng(r[i]), d = km(a, b), n = Math.max(1, Math.round(d / step));
+      for (var k = 1; k <= n; k++) out.push(L.latLng(a.lat + (b.lat - a.lat) * k / n, a.lng + (b.lng - a.lng) * k / n));
+    }
+    return out;
+  }
+  function heights() {
+    clearTimeout(hTimer);
+    hTimer = setTimeout(function () {
+      var s = sampled(); if (s.length < 2) { elev = []; profile(); return; }
+      var chunks = []; for (var i = 0; i < s.length; i += 100) chunks.push(s.slice(i, i + 100));
+      Promise.all(chunks.map(function (c) {
+        return fetch('https://api.open-meteo.com/v1/elevation?latitude=' + c.map(function (p) { return p.lat.toFixed(5); }).join(',') + '&longitude=' + c.map(function (p) { return p.lng.toFixed(5); }).join(',')).then(function (r) { return r.json(); }).then(function (j) { return j.elevation || []; });
+      })).then(function (r) {
+        var h = [].concat.apply([], r), dist = 0; elev = s.map(function (p, i) { if (i) dist += km(s[i - 1], p); return { d: dist, h: h[i] }; });
+        profile();
+      }).catch(function () { elev = []; profile(); $('msg').textContent = 'Heights need a connection. Distance still works offline.'; });
+    }, 500);
+  }
+  function profile() {
+    var c = $('prof'), dpr = Math.min(devicePixelRatio || 1, 2), r = c.getBoundingClientRect(); c.width = r.width * dpr; c.height = r.height * dpr;
+    var g = c.getContext('2d'), W = c.width, H = c.height; g.clearRect(0, 0, W, H);
+    var d = length(st.route);
+    if (elev.length < 2) { $('sC').textContent = '—'; $('sT').textContent = d ? hm(d / 5) : '—'; return; }
+    var up = 0, down = 0; for (var i = 1; i < elev.length; i++) { var dh = elev[i].h - elev[i - 1].h; if (dh > 0) up += dh; else down -= dh; }
+    $('sC').textContent = '↑' + Math.round(up) + ' m'; $('sT').textContent = hm(d / 5 + up / 600);
+    var hs = elev.map(function (e) { return e.h; }), lo = Math.min.apply(null, hs), hi = Math.max.apply(null, hs), span = Math.max(20, hi - lo), D = elev[elev.length - 1].d || 1, pad = 18 * dpr;
+    g.beginPath(); elev.forEach(function (e, i) { var x = e.d / D * W, y = H - pad - (e.h - lo) / span * (H - 2 * pad); i ? g.lineTo(x, y) : g.moveTo(x, y); });
+    g.lineTo(W, H); g.lineTo(0, H); g.closePath(); g.fillStyle = 'rgba(233,180,103,0.18)'; g.fill();
+    g.beginPath(); elev.forEach(function (e, i) { var x = e.d / D * W, y = H - pad - (e.h - lo) / span * (H - 2 * pad); i ? g.lineTo(x, y) : g.moveTo(x, y); }); g.strokeStyle = '#E9B467'; g.lineWidth = 2 * dpr; g.stroke();
+    g.fillStyle = 'rgba(167,173,203,0.9)'; g.font = (10 * dpr) + 'px "JetBrains Mono", monospace'; g.fillText(Math.round(hi) + ' m', 6 * dpr, 12 * dpr); g.fillText(Math.round(lo) + ' m', 6 * dpr, H - 5 * dpr);
+    $('msg').textContent = 'Highest ' + Math.round(hi) + ' m, lowest ' + Math.round(lo) + ' m, down ' + Math.round(down) + ' m in total.';
+  }
+  function hm(h) { var m = Math.round(h * 60); return m < 60 ? m + ' min' : Math.floor(m / 60) + ' h ' + (m % 60) + ' min'; }
+
+  map.on('click', function (e) {
+    if (mode === 'pan') return;
+    history.push(JSON.stringify(st));
+    if (mode === 'route') st.route.push([e.latlng.lat, e.latlng.lng]);
+    else st.points.push({ lat: e.latlng.lat, lng: e.latlng.lng, name: '' });
+    redraw();
+  });
+  [].forEach.call(document.querySelectorAll('[data-m]'), function (b) { b.onclick = function () { mode = b.dataset.m; [].forEach.call(document.querySelectorAll('[data-m]'), function (x) { x.setAttribute('aria-pressed', x === b); }); }; });
+  [].forEach.call(document.querySelectorAll('[data-l]'), function (b) { b.onclick = function () { map.removeLayer(base); base = layers[b.dataset.l].addTo(map); [].forEach.call(document.querySelectorAll('[data-l]'), function (x) { x.setAttribute('aria-pressed', x === b); }); }; });
+  [].forEach.call(document.querySelectorAll('[data-go]'), function (b) { b.onclick = function () { var v = b.dataset.go.split(',').map(Number); map.setView([v[0], v[1]], v[2]); }; });
+  $('undo').onclick = function () { if (history.length) { st = JSON.parse(history.pop()); redraw(); } };
+  $('clear').onclick = function () { if (!st.route.length && !st.points.length) return; history.push(JSON.stringify(st)); st = { route: [], points: [] }; redraw(); };
+  $('me').onclick = function () {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(function (p) { var ll = [p.coords.latitude, p.coords.longitude]; map.setView(ll, 15); if (meMark) meMark.setLatLng(ll); else meMark = L.marker(ll, { icon: L.divIcon({ className: '', html: '<div class="me"></div>', iconSize: [20, 20] }) }).addTo(map); }, function () { $('msg').textContent = 'Location not available.'; }, { enableHighAccuracy: true });
+  };
+  $('rec').onclick = function () {
+    var b = this;
+    if (recWatch != null) {
+      navigator.geolocation.clearWatch(recWatch); recWatch = null; b.setAttribute('aria-pressed', 'false'); b.textContent = '● Record my walk';
+      if (rec.length > 1 && confirm('Use the recorded walk (' + length(rec).toFixed(2) + ' km) as your route?')) { history.push(JSON.stringify(st)); st.route = rec.map(function (p) { return [p[0], p[1]]; }); redraw(); }
+      return;
+    }
+    if (!navigator.geolocation) { $('msg').textContent = 'This device can\'t record location.'; return; }
+    rec = []; recLine.setLatLngs([]); b.setAttribute('aria-pressed', 'true'); b.textContent = '■ Stop recording';
+    $('msg').textContent = 'Recording. Keep this page open and the screen on.';
+    recWatch = navigator.geolocation.watchPosition(function (p) {
+      if (p.coords.accuracy > 40) return;
+      var ll = [p.coords.latitude, p.coords.longitude, p.coords.altitude, Date.now()], last = rec[rec.length - 1];
+      if (!last || km(last, ll) > 0.008) { rec.push(ll); recLine.setLatLngs(rec.map(function (x) { return [x[0], x[1]]; })); $('msg').textContent = 'Recording: ' + length(rec).toFixed(2) + ' km so far.'; }
+    }, function () { $('msg').textContent = 'Lost the location signal.'; }, { enableHighAccuracy: true, maximumAge: 2000 });
+  };
+  function xml(s) { return String(s).replace(/[<>&"]/g, function (c) { return { '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c]; }); }
+  $('gpx').onclick = function () {
+    if (!st.route.length && !st.points.length) { $('msg').textContent = 'Draw a route or add a point first.'; return; }
+    var g = '<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="Mariam\'s Lab trail sketcher" xmlns="http://www.topografix.com/GPX/1/1">\n<metadata><name>My trail</name><time>' + new Date().toISOString() + '</time></metadata>\n' +
+      st.points.map(function (p, i) { return '<wpt lat="' + p.lat.toFixed(6) + '" lon="' + p.lng.toFixed(6) + '"><name>' + xml(p.name || 'Point ' + (i + 1)) + '</name></wpt>'; }).join('\n') + '\n' +
+      (st.route.length ? '<trk><name>Route</name><trkseg>\n' + st.route.map(function (p) { return '<trkpt lat="' + p[0].toFixed(6) + '" lon="' + p[1].toFixed(6) + '"></trkpt>'; }).join('\n') + '\n</trkseg></trk>\n' : '') + '</gpx>\n';
+    var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([g], { type: 'application/gpx+xml' })); a.download = 'trail.gpx'; a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+  };
+  $('imp').onchange = function () {
+    var f = this.files[0]; if (!f) return;
+    f.text().then(function (t) {
+      var d = new DOMParser().parseFromString(t, 'application/xml'), pts = [].map.call(d.querySelectorAll('trkpt, rtept'), function (n) { return [+n.getAttribute('lat'), +n.getAttribute('lon')]; });
+      var w = [].map.call(d.querySelectorAll('wpt'), function (n) { var nm = n.querySelector('name'); return { lat: +n.getAttribute('lat'), lng: +n.getAttribute('lon'), name: nm ? nm.textContent : '' }; });
+      if (!pts.length && !w.length) { $('msg').textContent = 'No track or points found in that file.'; return; }
+      history.push(JSON.stringify(st));
+      if (pts.length > 2000) { var k = Math.ceil(pts.length / 2000); pts = pts.filter(function (_, i) { return i % k === 0 || i === pts.length - 1; }); }
+      st = { route: pts, points: w }; redraw();
+      var all = pts.concat(w.map(function (p) { return [p.lat, p.lng]; })); if (all.length) map.fitBounds(all, { padding: [20, 20] });
+    });
+  };
+  try { var s = JSON.parse(localStorage.getItem('trailPlan') || 'null'); if (s && s.route) { st = s; var all = st.route.concat(st.points.map(function (p) { return [p.lat, p.lng]; })); if (all.length) map.fitBounds(all, { padding: [20, 20], maxZoom: 15 }); } } catch (e) {}
+  redraw();
+  window.addEventListener('resize', profile);
+})();
+</script>
+</body>
+</html>
