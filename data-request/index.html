@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>"What Data Do You Hold on Me?" · Mariam's Lab</title>
+<meta name="description" content="Write a formal personal-data request to any company in seconds, in English or Arabic: get a copy of your data, have it deleted or corrected, or stop marketing. UAE law and GDPR.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/data-request/">
+<meta property="og:title" content="&quot;What Data Do You Hold on Me?&quot; · Mariam's Lab"><meta property="og:description" content="A formal data request letter in seconds, English or Arabic."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.form { display: grid; gap: 12px; }
+.f { display: grid; gap: 5px; }
+.f > span { font-size: 0.84rem; color: var(--muted); }
+.f input, .f select { font: inherit; color: var(--ink); background: rgba(7,10,24,.6); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; min-width: 0; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.chk { display: flex; gap: 8px; align-items: flex-start; font-size: 0.9rem; cursor: pointer; }
+.chk input { accent-color: var(--accent); width: 17px; height: 17px; margin: 2px 0 0; flex: none; }
+.chk small { display: block; color: var(--muted); font-size: 0.8rem; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.letter { background: #fbfaf6; color: #1b1d26; border-radius: 12px; padding: 26px; font-family: Georgia, 'IBM Plex Sans Arabic', serif; font-size: 0.95rem; line-height: 1.6; white-space: pre-wrap; word-break: break-word; }
+.letter[dir="rtl"] { font-family: 'IBM Plex Sans Arabic', sans-serif; }
+.acts { display: flex; flex-wrap: wrap; gap: 10px; }
+@media (max-width: 520px) { .two { grid-template-columns: 1fr; } .letter { padding: 18px; } }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Privacy · UAE</span>
+    <h1 style="font-size:var(--step-3)">"What data do you hold on me?"</h1>
+    <p>Companies collect more about you than you think. Data protection laws give you the right to ask for a copy, have it corrected or deleted, or make them stop marketing to you. Fill in a few details and get a formal letter, in English or Arabic, ready to email.</p>
+  </div>
+  <div class="game">
+    <div class="panel form">
+      <div class="two">
+        <label class="f"><span>Your full name</span><input id="name" autocomplete="name"></label>
+        <label class="f"><span>Your email</span><input id="email" type="email" autocomplete="email"></label>
+      </div>
+      <div class="two">
+        <label class="f"><span>Company</span><input id="co" placeholder="e.g. a shop, bank, app or gym"></label>
+        <label class="f"><span>Their privacy email (if known)</span><input id="coMail" type="email" placeholder="privacy@…"></label>
+      </div>
+      <label class="f"><span>Account, customer or phone number they know you by (optional)</span><input id="acct"></label>
+      <label class="f"><span>Which law</span><select id="law">
+        <option value="pdpl">UAE: Personal Data Protection Law (Federal Decree-Law 45 of 2021)</option>
+        <option value="difc">DIFC company: DIFC Data Protection Law 2020</option>
+        <option value="adgm">ADGM company: ADGM Data Protection Regulations 2021</option>
+        <option value="gdpr">European company or service: GDPR</option>
+      </select></label>
+      <span class="label" style="margin-top:4px">I want them to</span>
+      <label class="chk"><input type="checkbox" data-r="access" checked><span>Send me a copy of my data<small>and say why they hold it, where they got it, who they shared it with, and how long they keep it</small></span></label>
+      <label class="chk"><input type="checkbox" data-r="correct"><span>Correct wrong information</span></label>
+      <label class="chk"><input type="checkbox" data-r="erase"><span>Delete my data</span></label>
+      <label class="chk"><input type="checkbox" data-r="market"><span>Stop marketing to me (calls, SMS, email)</span></label>
+      <label class="chk"><input type="checkbox" data-r="port"><span>Give my data in a file I can take elsewhere</span></label>
+      <div class="acts" role="group" aria-label="Language"><button class="sm" type="button" data-l="en" aria-pressed="true">English letter</button><button class="sm" type="button" data-l="ar" aria-pressed="false">رسالة بالعربية</button></div>
+    </div>
+    <div style="display:grid;gap:12px">
+      <div class="letter" id="letter"></div>
+      <div class="acts">
+        <button class="btn primary" type="button" id="copy">Copy letter</button>
+        <a class="btn ghost" id="mail" href="#">Open in email</a>
+        <button class="btn ghost" type="button" id="cal">Reminder in 30 days</button>
+      </div>
+      <p class="fact">Send it from the email address the company knows, keep a copy, and note the date. If they ignore you, a reminder after 30 days usually works; in the DIFC and ADGM you can then complain to the Commissioner of Data Protection. The UAE federal law's detailed rules are still being rolled out, so some companies answer voluntarily. Nothing you type here leaves your device.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var lang = 'en';
+  var LAW = {
+    en: { pdpl: 'the UAE Federal Decree-Law No. 45 of 2021 on the Protection of Personal Data', difc: 'the DIFC Data Protection Law, DIFC Law No. 5 of 2020', adgm: 'the ADGM Data Protection Regulations 2021', gdpr: 'the EU General Data Protection Regulation (GDPR)' },
+    ar: { pdpl: 'المرسوم بقانون اتحادي رقم 45 لسنة 2021 بشأن حماية البيانات الشخصية', difc: 'قانون حماية البيانات لمركز دبي المالي العالمي رقم 5 لسنة 2020', adgm: 'لوائح حماية البيانات لسوق أبوظبي العالمي لعام 2021', gdpr: 'اللائحة العامة لحماية البيانات في الاتحاد الأوروبي (GDPR)' }
+  };
+  var ART = { access: 'Art. 15', correct: 'Art. 16', erase: 'Art. 17', market: 'Art. 21', port: 'Art. 20' };
+  var REQ = {
+    en: {
+      access: 'Confirm whether you process my personal data and, if so, provide a copy of all of it, together with: the purposes of processing; the categories of data; where you obtained it; the recipients or categories of recipients you have shared it with, including any outside the country; how long you will keep it; and whether any automated decisions are made about me.',
+      correct: 'Correct any personal data you hold about me that is inaccurate or incomplete. [Describe what is wrong here.]',
+      erase: 'Erase all personal data you hold about me, and tell any third parties you have shared it with to do the same, except where you are legally required to keep it, in which case please tell me which data and under which obligation.',
+      market: 'Stop using my personal data for direct marketing by any channel (calls, SMS, WhatsApp, email and post) and stop sharing it with others for their marketing.',
+      port: 'Provide the personal data I gave you in a structured, commonly used, machine-readable format (such as CSV or JSON).'
+    },
+    ar: {
+      access: 'تأكيد ما إذا كنتم تعالجون بياناتي الشخصية، وفي هذه الحالة تزويدي بنسخة كاملة منها، مع بيان: أغراض المعالجة، وفئات البيانات، ومصدر حصولكم عليها، والجهات التي شاركتموها معها بما في ذلك أي جهات خارج الدولة، ومدة الاحتفاظ بها، وما إذا كانت تتخذ بشأني أي قرارات آلية.',
+      correct: 'تصحيح أي بيانات شخصية غير دقيقة أو غير مكتملة تحتفظون بها عني. [اذكر هنا ما يحتاج إلى تصحيح.]',
+      erase: 'حذف جميع بياناتي الشخصية لديكم، وإبلاغ أي جهات شاركتموها معها بالقيام بالمثل، إلا ما يلزمكم القانون بالاحتفاظ به، وفي هذه الحالة يرجى إعلامي بتلك البيانات والالتزام القانوني المعني.',
+      market: 'التوقف عن استخدام بياناتي الشخصية لأغراض التسويق المباشر عبر أي وسيلة (المكالمات والرسائل النصية وواتساب والبريد الإلكتروني والبريد العادي)، والتوقف عن مشاركتها مع غيركم لأغراض التسويق.',
+      port: 'تزويدي بالبيانات الشخصية التي قدمتها لكم بصيغة منظمة وشائعة الاستخدام وقابلة للقراءة آليا (مثل CSV أو JSON).'
+    }
+  };
+  function today(l) { return new Date().toLocaleDateString(l === 'ar' ? 'ar-AE' : 'en-GB', { day: 'numeric', month: 'long', year: 'numeric' }); }
+  function build() {
+    var name = $('name').value.trim() || (lang === 'ar' ? '[اسمك]' : '[Your name]'), email = $('email').value.trim() || (lang === 'ar' ? '[بريدك الإلكتروني]' : '[your email]'), co = $('co').value.trim() || (lang === 'ar' ? '[اسم الشركة]' : '[Company]'), acct = $('acct').value.trim(), law = $('law').value;
+    var reqs = [].filter.call(document.querySelectorAll('[data-r]'), function (c) { return c.checked; }).map(function (c) { return c.dataset.r; });
+    var t;
+    if (lang === 'en') {
+      t = today('en') + '\n\nTo: The Data Protection Officer, ' + co + '\n\nSubject: Personal data request under ' + LAW.en[law] + '\n\nDear Sir or Madam,\n\nI am writing to exercise my rights under ' + LAW.en[law] + '. Please:\n\n' +
+        reqs.map(function (r, i) { return (i + 1) + '. ' + REQ.en[r] + (law === 'gdpr' ? ' (' + ART[r] + ')' : ''); }).join('\n\n') +
+        '\n\nTo help you find my records:\nName: ' + name + '\nEmail: ' + email + (acct ? '\nAccount / customer reference: ' + acct : '') +
+        '\n\nIf you need further information to verify my identity, please tell me promptly. I look forward to your response within ' + (law === 'gdpr' ? 'one month, as the regulation requires' : '30 days') + '. Please reply to this email address.\n\nThank you.\n\nYours faithfully,\n' + name;
+    } else {
+      t = 'التاريخ: ' + today('ar') + '\n\nإلى: مسؤول حماية البيانات، ' + co + '\n\nالموضوع: طلب يتعلق بالبيانات الشخصية بموجب ' + LAW.ar[law] + '\n\nتحية طيبة وبعد،\n\nأكتب إليكم لممارسة حقوقي بموجب ' + LAW.ar[law] + '، وأرجو منكم:\n\n' +
+        reqs.map(function (r, i) { return (i + 1) + '. ' + REQ.ar[r]; }).join('\n\n') +
+        '\n\nلمساعدتكم في العثور على سجلاتي:\nالاسم: ' + name + '\nالبريد الإلكتروني: ' + email + (acct ? '\nرقم الحساب أو العميل: ' + acct : '') +
+        '\n\nإذا احتجتم إلى أي معلومات إضافية للتحقق من هويتي، يرجى إعلامي دون تأخير. أتطلع إلى ردكم خلال ' + (law === 'gdpr' ? 'شهر واحد كما تنص اللائحة' : '30 يوما') + '، على عنوان البريد الإلكتروني هذا.\n\nوتفضلوا بقبول فائق الاحترام،\n' + name;
+    }
+    if (!reqs.length) t = lang === 'ar' ? 'اختر طلبا واحدا على الأقل.' : 'Tick at least one request.';
+    $('letter').textContent = t; $('letter').dir = lang === 'ar' ? 'rtl' : 'ltr';
+    var subj = lang === 'ar' ? 'طلب يتعلق بالبيانات الشخصية' : 'Personal data request';
+    $('mail').href = 'mailto:' + encodeURIComponent($('coMail').value.trim()) + '?subject=' + encodeURIComponent(subj) + '&body=' + encodeURIComponent(t);
+    try { localStorage.setItem('dsarMe', JSON.stringify({ n: $('name').value, e: $('email').value })); } catch (e) {}
+  }
+  document.querySelector('.form').addEventListener('input', build);
+  document.querySelector('.form').addEventListener('change', build);
+  [].forEach.call(document.querySelectorAll('[data-l]'), function (b) { b.onclick = function () { lang = b.dataset.l; [].forEach.call(document.querySelectorAll('[data-l]'), function (x) { x.setAttribute('aria-pressed', x === b); }); build(); }; });
+  $('copy').onclick = function () { var b = this; navigator.clipboard.writeText($('letter').textContent).then(function () { b.textContent = 'Copied'; setTimeout(function () { b.textContent = 'Copy letter'; }, 1300); }, function () { b.textContent = 'Select the text to copy'; }); };
+  $('cal').onclick = function () {
+    var d = new Date(Date.now() + 30 * 864e5), ds = d.toISOString().slice(0, 10).replace(/-/g, ''), co = $('co').value.trim() || 'the company';
+    var ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Mariam\'s Lab//Data request//EN', 'BEGIN:VEVENT', 'UID:' + Date.now() + '@lab.mariamalzaabi.ae', 'DTSTAMP:' + new Date().toISOString().replace(/[-:]/g, '').slice(0, 15) + 'Z', 'DTSTART;VALUE=DATE:' + ds, 'SUMMARY:Chase data request to ' + co, 'DESCRIPTION:30 days since you sent your personal data request. Send a reminder if they have not replied.', 'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
+    var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([ics], { type: 'text/calendar' })); a.download = 'data-request-reminder.ics'; a.click();
+  };
+  try { var me = JSON.parse(localStorage.getItem('dsarMe') || 'null'); if (me) { $('name').value = me.n || ''; $('email').value = me.e || ''; } } catch (e) {}
+  build();
+})();
+</script>
+</body>
+</html>
