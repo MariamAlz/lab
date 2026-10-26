@@ -1,0 +1,146 @@
+[
+ {
+  "id": "burj",
+  "en": "Downtown Dubai and the Burj Khalifa",
+  "ar": "برج خليفة",
+  "lat": 25.1972,
+  "lon": 55.2744,
+  "date": "2026-10-19"
+ },
+ {
+  "id": "palm",
+  "en": "Palm Jumeirah",
+  "ar": "نخلة جميرا",
+  "lat": 25.1124,
+  "lon": 55.139,
+  "date": "2026-10-19"
+ },
+ {
+  "id": "mosque",
+  "en": "Sheikh Zayed Grand Mosque",
+  "ar": "جامع الشيخ زايد الكبير",
+  "lat": 24.4128,
+  "lon": 54.475,
+  "date": "2026-10-22"
+ },
+ {
+  "id": "liwa",
+  "en": "Liwa Oasis",
+  "ar": "واحة ليوا",
+  "lat": 23.13,
+  "lon": 53.78,
+  "date": "2026-10-22"
+ },
+ {
+  "id": "hafeet",
+  "en": "Jebel Hafeet",
+  "ar": "جبل حفيت",
+  "lat": 24.06,
+  "lon": 55.78,
+  "date": "2026-10-19"
+ },
+ {
+  "id": "hatta",
+  "en": "Hatta Dam",
+  "ar": "سد حتا",
+  "lat": 24.81,
+  "lon": 56.125,
+  "date": "2026-10-19"
+ },
+ {
+  "id": "jais",
+  "en": "Jebel Jais",
+  "ar": "جبل جيس",
+  "lat": 25.945,
+  "lon": 56.15,
+  "date": "2026-10-19"
+ },
+ {
+  "id": "dxb",
+  "en": "Dubai International Airport",
+  "ar": "مطار دبي الدولي",
+  "lat": 25.2532,
+  "lon": 55.3657,
+  "date": "2026-10-19"
+ },
+ {
+  "id": "yas",
+  "en": "Yas Island",
+  "ar": "جزيرة ياس",
+  "lat": 24.48,
+  "lon": 54.605,
+  "date": "2026-10-22"
+ },
+ {
+  "id": "masdar",
+  "en": "Masdar City",
+  "ar": "مدينة مصدر",
+  "lat": 24.4267,
+  "lon": 54.615,
+  "date": "2026-10-22"
+ },
+ {
+  "id": "sirbaniyas",
+  "en": "Sir Bani Yas Island",
+  "ar": "جزيرة صير بني ياس",
+  "lat": 24.32,
+  "lon": 52.6,
+  "date": "2026-10-22"
+ },
+ {
+  "id": "khorfakkan",
+  "en": "Khor Fakkan",
+  "ar": "خورفكان",
+  "lat": 25.34,
+  "lon": 56.345,
+  "date": "2026-10-19"
+ },
+ {
+  "id": "wathba",
+  "en": "Al Wathba Wetland Reserve",
+  "ar": "محمية الوثبة للأراضي الرطبة",
+  "lat": 24.26,
+  "lon": 54.61,
+  "date": "2026-10-22"
+ },
+ {
+  "id": "world",
+  "en": "The World Islands",
+  "ar": "جزر العالم",
+  "lat": 25.225,
+  "lon": 55.17,
+  "date": "2026-10-19"
+ },
+ {
+  "id": "qudra",
+  "en": "Al Qudra Lakes",
+  "ar": "بحيرات القدرة",
+  "lat": 24.83,
+  "lon": 55.37,
+  "date": "2026-10-19"
+ },
+ {
+  "id": "corniche",
+  "en": "Abu Dhabi Corniche",
+  "ar": "كورنيش أبوظبي",
+  "lat": 24.476,
+  "lon": 54.335,
+  "date": "2026-10-22"
+ },
+ {
+  "id": "uaq",
+  "en": "Umm Al Quwain lagoon",
+  "ar": "خور أم القيوين",
+  "lat": 25.55,
+  "lon": 55.6,
+  "date": "2026-10-19"
+ },
+ {
+  "id": "fujairah",
+  "en": "Fujairah",
+  "ar": "الفجيرة",
+  "lat": 25.13,
+  "lon": 56.34,
+  "date": "2026-10-19"
+ }
+]
