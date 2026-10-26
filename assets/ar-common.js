@@ -455,3 +455,10 @@ LabAr.add({
  "Estimate your data from daily habits, type in the plans you're comparing, and see which covers you for the least.": "قدّر استهلاكك للبيانات من عاداتك اليومية، وأدخل الباقات التي تقارن بينها، لترى أيها يغطيك بأقل تكلفة.",
  "Compare →": "قارن ←"
 });
+/* index cards for newer tools */
+LabAr.add({
+ "Tool · Ramadan · Health": "أداة · رمضان · الصحة",
+ "Medicine timing in Ramadan": "مواعيد الأدوية في رمضان",
+ "Fit your medicines between iftar and suhoor, then check the plan with your doctor.": "نظّم أدويتك بين الإفطار والسحور، ثم راجع الخطة مع طبيبك.",
+ "Plan →": "خطّط ←"
+});

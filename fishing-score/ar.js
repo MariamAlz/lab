@@ -50,7 +50,7 @@
     [/^(High|Low) (\d\d:\d\d)$/, function (m, h, t) { return (h === 'High' ? 'مد ' : 'جزر ') + t; }],
     [/^(Rise|Set|Overhead|Underfoot) (\d\d:\d\d)$/, function (m, w, t) { return { Rise: 'شروق ', Set: 'غروب ', Overhead: 'فوق الرأس ', Underfoot: 'تحت القدمين ' }[w] + t; }],
     [/^(\d+) kt$/, '$1 عقدة'],
-    [/^(\d\d:\d\d)–(\d\d:\d\d) (\w+)$/, function (m, a, b, dd) { return u(a + '–' + b) + ' ' + day(dd); }],
+    [/^(\d\d:\d\d)–(\d\d:\d\d) (\w+)$/, function (m, a, b, dd) { return 'من ' + a + ' إلى ' + b + ' ' + day(dd); }],
     [/^(\d\d)h$/, '$1:00']
   ]);
 })();

@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Medicine Timing in Ramadan · Mariam's Lab</title>
+<meta name="description" content="Plan when to take your medicines between iftar and suhoor in Ramadan, with prayer times for your city, a 24-hour timeline and calendar reminders. A planning aid to take to your doctor or pharmacist.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/ramadan-meds/">
+<meta property="og:title" content="Medicine Timing in Ramadan · Mariam's Lab"><meta property="og:description" content="Fit your medicines between iftar and suhoor, then check the plan with your doctor."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.where { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm[aria-pressed="true"], .sm.go1 { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.doc { margin-top: 14px; padding: 14px 16px; border-radius: 12px; border: 2px solid #ff7a8f; background: rgba(255,122,143,.08); display: grid; gap: 6px; }
+.doc b.h { font-family: var(--font-display); font-size: 1.15rem; }
+.doc p { margin: 0; font-size: 0.9rem; }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 0; }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: 0.9rem; }
+.row input, .row select, .fld input, .fld select { font: inherit; color: var(--ink); background: rgba(7,10,24,.6); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; max-width: 14em; box-sizing: border-box; }
+.fld { display: grid; gap: 4px; font-size: 0.85rem; }
+.fld input, .fld select { max-width: none; width: 100%; }
+.form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.form .wide { grid-column: 1 / -1; }
+.chk { display: flex; gap: 8px; align-items: flex-start; font-size: 0.86rem; }
+.chk input { margin-top: 3px; accent-color: var(--accent); }
+.ptimes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.ptimes div { padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); display: grid; gap: 2px; }
+.ptimes span { font-size: 0.76rem; color: var(--muted); }
+.ptimes b { font-family: var(--font-mono); font-size: 1rem; font-weight: 500; }
+.meds { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.meds li { display: grid; grid-template-columns: 20px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; font-size: 0.88rem; }
+.meds li i { width: 20px; height: 20px; border-radius: 50%; background: var(--c); font-style: normal; font-size: 0.7rem; font-weight: 700; color: #0b1020; display: grid; place-items: center; font-family: var(--font-mono); }
+.meds small { display: block; color: var(--muted); font-size: 0.78rem; }
+.ringwrap { display: grid; place-items: center; }
+.ringwrap svg { width: 100%; max-width: 400px; height: auto; }
+.plan { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.plan li { display: grid; grid-template-columns: 3.4em minmax(0, 1fr); gap: 10px; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--line); font-size: 0.9rem; align-items: baseline; }
+.plan li b.t { font-family: var(--font-mono); font-size: 0.85rem; font-weight: 500; }
+.plan li.ev { background: rgba(255,200,87,.06); border-color: rgba(255,200,87,.3); }
+.plan small { color: var(--muted); display: block; }
+.flag { padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(255,122,143,.6); background: rgba(255,122,143,.07); font-size: 0.86rem; }
+.flag.warn { border-color: rgba(255,200,87,.6); background: rgba(255,200,87,.07); }
+.flags { display: grid; gap: 8px; }
+.legend { display: flex; gap: 10px; flex-wrap: wrap; font-size: 0.75rem; color: var(--muted); }
+.legend span::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-inline-end: 4px; vertical-align: -1px; background: var(--c); }
+.btnrow { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.rules { margin: 0; padding-inline-start: 18px; display: grid; gap: 6px; font-size: 0.9rem; }
+.mono { font-family: var(--font-mono); }
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Ramadan · Health · UAE</span>
+    <h1 style="font-size:var(--step-3)">Medicine timing in Ramadan.</h1>
+    <p>When you fast, every dose has to fit between iftar and suhoor. Add your medicines and this lays them out across the night using today's prayer times for your city. Use it as a starting point for a conversation with your doctor or pharmacist, not as instructions.</p>
+    <div class="doc" role="note">
+      <b class="h">Talk to your doctor or pharmacist first.</b>
+      <p>Ideally do it a few weeks before Ramadan. They can tell you if a dose can move, if there's a once-daily version, or if fasting is safe for you at all. This page only suggests clock times. It never changes how much you take, and it can't know your full medical picture.</p>
+    </div>
+  </div>
+
+  <div class="where" id="where" style="margin-top:14px"><button class="sm" type="button" id="me">📍 Use my location</button></div>
+  <p class="msg" id="rinfo" role="status"></p>
+
+  <div class="game" style="margin-top:12px">
+    <div class="panel" style="gap:12px">
+      <label class="row"><span>Day of Ramadan <b id="dnum" class="mono"></b></span><span id="dlab" class="msg"></span></label>
+      <input type="range" id="day" min="1" max="30" value="1" aria-label="Day of Ramadan" style="width:100%;accent-color:var(--accent)">
+      <div class="ptimes" id="pt"></div>
+      <label class="row"><span>I eat suhoor at</span><input type="time" id="suh"></label>
+
+      <span class="label" style="margin-top:6px">Your medicines</span>
+      <form class="form" id="add" autocomplete="off">
+        <label class="fld wide"><span>Medicine name</span><input id="mName" maxlength="40" placeholder="For example: vitamin D, blood pressure tablet" required></label>
+        <label class="fld"><span>Times a day</span><select id="mN"><option value="1">Once</option><option value="2">Twice</option><option value="3">3 times</option><option value="4">4 times</option></select></label>
+        <label class="fld"><span>How to take it</span><select id="mFood"><option value="food">With food</option><option value="empty">On an empty stomach</option><option value="any">Any time</option></select></label>
+        <label class="chk wide"><input type="checkbox" id="mStrict"><span>Timing is strict (for example insulin, or an antibiotic every 8 hours)</span></label>
+        <label class="chk wide"><input type="checkbox" id="mCrit"><span>It's for diabetes, blood thinning, epilepsy, the heart, a transplant or another serious condition</span></label>
+        <div class="btnrow wide"><button class="sm go1" type="submit">Add medicine</button></div>
+      </form>
+      <ul class="meds" id="meds"></ul>
+    </div>
+    <div class="panel" style="gap:12px">
+      <div class="ringwrap"><svg id="ring" viewBox="0 0 300 300" role="img" aria-label="24-hour medicine timeline"></svg></div>
+      <div class="legend"><span style="--c:rgba(255,200,87,.55)">Fasting</span><span style="--c:rgba(79,211,189,.55)">Eating window</span></div>
+      <div class="flags" id="flags"></div>
+      <span class="label">Tonight's plan</span>
+      <ul class="plan" id="plan"></ul>
+      <div class="btnrow"><button class="sm" type="button" id="ics">📅 Add reminders to my calendar</button><button class="sm" type="button" id="notif">🔔 Remind me on this device</button></div>
+      <p class="msg" id="remmsg"></p>
+    </div>
+  </div>
+
+  <div class="game" style="margin-top:22px">
+    <div class="panel" style="gap:10px">
+      <span class="label">Safety rules</span>
+      <ul class="rules">
+        <li><b>Never change insulin, diabetes tablets, blood thinners, epilepsy medicines or any other critical medicine on your own.</b> Moving them can cause low blood sugar, clots, bleeding or seizures. Your doctor has to plan it.</li>
+        <li>Don't skip doses or double up to "catch up" after the fast.</li>
+        <li>Medicines taken 3 or 4 times a day are the hardest to fit. Often a doctor can switch to a long-acting version taken once or twice.</li>
+        <li>If you feel dizzy, shaky, confused, faint or very unwell while fasting, break your fast and get medical help. Call 999 in an emergency.</li>
+      </ul>
+      <p class="fact" style="margin:0">Islam does not ask people to fast when it harms their health. Many scholars point to the verse on fasting (Al-Baqarah 2:184) that excuses those who are ill, who can make up the days later or give fidyah if they can't. Whether inhalers, injections, eye drops and similar treatments break the fast is a question scholars answer differently. Ask a scholar you trust, together with your doctor. This page doesn't give a ruling.</p>
+    </div>
+    <div class="panel" style="gap:10px">
+      <span class="label">How the times are chosen</span>
+      <p class="fact" style="margin:0"><b>Once a day</b> goes with iftar, or before suhoor if it should be taken on an empty stomach. <b>Twice a day</b> goes at iftar and suhoor. <b>Three times</b> adds a dose around the middle of the night, but the gaps can't be even: the long gap across the fasting day is usually 14 hours or more. <b>Four times</b> doesn't fit safely in one night, so it's flagged for your doctor instead.</p>
+      <p class="fact" style="margin:0">Prayer times use the UAE method (Fajr when the sun is 18.2° below the horizon, Maghrib at sunset). They are calculated, so they can differ by a minute or two from your mosque or the official timetable. Ramadan dates use the Umm al-Qura calendar in your browser; in the UAE the start is confirmed by moon sighting. Your medicine list stays in this browser only.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var R = Math.PI / 180, DAY = 864e5, T = function (x) { return window.LabAr ? LabAr.t(x) : x; };
+  var PLACES = [['Abu Dhabi', 24.4539, 54.3773], ['Dubai', 25.2048, 55.2708], ['Sharjah', 25.3463, 55.4209], ['Al Ain', 24.2075, 55.7447], ['Ajman', 25.4052, 55.5136], ['Umm Al Quwain', 25.5647, 55.5552], ['Ras Al Khaimah', 25.7895, 55.9432], ['Fujairah', 25.1288, 56.3265]];
+  var loc = { name: 'Dubai', lat: 25.2048, lon: 55.2708, tz: 4 };
+  // ---- prayer times: the same calculation as the Ramadan sleep planner (UAE method, Fajr 18.2°) ----
+  function sunPos(jd) {
+    var D = jd - 2451545.0, g = (357.529 + 0.98560028 * D) % 360, q = (280.459 + 0.98564736 * D) % 360;
+    var L = (q + 1.915 * Math.sin(g * R) + 0.020 * Math.sin(2 * g * R)) % 360, e = 23.439 - 0.00000036 * D;
+    var RA = Math.atan2(Math.cos(e * R) * Math.sin(L * R), Math.cos(L * R)) / R / 15;
+    var eqt = q / 15 - ((RA % 24) + 24) % 24; eqt = ((eqt + 12) % 24 + 24) % 24 - 12;
+    return { dec: Math.asin(Math.sin(e * R) * Math.sin(L * R)) / R, eqt: eqt };
+  }
+  function julian(y, m, d) { if (m <= 2) { y--; m += 12; } var A = Math.floor(y / 100), B = 2 - A + Math.floor(A / 4); return Math.floor(365.25 * (y + 4716)) + Math.floor(30.6001 * (m + 1)) + d + B - 1524.5; }
+  function prayerTimes(y, m, d, lat, lon, tz) {
+    var jd = julian(y, m, d) - lon / (15 * 24);
+    function noon(t) { return 12 - sunPos(jd + t / 24).eqt; }
+    function ang(a, t, ccw) { var s = sunPos(jd + t / 24), n = noon(t), v = (-Math.sin(a * R) - Math.sin(s.dec * R) * Math.sin(lat * R)) / (Math.cos(s.dec * R) * Math.cos(lat * R)); var h = Math.acos(Math.max(-1, Math.min(1, v))) / R / 15; return n + (ccw ? -h : h); }
+    var t = { fajr: ang(18.2, 5, true), sunrise: ang(0.833, 6, true), maghrib: ang(0.833, 18) };
+    t = { fajr: ang(18.2, t.fajr, true), sunrise: ang(0.833, t.sunrise, true), maghrib: ang(0.833, t.maghrib) };
+    t.isha = ang(18.2, t.maghrib + 1.4);
+    var adj = tz - lon / 15, out = {};
+    Object.keys(t).forEach(function (k) { out[k] = Math.round((t[k] + adj) * 60); });
+    return out;
+  }
+  var hfmt = null; try { hfmt = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura-nu-latn', { day: 'numeric', month: 'numeric', year: 'numeric', timeZone: 'UTC' }); } catch (e) {}
+  function H(d) { var p = {}; hfmt.formatToParts(d).forEach(function (x) { p[x.type] = parseInt(x.value, 10); }); return { d: p.day, m: p.month, y: p.year }; }
+  function ramadan() {
+    var n = new Date(), t = Date.UTC(n.getFullYear(), n.getMonth(), n.getDate());
+    if (!hfmt) return null;
+    for (var k = -31; k < 400; k++) {
+      var d = new Date(t + k * DAY), h = H(d);
+      if (h.m === 9 && h.d === 1) { var len = 0; while (H(new Date(+d + len * DAY)).m === 9) len++; if (+d + len * DAY > t) return { start: +d, len: len, y: h.y, inNow: t >= +d }; }
+    }
+    return null;
+  }
+
+  // ---- schedule ----
+  var CRIT = /insulin|lantus|novorapid|humalog|toujeo|tresiba|metformin|glucophage|gliclazide|diamicron|glimepiride|amaryl|glibenclamide|sitagliptin|januvia|janumet|vildagliptin|galvus|empagliflozin|jardiance|dapagliflozin|forxiga|ozempic|semaglutide|liraglutide|victoza|warfarin|apixaban|eliquis|rivaroxaban|xarelto|dabigatran|pradaxa|clopidogrel|plavix|heparin|enoxaparin|clexane|levetiracetam|keppra|valpro|depakine|carbamazepine|tegretol|lamotrigine|lamictal|phenytoin|epanutin|lithium|tacrolimus|prograf|ciclosporin|mycophenolate|levodopa|madopar|sinemet|digoxin|amiodarone|prednisolone|hydrocortisone|انسولين|أنسولين|ميتفورمين|وارفارين/i;
+  function m2(x) { return ((Math.round(x) % 1440) + 1440) % 1440; }
+  function fmt(x) { x = m2(x); return String(Math.floor(x / 60)).padStart(2, '0') + ':' + String(x % 60).padStart(2, '0'); }
+  function hrs(min) { return (Math.round(min / 6) / 10).toString(); }
+  // window from iftar (maghrib) to suhoor meal; returns doses with absolute minutes since midnight
+  function schedule(med, pt, suhoor) {
+    var ift = pt.maghrib, suh = suhoor, win = (suh - ift + 1440) % 1440, out = { doses: [], flags: [] }, n = med.n;
+    var crit = med.crit || CRIT.test(med.name);
+    function dose(t, note) { out.doses.push({ t: m2(t), note: note }); }
+    if (n === 4) { out.flags.push(['red', 'needs4']); return out; }
+    var early = med.food === 'empty';
+    if (n === 1) { if (early) dose(suh - 45, 'empty-suhoor'); else dose(ift + (med.food === 'food' ? 10 : 0), med.food === 'food' ? 'with-iftar' : 'at-iftar'); }
+    if (n === 2) { dose(early ? ift : ift + 10, early ? 'empty-iftar' : (med.food === 'food' ? 'with-iftar' : 'at-iftar')); dose(early ? suh - 45 : suh, early ? 'empty-suhoor' : (med.food === 'food' ? 'with-suhoor' : 'at-suhoor')); }
+    if (n === 3) {
+      var a = early ? ift : ift + 10, c = early ? suh - 45 : suh, b = a + ((c - a + 1440) % 1440) / 2;
+      dose(a, early ? 'empty-iftar' : (med.food === 'food' ? 'with-iftar' : 'at-iftar')); dose(b, med.food === 'food' ? 'mid-snack' : 'mid'); dose(c, early ? 'empty-suhoor' : (med.food === 'food' ? 'with-suhoor' : 'at-suhoor'));
+      out.flags.push(['warn', 'uneven']);
+    }
+    // gaps between doses, including the long one across the fasting day
+    var ts = out.doses.map(function (d) { return (d.t - ift + 1440) % 1440; }).sort(function (x, y) { return x - y; }), gaps = [];
+    for (var i = 0; i < ts.length; i++) gaps.push(i + 1 < ts.length ? ts[i + 1] - ts[i] : 1440 - ts[i] + ts[0]);
+    out.gaps = gaps; out.maxGap = Math.max.apply(null, gaps); out.minGap = Math.min.apply(null, gaps);
+    if (med.strict && n >= 2) out.flags.push(['red', 'strict']);
+    else if (med.strict) out.flags.push(['warn', 'strict1']);
+    if (crit) out.flags.unshift(['red', 'critical']);
+    out.crit = crit; out.win = win;
+    return out;
+  }
+
+  // ---- state ----
+  var COLS = ['#4fd3bd', '#ffc857', '#7fb4ff', '#ff7a8f', '#c9a2ff', '#9be15d', '#ff9f5a', '#5ad1ff'];
+  var meds = [], suhAuto = true;
+  try { var sv = JSON.parse(localStorage.getItem('ramMeds') || 'null'); if (sv) { meds = sv.meds || []; if (sv.loc) loc = sv.loc; if (sv.suh) { $('suh').value = sv.suh; suhAuto = false; } } } catch (e) {}
+  function save() { try { localStorage.setItem('ramMeds', JSON.stringify({ meds: meds, loc: loc, suh: suhAuto ? '' : $('suh').value })); } catch (e) {} }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  var R0 = ramadan();
+  function dayDate(n) { return R0 ? R0.start + (n - 1) * DAY : Date.now(); }
+  function times(n) { var d = new Date(dayDate(n)); return prayerTimes(d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate(), loc.lat, loc.lon, loc.tz); }
+  function hm(v) { var p = v.split(':'); return (+p[0]) * 60 + (+p[1] || 0); }
+  var NOTE = { 'with-iftar': 'With your iftar meal', 'at-iftar': 'At iftar', 'empty-iftar': 'At Maghrib with water, before you eat. Wait about 30 minutes before the main meal', 'with-suhoor': 'With your suhoor meal', 'at-suhoor': 'At suhoor', 'empty-suhoor': 'About 45 minutes before your suhoor meal, on an empty stomach', mid: 'Around the middle of the night', 'mid-snack': 'Around the middle of the night, with a snack' };
+  var FLAG = {
+    critical: 'This looks like a critical medicine. Never change its timing or dose without your doctor. These suggested times are only for discussing with them.',
+    needs4: 'Four times a day can\'t be spaced safely in one night. Talk to your doctor: there may be a longer-acting option, or fasting may not be right for you while you take it.',
+    uneven: 'Three doses in one night means uneven gaps. The doses are close together at night and far apart across the fasting day. Ask your pharmacist if this is acceptable.',
+    strict: 'Strict timing can\'t be kept while fasting: the gaps here are uneven. Your doctor needs to plan this one.',
+    strict1: 'Strict timing: take it at the same clock time every day, and check with your doctor that this time works.'
+  };
+  function render() {
+    var dn = +$('day').value, pt = times(dn), d = new Date(dayDate(dn));
+    $('dnum').textContent = dn; $('dlab').innerHTML = '<span>' + d.getUTCDate() + '</span> <span>' + ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][d.getUTCMonth()] + '</span> <span>' + d.getUTCFullYear() + '</span>';
+    if (suhAuto || !$('suh').value) { $('suh').value = fmt(pt.fajr - 30); suhAuto = true; }
+    var suh = hm($('suh').value); if (((pt.fajr - suh + 1440) % 1440) > 300 || ((pt.fajr - suh + 1440) % 1440) < 5) { suh = pt.fajr - 30; }
+    $('pt').innerHTML = [['Suhoor ends (Fajr)', pt.fajr], ['Iftar (Maghrib)', pt.maghrib], ['Eating window', null]].map(function (x) {
+      return '<div><span>' + x[0] + '</span><b>' + (x[1] == null ? hrs((pt.fajr - pt.maghrib + 1440) % 1440) + ' h' : fmt(x[1])) + '</b></div>';
+    }).join('');
+    // medicines list
+    $('meds').innerHTML = meds.length ? meds.map(function (m, i) {
+      var how = { food: 'with food', empty: 'empty stomach', any: 'any time' }[m.food];
+      return '<li style="--c:' + COLS[i % COLS.length] + '"><i>' + (i + 1) + '</i><span><span data-noar>' + esc(m.name) + '</span><small><span>' + ['', 'Once a day', 'Twice a day', '3 times a day', '4 times a day'][m.n] + '</span> · <span>' + how + '</span>' + (m.strict ? ' · <span>strict timing</span>' : '') + '</small></span><button class="sm" type="button" data-del="' + i + '">Remove</button></li>';
+    }).join('') : '<li style="grid-template-columns:1fr"><span class="msg">No medicines yet. Add one above.</span></li>';
+    // schedule
+    var items = [{ t: pt.maghrib, h: '<li class="ev"><b class="t">' + fmt(pt.maghrib) + '</b><span>Iftar (Maghrib)</span></li>' }, { t: suh, h: '<li class="ev"><b class="t">' + fmt(suh) + '</b><span>Suhoor meal</span></li>' }, { t: pt.fajr, h: '<li class="ev"><b class="t">' + fmt(pt.fajr) + '</b><span>Fajr. The fast begins</span></li>' }];
+    var flags = [], dots = [];
+    meds.forEach(function (m, i) {
+      var s = schedule(m, pt, suh), col = COLS[i % COLS.length];
+      s.doses.forEach(function (dd, k) { items.push({ t: dd.t, h: '<li style="border-color:' + col + '55"><b class="t">' + fmt(dd.t) + '</b><span><span data-noar style="color:' + col + ';font-weight:600">' + esc(m.name) + '</span><small>' + NOTE[dd.note] + '</small></span></li>' }); dots.push({ t: dd.t, c: col, k: i + 1 }); });
+      s.flags.forEach(function (f) { flags.push('<div class="flag' + (f[0] === 'warn' ? ' warn' : '') + '"><b data-noar>' + esc(m.name) + '</b>: <span>' + FLAG[f[1]] + '</span>' + ((f[1] === 'uneven' || f[1] === 'strict') && s.gaps ? ' <span>Gaps: ' + s.gaps.map(function (g) { return hrs(g); }).join(', ') + ' hours.</span>' : '') + '</div>'); });
+    });
+    var org = pt.maghrib; items.sort(function (x, y) { return ((x.t - org + 1440) % 1440) - ((y.t - org + 1440) % 1440); });
+    $('plan').innerHTML = items.map(function (x) { return x.h; }).join('');
+    $('flags').innerHTML = flags.join('');
+    ring(pt, suh, dots);
+    save();
+    return { pt: pt, suh: suh };
+  }
+  function arc(cx, cy, r, a0, a1) {
+    var s = (a0 / 1440) * 2 * Math.PI - Math.PI / 2, e = (a1 / 1440) * 2 * Math.PI - Math.PI / 2;
+    return 'M' + (cx + r * Math.cos(s)).toFixed(2) + ' ' + (cy + r * Math.sin(s)).toFixed(2) + ' A' + r + ' ' + r + ' 0 ' + ((a1 - a0) > 720 ? 1 : 0) + ' 1 ' + (cx + r * Math.cos(e)).toFixed(2) + ' ' + (cy + r * Math.sin(e)).toFixed(2);
+  }
+  function ring(pt, suh, dots) {
+    var fastLen = (pt.maghrib - pt.fajr + 1440) % 1440, s = '';
+    s += '<path d="' + arc(150, 150, 112, pt.fajr, pt.fajr + fastLen) + '" fill="none" stroke="rgba(255,200,87,.45)" stroke-width="24"/>';
+    s += '<path d="' + arc(150, 150, 112, pt.maghrib, pt.maghrib + 1440 - fastLen) + '" fill="none" stroke="rgba(79,211,189,.45)" stroke-width="24"/>';
+    for (var h = 0; h < 24; h += 3) { var an = h / 24 * 2 * Math.PI - Math.PI / 2; s += '<text x="' + (150 + 82 * Math.cos(an)).toFixed(1) + '" y="' + (150 + 82 * Math.sin(an) + 4).toFixed(1) + '" fill="#8b93ad" font-size="11" font-family="JetBrains Mono, monospace" text-anchor="middle">' + String(h).padStart(2, '0') + '</text>'; }
+    [['F', pt.fajr], ['M', pt.maghrib], ['S', suh]].forEach(function (q) { var an = q[1] / 1440 * 2 * Math.PI - Math.PI / 2; s += '<circle cx="' + (150 + 138 * Math.cos(an)).toFixed(1) + '" cy="' + (150 + 138 * Math.sin(an)).toFixed(1) + '" r="9" fill="#0b1020" stroke="#ffc857"/><text x="' + (150 + 138 * Math.cos(an)).toFixed(1) + '" y="' + (150 + 138 * Math.sin(an) + 4).toFixed(1) + '" fill="#ffc857" font-size="10" text-anchor="middle" font-family="JetBrains Mono, monospace">' + q[0] + '</text>'; });
+    var seen = {};
+    dots.forEach(function (d) { var key = Math.round(d.t / 15); seen[key] = (seen[key] || 0) + 1; var rr = 112 - (seen[key] - 1) * 10 + (seen[key] > 1 ? 0 : 0), an = d.t / 1440 * 2 * Math.PI - Math.PI / 2; s += '<circle cx="' + (150 + rr * Math.cos(an)).toFixed(1) + '" cy="' + (150 + rr * Math.sin(an)).toFixed(1) + '" r="7" fill="' + d.c + '" stroke="#0b1020" stroke-width="2"/><text x="' + (150 + rr * Math.cos(an)).toFixed(1) + '" y="' + (150 + rr * Math.sin(an) + 3.5).toFixed(1) + '" fill="#0b1020" font-size="9" font-weight="700" text-anchor="middle">' + d.k + '</text>'; });
+    s += '<text x="150" y="146" fill="currentColor" font-size="24" font-weight="700" text-anchor="middle" font-family="Bricolage Grotesque, sans-serif">' + hrs(fastLen) + ' h</text><text x="150" y="166" fill="#8b93ad" font-size="11" text-anchor="middle">fasting</text>';
+    $('ring').innerHTML = s; $('ring').style.color = 'var(--ink)';
+  }
+  function rinfo() {
+    if (!R0) { $('rinfo').textContent = 'Your browser can\'t show the Hijri calendar, so times are for today.'; return; }
+    var s = new Date(R0.start), e = new Date(R0.start + (R0.len - 1) * DAY), MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    $('rinfo').innerHTML = '<span>Ramadan ' + R0.y + ' AH runs about</span> <span>' + s.getUTCDate() + ' ' + MON[s.getUTCMonth()] + ' ' + s.getUTCFullYear() + '</span> – <span>' + e.getUTCDate() + ' ' + MON[e.getUTCMonth()] + ' ' + e.getUTCFullYear() + '</span>. <span>' + (R0.inNow ? 'Times for today in ' : 'Showing day 1. Times for ') + '</span><span>' + loc.name + '</span>.';
+    $('day').max = R0.len;
+    if (R0.inNow) { var n = new Date(), t = Date.UTC(n.getFullYear(), n.getMonth(), n.getDate()); $('day').value = Math.min(R0.len, Math.floor((t - R0.start) / DAY) + 1); }
+  }
+
+  // ---- reminders ----
+  function icsDate(ms) { return new Date(ms).toISOString().replace(/[-:]/g, '').replace(/\.\d+Z$/, 'Z'); }
+  function buildIcs() {
+    var L = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//lab.mariamalzaabi.ae//ramadan-meds//EN', 'CALSCALE:GREGORIAN'], start = +$('day').value, len = R0 ? R0.len : start, uid = 0, now = icsDate(Date.now());
+    var suhOff = (function () { var pt = times(start); return (pt.fajr - hm($('suh').value) + 1440) % 1440; })();
+    for (var dn = start; dn <= len; dn++) {
+      var pt = times(dn), base = dayDate(dn), suh = pt.fajr - suhOff;
+      meds.forEach(function (m) {
+        schedule(m, pt, suh).doses.forEach(function (d) {
+          // doses after midnight belong to the next calendar day
+          var dayMs = base + (d.t < pt.maghrib - 60 ? DAY : 0), utc = dayMs + (d.t - loc.tz * 60) * 60000;
+          L.push('BEGIN:VEVENT', 'UID:rm-' + (uid++) + '-' + dayMs + '@lab.mariamalzaabi.ae', 'DTSTAMP:' + now, 'DTSTART:' + icsDate(utc), 'DURATION:PT10M', 'SUMMARY:' + m.name.replace(/[,;\\]/g, ' ') + ' 💊', 'DESCRIPTION:' + T(NOTE[d.note]).replace(/[,;\\]/g, ' '), 'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:' + m.name.replace(/[,;\\]/g, ' '), 'TRIGGER:PT0M', 'END:VALARM', 'END:VEVENT');
+        });
+      });
+    }
+    L.push('END:VCALENDAR'); return { text: L.join('\r\n'), n: uid };
+  }
+  $('ics').onclick = function () {
+    if (!meds.length) { $('remmsg').textContent = 'Add a medicine first.'; return; }
+    var r = buildIcs(), a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([r.text], { type: 'text/calendar' })); a.download = 'ramadan-medicines.ics'; document.body.appendChild(a); a.click(); a.remove();
+    $('remmsg').textContent = 'Downloaded ' + r.n + ' reminders for the rest of Ramadan. Open the file to add them to your calendar.';
+  };
+  var timers = [];
+  $('notif').onclick = function () {
+    if (!meds.length) { $('remmsg').textContent = 'Add a medicine first.'; return; }
+    if (!('Notification' in window)) { $('remmsg').textContent = 'This browser can\'t show notifications. Use the calendar reminders instead.'; return; }
+    Notification.requestPermission().then(function (p) {
+      if (p !== 'granted') { $('remmsg').textContent = 'Notifications are blocked. Use the calendar reminders instead.'; return; }
+      timers.forEach(clearTimeout); timers = [];
+      var r = render(), now = new Date(), nowMin = now.getHours() * 60 + now.getMinutes(), count = 0;
+      meds.forEach(function (m) { schedule(m, r.pt, r.suh).doses.forEach(function (d) { var wait = ((d.t - nowMin + 1440) % 1440) * 60000 - now.getSeconds() * 1000; if (wait > 0) { count++; timers.push(setTimeout(function () { try { new Notification(m.name + ' 💊', { body: T(NOTE[d.note]) }); } catch (e) {} }, wait)); } }); });
+      $('remmsg').textContent = 'Set ' + count + ' reminders for the next 24 hours. They only work while this page stays open.';
+    });
+  };
+
+  // ---- controls ----
+  $('add').addEventListener('submit', function (e) {
+    e.preventDefault(); var name = $('mName').value.trim(); if (!name) return;
+    meds.push({ name: name, n: +$('mN').value, food: $('mFood').value, strict: $('mStrict').checked, crit: $('mCrit').checked });
+    $('mName').value = ''; $('mStrict').checked = $('mCrit').checked = false; render();
+  });
+  $('meds').addEventListener('click', function (e) { var b = e.target.closest('[data-del]'); if (b) { meds.splice(+b.dataset.del, 1); render(); } });
+  $('suh').addEventListener('change', function () { suhAuto = false; render(); });
+  $('day').addEventListener('input', render);
+  PLACES.forEach(function (p) { var b = document.createElement('button'); b.className = 'sm'; b.type = 'button'; b.dataset.p = p[0]; b.textContent = p[0]; b.onclick = function () { loc = { name: p[0], lat: p[1], lon: p[2], tz: 4 }; mark(); rinfo(); render(); }; $('where').appendChild(b); });
+  function mark() { [].forEach.call($('where').querySelectorAll('[data-p]'), function (b) { b.setAttribute('aria-pressed', b.dataset.p === loc.name); }); }
+  $('me').onclick = function () {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(function (p) { loc = { name: 'your location', lat: p.coords.latitude, lon: p.coords.longitude, tz: -new Date().getTimezoneOffset() / 60 }; mark(); rinfo(); render(); }, function () { $('rinfo').textContent = 'Location not available. Pick an emirate instead.'; }, { timeout: 10000, maximumAge: 6e5 });
+  };
+  window.RamadanMeds = { schedule: schedule, prayerTimes: prayerTimes, ramadan: ramadan, buildIcs: buildIcs };
+  mark(); rinfo(); render();
+})();
+</script>
+</body>
+</html>
