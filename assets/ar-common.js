@@ -230,3 +230,10 @@ LabAr.add({
  "Predict your race times, then slow the goal pace for race-morning heat and humidity.": "توقّع أزمنة سباقاتك، ثم عدّل وتيرتك المستهدفة حسب حرارة صباح السباق ورطوبته.",
  "Plan →": "خطّط ←"
 });
+/* index cards for newer tools */
+LabAr.add({
+ "Sound · Radio": "صوت · راديو",
+ "UAE radio live": "إذاعات الإمارات مباشرة",
+ "UAE stations in a dozen languages, with favourites, a sleep timer and lock-screen controls.": "محطات الإمارات بأكثر من عشر لغات، مع المفضلة ومؤقت النوم والتحكم من شاشة القفل.",
+ "Listen →": "استمع ←"
+});

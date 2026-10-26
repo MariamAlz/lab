@@ -41,7 +41,7 @@
   // the switch in the top bar, on every page, in both languages
   function addSwitch() {
     var nav = document.querySelector('.labbar nav'); if (!nav || nav.querySelector('.langsw')) return;
-    var a = document.createElement('a'); a.className = 'langsw'; a.href = '?lang=' + (AR ? 'en' : 'ar');
+    var a = document.createElement('a'); a.className = 'langsw'; a.setAttribute('data-noar', ''); a.href = '?lang=' + (AR ? 'en' : 'ar');
     a.lang = AR ? 'en' : 'ar'; a.textContent = AR ? 'English' : 'عربي';
     a.addEventListener('click', function (e) {
       e.preventDefault(); try { localStorage.setItem(KEY, AR ? 'en' : 'ar'); } catch (x) {}

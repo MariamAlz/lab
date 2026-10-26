@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>UAE Radio Live · Mariam's Lab</title>
+<meta name="description" content="Listen to UAE radio stations live in your browser: Arabic, English, Hindi, Malayalam and more, with favourites, a sleep timer and lock-screen controls.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/uae-radio/">
+<meta property="og:title" content="UAE Radio Live · Mariam's Lab"><meta property="og:description" content="UAE radio stations live, with favourites and a sleep timer."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;600&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.langs { display: flex; gap: 6px; flex-wrap: wrap; }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 8px 0 0; }
+.find { width: 100%; font: inherit; color: var(--ink); background: rgba(7,10,24,.7); border: 1px solid var(--line); border-radius: 999px; padding: 10px 16px; }
+.stlist { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.stlist li { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 8px 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.stlist li.playing { border-color: var(--accent); }
+.stlist .logo { width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,.06) center / cover no-repeat; display: grid; place-items: center; font-family: var(--font-display); font-weight: 800; color: var(--muted); }
+.stlist button.pick { all: unset; cursor: pointer; display: grid; gap: 1px; min-width: 0; }
+.stlist button.pick b { font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.stlist button.pick small { color: var(--muted); font-size: 0.76rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fav { font: inherit; background: none; border: 0; color: var(--muted); font-size: 1.2rem; cursor: pointer; padding: 4px; }
+.fav[aria-pressed="true"] { color: var(--accent); }
+.deck { padding: 18px; border: 1px solid var(--line); border-radius: var(--radius); background: rgba(7,10,24,.82); display: grid; gap: 10px; }
+.deck .nm { font-family: var(--font-display); font-size: clamp(1.3rem, 5vw, 1.8rem); font-weight: 800; line-height: 1.15; overflow-wrap: anywhere; }
+.deck .meta { color: var(--muted); font-size: 0.85rem; overflow-wrap: anywhere; }
+.deck canvas { width: 100%; height: 90px; display: block; border-radius: 10px; background: rgba(255,255,255,.03); }
+.ctl { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.ctl .big { font: inherit; font-size: 1rem; font-weight: 600; padding: 10px 22px; border-radius: 999px; border: 0; background: var(--accent); color: var(--bg); cursor: pointer; }
+.ctl input[type=range] { flex: 1 1 120px; accent-color: var(--accent); min-width: 0; }
+.ctl select { font: inherit; font-size: 0.85rem; color: var(--ink); background: rgba(7,10,24,.6); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; }
+.ar { font-family: 'IBM Plex Sans Arabic', sans-serif; }
+[hidden] { display: none !important; }
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Sound · Radio · UAE · Live</span>
+    <h1 style="font-size:var(--step-3)">UAE radio live.</h1>
+    <p>The UAE has radio in a dozen languages, from Quran and Arabic talk to English pop, Hindi film songs and Malayalam news. This lists the stations streaming online, most popular first, so you can listen in your browser, keep favourites and fall asleep to one with a timer.</p>
+  </div>
+  <div class="game">
+    <div class="panel" style="min-width:0">
+      <div class="deck" id="deck">
+        <span class="label">Now playing</span>
+        <div class="nm" id="nowName">Pick a station</div>
+        <div class="meta" id="nowMeta">Nothing playing yet.</div>
+        <canvas id="viz" hidden aria-hidden="true"></canvas>
+        <div class="ctl"><button class="big" type="button" id="play" disabled>▶ Play</button><label style="display:flex;gap:6px;align-items:center;flex:1 1 140px;min-width:0"><span aria-hidden="true">🔈</span><input type="range" id="vol" min="0" max="1" step="0.01" value="0.8" aria-label="Volume"></label></div>
+        <div class="ctl"><label for="sleep" style="font-size:.85rem;color:var(--muted)">Sleep timer</label><select id="sleep"><option value="0">Off</option><option value="15">15 min</option><option value="30">30 min</option><option value="45">45 min</option><option value="60">1 hour</option><option value="90">1.5 hours</option></select><span id="sleepLeft" class="meta"></span></div>
+        <p class="msg" id="pmsg" role="status" style="margin:0"></p>
+      </div>
+    </div>
+    <div class="panel" style="min-width:0">
+      <input class="find" id="find" type="search" placeholder="Search stations or genres" aria-label="Search stations">
+      <div class="langs" id="langs"></div>
+      <p class="msg" id="msg" role="status"></p>
+      <ul class="stlist" id="list"></ul>
+      <button class="sm" type="button" id="more" hidden>Show more</button>
+      <p class="fact" style="margin:0"><b>Why there's no song title.</b> Radio streams slip the song name into the audio data every few seconds (called ICY metadata), but browsers don't let a web page read it. So this shows what the station says about itself: its genre tags, language and bitrate. 128 kbps sounds about as good as FM; 64 kbps is fine for talk.</p>
+      <p class="fact" style="margin:0"><b>What's approximate.</b> The list comes from radio-browser.info, a free directory that anyone can edit, so a few names, languages or logos may be off, and stations change their stream links without warning. Only stations with a secure (https) stream can play on this page. The sound wave appears only when a station allows it.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var MIRRORS = ['de1', 'de2', 'nl1', 'at1', 'fi1'].map(function (m) { return 'https://' + m + '.api.radio-browser.info'; });
+  var LANGS = [['all', 'All'], ['fav', '★ Favourites'], ['arabic', 'Arabic'], ['english', 'English'], ['hindi', 'Hindi'], ['malayalam', 'Malayalam'], ['tamil', 'Tamil'], ['urdu', 'Urdu'], ['tagalog', 'Filipino'], ['persian', 'Persian'], ['other', 'Other']];
+  var FKEY = 'uaeRadioFav', stations = [], skipped = 0, lang = 'all', q = '', shown = 40, cur = null, mirror = 0, favs = [];
+  try { favs = JSON.parse(localStorage.getItem(FKEY) || '[]') || []; } catch (e) {}
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function api(path) {
+    var tried = 0;
+    function go() {
+      var base = MIRRORS[mirror], c = new AbortController(); setTimeout(function () { c.abort(); }, 8000);
+      return fetch(base + path, { signal: c.signal }).then(function (r) { if (!r.ok) throw r.status; return r.json(); }).catch(function (e) { mirror = (mirror + 1) % MIRRORS.length; if (++tried >= MIRRORS.length) throw e; return go(); });
+    }
+    return go();
+  }
+  function https(u) { return /^https:\/\//i.test(u || '') ? u : null; }
+  function streamOf(s) { return https(s.url_resolved) || https(s.url); }
+  function langOf(s) { return (s.language || '').toLowerCase().split(/[,;]/).map(function (x) { return x.trim(); }).filter(Boolean); }
+  function load() {
+    $('msg').textContent = 'Loading stations…';
+    api('/json/stations/bycountrycodeexact/AE?order=votes&reverse=true&hidebroken=true&limit=500').then(function (list) {
+      var seen = {}; skipped = 0;
+      stations = list.filter(function (s) {
+        if (!streamOf(s)) { skipped++; return false; }
+        var k = (s.name || '').trim().toLowerCase(); if (seen[k]) return false; seen[k] = 1; return true;
+      });
+      render();
+    }).catch(function () { $('msg').textContent = 'Couldn\'t reach the radio directory. Check your connection and try again in a minute.'; });
+  }
+  function matches(s) {
+    var L = langOf(s);
+    if (lang === 'fav' && favs.indexOf(s.stationuuid) < 0) return false;
+    if (lang === 'other' && L.some(function (x) { return LANGS.some(function (l) { return l[0] === x; }); })) return false;
+    if (lang !== 'all' && lang !== 'fav' && lang !== 'other' && L.indexOf(lang) < 0 && !(lang === 'tagalog' && L.indexOf('filipino') >= 0)) return false;
+    if (q) { var hay = (s.name + ' ' + s.tags + ' ' + s.language).toLowerCase(); if (hay.indexOf(q) < 0) return false; }
+    return true;
+  }
+  function initials(n) { if (!/[A-Za-z0-9]/.test(n || '')) return '📻'; return (n || '?').replace(/[^\w؀-ۿ ]/g, '').trim().split(/\s+/).slice(0, 2).map(function (w) { return w[0]; }).join('').toUpperCase(); }
+  function render() {
+    var list = stations.filter(matches);
+    $('msg').textContent = list.length + ' station' + (list.length === 1 ? '' : 's') + (lang === 'fav' && !list.length ? '. Tap ☆ on a station to add it here.' : '') + (skipped && lang === 'all' && !q ? ' · ' + skipped + ' more only stream over plain http, which browsers block on secure pages' : '');
+    $('list').innerHTML = list.slice(0, shown).map(function (s) {
+      var fav = favs.indexOf(s.stationuuid) >= 0, logo = https(s.favicon);
+      var tagLine = [langOf(s).slice(0, 2).join(', '), (s.tags || '').split(',').slice(0, 3).join(', '), s.bitrate ? s.bitrate + ' kbps' : ''].filter(Boolean).join(' · ');
+      return '<li data-id="' + esc(s.stationuuid) + '" class="' + (cur && cur.stationuuid === s.stationuuid ? 'playing' : '') + '"><span class="logo"' + (logo ? ' style="background-image:url(&quot;' + esc(logo) + '&quot;)"' : '') + '>' + (logo ? '' : esc(initials(s.name))) + '</span><button type="button" class="pick"><b data-noar' + (/[؀-ۿ]/.test(s.name) ? ' class="ar" dir="rtl"' : '') + '>' + esc(s.name.trim()) + '</b><small>' + esc(tagLine) + '</small></button><button type="button" class="fav" aria-pressed="' + fav + '" aria-label="Favourite">' + (fav ? '★' : '☆') + '</button></li>';
+    }).join('');
+    $('more').hidden = list.length <= shown;
+  }
+  LANGS.forEach(function (l) {
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'sm'; b.textContent = l[1];
+    // 'English' alone would clash with the language switch label in Arabic mode
+    if (l[0] === 'english' && window.LabAr && LabAr.on) b.textContent = 'English (language)'; b.dataset.l = l[0]; b.setAttribute('aria-pressed', l[0] === lang);
+    b.onclick = function () { lang = l[0]; shown = 40; [].forEach.call(document.querySelectorAll('#langs .sm'), function (x) { x.setAttribute('aria-pressed', x.dataset.l === lang); }); render(); };
+    $('langs').appendChild(b);
+  });
+  $('find').addEventListener('input', function () { q = $('find').value.trim().toLowerCase(); shown = 40; render(); });
+  $('more').onclick = function () { shown += 40; render(); };
+  $('list').addEventListener('click', function (e) {
+    var li = e.target.closest('[data-id]'); if (!li) return;
+    var s = stations.filter(function (x) { return x.stationuuid === li.dataset.id; })[0]; if (!s) return;
+    if (e.target.closest('.fav')) {
+      var i = favs.indexOf(s.stationuuid); if (i >= 0) favs.splice(i, 1); else favs.push(s.stationuuid);
+      try { localStorage.setItem(FKEY, JSON.stringify(favs)); } catch (x) {}
+      render(); return;
+    }
+    if (e.target.closest('.pick')) play(s);
+  });
+
+  // ---------- playback ----------
+  // Two players: one asks for CORS so the visualiser can read samples; if the station refuses, the plain one plays without it.
+  var aC = new Audio(), aP = new Audio(), audio = null, actx = null, analyser = null, playTry = 0;
+  aC.crossOrigin = 'anonymous'; aC.preload = 'none'; aP.preload = 'none';
+  function stopAll() { [aC, aP].forEach(function (a) { a.pause(); a.removeAttribute('src'); try { a.load(); } catch (e) {} }); }
+  function play(s) {
+    cur = s; var u = streamOf(s), my = ++playTry;
+    stopAll(); render(); showNow();
+    $('pmsg').textContent = 'Connecting…'; $('play').disabled = false;
+    // tell radio-browser someone played it (their etiquette, used for popularity)
+    api('/json/url/' + encodeURIComponent(s.stationuuid)).catch(function () {});
+    function plain() {
+      if (my !== playTry) return;
+      audio = aP; $('viz').hidden = true; aP.src = u; aP.volume = +$('vol').value;
+      aP.play().then(function () { if (my === playTry) $('pmsg').textContent = 'Playing. No sound wave for this station, as it doesn\'t allow it.'; }).catch(function () { if (my === playTry) { $('pmsg').textContent = s.hls ? 'This station uses a stream format (HLS) your browser can\'t play here. Try another.' : 'This station isn\'t answering right now. Try another.'; setBtn(); } });
+    }
+    audio = aC; aC.src = u; aC.volume = +$('vol').value;
+    aC.play().then(function () {
+      if (my !== playTry) return;
+      $('pmsg').textContent = 'Playing.'; startViz();
+    }).catch(function (e) { if (e && e.name === 'NotAllowedError') { $('pmsg').textContent = 'Tap Play to start.'; setBtn(); return; } aC.removeAttribute('src'); plain(); });
+    setBtn(); media();
+  }
+  function setBtn() { var on = audio && !audio.paused; $('play').textContent = on ? '❚❚ Pause' : '▶ Play'; }
+  [aC, aP].forEach(function (a) { ['play', 'pause', 'playing'].forEach(function (ev) { a.addEventListener(ev, setBtn); }); });
+  $('play').onclick = function () { if (!cur) return; if (audio && !audio.paused) { audio.pause(); } else if (audio && audio.src) { audio.play().catch(function () { play(cur); }); } else play(cur); };
+  $('vol').addEventListener('input', function () { if (!fading) [aC, aP].forEach(function (a) { a.volume = +$('vol').value; }); });
+  function showNow() {
+    var s = cur;
+    $('nowName').textContent = s.name.trim(); $('nowName').setAttribute('data-noar', ''); $('nowName').className = 'nm' + (/[؀-ۿ]/.test(s.name) ? ' ar' : '');
+    $('nowMeta').textContent = [s.tags ? s.tags.split(',').slice(0, 5).join(', ') : '', langOf(s).join(', '), s.codec ? s.codec + (s.bitrate ? ' ' + s.bitrate + ' kbps' : '') : '', s.state || ''].filter(Boolean).join(' · ') || 'No details from the station.';
+  }
+  function media() {
+    if (!('mediaSession' in navigator) || !cur) return;
+    try {
+      var art = https(cur.favicon);
+      navigator.mediaSession.metadata = new MediaMetadata({ title: cur.name.trim(), artist: (cur.tags || 'UAE radio').split(',').slice(0, 3).join(', '), album: 'UAE radio live', artwork: art ? [{ src: art, sizes: '256x256' }] : [] });
+      navigator.mediaSession.setActionHandler('play', function () { if (audio) audio.play(); });
+      navigator.mediaSession.setActionHandler('pause', function () { if (audio) audio.pause(); });
+      navigator.mediaSession.setActionHandler('nexttrack', function () { step(1); });
+      navigator.mediaSession.setActionHandler('previoustrack', function () { step(-1); });
+    } catch (e) {}
+  }
+  function step(d) { var list = stations.filter(matches); if (!list.length) return; var i = list.indexOf(cur); play(list[(i + d + list.length) % list.length]); }
+  // ---------- visualiser ----------
+  var vc = $('viz'), vx = vc.getContext('2d'), buf = null;
+  function startViz() {
+    try {
+      var AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+      if (!actx) { actx = new AC(); var src = actx.createMediaElementSource(aC); analyser = actx.createAnalyser(); analyser.fftSize = 256; src.connect(analyser); analyser.connect(actx.destination); buf = new Uint8Array(analyser.frequencyBinCount); }
+      if (actx.state === 'suspended') actx.resume();
+      $('viz').hidden = false;
+    } catch (e) { $('viz').hidden = true; }
+  }
+  function draw() {
+    requestAnimationFrame(draw);
+    if (!analyser || $('viz').hidden || audio !== aC || aC.paused) return;
+    var r = vc.getBoundingClientRect(), d = Math.min(2, devicePixelRatio || 1); if (vc.width !== Math.round(r.width * d)) { vc.width = Math.round(r.width * d); vc.height = Math.round(r.height * d); }
+    vx.setTransform(d, 0, 0, d, 0, 0); vx.clearRect(0, 0, r.width, r.height);
+    analyser.getByteFrequencyData(buf);
+    var n = 48, w = r.width / n;
+    for (var i = 0; i < n; i++) { var v = buf[Math.floor(i * buf.length * 0.7 / n)] / 255, h = Math.max(2, v * (r.height - 6)); vx.fillStyle = 'rgba(255,200,87,' + (0.35 + v * 0.65) + ')'; vx.fillRect(i * w + 1, r.height - h, w - 2, h); }
+  }
+  requestAnimationFrame(draw);
+  // ---------- sleep timer ----------
+  var sleepAt = 0, fading = false;
+  $('sleep').onchange = function () { var m = +$('sleep').value; sleepAt = m ? Date.now() + m * 60000 : 0; fading = false; [aC, aP].forEach(function (a) { a.volume = +$('vol').value; }); tickSleep(); };
+  function tickSleep() {
+    if (!sleepAt) { $('sleepLeft').textContent = ''; return; }
+    var left = sleepAt - Date.now(), v = +$('vol').value;
+    if (left <= 0) { if (audio) audio.pause(); sleepAt = 0; fading = false; [aC, aP].forEach(function (a) { a.volume = v; }); $('sleep').value = '0'; $('sleepLeft').textContent = 'Stopped. Good night.'; return; }
+    if (left < 60000) { fading = true; [aC, aP].forEach(function (a) { a.volume = v * left / 60000; }); }
+    var s = Math.ceil(left / 1000); $('sleepLeft').textContent = Math.floor(s / 60) + ':' + ('0' + s % 60).slice(-2) + (fading ? ' · fading out' : ' left');
+  }
+  setInterval(tickSleep, 500);
+  window.RadioTest = { streamOf: streamOf };
+  load();
+})();
+</script>
+</body>
+</html>
