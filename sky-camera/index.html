@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sky Through Your Camera · Mariam's Lab</title>
+<meta name="description" content="Point your phone at the sky and see stars, planets, the Moon and satellites labelled live over the camera, with Arabic star names.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/sky-camera/">
+<meta property="og:title" content="Sky Through Your Camera · Mariam's Lab"><meta property="og:description" content="Stars, planets and satellites labelled live over your camera, in English and Arabic."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@500;600&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.view { position: relative; height: min(76vh, 720px); min-height: 420px; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); background: radial-gradient(ellipse at 50% 120%, #14204a, #03050d 70%); touch-action: none; user-select: none; -webkit-user-select: none; }
+.view video, .view canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.view video { object-fit: cover; }
+.skyhud { position: absolute; left: 10px; right: 10px; top: 10px; display: flex; justify-content: space-between; gap: 8px; pointer-events: none; font-family: var(--font-mono); font-size: 0.72rem; color: rgba(255,255,255,.85); text-shadow: 0 1px 3px #000; }
+.go { position: absolute; inset: 0; display: grid; place-items: center; align-content: center; gap: 12px; text-align: center; padding: 20px; background: rgba(3,5,13,.55); }
+.go p { margin: 0; max-width: 34ch; color: var(--muted); font-size: 0.9rem; }
+.btns { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.sm { font: inherit; font-size: 0.85rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 13px; cursor: pointer; }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.big { font: inherit; font-weight: 600; padding: 12px 26px; border-radius: 999px; border: 0; background: var(--accent); color: var(--bg); cursor: pointer; }
+.info { position: absolute; left: 10px; right: 10px; bottom: 10px; padding: 12px 14px; border-radius: 12px; background: rgba(7,10,24,.88); border: 1px solid var(--line); font-size: 0.88rem; display: grid; gap: 2px; }
+.info b { font-family: var(--font-display); font-size: 1.15rem; }
+.info .ar { font-family: 'IBM Plex Sans Arabic', sans-serif; color: var(--accent); }
+.info small { color: var(--muted); }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: 0.9rem; }
+select { font: inherit; color: var(--ink); background: rgba(7,10,24,.7); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; max-width: 100%; }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Space · Camera · Live</span>
+    <h1 style="font-size:var(--step-3)">Sky through your camera.</h1>
+    <p>Hold your phone up to the night sky and the stars, planets, Moon and UAE satellites are labelled right over the camera view, with the old Arabic star names many of them still carry. Without a phone, drag the sky to look around.</p>
+  </div>
+  <div class="view" id="view">
+    <video id="vid" playsinline muted hidden></video>
+    <canvas id="cv"></canvas>
+    <div class="skyhud"><span id="hudL"></span><span id="hudR"></span></div>
+    <div class="go" id="go"><button class="big" type="button" id="start">Start the camera</button><button class="sm" type="button" id="drag">Explore without camera</button><p>Your phone will ask for the camera, motion sensors and location. Nothing leaves your device.</p></div>
+    <div class="info" id="info" hidden></div>
+  </div>
+  <div class="game" style="margin-top:16px">
+    <div class="panel" style="display:grid;gap:12px">
+      <div class="btns" role="group" aria-label="Labels"><span class="label" style="margin-inline-end:6px">Names</span><button class="sm" type="button" data-lang="en" aria-pressed="true">English</button><button class="sm" type="button" data-lang="ar" aria-pressed="false">العربية</button><button class="sm" type="button" data-lang="both" aria-pressed="false">Both</button></div>
+      <label class="row"><span>Find something</span><select id="find"><option value="">Choose…</option></select></label>
+      <label class="row"><span>Constellation lines</span><input type="checkbox" id="lines" checked></label>
+      <label class="row"><span>Show things below the horizon</span><input type="checkbox" id="below"></label>
+      <label class="row"><span>Field of view <small id="fovV" style="color:var(--muted)"></small></span><input type="range" id="fov" min="35" max="90" value="60" style="width:140px"></label>
+      <p class="fact" style="margin:0">If labels sit off their stars, match the field of view to your camera and wave the phone in a figure of eight to settle the compass. Phone compasses are thrown off by cars, metal railings and magnetic cases.</p>
+    </div>
+    <div class="panel" style="display:grid;gap:10px">
+      <span class="label">What you're seeing</span>
+      <p class="fact" style="margin:0">Positions are worked out on your phone from the time and your location: around 100 of the brightest stars, the Sun, Moon, Venus, Mars, Jupiter and Saturn, and the UAE's satellites from fresh orbit data. Many star names in use worldwide are Arabic: Aldebaran (الدبران, "the follower"), Betelgeuse (يد الجوزاء), Altair (الطائر) and Vega (الواقع).</p>
+      <p class="fact" style="margin:0">Most UAE satellites are in geostationary orbit, about 36,000 km up. They sit still over the equator to the south and are far too faint to see by eye. MBZ-SAT and other low satellites move across the sky in a few minutes.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script src="../assets/sky.js"></script>
+<script src="../assets/vendor/satellite.min.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var R = Math.PI / 180, cv = $('cv'), c = cv.getContext('2d'), W = 0, H = 0, dpr = 1;
+  var loc = { lat: 24.4539, lon: 54.3773, name: 'Abu Dhabi' }, lang = 'en', mode = null, sats = [], target = null, picked = null;
+  var basis = null, sm = null, look = { az: 180, alt: 30 }, lastSensor = 0, hits = [];
+  try { lang = localStorage.getItem('skyCamLang') || 'en'; } catch (e) {}
+  function size() { var r = $('view').getBoundingClientRect(); dpr = Math.min(2, window.devicePixelRatio || 1); W = r.width; H = r.height; cv.width = W * dpr; cv.height = H * dpr; c.setTransform(dpr, 0, 0, dpr, 0, 0); }
+  window.addEventListener('resize', size); size();
+  // vector helpers: world frame x=East, y=North, z=Up
+  function v(az, alt) { return [Math.sin(az * R) * Math.cos(alt * R), Math.cos(az * R) * Math.cos(alt * R), Math.sin(alt * R)]; }
+  function dot(a, b) { return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]; }
+  function cross(a, b) { return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]; }
+  function norm(a) { var l = Math.hypot(a[0], a[1], a[2]) || 1; return [a[0] / l, a[1] / l, a[2] / l]; }
+  // device orientation → camera basis (W3C: R = Rz(alpha)·Rx(beta)·Ry(gamma))
+  function fromEuler(al, be, ga) {
+    var cA = Math.cos(al * R), sA = Math.sin(al * R), cB = Math.cos(be * R), sB = Math.sin(be * R), cG = Math.cos(ga * R), sG = Math.sin(ga * R);
+    var m = [[cA * cG - sA * sB * sG, -cB * sA, cA * sG + cG * sA * sB], [cG * sA + cA * sB * sG, cA * cB, sA * sG - cA * cG * sB], [-cB * sG, sB, cB * cG]];
+    function col(i) { return [m[0][i], m[1][i], m[2][i]]; }
+    var right = col(0), up = col(1), back = col(2), fwd = [-back[0], -back[1], -back[2]];
+    var ang = ((screen.orientation && screen.orientation.angle) || window.orientation || 0) * R, ca = Math.cos(ang), sa = Math.sin(ang);
+    var r2 = [right[0] * ca - up[0] * sa, right[1] * ca - up[1] * sa, right[2] * ca - up[2] * sa], u2 = [right[0] * sa + up[0] * ca, right[1] * sa + up[1] * ca, right[2] * sa + up[2] * ca];
+    return { f: fwd, r: r2, u: u2 };
+  }
+  function fromLook() { var f = v(look.az, look.alt), r = norm(cross(f, [0, 0, 1])); if (!isFinite(r[0])) r = [1, 0, 0]; return { f: f, r: r, u: cross(r, f) }; }
+  function blend(a, b, k) { return [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k]; }
+  function onOri(e) {
+    var al = e.alpha; if (al == null) return;
+    if (e.webkitCompassHeading != null) al = 360 - e.webkitCompassHeading; // iOS: true heading
+    else if (!e.absolute && e.type !== 'deviceorientationabsolute') return;
+    var b = fromEuler(al, e.beta, e.gamma); lastSensor = Date.now();
+    if (!sm) sm = b; else { var k = 0.25; sm = { f: norm(blend(sm.f, b.f, k)), r: norm(blend(sm.r, b.r, k)), u: norm(blend(sm.u, b.u, k)) }; }
+  }
+  function proj(w) {
+    var z = dot(w, basis.f); if (z <= 0.05) return null;
+    var fpx = (H / 2) / Math.tan(+$('fov').value / 2 * R);
+    return [W / 2 + fpx * dot(w, basis.r) / z, H / 2 - fpx * dot(w, basis.u) / z];
+  }
+  function name(o) { return lang === 'ar' ? (o.ar || o.en) : lang === 'both' && o.ar ? o.en + ' · ' + o.ar : o.en; }
+  function objects() {
+    var ms = Date.now(), l = Sky.lst(ms, loc.lon), out = [];
+    Sky.STARS.forEach(function (s) { var h = Sky.toHoriz(s.ra, s.dec, l, loc.lat); out.push({ o: s, h: h, kind: 'star' }); });
+    Sky.bodies(ms).forEach(function (b) { out.push({ o: b, h: Sky.toHoriz(b.ra, b.dec, l, loc.lat), kind: b.id === 'sun' || b.id === 'moon' ? b.id : 'planet' }); });
+    if (window.satellite) {
+      var d = new Date(ms), gm = satellite.gstime(d), obs = { latitude: loc.lat * R, longitude: loc.lon * R, height: 0.05 };
+      sats.forEach(function (s) { try { var pv = satellite.propagate(s.rec, d); if (!pv || !pv.position) return; var la = satellite.ecfToLookAngles(obs, satellite.eciToEcf(pv.position, gm)); out.push({ o: { id: 'sat-' + s.name, en: s.label, ar: '', mean: s.note }, h: { az: la.azimuth / R, alt: la.elevation / R }, kind: 'sat', range: la.rangeSat }); } catch (e) {} });
+    }
+    return out;
+  }
+  function frame() {
+    requestAnimationFrame(frame);
+    if (!mode) return;
+    basis = mode === 'camera' && sm && Date.now() - lastSensor < 3000 ? sm : fromLook();
+    c.clearRect(0, 0, W, H);
+    if (mode !== 'camera') { var g = c.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#03050d'); g.addColorStop(1, '#0d1638'); c.fillStyle = g; c.fillRect(0, 0, W, H); }
+    var objs = objects(), below = $('below').checked, byId = {}; hits = [];
+    objs.forEach(function (x) { byId[x.o.id] = x; });
+    // horizon and compass points
+    c.strokeStyle = 'rgba(79,211,189,.55)'; c.lineWidth = 1.2; c.beginPath(); var pen = false;
+    for (var a = 0; a <= 360; a += 3) { var p = proj(v(a, 0)); if (p) { if (pen) c.lineTo(p[0], p[1]); else c.moveTo(p[0], p[1]); pen = true; } else pen = false; }
+    c.stroke();
+    c.font = '600 13px "JetBrains Mono", monospace'; c.textAlign = 'center';
+    [['N', 0], ['NE', 45], ['E', 90], ['SE', 135], ['S', 180], ['SW', 225], ['W', 270], ['NW', 315]].forEach(function (d) { var p = proj(v(d[1], 0)); if (p) { c.fillStyle = d[0] === 'N' ? '#ff4f6d' : 'rgba(79,211,189,.9)'; c.fillText(lang === 'ar' ? { N: 'ش', NE: 'شق', E: 'ق', SE: 'جق', S: 'ج', SW: 'جغ', W: 'غ', NW: 'شغ' }[d[0]] : d[0], p[0], p[1] - 6); } });
+    // constellation lines
+    if ($('lines').checked) {
+      c.strokeStyle = 'rgba(158,180,255,.35)'; c.lineWidth = 1;
+      Sky.LINES.forEach(function (L) {
+        var mid = null, n = 0;
+        L[2].forEach(function (seg) { var A = byId[seg[0]], B = byId[seg[1]]; if (!A || !B || (!below && A.h.alt < 0 && B.h.alt < 0)) return; var p = proj(v(A.h.az, A.h.alt)), q2 = proj(v(B.h.az, B.h.alt)); if (!p || !q2) return; c.beginPath(); c.moveTo(p[0], p[1]); c.lineTo(q2[0], q2[1]); c.stroke(); mid = mid ? [mid[0] + p[0], mid[1] + p[1]] : p.slice(); n++; });
+        if (mid && n > 1) { c.fillStyle = 'rgba(158,180,255,.6)'; c.font = (lang === 'ar' ? '500 12px "IBM Plex Sans Arabic"' : 'italic 11px "Instrument Sans"'); c.fillText(lang === 'ar' ? L[1] : lang === 'both' ? L[0] + ' · ' + L[1] : L[0], mid[0] / (n + 1) * 1.0 + 0, mid[1] / (n + 1)); }
+      });
+    }
+    objs.sort(function (a, b) { return (b.o.mag || 0) - (a.o.mag || 0); }).forEach(function (x) {
+      if (x.h.alt < 0 && !below && x !== target) return;
+      var p = proj(v(x.h.az, x.h.alt)); if (!p || p[0] < -40 || p[0] > W + 40 || p[1] < -40 || p[1] > H + 40) return;
+      var dim = x.h.alt < 0 ? 0.35 : 1, r, col;
+      if (x.kind === 'star') { r = Math.max(1.2, 4.2 - x.o.mag * 1.1); col = '255,255,255'; }
+      else if (x.kind === 'planet') { r = 4.5; col = '255,200,87'; }
+      else if (x.kind === 'moon') { r = 11; col = '230,232,240'; }
+      else if (x.kind === 'sun') { r = 14; col = '255,170,60'; }
+      else { r = 3.5; col = '79,211,189'; }
+      c.globalAlpha = dim; c.fillStyle = 'rgba(' + col + ',1)';
+      if (x.kind === 'sat') { c.strokeStyle = c.fillStyle; c.lineWidth = 1.5; c.strokeRect(p[0] - 5, p[1] - 5, 10, 10); }
+      else { c.beginPath(); c.arc(p[0], p[1], r, 0, 7); c.fill(); if (mode === 'camera') { c.strokeStyle = 'rgba(' + col + ',.8)'; c.lineWidth = 1; c.beginPath(); c.arc(p[0], p[1], r + 5, 0, 7); c.stroke(); } }
+      if (x.kind !== 'star' || x.o.mag < 1.6 || x.o.ar || picked === x.o.id) {
+        var t = name(x.o); c.font = (lang !== 'en' && x.o.ar ? '600 13px "IBM Plex Sans Arabic"' : '600 12px "Instrument Sans"'); c.textAlign = 'left';
+        c.lineWidth = 3; c.strokeStyle = 'rgba(0,0,0,.7)'; c.strokeText(t, p[0] + r + 6, p[1] + 4); c.fillStyle = picked === x.o.id ? '#ffc857' : 'rgba(' + col + ',.95)'; c.fillText(t, p[0] + r + 6, p[1] + 4);
+      }
+      c.globalAlpha = 1; hits.push({ x: p[0], y: p[1], o: x });
+    });
+    // arrow to the target if off screen
+    if (target) {
+      var tx = objs.filter(function (x) { return x.o.id === target; })[0];
+      if (tx) {
+        var w = v(tx.h.az, tx.h.alt), p2 = proj(w), on = p2 && p2[0] > 20 && p2[0] < W - 20 && p2[1] > 20 && p2[1] < H - 20;
+        if (on) { c.strokeStyle = '#ffc857'; c.lineWidth = 2.5; c.beginPath(); c.arc(p2[0], p2[1], 22 + 4 * Math.sin(Date.now() / 200), 0, 7); c.stroke(); }
+        else {
+          var ang = Math.atan2(-dot(w, basis.u), dot(w, basis.r)), ax = W / 2 + Math.cos(ang) * Math.min(W, H) * 0.36, ay = H / 2 + Math.sin(ang) * Math.min(W, H) * 0.36;
+          c.save(); c.translate(ax, ay); c.rotate(ang); c.fillStyle = '#ffc857'; c.beginPath(); c.moveTo(22, 0); c.lineTo(-10, -13); c.lineTo(-4, 0); c.lineTo(-10, 13); c.closePath(); c.fill(); c.restore();
+          c.fillStyle = '#ffc857'; c.font = '600 13px "Instrument Sans"'; c.textAlign = 'center'; c.fillText(name(tx.o) + (tx.h.alt < 0 ? ' (below the horizon)' : ''), W / 2, H - 18);
+        }
+      }
+    }
+    var head = (Math.atan2(basis.f[0], basis.f[1]) / R + 360) % 360, alt = Math.asin(Math.max(-1, Math.min(1, basis.f[2]))) / R;
+    $('hudL').textContent = 'Facing ' + Math.round(head) + '° · ' + (alt >= 0 ? 'up ' : 'down ') + Math.abs(Math.round(alt)) + '°';
+    $('hudR').textContent = loc.name + ' · ' + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  }
+  function info(x) {
+    picked = x.o.id; var o = x.o, h = x.h, el = $('info');
+    var where = h.alt < 0 ? 'Below the horizon right now' : 'Height ' + Math.round(h.alt) + '° above the horizon, bearing ' + Math.round(h.az) + '°';
+    var extra = x.kind === 'sun' ? 'Never look at the Sun directly or through a camera zoom.' : x.kind === 'moon' ? Math.round(o.lit * 100) + '% lit' : x.kind === 'sat' ? (o.mean || '') + ' ' + Math.round(x.range).toLocaleString('en') + ' km away.' : x.kind === 'planet' ? 'A planet: it shines steadily rather than twinkling.' : (o.mean ? 'Meaning: ' + o.mean + '.' : '') + ' Magnitude ' + o.mag.toFixed(1) + ' (lower is brighter).';
+    el.innerHTML = '<b>' + o.en + (o.ar ? ' <span class="ar">' + o.ar + '</span>' : '') + '</b><span>' + where + '</span><small>' + extra + '</small>';
+    el.hidden = false;
+  }
+  cv.addEventListener('click', function (e) {
+    var r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top, best = null, bd = 30;
+    hits.forEach(function (h) { var d = Math.hypot(h.x - x, h.y - y); if (d < bd) { bd = d; best = h.o; } });
+    if (best) info(best); else { $('info').hidden = true; picked = null; }
+  });
+  // drag to look (also works as a fallback when sensors are missing)
+  var drag = null;
+  cv.addEventListener('pointerdown', function (e) { drag = { x: e.clientX, y: e.clientY, az: look.az, alt: look.alt }; });
+  window.addEventListener('pointermove', function (e) { if (!drag) return; var k = +$('fov').value / H; look.az = (drag.az - (e.clientX - drag.x) * k + 360) % 360; look.alt = Math.max(-30, Math.min(89, drag.alt + (e.clientY - drag.y) * k)); });
+  window.addEventListener('pointerup', function () { drag = null; });
+  function locate() {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(function (p) { loc = { lat: p.coords.latitude, lon: p.coords.longitude, name: 'Your location' }; }, function () {}, { maximumAge: 6e5, timeout: 10000 });
+  }
+  function sensors() {
+    var ask = window.DeviceOrientationEvent && DeviceOrientationEvent.requestPermission ? DeviceOrientationEvent.requestPermission() : Promise.resolve('granted');
+    return ask.then(function (s) { if (s !== 'granted') throw 0; if ('ondeviceorientationabsolute' in window) window.addEventListener('deviceorientationabsolute', onOri); window.addEventListener('deviceorientation', onOri); }).catch(function () {});
+  }
+  $('start').onclick = function () {
+    sensors(); locate();
+    var cam = navigator.mediaDevices && navigator.mediaDevices.getUserMedia ? navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false }) : Promise.reject();
+    cam.then(function (s) { $('vid').srcObject = s; $('vid').hidden = false; $('vid').play(); }).catch(function () {}).then(function () {
+      mode = 'camera'; $('go').hidden = true; size();
+      setTimeout(function () { if (!sm) { $('info').hidden = false; $('info').innerHTML = '<b>No compass found</b><small>This device didn\'t share its motion sensors, so drag the sky to look around instead.</small>'; } }, 2500);
+    });
+  };
+  $('drag').onclick = function () { locate(); mode = 'drag'; $('go').hidden = true; size(); };
+  [].forEach.call(document.querySelectorAll('[data-lang]'), function (b) { b.setAttribute('aria-pressed', b.dataset.lang === lang); b.onclick = function () { lang = b.dataset.lang; try { localStorage.setItem('skyCamLang', lang); } catch (e) {} [].forEach.call(document.querySelectorAll('[data-lang]'), function (x) { x.setAttribute('aria-pressed', x === b); }); }; });
+  $('fov').oninput = function () { $('fovV').textContent = this.value + '°'; }; $('fov').oninput();
+  function fill() {
+    var opts = Sky.bodies(Date.now()).map(function (b) { return [b.id, b.en + (b.ar ? ' · ' + b.ar : '')]; }).concat(sats.map(function (s) { return ['sat-' + s.name, s.label + ' (satellite)']; })).concat(Sky.STARS.filter(function (s) { return s.ar || s.mag < 1.5; }).sort(function (a, b) { return a.en.localeCompare(b.en); }).map(function (s) { return [s.id, s.en + (s.ar ? ' · ' + s.ar : '')]; }));
+    $('find').innerHTML = '<option value="">Choose…</option>' + opts.map(function (o) { return '<option value="' + o[0] + '">' + o[1] + '</option>'; }).join('');
+  }
+  $('find').onchange = function () { target = this.value || null; if (target && mode === 'drag') { var x = objects().filter(function (o) { return o.o.id === target; })[0]; if (x) { look.az = x.h.az; look.alt = Math.max(-25, x.h.alt); info(x); } } };
+  fetch('../assets/uae-sats.json').then(function (r) { return r.json(); }).then(function (j) {
+    sats = (j.sats || []).map(function (s) { var rec = satellite.twoline2satrec(s.tle1, s.tle2), geo = rec.no * 1440 / (2 * Math.PI) < 1.1; return { name: s.name, label: s.name.replace(/\s*\(.*\)/, ''), rec: rec, note: geo ? 'Geostationary, fixed over the equator.' : 'Low orbit, crosses the sky in minutes.' }; });
+    fill();
+  }).catch(fill);
+  // start the drag view looking south at a lively part of the sky
+  look.az = 180; look.alt = 35;
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
