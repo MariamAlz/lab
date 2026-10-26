@@ -11,6 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Reem+Kufi:wght@500;700&display=swap">
 <link rel="stylesheet" href="./assets/site.css">
+<script src="./assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="./">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="./">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -161,7 +162,7 @@ function css(n) { return getComputedStyle(document.documentElement).getPropertyV
 var TAGS = [['all','All'],['games','Games'],['gnss','GNSS'],['space','Space'],['earth','Earth & UAE'],['ai','AI & ML'],['vision','Vision'],['optimization','Optimization'],['language','Language'],['philosophy','Philosophy'],['signals','Signals'],['sound','Sound'],['security','Security'],['tools','Tools'],['live','Live data']];
 var cards = [].slice.call(document.querySelectorAll('.exp')), tag = 'all';
 try { tag = new URLSearchParams(location.search).get('tag') || 'all'; } catch (e) {}
-var used = {}; cards.forEach(function (c) { (c.dataset.tags || '').split(',').forEach(function (t) { used[t] = 1; }); });
+var used = {}; cards.forEach(function (c) { (c.dataset.tags || '').split(/[\s,]+/).forEach(function (t) { used[t] = 1; }); });
 document.getElementById('tags').innerHTML = TAGS.filter(function (t) { return t[0] === 'all' || used[t[0]]; }).map(function (t) {
   return '<button type="button" data-t="' + t[0] + '" aria-pressed="' + (t[0] === tag) + '">' + t[1] + '</button>';
 }).join('');
@@ -176,7 +177,7 @@ function apply() {
   var words = document.getElementById('q').value.toLowerCase().split(/\s+/).filter(Boolean), n = 0;
   cards.forEach(function (c) {
     var text = (c.textContent + ' ' + c.dataset.tags).toLowerCase();
-    var show = (tag === 'all' || (',' + c.dataset.tags + ',').indexOf(',' + tag + ',') >= 0) && words.every(function (w) { return text.indexOf(w) >= 0; });
+    var show = (tag === 'all' || (c.dataset.tags || '').split(/[\s,]+/).indexOf(tag) >= 0) && words.every(function (w) { return text.indexOf(w) >= 0; });
     c.hidden = !show; if (show) n++;
   });
   document.getElementById('count').textContent = n ? n + (n === 1 ? ' experiment' : ' experiments') : 'Nothing matches. Try another word or topic.';
