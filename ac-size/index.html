@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AC Size &amp; Running Cost · Mariam's Lab</title>
+<meta name="description" content="How big an air conditioner does your room need in the UAE heat, and what will it cost to run on DEWA, ADDC, SEWA or Etihad WE tariffs? BTU, tonnage, inverter vs non-inverter and thermostat savings.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/ac-size/">
+<meta property="og:title" content="AC Size &amp; Running Cost · Mariam's Lab"><meta property="og:description" content="BTU and tonnage for your room, and the monthly bill on your emirate's tariff."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.form { display: grid; gap: 12px; }
+.f { display: grid; gap: 5px; min-width: 0; }
+.f > span { font-size: 0.84rem; color: var(--muted); }
+.f input, .f select { font: inherit; color: var(--ink); background: rgba(7, 10, 24, 0.6); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; min-width: 0; width: 100%; }
+.f input[type=number] { font-family: var(--font-mono); }
+.f input[type=range] { padding: 0; accent-color: var(--accent); }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.three { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.grp { border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; display: grid; gap: 10px; background: rgba(7,10,24,.5); }
+.grp legend { padding: 0 6px; font-family: var(--font-display); font-weight: 600; }
+.src { font-size: 0.75rem; color: var(--muted); margin: 0; }
+.big { font-family: var(--font-display); font-weight: 800; font-size: clamp(2.2rem, 7vw, 3.2rem); line-height: 1; color: var(--accent); }
+.calc { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 0.86rem; }
+.calc li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; padding: 5px 0; border-bottom: 1px dashed var(--line); }
+.calc b { font-family: var(--font-mono); font-weight: 400; font-size: 0.82rem; }
+.calc li.tot { border-bottom: 0; font-weight: 600; }
+.bars { display: grid; gap: 8px; }
+.bars .r { display: grid; grid-template-columns: 6.5em minmax(0, 1fr) 6em; gap: 8px; align-items: center; font-size: 0.84rem; }
+.bars .t { height: 20px; background: var(--line); border-radius: 6px; overflow: hidden; }
+.bars .t i { display: block; height: 100%; border-radius: 6px; }
+.bars em { font-style: normal; font-family: var(--font-mono); font-size: 0.78rem; text-align: end; }
+.months { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 3px; align-items: end; height: 110px; }
+.months div { display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; gap: 2px; font-family: var(--font-mono); font-size: 0.56rem; color: var(--muted); }
+.months i { display: block; width: 100%; background: var(--sat-b); border-radius: 4px 4px 0 0; }
+.slabs { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+.slabs td, .slabs th { padding: 3px 4px; text-align: start; }
+.slabs th { color: var(--muted); font-weight: 500; font-size: 0.74rem; }
+.slabs input { font: inherit; font-family: var(--font-mono); color: var(--ink); background: rgba(7,10,24,.6); border: 1px solid var(--line); border-radius: 6px; padding: 5px 7px; width: 100%; min-width: 0; }
+.stats span { font-size: 0.78rem; color: var(--muted); }
+@media (max-width: 520px) { .stats b { font-size: 1.1rem; } .stats div { padding: 10px; } }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Home · Energy · UAE</span>
+    <h1 style="font-size:var(--step-3)">AC size and running cost.</h1>
+    <p>Too small and the AC runs flat out all August without cooling the room. Too big and it short-cycles, leaving the air cold but damp. Describe your room to get a size in BTU and tons, then see what it costs to run each month on your emirate's tariff, and how much an inverter or a warmer thermostat saves.</p>
+  </div>
+  <div class="game">
+    <div class="panel" style="gap:18px">
+      <div><span class="label">Recommended size</span><div class="big" id="size">—</div><p class="src" id="sizeSub" style="margin-top:6px"></p></div>
+      <ul class="calc" id="calc"></ul>
+      <div class="stats" id="stats"></div>
+      <div class="grp"><span class="label">Bill for this AC, inverter vs non-inverter (per year)</span><div class="bars" id="bars"></div></div>
+      <div class="grp"><span class="label" id="monthsT">Month by month</span><div class="months" id="months"></div></div>
+      <p class="fact" id="setFact"></p>
+      <p class="fact">How the size is worked out: a base of 650 BTU per hour for each square metre of floor at a 2.7 m ceiling (about 1 ton per 18 m², a common Gulf rule of thumb; cooler climates use about a third of that). Then: more for sun on the walls and a roof above, 600 BTU for each person beyond two, about 1,000 BTU per sunny window, 4,000 for a kitchen, and 3.4 BTU for each watt of appliances. Real installers also check insulation, glass type and duct losses, so treat this as a starting point to compare quotes.</p>
+    </div>
+    <div class="panel form" id="form">
+      <fieldset class="grp"><legend>The room</legend>
+        <div class="three">
+          <label class="f"><span>Length (m)</span><input type="number" id="len" min="1" step="0.1" value="5"></label>
+          <label class="f"><span>Width (m)</span><input type="number" id="wid" min="1" step="0.1" value="4"></label>
+          <label class="f"><span>Ceiling (m)</span><input type="number" id="hgt" min="2" step="0.1" value="2.7"></label>
+        </div>
+        <div class="two">
+          <label class="f"><span>Sun on the outside walls</span><select id="sun"><option value="-0.1">Mostly shaded, north-facing</option><option value="0" selected>Some sun (east or south)</option><option value="0.15">Afternoon sun (west-facing)</option><option value="0.25">Glass wall or full sun all day</option></select></label>
+          <label class="f"><span>What's above the room</span><select id="roof"><option value="0">Another floor</option><option value="0.2">The roof (top floor or villa upstairs)</option></select></label>
+        </div>
+        <div class="two">
+          <label class="f"><span>Insulation</span><select id="ins"><option value="0.15">Poor (older building, single glazing)</option><option value="0" selected>Average</option><option value="-0.1">Good (newer, double glazing)</option></select></label>
+          <label class="f"><span>Room type</span><select id="kitchen"><option value="0">Bedroom or living room</option><option value="4000">Kitchen (+4,000 BTU)</option></select></label>
+        </div>
+        <div class="three">
+          <label class="f"><span>People usually in it</span><input type="number" id="ppl" min="0" step="1" value="2"></label>
+          <label class="f"><span>Windows</span><input type="number" id="win" min="0" step="1" value="2"></label>
+          <label class="f"><span>Appliances (W)</span><input type="number" id="appW" min="0" step="50" value="300"></label>
+        </div>
+        <p class="src">Appliances: a TV about 100 W, a gaming PC 300–500 W, a fridge 150 W, lights 10 W per LED bulb.</p>
+      </fieldset>
+      <fieldset class="grp"><legend>Running it</legend>
+        <div class="two">
+          <label class="f"><span>Hours on per day</span><input type="number" id="hrs" min="0" max="24" step="1" value="12"></label>
+          <label class="f"><span>Your emirate</span><select id="where"><option value="dubai">Dubai (DEWA)</option><option value="ad">Abu Dhabi and Al Ain (ADDC / AADC)</option><option value="shj">Sharjah (SEWA)</option><option value="north">Ajman, UAQ, RAK, Fujairah (Etihad WE)</option></select></label>
+        </div>
+        <div class="two">
+          <label class="f"><span>Account holder</span><select id="who"><option value="exp">Expat</option><option value="nat">UAE national</option></select></label>
+          <label class="f"><span>Home type</span><select id="home"><option value="apt">Apartment</option><option value="villa">Villa</option></select></label>
+        </div>
+        <label class="f"><span>Rest of the home uses (kWh per month, from your bill)</span><input type="number" id="base" min="0" step="100" value="1500"></label>
+        <label class="f"><span>Thermostat: <b id="spV">24°C</b></span><input type="range" id="sp" min="18" max="28" step="1" value="24"></label>
+        <div class="two">
+          <label class="f"><span>Saving per °C warmer (%)</span><input type="number" id="perDeg" min="0" max="20" step="0.5" value="6"></label>
+          <label class="f"><span>Efficiency (EER, BTU per Wh)</span><input type="number" id="eer" min="5" max="25" step="0.1" value="9.5"></label>
+        </div>
+        <p class="src">EER 9.5 is typical for a fixed-speed (non-inverter) split unit at Gulf summer temperatures. An inverter runs at part speed most of the time instead of stopping and starting, which typically uses 30–40% less over a season; the comparison uses 35%. The thermostat effect is a rule of thumb: published figures range from about 3% to 10% per degree, so edit it if you have a better number.</p>
+      </fieldset>
+      <fieldset class="grp"><legend>Tariff (editable)</legend>
+        <table class="slabs" id="slabT"><thead><tr><th>Up to kWh / month</th><th>fils per kWh</th></tr></thead><tbody></tbody></table>
+        <div class="two">
+          <label class="f"><span>Fuel surcharge (fils/kWh)</span><input type="number" id="fuel" min="0" step="0.1" value="6"></label>
+          <label class="f"><span>VAT (%)</span><input type="number" id="vat" min="0" step="1" value="5"></label>
+        </div>
+        <p class="src" id="tarSrc"></p>
+      </fieldset>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var KEY = 'acSize1';
+  // slabs: [upToKWhPerMonth or 0 for "above", fils]; fuel surcharge fils
+  function tariff(where, who, home) {
+    if (where === 'dubai') return { s: [[2000, 23], [4000, 28], [6000, 32], [0, 38]], fuel: 6, src: 'DEWA residential slab tariff and fuel surcharge (6 fils, October 2026) from dewa.gov.ae, checked October 2026. The same rates apply to nationals and expats. The surcharge changes with fuel costs, and UAE nationals\' homes may get separate support. DEWA bills also include meter fees and, for tenants, the 5% housing fee, which are not counted here.' };
+    if (where === 'ad') {
+      var nat = who === 'nat', allow = (home === 'villa' ? (nat ? 400 : 200) : (nat ? 30 : 20)) * 30;
+      return { s: [[allow, nat ? 6.7 : 26.8], [0, nat ? 7.5 : 30.5]], fuel: 0, src: 'ADDC / AADC 2025 residential tariff from addc.ae, checked October 2026: ' + (nat ? 'UAE nationals 6.7 fils up to the daily allowance, 7.5 above.' : 'expats 26.8 fils up to the daily allowance, 30.5 above.') + ' The allowance is per day (' + (allow / 30) + ' kWh a day for ' + (home === 'villa' ? 'villas' : 'flats') + '), shown here as a monthly total.' };
+    }
+    if (where === 'shj') return who === 'nat' ? { s: [[0, 7.5]], fuel: 0, src: 'SEWA rates for UAE nationals: typical, about 7.5 fils per kWh. Edit to match your bill.' } : { s: [[2000, 30], [4000, 35], [6000, 40], [0, 45]], fuel: 0, src: 'SEWA slab rates for expats: typical, edit to match your bill. SEWA does not publish these in an easy-to-check table, and freehold owners may pay different rates.' };
+    return who === 'nat' ? { s: [[0, 7.5]], fuel: 0, src: 'Etihad WE (formerly FEWA) for UAE nationals: typical, about 7.5 fils per kWh. Edit to match your bill.' } : { s: [[2000, 28], [4000, 33], [6000, 37], [0, 43]], fuel: 0, src: 'Etihad WE (formerly FEWA) slab tariff for expats as announced in January 2019 (etihadwe.ae). Check your latest bill, as rates may have changed.' };
+  }
+  function fillTariff() {
+    var t = tariff($('where').value, $('who').value, $('home').value);
+    $('slabT').tBodies[0].innerHTML = t.s.map(function (r, i) { return '<tr><td>' + (r[0] ? '<input type="number" min="0" step="100" data-s="' + i + '" data-k="0" value="' + r[0] + '" aria-label="Slab ' + (i + 1) + ' upper limit">' : '<span class="src">above that</span>') + '</td><td><input type="number" min="0" step="0.1" data-s="' + i + '" data-k="1" value="' + r[1] + '" aria-label="Slab ' + (i + 1) + ' rate"></td></tr>'; }).join('');
+    $('fuel').value = t.fuel; $('tarSrc').textContent = t.src;
+  }
+  function slabs() {
+    var rows = [].slice.call($('slabT').tBodies[0].rows);
+    return rows.map(function (tr) { var a = tr.querySelector('[data-k="0"]'), b = tr.querySelector('[data-k="1"]'); return [a ? +a.value || 0 : 0, +b.value || 0]; });
+  }
+  function billAED(kwh, S) { // cost of a month's kWh on slabs, + surcharge, + VAT
+    var left = kwh, prev = 0, f = 0;
+    for (var i = 0; i < S.length && left > 0; i++) { var cap = S[i][0] ? Math.max(0, S[i][0] - prev) : Infinity, u = Math.min(left, cap); f += u * S[i][1]; left -= u; prev = S[i][0] || prev; }
+    f += kwh * n('fuel');
+    return f / 100 * (1 + n('vat') / 100);
+  }
+  function n(id) { var v = parseFloat($(id).value); return isFinite(v) && v > 0 ? v : 0; }
+  function fmt(v) { return Math.round(v).toLocaleString('en-US'); }
+  var SIZES = [9000, 12000, 18000, 24000, 30000, 36000, 48000, 60000];
+  // share of the AC's full capacity needed, by month, for a UAE coastal city (rough)
+  var LOAD = [0.15, 0.17, 0.27, 0.42, 0.6, 0.75, 0.82, 0.85, 0.72, 0.55, 0.32, 0.18], MON = 'JFMAMJJASOND';
+  var DAYS = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  var fields = [].slice.call(document.querySelectorAll('#form input:not([data-s]), #form select')).filter(function (e) { return e.id; });
+
+  function render() {
+    var area = n('len') * n('wid'), base = area * 650 * Math.max(0.8, n('hgt') / 2.7);
+    var sun = +$('sun').value, roof = +$('roof').value, ins = +$('ins').value;
+    var sunny = sun > 0, winB = n('win') * (sunny ? 1000 : 500), pplB = Math.max(0, n('ppl') - 2) * 600, appB = n('appW') * 3.412, kit = +$('kitchen').value;
+    var adj = base * (sun + roof + ins);
+    var tot = base + adj + winB + pplB + appB + kit;
+    var unit = SIZES.filter(function (s) { return s >= tot * 0.95; })[0];
+    $('size').textContent = unit ? (unit / 12000).toLocaleString('en-US') + ' ton' : 'More than 5 tons';
+    $('sizeSub').textContent = unit ? fmt(unit) + ' BTU/h unit, for a calculated load of ' + fmt(tot) + ' BTU/h (' + (tot / 12000).toFixed(2) + ' tons) in a ' + area.toFixed(1) + ' m² room.' : 'A load of ' + fmt(tot) + ' BTU/h needs several units or a ducted system. Ask an engineer.';
+    function pct(x) { return (x > 0 ? '+' : '') + Math.round(x * 100) + '%'; }
+    $('calc').innerHTML = [['Floor ' + area.toFixed(1) + ' m² × 650' + (n('hgt') !== 2.7 ? ' × ceiling ' + n('hgt') + '/2.7' : ''), base], ['Sun ' + pct(sun) + ', roof ' + pct(roof) + ', insulation ' + pct(ins), adj], [n('win') + ' window' + (n('win') === 1 ? '' : 's') + ' × ' + (sunny ? '1,000' : '500'), winB], ['Extra people × 600', pplB], ['Appliances ' + n('appW') + ' W × 3.41', appB], ['Kitchen', kit]].filter(function (r) { return r[1]; }).map(function (r) { return '<li><span>' + r[0] + '</span><b>' + (r[1] > 0 ? '+' : '−') + fmt(Math.abs(r[1])) + '</b></li>'; }).join('') + '<li class="tot"><span>Cooling load</span><b>' + fmt(tot) + ' BTU/h</b></li>';
+    // energy: unit capacity × monthly load share × hours / EER, adjusted for setpoint
+    var cap = unit || tot, sp = +$('sp').value, spF = Math.pow(1 - n('perDeg') / 100, sp - 24);
+    $('spV').textContent = sp + '°C';
+    var S = slabs(), other = n('base');
+    function year(inv) {
+      return LOAD.map(function (L, i) {
+        var kwh = cap * Math.min(1, L * (tot / cap)) * n('hrs') * DAYS[i] / (n('eer') || 9.5) / 1000 * spF * (inv ? 0.65 : 1);
+        return { kwh: kwh, aed: billAED(other + kwh, S) - billAED(other, S) };
+      });
+    }
+    var fixed = year(false), inv = year(true);
+    var sum = function (a, k) { return a.reduce(function (s, x) { return s + x[k]; }, 0); };
+    var aug = fixed[7], augI = inv[7];
+    $('stats').innerHTML = '<div><b>' + fmt(aug.aed) + '</b><span>AED in August (' + fmt(aug.kwh) + ' kWh)</span></div><div><b>' + fmt(sum(fixed, 'aed')) + '</b><span>AED a year, non-inverter</span></div><div><b>' + fmt(sum(fixed, 'aed') - sum(inv, 'aed')) + '</b><span>AED a year saved by an inverter</span></div>';
+    var yF = sum(fixed, 'aed'), yI = sum(inv, 'aed'), mx = Math.max(yF, 1);
+    $('bars').innerHTML = [['Non-inverter', yF, 'var(--sat-c)'], ['Inverter', yI, 'var(--sat-b)']].map(function (r) { return '<div class="r"><span>' + r[0] + '</span><div class="t"><i style="width:' + (r[1] / mx * 100).toFixed(1) + '%;background:' + r[2] + '"></i></div><em>' + fmt(r[1]) + ' AED</em></div>'; }).join('');
+    var mM = Math.max.apply(null, fixed.map(function (x) { return x.aed; })) || 1;
+    $('monthsT').textContent = 'Month by month, non-inverter (AED)';
+    $('months').innerHTML = fixed.map(function (x, i) { return '<div title="' + MON[i] + ': ' + fmt(x.aed) + ' AED, ' + fmt(x.kwh) + ' kWh"><span>' + fmt(x.aed) + '</span><i style="height:' + Math.max(2, x.aed / mM * 80) + 'px"></i>' + MON[i] + '</div>'; }).join('');
+    var spUp = Math.pow(1 - n('perDeg') / 100, 1);
+    $('setFact').innerHTML = 'Thermostat at ' + sp + '°C. Raising it by one degree would cut this AC\'s yearly bill by about <b>' + fmt(yF * (1 - spUp)) + ' AED</b>, at ' + n('perDeg') + '% per degree. The reason: the colder you ask the room to be, the bigger the gap the AC has to pump heat across, and the longer it runs. 24°C is the setting DEWA and most UAE energy campaigns suggest.';
+    var o = {}; fields.forEach(function (e) { o[e.id] = e.value; }); o.slabs = S;
+    try { localStorage.setItem(KEY, JSON.stringify(o)); } catch (x) {}
+  }
+  var saved = null; try { saved = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (x) {}
+  if (saved) fields.forEach(function (e) { if (saved[e.id] != null) e.value = saved[e.id]; });
+  var fuelSaved = saved && saved.fuel;
+  fillTariff();
+  if (saved && saved.slabs) { var rows = $('slabT').tBodies[0].rows; if (rows.length === saved.slabs.length) saved.slabs.forEach(function (s, i) { var a = rows[i].querySelector('[data-k="0"]'), b = rows[i].querySelector('[data-k="1"]'); if (a) a.value = s[0]; b.value = s[1]; }); if (fuelSaved != null) $('fuel').value = fuelSaved; }
+  ['where', 'who', 'home'].forEach(function (id) { $(id).addEventListener('change', fillTariff); });
+  document.addEventListener('input', render);
+  document.addEventListener('change', render);
+  render();
+})();
+</script>
+</body>
+</html>

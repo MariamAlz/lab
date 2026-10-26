@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Solar Output Now · Mariam's Lab</title>
+<meta name="description" content="What would rooftop solar panels produce at your place right now and over the next 48 hours? Live sunlight forecast, temperature derating, a monthly estimate and savings on your UAE electricity tariff.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/solar-now/">
+<meta property="og:title" content="Solar Output Now · Mariam's Lab"><meta property="og:description" content="Live and 48-hour output of a rooftop solar system, with UAE tariff savings."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.form { display: grid; gap: 12px; }
+.f { display: grid; gap: 5px; min-width: 0; }
+.f > span { font-size: 0.84rem; color: var(--muted); }
+.f input, .f select { font: inherit; color: var(--ink); background: rgba(7, 10, 24, 0.6); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; min-width: 0; width: 100%; }
+.f input[type=number] { font-family: var(--font-mono); }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.grp { border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; display: grid; gap: 10px; background: rgba(7,10,24,.5); }
+.grp legend { padding: 0 6px; font-family: var(--font-display); font-weight: 600; }
+.where { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 8px 0 0; }
+.src { font-size: 0.75rem; color: var(--muted); margin: 0; }
+.now { padding: 18px; border: 1px solid var(--line); border-radius: var(--radius); background: rgba(7,10,24,.6); display: grid; gap: 4px; }
+.now b { font-family: var(--font-display); font-weight: 800; font-size: clamp(2.2rem, 7vw, 3.2rem); color: var(--accent); line-height: 1; }
+.now p { margin: 0; color: var(--muted); font-size: 0.9rem; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; }
+.tile { padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.tile span { font-size: 0.76rem; color: var(--muted); display: block; }
+.tile b { font-family: var(--font-display); font-size: clamp(1.05rem, 4vw, 1.4rem); display: block; }
+.tile small { font-size: 0.76rem; color: var(--muted); }
+.chart { width: 100%; height: auto; display: block; }
+.chart text { fill: var(--muted); font-family: var(--font-mono); font-size: 11px; }
+.months { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 3px; align-items: end; height: 120px; }
+.months div { display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; gap: 2px; font-family: var(--font-mono); font-size: 0.56rem; color: var(--muted); }
+.months i { display: block; width: 100%; background: var(--accent); border-radius: 4px 4px 0 0; }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Energy · Solar · Live</span>
+    <h1 style="font-size:var(--step-3)">Solar output now.</h1>
+    <p>Thinking about panels on your roof, or curious what yours should be making? This takes the live sunlight forecast for your spot, splits it into direct sun and sky light, tilts it onto your panels and adjusts for heat. You get the output right now, the next 48 hours, a month-by-month estimate and what it saves on your bill.</p>
+  </div>
+  <div class="where" id="where"><button class="sm" type="button" id="me">📍 Use my location</button></div>
+  <p class="msg" id="msg" role="status"></p>
+  <div class="game" style="margin-top:14px">
+    <div class="panel">
+      <div class="now" id="now"><b>—</b></div>
+      <div class="tiles" id="tiles"></div>
+      <div class="grp"><span class="label">Next 48 hours (kW)</span><svg class="chart" id="chart" viewBox="0 0 640 220" role="img" aria-label="Forecast output"></svg><p class="src">Bars are the expected output each hour. The faint line is what a perfectly clear sky would give, so gaps between them are cloud or dust.</p></div>
+      <div class="grp"><span class="label" id="monT">A typical year (kWh per month)</span><div class="months" id="months"></div><p class="src" id="monSrc"></p></div>
+      <p class="fact">Dust is the UAE's biggest hidden solar loss. A thin film of fine sand blocks light before it reaches the cells, and in humid mornings dew turns it into a crust that wind can't blow away. Studies in the Gulf often report losses of roughly 0.3 to 1% a day on panels that are never cleaned, so a month without cleaning can cost 10% or more, and one dust storm can do that overnight. That's why the soiling setting matters, and why big UAE solar parks clean their panels with robots every few days.</p>
+      <p class="fact">Heat is the second loss. Panels are rated at 25°C, but on a UAE summer roof the cells run at 60 to 70°C, and each degree above 25 costs about 0.35% of output. So a clear day in January can beat a clear day in July, even though the July sun is higher.</p>
+      <p class="src">An estimate from a simple model and a weather forecast, not a quote. For a real system, ask a licensed installer (Shams Dubai in Dubai, or your emirate's utility scheme) for a site survey.</p>
+    </div>
+    <div class="panel form" id="form">
+      <fieldset class="grp"><legend>Your system</legend>
+        <div class="two">
+          <label class="f"><span>Size (kWp)</span><input type="number" id="kwp" min="0.1" step="0.1" value="5"></label>
+          <label class="f"><span>Tilt (degrees from flat)</span><input type="number" id="tilt" min="0" max="90" step="1" value="20"></label>
+        </div>
+        <div class="two">
+          <label class="f"><span>Facing (azimuth)</span><select id="az"><option value="180" selected>South (180°)</option><option value="135">South-east (135°)</option><option value="225">South-west (225°)</option><option value="90">East (90°)</option><option value="270">West (270°)</option><option value="0">North (0°)</option></select></label>
+          <label class="f"><span>Inverter and wiring losses (%)</span><input type="number" id="loss" min="0" max="50" step="1" value="10"></label>
+        </div>
+        <div class="two">
+          <label class="f"><span>Dust / soiling loss (%)</span><input type="number" id="soil" min="0" max="60" step="1" value="5"></label>
+          <label class="f"><span>Heat loss per °C (%)</span><input type="number" id="gamma" min="0" max="1" step="0.01" value="0.35"></label>
+        </div>
+        <p class="src">A typical villa roof fits 5 to 10 kWp. In the UAE a tilt of about 20 to 25° facing south catches the most over a year. Soiling: about 2–3% if cleaned weekly, 5% fortnightly, 10–20% after a month or a dust storm.</p>
+      </fieldset>
+      <fieldset class="grp"><legend>Savings</legend>
+        <label class="f"><span>Your tariff</span><select id="tar">
+          <option value="35.7">DEWA, 2,001–4,000 kWh slab (28 + 6 fils surcharge + VAT)</option>
+          <option value="30.5">DEWA, first 2,000 kWh (23 + 6 + VAT)</option>
+          <option value="40">DEWA, 4,001–6,000 kWh (32 + 6 + VAT)</option>
+          <option value="32">ADDC / AADC expat, above allowance (30.5 + VAT)</option>
+          <option value="28.1">ADDC / AADC expat, within allowance (26.8 + VAT)</option>
+          <option value="7.9">ADDC / AADC UAE national (7.5 + VAT)</option>
+          <option value="36.8">SEWA expat (typical 35 + VAT)</option>
+          <option value="34.7">Etihad WE expat (typical 33 + VAT)</option>
+          <option value="7.9">SEWA or Etihad WE, UAE national (typical)</option>
+        </select></label>
+        <label class="f"><span>Value of each kWh (fils, edit to match your bill)</span><input type="number" id="fils" min="0" step="0.1" value="35.7"></label>
+        <p class="src">Tariffs as published by DEWA (with the October 2026 fuel surcharge of 6 fils) and ADDC, checked October 2026; SEWA and Etihad WE figures are typical, so check your bill. Assumes every solar kWh replaces one you would have bought at this rate, as with net metering (Shams Dubai). Your top slab is the one solar saves first.</p>
+      </fieldset>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var KEY = 'solarNow1', RAD = Math.PI / 180;
+  var PLACES = [['Abu Dhabi', 24.4539, 54.3773], ['Dubai', 25.2048, 55.2708], ['Sharjah', 25.3463, 55.4209], ['Al Ain', 24.2075, 55.7447], ['Ajman', 25.4052, 55.5136], ['Ras Al Khaimah', 25.7895, 55.9432], ['Fujairah', 25.1288, 56.3265], ['Liwa', 23.1333, 53.7667]];
+  // typical monthly global horizontal irradiation for the UAE (kWh/m²/day) and daytime air temp (°C): rough long-term averages
+  var GHI = [4.0, 4.9, 5.6, 6.6, 7.3, 7.3, 6.9, 6.6, 6.2, 5.4, 4.4, 3.8], TDAY = [22, 24, 28, 33, 38, 40, 41, 41, 39, 35, 29, 24];
+  var DAYS = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31], MON = 'JFMAMJJASOND';
+  var loc = null, rows = null, offset = 0;
+  var fields = [].slice.call(document.querySelectorAll('#form input, #form select')).filter(function (e) { return e.id; });
+  try { var s = JSON.parse(localStorage.getItem(KEY) || 'null'); if (s) fields.forEach(function (e) { if (s[e.id] != null) e.value = s[e.id]; }); } catch (x) {}
+  function save(extra) { var o = {}; fields.forEach(function (e) { o[e.id] = e.value; }); if (extra != null) o.place = extra; else try { o.place = JSON.parse(localStorage.getItem(KEY) || '{}').place; } catch (x) {} try { localStorage.setItem(KEY, JSON.stringify(o)); } catch (x) {} }
+  function n(id) { var v = parseFloat($(id).value); return isFinite(v) && v >= 0 ? v : 0; }
+  function fmt(v, d) { return v.toLocaleString('en-US', { minimumFractionDigits: d || 0, maximumFractionDigits: d || 0 }); }
+
+  // sun position (low-precision, good to ~0.1°): returns {alt, az} in degrees, az from north clockwise
+  function sun(ms, lat, lon) {
+    var d = ms / 864e5 + 2440587.5 - 2451545;
+    var g = (357.529 + 0.98560028 * d) * RAD, q = 280.459 + 0.98564736 * d;
+    var L = (q + 1.915 * Math.sin(g) + 0.020 * Math.sin(2 * g)) * RAD, e = (23.439 - 0.00000036 * d) * RAD;
+    var ra = Math.atan2(Math.cos(e) * Math.sin(L), Math.cos(L)), dec = Math.asin(Math.sin(e) * Math.sin(L));
+    var gmst = (18.697374558 + 24.06570982441908 * d) % 24;
+    var H = (gmst * 15 + lon) * RAD - ra, la = lat * RAD;
+    var alt = Math.asin(Math.sin(la) * Math.sin(dec) + Math.cos(la) * Math.cos(dec) * Math.cos(H));
+    var az = Math.atan2(-Math.sin(H), Math.tan(dec) * Math.cos(la) - Math.sin(la) * Math.cos(H));
+    return { alt: alt / RAD, az: (az / RAD + 360) % 360 };
+  }
+  // plane-of-array irradiance: beam + isotropic sky diffuse + ground reflection (albedo 0.3 for sand and concrete)
+  function poa(ghi, dir, dif, s) {
+    var b = n('tilt') * RAD, pa = +$('az').value * RAD, z = (90 - s.alt) * RAD;
+    if (s.alt <= 0.5) return { poa: Math.max(0, dif) * (1 + Math.cos(b)) / 2, aoi: 90 };
+    var cz = Math.max(Math.cos(z), 0.087), dni = Math.min(1100, dir / cz);
+    var cosAoi = Math.cos(z) * Math.cos(b) + Math.sin(z) * Math.sin(b) * Math.cos(s.az * RAD - pa);
+    return { poa: dni * Math.max(0, cosAoi) + dif * (1 + Math.cos(b)) / 2 + ghi * 0.3 * (1 - Math.cos(b)) / 2, aoi: Math.acos(Math.max(-1, Math.min(1, cosAoi))) / RAD };
+  }
+  function power(P, tAir, wind) { // kW AC
+    var tCell = tAir + P / 800 * (45 - 20) * (wind > 0 ? Math.max(0.6, 1 - wind / 60) : 1);
+    var f = 1 - n('gamma') / 100 * (tCell - 25);
+    return { kw: Math.max(0, n('kwp') * P / 1000 * f * (1 - n('loss') / 100) * (1 - n('soil') / 100)), tCell: tCell };
+  }
+  // clear-sky GHI (Haurwitz) with a simple 15% diffuse split, used for the reference line and the tilt gain
+  function clear(alt) { if (alt <= 0) return { g: 0, b: 0, d: 0 }; var cz = Math.sin(alt * RAD), g = 1098 * cz * Math.exp(-0.057 / cz); return { g: g, b: g * 0.85, d: g * 0.15 }; }
+
+  function load(lat, lon, name) {
+    loc = { lat: +lat, lon: +lon, name: name };
+    $('msg').textContent = 'Fetching the sunlight forecast for ' + name + '…';
+    var u = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon + '&hourly=shortwave_radiation,direct_radiation,diffuse_radiation,temperature_2m,wind_speed_10m&timezone=auto&forecast_days=3';
+    fetch(u).then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(function (j) {
+      var H = j.hourly; offset = j.utc_offset_seconds || 0;
+      rows = H.time.map(function (t, i) { return { t: t, end: Date.parse(t + ':00Z') - offset * 1000, ghi: H.shortwave_radiation[i] || 0, dir: H.direct_radiation[i] || 0, dif: H.diffuse_radiation[i] || 0, T: H.temperature_2m[i], w: H.wind_speed_10m ? H.wind_speed_10m[i] : 0 }; });
+      $('msg').textContent = name + ' · forecast from Open-Meteo';
+      render();
+    }).catch(function () { $('msg').textContent = 'Couldn\'t reach the forecast service. The monthly estimate below still works.'; rows = null; render(); });
+  }
+  function render() {
+    save();
+    renderMonths();
+    if (!rows || !loc) { $('now').innerHTML = '<b>—</b><p>Live output needs the forecast.</p>'; $('tiles').innerHTML = ''; $('chart').innerHTML = ''; return; }
+    var nowMs = Date.now();
+    // Open-Meteo radiation is the mean over the hour BEFORE each timestamp, so sun position is taken at the middle of that hour
+    var calc = rows.map(function (r) {
+      var mid = r.end - 18e5, s = sun(mid, loc.lat, loc.lon), p = poa(r.ghi, r.dir, r.dif, s), pw = power(p.poa, r.T, r.w);
+      var c = clear(s.alt), pc = poa(c.g, c.b, c.d, s), pwc = power(pc.poa, r.T, r.w);
+      return { r: r, s: s, poa: p.poa, kw: pw.kw, tCell: pw.tCell, clearKw: pwc.kw };
+    });
+    var k = calc.findIndex(function (c) { return c.r.end > nowMs; }); if (k < 0) k = calc.length - 1;
+    var c = calc[k], next = calc.slice(k, k + 48);
+    var dayKey = function (x) { return x.r.t.slice(0, 10); }, today = dayKey(c);
+    var tot = {}; calc.forEach(function (x) { tot[dayKey(x)] = (tot[dayKey(x)] || 0) + x.kw; });
+    var days = Object.keys(tot), tomorrow = days[days.indexOf(today) + 1];
+    var fils = n('fils');
+    $('now').innerHTML = '<span class="label">This hour at ' + loc.name + '</span><b>' + fmt(c.kw, 2) + ' kW</b><p>' + (c.s.alt > 0 ? 'Sun ' + Math.round(c.s.alt) + '° up, ' + Math.round(c.r.ghi) + ' W/m² on flat ground (' + Math.round(c.r.dir) + ' direct, ' + Math.round(c.r.dif) + ' diffuse), ' + Math.round(c.poa) + ' W/m² on your panels. Cells at about ' + Math.round(c.tCell) + '°C, so heat is costing ' + Math.max(0, Math.round(n('gamma') * (c.tCell - 25))) + '%.' : 'The sun is down. Output resumes after sunrise.') + '</p>';
+    $('tiles').innerHTML = [['Today', tot[today]], ['Tomorrow', tomorrow ? tot[tomorrow] : null]].map(function (t) { return '<div class="tile"><span>' + t[0] + '</span><b>' + (t[1] == null ? '—' : fmt(t[1], 1) + ' kWh') + '</b><small>' + (t[1] == null ? '' : fmt(t[1] * fils / 100, 2) + ' AED saved') + '</small></div>'; }).join('') + '<div class="tile"><span>Next 48 hours</span><b>' + fmt(next.reduce(function (a, x) { return a + x.kw; }, 0), 1) + ' kWh</b><small>peak ' + fmt(Math.max.apply(null, next.map(function (x) { return x.kw; })), 2) + ' kW</small></div>';
+    // chart
+    var W = Math.max(300, Math.round($('chart').getBoundingClientRect().width) || 640), H = 200, pl = 34, pb = 24, pt = 10;
+    var mx = Math.max(0.5, Math.max.apply(null, next.map(function (x) { return Math.max(x.kw, x.clearKw); }))) * 1.1, bw = (W - pl - 4) / next.length;
+    function Y(v) { return pt + (1 - v / mx) * (H - pt - pb); }
+    var g = '';
+    for (var i = 0; i <= 3; i++) { var v = mx * i / 3; g += '<line x1="' + pl + '" x2="' + W + '" y1="' + Y(v) + '" y2="' + Y(v) + '" stroke="rgba(120,132,190,.2)"/><text x="' + (pl - 4) + '" y="' + (Y(v) + 4) + '" text-anchor="end">' + v.toFixed(1) + '</text>'; }
+    next.forEach(function (x, j) {
+      var x0 = pl + j * bw, h = +x.r.t.slice(11, 13);
+      g += '<rect x="' + (x0 + 0.5) + '" y="' + Y(x.kw) + '" width="' + Math.max(1, bw - 1) + '" height="' + (H - pb - Y(x.kw)) + '" rx="1.5" fill="' + (j === 0 ? '#F08AB3' : '#E9B467') + '"><title>' + x.r.t.slice(5, 16).replace('T', ' ') + ' · ' + x.kw.toFixed(2) + ' kW</title></rect>';
+      if (h % 6 === 0) g += '<text x="' + (x0 + bw / 2) + '" y="' + (H - 7) + '" text-anchor="middle">' + (h === 0 ? x.r.t.slice(8, 10) + '/' + x.r.t.slice(5, 7) : h + 'h') + '</text>';
+    });
+    g += '<polyline fill="none" stroke="rgba(238,240,250,.4)" stroke-width="1.5" points="' + next.map(function (x, j) { return (pl + j * bw + bw / 2).toFixed(1) + ',' + Y(x.clearKw).toFixed(1); }).join(' ') + '"/>';
+    $('chart').setAttribute('viewBox', '0 0 ' + W + ' ' + H); $('chart').innerHTML = g;
+    $('chart').setAttribute('aria-label', 'Forecast output for the next 48 hours, peak ' + fmt(Math.max.apply(null, next.map(function (x) { return x.kw; })), 2) + ' kW');
+  }
+  function renderMonths() {
+    var lat = loc ? loc.lat : 25, lon = loc ? loc.lon : 55;
+    var out = GHI.map(function (gh, m) {
+      // tilt gain from a clear-sky day on the 15th, in 10-minute steps
+      var sG = 0, sP = 0, sK = 0, base = Date.UTC(2026, m, 15) - lon / 15 * 36e5;
+      for (var t = 0; t < 24 * 60; t += 10) {
+        var s = sun(base + t * 6e4, lat, lon); if (s.alt <= 0) continue;
+        var c = clear(s.alt), p = poa(c.g, c.b, c.d, s).poa; sG += c.g; sP += p; sK += p * (1 - n('gamma') / 100 * (TDAY[m] + p / 800 * 25 - 25));
+      }
+      var gain = sG ? sP / sG : 1, heat = sP ? sK / sP : 1;
+      return n('kwp') * gh * DAYS[m] * gain * heat * (1 - n('loss') / 100) * (1 - n('soil') / 100);
+    });
+    var yr = out.reduce(function (a, b) { return a + b; }, 0), mx = Math.max.apply(null, out) || 1;
+    $('months').innerHTML = out.map(function (v, i) { return '<div title="' + MON[i] + ': ' + fmt(v) + ' kWh"><span>' + fmt(v) + '</span><i style="height:' + Math.max(2, v / mx * 85) + 'px"></i>' + MON[i] + '</div>'; }).join('');
+    $('monT').textContent = 'A typical year: ' + fmt(yr) + ' kWh, about ' + fmt(yr * n('fils') / 100) + ' AED saved';
+    $('monSrc').textContent = 'Uses typical UAE monthly sunshine (about 2,000 kWh per m² a year on flat ground, a rough long-term average) and daytime temperatures, tilted to your panels for ' + (loc ? loc.name : 'a central UAE location') + '. That is about ' + fmt(n('kwp') ? yr / n('kwp') : 0) + ' kWh per kWp a year; UAE rooftop systems typically make 1,500 to 1,800.';
+  }
+  PLACES.forEach(function (p, i) {
+    var b = document.createElement('button'); b.className = 'sm'; b.type = 'button'; b.textContent = p[0]; b.setAttribute('aria-pressed', 'false');
+    b.onclick = function () { pick(b); load(p[1], p[2], p[0]); save(i); };
+    $('where').appendChild(b);
+  });
+  function pick(b) { [].forEach.call(document.querySelectorAll('#where .sm'), function (x) { x.setAttribute('aria-pressed', x === b); }); }
+  $('me').onclick = function () {
+    if (!navigator.geolocation) { $('msg').textContent = 'Your browser can\'t share a location.'; return; }
+    $('msg').textContent = 'Asking for your location…';
+    navigator.geolocation.getCurrentPosition(function (p) { pick($('me')); load(p.coords.latitude.toFixed(3), p.coords.longitude.toFixed(3), 'your location'); }, function () { $('msg').textContent = 'Location was not shared. Pick a city instead.'; }, { maximumAge: 6e5, timeout: 10000 });
+  };
+  $('tar').addEventListener('change', function () { $('fils').value = $('tar').value; });
+  document.addEventListener('input', function (e) { if (e.target.closest('#form')) render(); });
+  document.addEventListener('change', function (e) { if (e.target.closest('#form')) render(); });
+  var rz; window.addEventListener('resize', function () { clearTimeout(rz); rz = setTimeout(render, 150); });
+  var i0 = 1; try { var sp = JSON.parse(localStorage.getItem(KEY) || '{}').place; if (sp != null && PLACES[+sp]) i0 = +sp; } catch (x) {}
+  document.querySelectorAll('#where .sm')[i0 + 1].click();
+})();
+</script>
+</body>
+</html>

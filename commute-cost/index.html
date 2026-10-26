@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Commute Cost · Mariam's Lab</title>
+<meta name="description" content="Compare what your UAE commute really costs by car, Dubai Metro or bus, taxi and Etihad Rail: fuel, Salik, parking, fares, time and CO2, per month and per year.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/commute-cost/">
+<meta property="og:title" content="Commute Cost · Mariam's Lab"><meta property="og:description" content="Car, metro, taxi or train: what your commute costs per month and per year."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.form { display: grid; gap: 14px; }
+.f { display: grid; gap: 5px; min-width: 0; }
+.f > span { font-size: 0.84rem; color: var(--muted); }
+.f input, .f select { font: inherit; color: var(--ink); background: rgba(7, 10, 24, 0.6); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; min-width: 0; width: 100%; }
+.f input[type=number] { font-family: var(--font-mono); }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.chk { display: flex; gap: 8px; align-items: flex-start; font-size: 0.9rem; cursor: pointer; }
+.chk input { accent-color: var(--accent); width: 17px; height: 17px; margin: 2px 0 0; flex: none; }
+.mode { border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; display: grid; gap: 10px; background: rgba(7,10,24,.5); }
+.mode legend { padding: 0 6px; font-family: var(--font-display); font-weight: 600; }
+.mode legend label { display: flex; gap: 8px; align-items: center; cursor: pointer; }
+.mode legend input { accent-color: var(--accent); width: 17px; height: 17px; }
+.mode.off > :not(legend) { opacity: .45; }
+.src { font-size: 0.75rem; color: var(--muted); margin: 0; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.pills { display: flex; gap: 6px; flex-wrap: wrap; }
+.bars { display: grid; gap: 10px; }
+.bars .r { display: grid; grid-template-columns: 6.5em minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: 0.88rem; }
+.bars .t { height: 26px; background: var(--line); border-radius: 7px; overflow: hidden; position: relative; }
+.bars .t i { position: absolute; inset: 0 auto 0 0; border-radius: 7px; transition: width .3s; }
+.bars em { font-style: normal; font-family: var(--font-mono); font-size: 0.8rem; white-space: nowrap; min-width: 6.5em; text-align: end; }
+.tbl { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+.tbl th, .tbl td { padding: 7px 6px; border-bottom: 1px solid var(--line); text-align: end; white-space: nowrap; }
+.tbl th:first-child, .tbl td:first-child { text-align: start; }
+.tbl th { color: var(--muted); font-weight: 500; font-size: 0.76rem; }
+.tbl td { font-family: var(--font-mono); }
+.tbl td:first-child { font-family: var(--font-body); }
+.scroll { overflow-x: auto; }
+.stats span { font-size: 0.78rem; color: var(--muted); }
+.stats b { font-size: 1.2rem; line-height: 1.2; }
+@media (max-width: 520px) { .stats b { font-size: 0.98rem; } .stats div { padding: 10px; } .bars .r { grid-template-columns: 5.6em minmax(0, 1fr) auto; } .bars em { min-width: 5.8em; font-size: 0.74rem; } }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Money · Transport · UAE</span>
+    <h1 style="font-size:var(--step-3)">What your commute costs.</h1>
+    <p>Fuel, Salik and parking add up quietly. Enter your daily trip once and compare driving, the Dubai Metro or bus, a taxi and Etihad Rail side by side: money per month and per year, time on the road, and CO2. Every price is editable, so you can match your own receipts.</p>
+  </div>
+  <div class="game">
+    <div class="panel">
+      <div class="form">
+        <div class="two">
+          <label class="f"><span>One-way distance (km)</span><input type="number" id="dist" min="0" step="1" value="25"></label>
+          <label class="f"><span>Commute days per month</span><input type="number" id="days" min="0" max="31" step="1" value="22"></label>
+        </div>
+        <label class="chk"><input type="checkbox" id="round" checked><span>Round trip every day (there and back)</span></label>
+      </div>
+      <div class="stats" id="stats"></div>
+      <div style="display:grid;gap:10px">
+        <div class="pills" id="metric" role="group" aria-label="Chart shows"><button class="sm" type="button" data-m="cost" aria-pressed="true">AED per month</button><button class="sm" type="button" data-m="time" aria-pressed="false">Hours per month</button><button class="sm" type="button" data-m="co2" aria-pressed="false">kg CO2 per month</button></div>
+        <div class="bars" id="bars"></div>
+      </div>
+      <div class="scroll"><table class="tbl" id="tbl"></table></div>
+      <p class="fact">The cheapest option on paper is often not the one people pick. A quick way to compare fairly: put a value on your time. If an hour of your time is worth 50 AED to you, 20 extra minutes each way over 22 days is about 730 AED a month, which can close the gap between the metro and the car.</p>
+      <p class="src">An estimate to help you compare, not a quote. Fares, tolls and fuel prices change. Check RTA, Salik and Etihad Rail for current prices.</p>
+    </div>
+    <div class="panel form">
+      <fieldset class="mode" id="m-car"><legend><label><input type="checkbox" id="useCar" checked> Driving</label></legend>
+        <div class="two">
+          <label class="f"><span>Fuel</span><select id="fuel"><option value="4.40">Super 98</option><option value="4.28" selected>Special 95</option><option value="4.21">E-Plus 91</option><option value="4.80">Diesel</option></select></label>
+          <label class="f"><span>Price (AED per litre)</span><input type="number" id="fuelP" min="0" step="0.01" value="4.28"></label>
+        </div>
+        <p class="src">October 2026 UAE retail prices (UAE Fuel Price Committee, via Khaleej Times): Super 98 4.40, Special 95 4.28, E-Plus 4.21, Diesel 4.80. They change on the 1st of each month.</p>
+        <div class="two">
+          <label class="f"><span>Car uses (L per 100 km)</span><input type="number" id="cons" min="0" step="0.1" value="9"></label>
+          <label class="f"><span>Wear, tyres, service (AED/km)</span><input type="number" id="wear" min="0" step="0.01" value="0.15"></label>
+        </div>
+        <div class="two">
+          <label class="f"><span>Salik gates each way</span><input type="number" id="gates" min="0" step="1" value="2"></label>
+          <label class="f"><span>Parking per day (AED)</span><input type="number" id="park" min="0" step="1" value="0"></label>
+        </div>
+        <div class="two">
+          <label class="f"><span>Going, you pass the gates in</span><select id="tOut"><option value="peak">Peak hours</option><option value="off">Off-peak</option><option value="free">1am to 6am</option></select></label>
+          <label class="f"><span>Coming back</span><select id="tBack"><option value="peak">Peak hours</option><option value="off">Off-peak</option><option value="free">1am to 6am</option></select></label>
+        </div>
+        <div class="two">
+          <label class="f"><span>Salik peak (AED)</span><input type="number" id="sPeak" min="0" step="0.5" value="6"></label>
+          <label class="f"><span>Salik off-peak (AED)</span><input type="number" id="sOff" min="0" step="0.5" value="4"></label>
+        </div>
+        <p class="src">Dubai variable Salik, in force since 31 January 2025: AED 6 on weekdays 6–10am and 4–8pm, AED 4 at other times (and all day on Sundays), free 1–6am. Different hours apply in Ramadan. Abu Dhabi Darb gates are AED 4 at peak (7–9am, 3–7pm) and free otherwise: set the peak price to 4 and the off-peak to 0.</p>
+        <label class="f"><span>Time per trip (minutes, door to door)</span><input type="number" id="tCar" min="0" step="1" value="35"></label>
+      </fieldset>
+
+      <fieldset class="mode" id="m-metro"><legend><label><input type="checkbox" id="useMetro" checked> Dubai Metro or bus</label></legend>
+        <div class="two">
+          <label class="f"><span>Zones crossed</span><select id="zones"><option value="1">Within 1 zone</option><option value="2">2 zones</option><option value="3" selected>More than 2 zones</option></select></label>
+          <label class="f"><span>nol card</span><select id="card"><option value="silver">Silver</option><option value="gold">Gold Class</option><option value="half">Student / senior (50% off)</option></select></label>
+        </div>
+        <div class="two">
+          <label class="f"><span>Fare per trip (AED)</span><input type="number" id="fare" min="0" step="0.5" value="7.5"></label>
+          <label class="f"><span>30-day pass (AED)</span><input type="number" id="pass" min="0" step="5" value="350"></label>
+        </div>
+        <label class="chk"><input type="checkbox" id="usePass" checked><span>Use the 30-day pass when it works out cheaper</span></label>
+        <p class="src">RTA nol fares, checked October 2026: Silver AED 3 / 5 / 7.50 for 1 / 2 / more zones, Gold Class double. 30-day Silver pass AED 140 / 230 / 350 (1 zone / 2 zones / all zones). Students and senior citizens pay half on a personal card. Picking zones and card fills these in; you can then edit them.</p>
+        <div class="two">
+          <label class="f"><span>Getting to and from the station, per trip (AED)</span><input type="number" id="feeder" min="0" step="1" value="0"></label>
+          <label class="f"><span>Time per trip (minutes)</span><input type="number" id="tMetro" min="0" step="1" value="60"></label>
+        </div>
+      </fieldset>
+
+      <fieldset class="mode" id="m-taxi"><legend><label><input type="checkbox" id="useTaxi" checked> Taxi or ride-hailing</label></legend>
+        <div class="two">
+          <label class="f"><span>Flag-fall (AED)</span><input type="number" id="flag" min="0" step="0.5" value="5"></label>
+          <label class="f"><span>Per km (AED)</span><input type="number" id="perKm" min="0" step="0.01" value="2.20"></label>
+        </div>
+        <div class="two">
+          <label class="f"><span>Booking fee (AED)</span><input type="number" id="book" min="0" step="0.5" value="4"></label>
+          <label class="f"><span>Minimum fare (AED)</span><input type="number" id="minF" min="0" step="1" value="13"></label>
+        </div>
+        <div class="two">
+          <label class="f"><span>Salik added per gate (AED)</span><input type="number" id="tSalik" min="0" step="0.5" value="4"></label>
+          <label class="f"><span>Time per trip (minutes)</span><input type="number" id="tTaxi" min="0" step="1" value="40"></label>
+        </div>
+        <p class="src">Dubai RTA taxis (Nov 2025 revision): AED 5 flag-fall by day, about AED 2.14–2.26 per km (set monthly with fuel prices), AED 12 minimum on the street, AED 13 and a 4 to 7.50 booking fee when booked in an app. Careem and Uber prices vary with demand: edit to match your usual receipt.</p>
+      </fieldset>
+
+      <fieldset class="mode" id="m-rail"><legend><label><input type="checkbox" id="useRail"> Etihad Rail</label></legend>
+        <div class="two">
+          <label class="f"><span>Fare per trip (AED)</span><input type="number" id="rFare" min="0" step="1" value="39"></label>
+          <label class="f"><span>To and from the stations, per trip (AED)</span><input type="number" id="rAccess" min="0" step="1" value="30"></label>
+        </div>
+        <label class="f"><span>Time per trip including getting to the station (minutes)</span><input type="number" id="tRail" min="0" step="1" value="110"></label>
+        <p class="src">An estimate. Passenger fares are not widely published yet. Press reports in September 2026 gave Dubai (Al Yalayis) to Abu Dhabi from about AED 39 in Comfort, about 64 minutes, with few trains a day and only a handful of stations open. Edit the fare to match your ticket. It only makes sense for intercity commutes such as Dubai to Abu Dhabi.</p>
+      </fieldset>
+      <fieldset class="mode"><legend>CO2 factors</legend>
+        <div class="two">
+          <label class="f"><span>Taxi (kg per km, incl. empty driving)</span><input type="number" id="cTaxi" min="0" step="0.01" value="0.17"></label>
+          <label class="f"><span>Metro / bus (g per passenger-km)</span><input type="number" id="cMetro" min="0" step="1" value="50"></label>
+        </div>
+        <label class="f"><span>Train (g per passenger-km)</span><input type="number" id="cRail" min="0" step="1" value="30"></label>
+        <p class="src">Typical figures, edit to match yours. Your own car uses 2.31 kg of CO2 per litre of petrol burnt (2.68 for diesel), worked out from your fuel use above.</p>
+      </fieldset>
+      <button class="sm" type="button" id="reset">Reset to defaults</button>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var KEY = 'commuteCost1';
+  var FARE = { silver: [3, 5, 7.5], gold: [6, 10, 15], half: [1.5, 2.5, 3.75] };
+  var PASS = { silver: [140, 230, 350], gold: [280, 460, 700], half: [70, 115, 175] };
+  var MODES = [['car', 'Driving', 'var(--accent)'], ['metro', 'Metro / bus', 'var(--sat-b)'], ['taxi', 'Taxi', 'var(--sat-c)'], ['rail', 'Etihad Rail', 'var(--sat-a)']];
+  var metric = 'cost';
+  var fields = [].slice.call(document.querySelectorAll('input, select')).filter(function (e) { return e.id; });
+  var defaults = {};
+  fields.forEach(function (e) { defaults[e.id] = e.type === 'checkbox' ? e.checked : e.value; });
+  function save() { var o = {}; fields.forEach(function (e) { o[e.id] = e.type === 'checkbox' ? e.checked : e.value; }); try { localStorage.setItem(KEY, JSON.stringify(o)); } catch (x) {} }
+  function load() { var o; try { o = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (x) {} if (!o) return; fields.forEach(function (e) { if (o[e.id] == null) return; if (e.type === 'checkbox') e.checked = !!o[e.id]; else e.value = o[e.id]; }); }
+  function n(id) { var v = parseFloat($(id).value); return isFinite(v) && v > 0 ? v : 0; }
+  function aed(v) { return Math.round(v).toLocaleString('en-US'); }
+  function salik(t) { return t === 'peak' ? n('sPeak') : t === 'off' ? n('sOff') : 0; }
+
+  function calc() {
+    var d = n('dist'), days = n('days'), rt = $('round').checked, trips = rt ? 2 : 1, out = {};
+    var fuelL = d * n('cons') / 100, ef = $('fuel').selectedIndex === 3 ? 2.68 : 2.31;
+    var carDay = fuelL * n('fuelP') * trips + n('gates') * (salik($('tOut').value) + (rt ? salik($('tBack').value) : 0)) + n('park') + n('wear') * d * trips;
+    out.car = { day: carDay, month: carDay * days, min: n('tCar'), co2: fuelL * ef * trips * days };
+    var mDay = (n('fare') + n('feeder')) * trips, mMonth = mDay * days, viaPass = false;
+    if ($('usePass').checked && n('pass') > 0) { var pm = n('pass') + n('feeder') * trips * days; if (pm < mMonth) { mMonth = pm; viaPass = true; } }
+    out.metro = { day: days ? mMonth / days : mDay, month: mMonth, min: n('tMetro'), co2: d * n('cMetro') / 1000 * trips * days, pass: viaPass };
+    var tTrip = Math.max(n('minF'), n('flag') + n('perKm') * d + n('book')) + n('gates') * n('tSalik');
+    out.taxi = { day: tTrip * trips, month: tTrip * trips * days, min: n('tTaxi'), co2: d * n('cTaxi') * trips * days };
+    var rDay = (n('rFare') + n('rAccess')) * trips;
+    out.rail = { day: rDay, month: rDay * days, min: n('tRail'), co2: d * n('cRail') / 1000 * trips * days };
+    MODES.forEach(function (m) { var o = out[m[0]]; o.on = $('use' + m[0][0].toUpperCase() + m[0].slice(1)).checked; o.hours = o.min * trips * days / 60; o.year = o.month * 12; o.trip = o.day / trips; $('m-' + m[0]).classList.toggle('off', !o.on); });
+    return out;
+  }
+  function render() {
+    var r = calc(), on = MODES.filter(function (m) { return r[m[0]].on; });
+    if (!on.length) { $('bars').innerHTML = '<p class="src">Tick at least one way of getting there.</p>'; $('tbl').innerHTML = ''; $('stats').innerHTML = ''; return; }
+    function best(k) { return on.slice().sort(function (a, b) { return r[a[0]][k] - r[b[0]][k]; })[0]; }
+    var c = best('month'), f = best('min'), g = best('co2');
+    $('stats').innerHTML = '<div><b>' + c[1] + '</b><span>cheapest, ' + aed(r[c[0]].month) + ' AED a month</span></div><div><b>' + f[1] + '</b><span>fastest, ' + r[f[0]].min + ' min a trip</span></div><div><b>' + g[1] + '</b><span>lowest CO2, ' + Math.round(r[g[0]].co2) + ' kg a month</span></div>';
+    var key = metric === 'cost' ? 'month' : metric === 'time' ? 'hours' : 'co2';
+    var max = Math.max.apply(null, on.map(function (m) { return r[m[0]][key]; })) || 1;
+    $('bars').innerHTML = on.map(function (m) {
+      var v = r[m[0]][key], lab = metric === 'cost' ? aed(v) + ' AED' : metric === 'time' ? v.toFixed(1) + ' h' : Math.round(v) + ' kg';
+      return '<div class="r"><span>' + m[1] + '</span><div class="t" title="' + m[1] + ': ' + lab + '"><i style="width:' + (v / max * 100).toFixed(1) + '%;background:' + m[2] + '"></i></div><em>' + lab + '</em></div>';
+    }).join('');
+    $('tbl').innerHTML = '<thead><tr><th>Mode</th><th>Per trip</th><th>Per month</th><th>Per year</th><th>Min/trip</th><th>CO2 kg/yr</th></tr></thead><tbody>' + on.map(function (m) {
+      var o = r[m[0]];
+      return '<tr><td>' + m[1] + (o.pass ? ' <small style="color:var(--muted)">(pass)</small>' : '') + '</td><td>' + o.trip.toFixed(2) + '</td><td>' + aed(o.month) + '</td><td>' + aed(o.year) + '</td><td>' + o.min + '</td><td>' + Math.round(o.co2 * 12) + '</td></tr>';
+    }).join('') + '</tbody>';
+    save();
+  }
+  function setFares() { var z = +$('zones').value - 1, c = $('card').value; $('fare').value = FARE[c][z]; $('pass').value = PASS[c][z]; }
+  load();
+  $('fuel').addEventListener('change', function () { $('fuelP').value = $('fuel').value; });
+  $('zones').addEventListener('change', setFares);
+  $('card').addEventListener('change', setFares);
+  document.addEventListener('input', render);
+  document.addEventListener('change', render);
+  [].forEach.call(document.querySelectorAll('#metric .sm'), function (b) {
+    b.onclick = function () { metric = b.dataset.m; [].forEach.call(document.querySelectorAll('#metric .sm'), function (x) { x.setAttribute('aria-pressed', x === b); }); render(); };
+  });
+  $('reset').onclick = function () { fields.forEach(function (e) { if (e.type === 'checkbox') e.checked = defaults[e.id]; else e.value = defaults[e.id]; }); render(); };
+  render();
+})();
+</script>
+</body>
+</html>

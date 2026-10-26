@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Document Expiry Tracker · Mariam's Lab</title>
+<meta name="description" content="Track when your family's Emirates IDs, passports, visas, licences, Mulkiya, insurance, Ejari and trade licence expire. Colour-coded timeline and calendar reminders, stored only in your browser.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/doc-expiry/">
+<meta property="og:title" content="Document Expiry Tracker · Mariam's Lab"><meta property="og:description" content="Every family document's expiry date on one timeline, with calendar reminders."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.form { display: grid; gap: 12px; }
+.f { display: grid; gap: 5px; min-width: 0; }
+.f > span { font-size: 0.84rem; color: var(--muted); }
+.f input, .f select, .f textarea { font: inherit; color: var(--ink); background: rgba(7, 10, 24, 0.6); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; min-width: 0; width: 100%; }
+.f textarea { font-size: 0.85rem; min-height: 90px; resize: vertical; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm.go { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 600; }
+.sm.x { padding: 3px 9px; font-size: 0.76rem; }
+.row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.box { border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; display: grid; gap: 10px; background: rgba(7,10,24,.5); }
+.tl { display: grid; gap: 6px; }
+.tl .ax, .tl .ln { display: grid; grid-template-columns: 5.5em minmax(0, 1fr); gap: 8px; align-items: center; }
+.tl .tr { position: relative; height: 34px; border-radius: 8px; background: rgba(120,132,190,.08); }
+.tl .ax .tr { height: 18px; background: none; }
+.tl .ax .tr span { position: absolute; top: 0; transform: translateX(-50%); font-family: var(--font-mono); font-size: 0.62rem; color: var(--muted); white-space: nowrap; }
+.tl .nm { font-size: 0.82rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tl .dot { position: absolute; transform: translate(-50%, -50%); border-radius: 999px; padding: 1px 6px; font-family: var(--font-mono); font-size: 0.6rem; font-weight: 600; color: #0b0d18; border: 0; cursor: pointer; white-space: nowrap; }
+.tl .now { position: absolute; top: -2px; bottom: -2px; width: 2px; background: var(--ink); opacity: .6; }
+.tl .grid { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--line); }
+.items { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.items li { border: 1px solid var(--line); border-left: 4px solid var(--c); border-radius: 10px; padding: 10px 12px; display: grid; gap: 6px; }
+.items .top { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: baseline; }
+.items .top b { font-weight: 600; }
+.items .top small { display: block; color: var(--muted); font-size: 0.8rem; }
+.items .when { font-family: var(--font-mono); font-size: 0.82rem; text-align: end; color: var(--c); }
+.items .tip { font-size: 0.82rem; color: var(--muted); white-space: pre-wrap; border-top: 1px dashed var(--line); padding-top: 6px; }
+.legend { display: flex; gap: 10px; flex-wrap: wrap; font-size: 0.75rem; color: var(--muted); }
+.legend span::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-inline-end: 4px; vertical-align: -1px; background: var(--c); }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 0; }
+.mem { display: flex; gap: 6px; flex-wrap: wrap; }
+.mem span { display: inline-flex; gap: 6px; align-items: center; border: 1px solid var(--line); border-radius: 999px; padding: 3px 4px 3px 10px; font-size: 0.84rem; }
+.empty { text-align: center; padding: 26px 12px; border: 1px dashed var(--line); border-radius: var(--radius); color: var(--muted); display: grid; gap: 10px; justify-items: center; }
+details.nt summary { cursor: pointer; font-size: 0.88rem; padding: 4px 0; }
+.src { font-size: 0.75rem; color: var(--muted); margin: 0; }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Family · Paperwork · UAE</span>
+    <h1 style="font-size:var(--step-3)">Document expiry tracker.</h1>
+    <p>Emirates IDs, passports, visas, licences, Mulkiya, insurance, Ejari: a family of four can easily have twenty dates to remember, and a missed one means fines or a blocked renewal. Put them all here, see what's coming up on one timeline, and send reminders to your calendar 30 and 7 days before each one.</p>
+  </div>
+  <div class="game">
+    <div class="panel">
+      <div class="legend"><span style="--c:#ff4f6d">Expired</span><span style="--c:#ff8a4c">Within 30 days</span><span style="--c:#ffc857">Within 90 days</span><span style="--c:#4fd3bd">More than 90 days</span></div>
+      <div class="tl" id="tl" aria-label="Timeline of the next two years"></div>
+      <div class="row"><button class="sm go" type="button" id="icsAll">Add all to calendar (.ics)</button><span class="src">Each date gets reminders 30 and 7 days before.</span></div>
+      <ul class="items" id="items"></ul>
+      <div class="empty" id="empty" hidden><p style="margin:0">Nothing tracked yet. Add a document on the right, or start with an example family to see how it works.</p><button class="sm" type="button" id="demo">Load an example</button></div>
+      <p class="fact">A small trick that saves a lot of hassle: many UAE renewals depend on each other. Health insurance must be valid to renew a residence visa, the visa renews the Emirates ID, and car insurance must be valid before the Mulkiya can be renewed. So when one date is close, check the ones it depends on too.</p>
+    </div>
+    <div class="panel">
+      <form class="box form" id="add" autocomplete="off">
+        <span class="label" id="formTitle">Add a document</span>
+        <div class="two">
+          <label class="f"><span>Whose</span><select id="who"></select></label>
+          <label class="f"><span>Document</span><select id="type"></select></label>
+        </div>
+        <label class="f" id="labelF"><span>Name (optional, e.g. "Indian passport", "Prado")</span><input id="label" maxlength="60"></label>
+        <label class="f"><span>Expiry date</span><input type="date" id="date" required></label>
+        <div class="row"><button class="sm go" type="submit" id="save">Add</button><button class="sm" type="button" id="cancel" hidden>Cancel edit</button></div>
+        <p class="msg" id="msg" role="status"></p>
+      </form>
+      <div class="box">
+        <span class="label">Family members</span>
+        <div class="mem" id="mems"></div>
+        <form class="row" id="addMem" autocomplete="off"><label class="f" style="flex:1;min-width:140px"><span class="src">Name or nickname</span><input id="memName" maxlength="30" placeholder="e.g. Sara"></label><button class="sm" type="submit" style="align-self:flex-end">Add person</button></form>
+      </div>
+      <div class="box">
+        <span class="label">Backup</span>
+        <p class="src">Your data stays in this browser only. Nothing is uploaded. Save a backup file before clearing your browser or switching phones.</p>
+        <div class="row"><button class="sm" type="button" id="exp">Export backup (.json)</button><label class="sm" style="display:inline-block">Import backup<input type="file" id="imp" accept="application/json,.json" hidden></label><button class="sm" type="button" id="wipe">Delete everything</button></div>
+      </div>
+      <div class="box">
+        <span class="label">Renewal tips and grace periods</span>
+        <p class="src">Typical rules as of October 2026, from ICP, GDRFA, RTA and emirate authority guidance. They change and differ by emirate and visa type, so check with the issuing authority. Edit any note to match what you were told; your edits are saved.</p>
+        <div id="notes"></div>
+      </div>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var KEY = 'docExpiry1';
+  var TYPES = [
+    ['eid', 'Emirates ID', 'EID', 'Renews together with the residence visa (or every 10 years / 5 years for citizens, depending on age). Typically a 30-day grace period after expiry, then a fine of AED 20 a day up to AED 1,000 (ICP). Renew in the UAEICP app or at a typing centre.'],
+    ['passport', 'Passport', 'PP', 'Many countries need at least 6 months of validity to enter. UAE passports renew in the UAEICP app. For other passports, book early with your embassy, then update the new passport details on your residence file (ICP or GDRFA) so the visa stays linked.'],
+    ['visa', 'Residence visa', 'VISA', 'Start renewal about a month before expiry: you usually need a valid passport, health insurance and (for employees) the employer or sponsor. After expiry or cancellation there is normally a grace period (often 30 days, longer for some visa types), then overstay fines of about AED 50 a day.'],
+    ['licence', 'Driving licence', 'DL', 'Renewal needs an eye test (many opticians do it and upload the result). Renew in the RTA, ADP or MOI app. Driving with an expired licence is a traffic fine, and you may not be able to renew a vehicle registration while it is expired.'],
+    ['mulkiya', 'Car registration (Mulkiya)', 'REG', 'Renew every year. You need valid car insurance, no unpaid fines, and a passed vehicle test for cars older than about 3 years. Typically 30 days to renew after expiry. Driving with an expired registration is commonly a AED 500 fine plus black points.'],
+    ['carins', 'Car insurance', 'INS', 'No grace period: the car is uninsured from the day after expiry. Renew before the Mulkiya, because registration renewal checks for a valid policy. Shop around a month early; no-claims letters can lower the price.'],
+    ['health', 'Health insurance', 'HI', 'Mandatory for residents in Dubai and Abu Dhabi, and for private-sector workers across the UAE since January 2025. Usually renewed by the employer or sponsor and needed for visa renewal. Sponsors can face fines for gaps in cover (in Dubai, typically AED 500 a month).'],
+    ['ejari', 'Tenancy / Ejari', 'EJ', 'In Dubai, either side must give 90 days written notice to change terms such as rent, or to not renew. Register the renewed contract with Ejari (Tawtheeq in Abu Dhabi) so DEWA, visas and school places keep working. Check the RERA rent index before agreeing to a rise.'],
+    ['trade', 'Trade licence', 'TL', 'Renew every year with the economic department or free zone. Late renewal usually brings a monthly penalty (in Dubai, typically about AED 250 a month) and can block visas for staff. Renew the Ejari for the business premises first if needed.'],
+    ['custom', 'Something else', '•', 'Add your own notes here, for example school re-registration, gun or boat licences, pet vaccinations or warranties.']
+  ];
+  var TY = {}; TYPES.forEach(function (t) { TY[t[0]] = t; });
+  var S = { members: [], items: [], notes: {} }, editing = null;
+  function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+  function load() { try { var o = JSON.parse(localStorage.getItem(KEY) || 'null'); if (o && o.members) S = o; } catch (e) {} if (!S.notes) S.notes = {}; if (!S.members.length) S.members.push({ id: uid(), name: 'Me' }); }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { $('msg').textContent = 'Could not save in this browser (private mode?). Export a backup to keep your data.'; } }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function today() { var d = new Date(); d.setHours(0, 0, 0, 0); return d; }
+  function parse(s) { var p = s.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]); }
+  function daysTo(s) { return Math.round((parse(s) - today()) / 864e5); }
+  function col(d) { return d < 0 ? '#ff4f6d' : d <= 30 ? '#ff8a4c' : d <= 90 ? '#ffc857' : '#4fd3bd'; }
+  function when(d) { if (d === 0) return 'today'; if (d < 0) return 'expired ' + span(-d) + ' ago'; return 'in ' + span(d); }
+  function span(d) { if (d < 60) return d + (d === 1 ? ' day' : ' days'); var m = Math.round(d / 30.44); if (m < 24) return m + ' months'; return (d / 365.25).toFixed(1) + ' years'; }
+  function note(t) { return S.notes[t] != null ? S.notes[t] : TY[t][3]; }
+  function mem(id) { for (var i = 0; i < S.members.length; i++) if (S.members[i].id === id) return S.members[i]; return { name: '?' }; }
+  function title(it) { return (it.label ? it.label : TY[it.type][1]); }
+  function fmt(s) { return parse(s).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }); }
+
+  function render() {
+    var items = S.items.slice().sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; });
+    $('empty').hidden = items.length > 0; $('icsAll').disabled = !items.length;
+    $('items').innerHTML = items.map(function (it) {
+      var d = daysTo(it.date), c = col(d);
+      return '<li style="--c:' + c + '" id="i-' + it.id + '"><div class="top"><span><b>' + esc(title(it)) + '</b><small>' + esc(mem(it.m).name) + (it.label ? ' · ' + TY[it.type][1] : '') + ' · ' + fmt(it.date) + '</small></span><span class="when">' + when(d) + '</span></div>' +
+        '<div class="row"><button class="sm x" type="button" data-a="tip" data-id="' + it.id + '">Tips</button><button class="sm x" type="button" data-a="ics" data-id="' + it.id + '">.ics</button><button class="sm x" type="button" data-a="edit" data-id="' + it.id + '">Edit</button><button class="sm x" type="button" data-a="del" data-id="' + it.id + '">Delete</button></div><div class="tip" hidden>' + esc(note(it.type)) + '</div></li>';
+    }).join('');
+    // timeline: 1 month back to 24 months ahead
+    var t0 = today(), start = new Date(t0.getFullYear(), t0.getMonth() - 1, 1), end = new Date(t0.getFullYear(), t0.getMonth() + 24, 1), W = end - start;
+    function x(d) { return Math.max(0, Math.min(100, (d - start) / W * 100)); }
+    var ax = '', grid = '';
+    for (var k = 0; k <= 24; k += 6) { var md = new Date(start.getFullYear(), start.getMonth() + 1 + k, 1); ax += '<span style="left:' + x(md) + '%">' + md.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' }) + '</span>'; grid += '<i class="grid" style="left:' + x(md) + '%"></i>'; }
+    var tw = Math.max(120, $('tl').clientWidth - 100), thr = 44 / tw * 100;
+    var rows = S.members.filter(function (m) { return items.some(function (it) { return it.m === m.id; }); });
+    $('tl').innerHTML = rows.length ? '<div class="ax"><span></span><div class="tr">' + ax + '</div></div>' + rows.map(function (m) {
+      var mine = items.filter(function (it) { return it.m === m.id; }), lanes = [];
+      // stack dots that would overlap into extra lanes
+      var placed = mine.map(function (it) {
+        var px = x(parse(it.date)), L = 0;
+        while (lanes[L] != null && px - lanes[L] < thr) L++;
+        lanes[L] = px; return { it: it, px: px, L: L };
+      });
+      var nL = Math.max(1, lanes.length);
+      return '<div class="ln"><span class="nm" title="' + esc(m.name) + '">' + esc(m.name) + '</span><div class="tr" style="height:' + (10 + nL * 22) + 'px">' + grid + '<i class="now" style="left:' + x(t0) + '%"></i>' + placed.map(function (q) {
+        var it = q.it, d = daysTo(it.date); return '<button type="button" class="dot" data-a="go" data-id="' + it.id + '" style="left:' + q.px + '%;top:' + (16 + q.L * 22) + 'px;background:' + col(d) + '" title="' + esc(title(it) + ' · ' + fmt(it.date) + ' · ' + when(d)) + '">' + TY[it.type][2] + '</button>';
+      }).join('') + '</div></div>';
+    }).join('') : '';
+    $('who').innerHTML = S.members.map(function (m) { return '<option value="' + m.id + '">' + esc(m.name) + '</option>'; }).join('');
+    $('mems').innerHTML = S.members.map(function (m) { return '<span>' + esc(m.name) + '<button class="sm x" type="button" data-a="rmMem" data-id="' + m.id + '" aria-label="Remove ' + esc(m.name) + '">×</button></span>'; }).join('');
+  }
+  function renderNotes() {
+    $('notes').innerHTML = TYPES.map(function (t) { return '<details class="nt"><summary>' + t[1] + '</summary><label class="f"><span class="src">Notes</span><textarea data-t="' + t[0] + '">' + esc(note(t[0])) + '</textarea></label><button class="sm x" type="button" data-a="resetNote" data-t="' + t[0] + '">Reset to default</button></details>'; }).join('');
+  }
+  // ---- calendar export ----
+  function icsEsc(s) { return String(s).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n'); }
+  function fold(l) { var out = [], s = l; while (s.length > 74) { out.push(s.slice(0, 74)); s = ' ' + s.slice(74); } out.push(s); return out.join('\r\n'); }
+  function ymd(s) { return s.replace(/-/g, ''); }
+  function next(s) { var d = parse(s); d.setDate(d.getDate() + 1); return d.getFullYear() + ('0' + (d.getMonth() + 1)).slice(-2) + ('0' + d.getDate()).slice(-2); }
+  function ics(list) {
+    var stamp = new Date().toISOString().replace(/[-:]/g, '').slice(0, 15) + 'Z';
+    var L = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Mariam\'s Lab//Document expiry//EN', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH'];
+    list.forEach(function (it) {
+      var sum = title(it) + ' expires (' + mem(it.m).name + ')';
+      L.push('BEGIN:VEVENT', 'UID:' + it.id + '@lab.mariamalzaabi.ae', 'DTSTAMP:' + stamp, 'DTSTART;VALUE=DATE:' + ymd(it.date), 'DTEND;VALUE=DATE:' + next(it.date), 'SUMMARY:' + icsEsc(sum), 'DESCRIPTION:' + icsEsc(note(it.type)), 'TRANSP:TRANSPARENT');
+      [30, 7].forEach(function (d) { L.push('BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:' + icsEsc(sum + ' in ' + d + ' days'), 'TRIGGER:-P' + d + 'D', 'END:VALARM'); });
+      L.push('END:VEVENT');
+    });
+    L.push('END:VCALENDAR');
+    return L.map(fold).join('\r\n') + '\r\n';
+  }
+  function download(name, text, type) { var b = new Blob([text], { type: type }), a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = name; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500); }
+  function byId(id) { for (var i = 0; i < S.items.length; i++) if (S.items[i].id === id) return S.items[i]; return null; }
+  function resetForm() { editing = null; $('add').reset(); $('save').textContent = 'Add'; $('formTitle').textContent = 'Add a document'; $('cancel').hidden = true; render(); }
+
+  // ---- events ----
+  $('type').innerHTML = TYPES.map(function (t) { return '<option value="' + t[0] + '">' + t[1] + '</option>'; }).join('');
+  $('add').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var date = $('date').value; if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) { $('msg').textContent = 'Pick an expiry date.'; return; }
+    var o = { m: $('who').value, type: $('type').value, label: $('label').value.trim(), date: date };
+    if (editing) { var it = byId(editing); Object.keys(o).forEach(function (k) { it[k] = o[k]; }); $('msg').textContent = 'Saved.'; }
+    else { o.id = uid(); S.items.push(o); $('msg').textContent = 'Added ' + (o.label || TY[o.type][1]) + ' for ' + mem(o.m).name + '.'; }
+    save(); var keep = $('who').value; resetForm(); $('who').value = keep;
+  });
+  $('cancel').onclick = function () { resetForm(); $('msg').textContent = ''; };
+  $('addMem').addEventListener('submit', function (e) { e.preventDefault(); var n = $('memName').value.trim(); if (!n) return; S.members.push({ id: uid(), name: n }); $('memName').value = ''; save(); render(); $('who').value = S.members[S.members.length - 1].id; });
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-a]'); if (!b) return;
+    var a = b.dataset.a, id = b.dataset.id, it = id && byId(id);
+    if (a === 'tip') { var t = b.closest('li').querySelector('.tip'); t.hidden = !t.hidden; }
+    else if (a === 'ics' && it) download((title(it) + '-' + mem(it.m).name).replace(/[^\w-]+/g, '-') + '.ics', ics([it]), 'text/calendar');
+    else if (a === 'del' && it) { if (confirm('Delete ' + title(it) + ' for ' + mem(it.m).name + '?')) { S.items = S.items.filter(function (x) { return x !== it; }); save(); render(); } }
+    else if (a === 'edit' && it) { editing = id; $('who').value = it.m; $('type').value = it.type; $('label').value = it.label || ''; $('date').value = it.date; $('save').textContent = 'Save changes'; $('formTitle').textContent = 'Edit ' + title(it); $('cancel').hidden = false; $('add').scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+    else if (a === 'go' && it) { var li = $('i-' + id); li.scrollIntoView({ behavior: 'smooth', block: 'center' }); li.querySelector('.tip').hidden = false; }
+    else if (a === 'rmMem') {
+      var m = mem(id), n = S.items.filter(function (x) { return x.m === id; }).length;
+      if (S.members.length === 1) { $('msg').textContent = 'Keep at least one person.'; return; }
+      if (!confirm('Remove ' + m.name + (n ? ' and their ' + n + ' document' + (n > 1 ? 's' : '') : '') + '?')) return;
+      S.members = S.members.filter(function (x) { return x.id !== id; }); S.items = S.items.filter(function (x) { return x.m !== id; }); save(); render();
+    }
+    else if (a === 'resetNote') { delete S.notes[b.dataset.t]; save(); renderNotes(); render(); }
+  });
+  $('notes').addEventListener('input', function (e) { var t = e.target.dataset.t; if (!t) return; S.notes[t] = e.target.value; save(); });
+  $('notes').addEventListener('change', render);
+  $('icsAll').onclick = function () { if (S.items.length) download('document-expiry-reminders.ics', ics(S.items), 'text/calendar'); };
+  $('exp').onclick = function () { download('document-expiry-backup-' + new Date().toISOString().slice(0, 10) + '.json', JSON.stringify({ app: 'doc-expiry', v: 1, data: S }, null, 2), 'application/json'); };
+  $('imp').onchange = function () {
+    var f = this.files[0]; if (!f) return; var r = new FileReader();
+    r.onload = function () {
+      try {
+        var o = JSON.parse(r.result), d = o.data || o;
+        if (!Array.isArray(d.members) || !Array.isArray(d.items)) throw 0;
+        d.items = d.items.filter(function (it) { return it && TY[it.type] && /^\d{4}-\d{2}-\d{2}$/.test(it.date) && it.id; });
+        d.members = d.members.filter(function (m) { return m && m.id && typeof m.name === 'string'; });
+        if (!d.members.length) throw 0;
+        S = { members: d.members, items: d.items, notes: d.notes && typeof d.notes === 'object' ? d.notes : {} };
+        save(); renderNotes(); render(); $('msg').textContent = 'Backup loaded: ' + S.items.length + ' documents.';
+      } catch (e) { $('msg').textContent = 'That file is not a backup from this tool.'; }
+    };
+    r.readAsText(f); this.value = '';
+  };
+  $('wipe').onclick = function () { if (confirm('Delete all people, documents and notes from this browser?')) { S = { members: [{ id: uid(), name: 'Me' }], items: [], notes: {} }; save(); renderNotes(); render(); } };
+  $('demo').onclick = function () {
+    function off(days) { var d = today(); d.setDate(d.getDate() + days); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+    var a = S.members[0].id, b = uid(), c = uid();
+    S.members.push({ id: b, name: 'Spouse' }, { id: c, name: 'Child' });
+    [[a, 'eid', '', 210], [a, 'passport', '', 600], [a, 'visa', '', 205], [a, 'licence', '', 22], [a, 'mulkiya', 'Family car', 48], [a, 'carins', 'Family car', 45], [a, 'ejari', 'Apartment', 120], [b, 'eid', '', 380], [b, 'passport', '', -6], [b, 'health', '', 75], [c, 'passport', '', 300], [c, 'eid', '', 380], [c, 'custom', 'School re-registration', 140]].forEach(function (r) { S.items.push({ id: uid(), m: r[0], type: r[1], label: r[2], date: off(r[3]) }); });
+    save(); render();
+  };
+  var rz; window.addEventListener('resize', function () { clearTimeout(rz); rz = setTimeout(render, 150); });
+  load(); renderNotes(); render();
+})();
+</script>
+</body>
+</html>

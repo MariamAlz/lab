@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Salary Planner · Mariam's Lab</title>
+<meta name="description" content="Plan a UAE salary: rent and cheques, school fees, remittances, car, utilities, groceries and savings goals. See what's left, a 50/30/20 check and your emergency-fund target.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/salary-planner/">
+<meta property="og:title" content="Salary Planner · Mariam's Lab"><meta property="og:description" content="Where a UAE salary goes, what's left, and how big your emergency fund should be."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.form { display: grid; gap: 12px; }
+.f { display: grid; gap: 5px; min-width: 0; }
+.f > span { font-size: 0.84rem; color: var(--muted); }
+.f input, .f select { font: inherit; color: var(--ink); background: rgba(7, 10, 24, 0.6); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; min-width: 0; width: 100%; }
+.f input[type=number] { font-family: var(--font-mono); }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.three { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 8px; }
+.chk { display: flex; gap: 8px; align-items: flex-start; font-size: 0.9rem; cursor: pointer; }
+.chk input { accent-color: var(--accent); width: 17px; height: 17px; margin: 2px 0 0; flex: none; }
+.grp { border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; display: grid; gap: 10px; background: rgba(7,10,24,.5); }
+.grp legend { padding: 0 6px; font-family: var(--font-display); font-weight: 600; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.src { font-size: 0.75rem; color: var(--muted); margin: 0; }
+.big { font-family: var(--font-display); font-weight: 800; font-size: clamp(2.2rem, 7vw, 3.2rem); line-height: 1; }
+.stack { display: flex; height: 34px; border-radius: 9px; overflow: hidden; background: var(--line); }
+.stack i { display: block; height: 100%; min-width: 0; transition: flex-basis .3s; }
+.keys { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 0.86rem; }
+.keys li { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto 3.4em; gap: 8px; align-items: center; }
+.keys li i { width: 12px; height: 12px; border-radius: 3px; background: var(--c); }
+.keys b { font-family: var(--font-mono); font-weight: 400; font-size: 0.82rem; text-align: end; }
+.keys small { font-family: var(--font-mono); color: var(--muted); text-align: end; }
+.rule { display: grid; gap: 10px; }
+.rule .r { display: grid; gap: 4px; }
+.rule .r > div:first-child { display: flex; justify-content: space-between; font-size: 0.88rem; gap: 8px; }
+.rule .t { position: relative; height: 14px; background: var(--line); border-radius: 7px; }
+.rule .t i { position: absolute; inset: 0 auto 0 0; border-radius: 7px; max-width: 100%; }
+.rule .t u { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--ink); text-decoration: none; }
+.warn { padding: 10px 12px; border-radius: 10px; border: 1px solid color-mix(in srgb, var(--sat-c) 60%, var(--line)); font-size: 0.88rem; }
+.stats span { font-size: 0.78rem; color: var(--muted); }
+@media (max-width: 520px) { .stats b { font-size: 1.1rem; } .stats div { padding: 10px; } }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Money · UAE</span>
+    <h1 style="font-size:var(--step-3)">Salary planner.</h1>
+    <p>Rent paid in a few big cheques, school fees once a term, money sent home, the car: a UAE salary has its own rhythm. Enter yours and see where each dirham goes, what's left, how it compares with the 50/30/20 rule, and how big your emergency fund should be.</p>
+  </div>
+  <div class="game">
+    <div class="panel" style="gap:18px">
+      <div><span class="label">Left over each month</span><div class="big" id="left">—</div><p class="src" id="leftSub" style="margin-top:6px"></p></div>
+      <div class="warn" id="warn" hidden></div>
+      <div style="display:grid;gap:10px"><span class="label">Where your take-home pay goes</span><div class="stack" id="stack" role="img"></div><ul class="keys" id="keys"></ul></div>
+      <div class="grp" style="gap:12px"><span class="label">50/30/20 check</span><div class="rule" id="rule"></div><p class="src">A popular rule of thumb: about half on needs, under a third on wants, at least a fifth saved. The white line marks the target. In the UAE rent alone often pushes needs past 50%, which is why many people aim higher on savings in other years to catch up.</p></div>
+      <div class="stats" id="stats"></div>
+      <p class="fact" id="efFact"></p>
+      <p class="src">A planning aid, not financial advice. For decisions about loans, investments or pensions, talk to a licensed adviser.</p>
+    </div>
+    <div class="panel form" id="form">
+      <fieldset class="grp"><legend>Income (per month)</legend>
+        <div class="two">
+          <label class="f"><span>Basic salary (AED)</span><input type="number" id="basic" min="0" step="100" value="16000"></label>
+          <label class="f"><span>Housing allowance</span><input type="number" id="housing" min="0" step="100" value="6000"></label>
+        </div>
+        <div class="two">
+          <label class="f"><span>Transport allowance</span><input type="number" id="transport" min="0" step="100" value="2000"></label>
+          <label class="f"><span>Other allowances or income</span><input type="number" id="otherInc" min="0" step="100" value="0"></label>
+        </div>
+        <label class="chk"><input type="checkbox" id="national"><span>I'm a UAE national paying into a pension (GPSSA or ADPF)</span></label>
+        <div class="two" id="penBox" hidden>
+          <label class="f"><span>Employee pension share (%)</span><input type="number" id="penPct" min="0" max="30" step="0.5" value="11"></label>
+          <label class="f"><span>Of (contribution salary)</span><select id="penBase"><option value="all">Basic + allowances</option><option value="basic">Basic only</option></select></label>
+        </div>
+        <p class="src">There is no personal income tax in the UAE. UAE nationals contribute to the pension fund: 11% for people who joined on or after October 2023 (GPSSA) or December 2023 (ADPF), 5% for many who joined earlier, worked out on basic plus fixed allowances and capped at AED 70,000 a month for GPSSA. Check your payslip and edit the percentage to match.</p>
+      </fieldset>
+      <fieldset class="grp"><legend>Home</legend>
+        <div class="two">
+          <label class="f"><span>Annual rent (AED)</span><input type="number" id="rent" min="0" step="1000" value="85000"></label>
+          <label class="f"><span>Paid in</span><select id="cheques"><option value="1">1 cheque</option><option value="2">2 cheques</option><option value="4" selected>4 cheques</option><option value="6">6 cheques</option><option value="12">12 cheques</option></select></label>
+        </div>
+        <label class="chk"><input type="checkbox" id="housingFee"><span>Dubai housing fee: 5% of annual rent, added to the DEWA bill</span></label>
+        <div class="two">
+          <label class="f"><span>Electricity and water</span><input type="number" id="util" min="0" step="10" value="600"></label>
+          <label class="f"><span>Internet and mobile</span><input type="number" id="net" min="0" step="10" value="400"></label>
+        </div>
+        <div class="two">
+          <label class="f"><span>Groceries and household</span><input type="number" id="groc" min="0" step="50" value="2500"></label>
+          <label class="f"><span>Domestic help, chiller, other bills</span><input type="number" id="otherNeed" min="0" step="50" value="0"></label>
+        </div>
+      </fieldset>
+      <fieldset class="grp"><legend>Family</legend>
+        <div class="two">
+          <label class="f"><span>School fees per child per year</span><input type="number" id="school" min="0" step="1000" value="40000"></label>
+          <label class="f"><span>Children in school</span><input type="number" id="kids" min="0" step="1" value="1"></label>
+        </div>
+        <div class="two">
+          <label class="f"><span>Money sent home each month</span><input type="number" id="remit" min="0" step="100" value="1500"></label>
+          <label class="f"><span>Count remittances as</span><select id="remitAs"><option value="need">Needs (family support)</option><option value="save">Savings (building a home or fund back home)</option><option value="want">Wants</option></select></label>
+        </div>
+      </fieldset>
+      <fieldset class="grp"><legend>Car</legend>
+        <div class="two">
+          <label class="f"><span>Loan or lease per month</span><input type="number" id="carLoan" min="0" step="100" value="1500"></label>
+          <label class="f"><span>Fuel, Salik, parking</span><input type="number" id="carRun" min="0" step="50" value="800"></label>
+        </div>
+        <label class="f"><span>Insurance, registration and service per year</span><input type="number" id="carYear" min="0" step="100" value="4000"></label>
+      </fieldset>
+      <fieldset class="grp"><legend>Lifestyle</legend>
+        <div class="two">
+          <label class="f"><span>Eating out, shopping, fun (per month)</span><input type="number" id="fun" min="0" step="100" value="1800"></label>
+          <label class="f"><span>Holidays and flights home (per year)</span><input type="number" id="travel" min="0" step="500" value="10000"></label>
+        </div>
+      </fieldset>
+      <fieldset class="grp"><legend>Savings goals</legend>
+        <div id="goals" style="display:grid;gap:8px"></div>
+        <p class="src">Each goal shows what you need to put aside each month to reach it by the date.</p>
+        <div class="two">
+          <label class="f"><span>Already saved for emergencies (AED)</span><input type="number" id="efHave" min="0" step="1000" value="10000"></label>
+          <label class="f"><span>Emergency fund: months of essentials</span><select id="efMonths"><option value="3">3 months</option><option value="6" selected>6 months</option><option value="9">9 months</option><option value="12">12 months</option></select></label>
+        </div>
+      </fieldset>
+      <button class="sm" type="button" id="reset">Reset to the example</button>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var KEY = 'salaryPlan1';
+  var G = [['g0n', 'Emergency fund top-up', 'g0a', 0, 'g0d', 12], ['g1n', 'Car deposit', 'g1a', 20000, 'g1d', 18], ['g2n', '', 'g2a', 0, 'g2d', 24]];
+  $('goals').innerHTML = G.map(function (g, i) {
+    var d = new Date(); d.setMonth(d.getMonth() + g[5]);
+    return '<div class="three"><label class="f"><span>Goal ' + (i + 1) + '</span><input id="' + g[0] + '" maxlength="40" value="' + g[1] + '" placeholder="e.g. Hajj, wedding"></label><label class="f"><span>Amount</span><input type="number" id="' + g[2] + '" min="0" step="500" value="' + g[3] + '"></label><label class="f"><span>By</span><input type="month" id="' + g[4] + '" value="' + d.toISOString().slice(0, 7) + '"></label></div>';
+  }).join('');
+  var fields = [].slice.call(document.querySelectorAll('#form input, #form select')).filter(function (e) { return e.id; });
+  var defaults = {}; fields.forEach(function (e) { defaults[e.id] = e.type === 'checkbox' ? e.checked : e.value; });
+  try { var o = JSON.parse(localStorage.getItem(KEY) || 'null'); if (o) fields.forEach(function (e) { if (o[e.id] == null) return; if (e.type === 'checkbox') e.checked = !!o[e.id]; else e.value = o[e.id]; }); } catch (x) {}
+  function save() { var o = {}; fields.forEach(function (e) { o[e.id] = e.type === 'checkbox' ? e.checked : e.value; }); try { localStorage.setItem(KEY, JSON.stringify(o)); } catch (x) {} }
+  function n(id) { var v = parseFloat($(id).value); return isFinite(v) && v > 0 ? v : 0; }
+  function aed(v) { return Math.round(v).toLocaleString('en-US'); }
+  function monthsTo(ym) { if (!/^\d{4}-\d{2}$/.test(ym)) return 12; var p = ym.split('-'), now = new Date(); return Math.max(1, (+p[0] - now.getFullYear()) * 12 + (+p[1] - 1 - now.getMonth())); }
+
+  function render() {
+    $('penBox').hidden = !$('national').checked;
+    var gross = n('basic') + n('housing') + n('transport') + n('otherInc');
+    var penBase = $('penBase').value === 'basic' ? n('basic') : n('basic') + n('housing') + n('transport');
+    var pension = $('national').checked ? Math.min(penBase, 70000) * n('penPct') / 100 : 0;
+    var net = gross - pension;
+    var goals = G.map(function (g) { var a = n(g[2]); return a ? { name: $(g[0]).value.trim() || 'Goal', m: a / monthsTo($(g[4]).value) } : null; }).filter(Boolean);
+    var goalM = goals.reduce(function (s, g) { return s + g.m; }, 0);
+    var remitT = $('remitAs').value;
+    // [label, monthly, bucket, colour]
+    var L = [
+      ['Rent', n('rent') / 12, 'need', '#84A0FF'],
+      ['Housing fee', $('housingFee').checked ? n('rent') * 0.05 / 12 : 0, 'need', '#6d83d6'],
+      ['Bills and internet', n('util') + n('net') + n('otherNeed'), 'need', '#9be3ff'],
+      ['Groceries', n('groc'), 'need', '#4FD3BD'],
+      ['School fees', n('school') * n('kids') / 12, 'need', '#c9e264'],
+      ['Car', n('carLoan') + n('carRun') + n('carYear') / 12, 'need', '#E9B467'],
+      ['Sent home', n('remit'), remitT, '#ff8a4c'],
+      ['Lifestyle', n('fun'), 'want', '#F08AB3'],
+      ['Travel', n('travel') / 12, 'want', '#d06c9a'],
+      ['Savings goals', goalM, 'save', '#b79cff']
+    ].filter(function (x) { return x[1] > 0; });
+    var spent = L.reduce(function (s, x) { return s + x[1]; }, 0), left = net - spent;
+    $('left').textContent = (left < 0 ? '−' : '') + aed(Math.abs(left)) + ' AED';
+    $('left').style.color = left < 0 ? 'var(--sat-c)' : 'var(--accent)';
+    $('leftSub').textContent = 'From ' + aed(net) + ' AED take-home' + (pension ? ' (' + aed(gross) + ' gross, ' + aed(pension) + ' pension)' : '') + ', after ' + aed(spent) + ' AED of spending and goals.';
+    var w = [];
+    if (left < 0) w.push('You are planning to spend ' + aed(-left) + ' AED a month more than you earn. Something in the list needs to shrink, or a goal needs a later date.');
+    if (n('rent') / 12 > net * 0.4 && net > 0) w.push('Rent is ' + Math.round(n('rent') / 12 / net * 100) + '% of take-home pay. Banks and landlords often use about a third as a comfortable limit.');
+    var ch = +$('cheques').value; if (ch < 12 && n('rent')) w.push('Each rent cheque is ' + aed(n('rent') / ch) + ' AED. Setting aside ' + aed(n('rent') / 12) + ' AED every month keeps the next one covered.');
+    $('warn').hidden = !w.length; $('warn').innerHTML = w.join('<br>');
+    $('warn').style.borderColor = left < 0 ? '' : 'var(--line)';
+    var parts = L.slice(); if (left > 0) parts.push(['Left over', left, 'save', '#A7ADCB']);
+    var base = Math.max(net, spent) || 1;
+    $('stack').innerHTML = parts.map(function (x) { return '<i style="flex:0 0 ' + (x[1] / base * 100).toFixed(2) + '%;background:' + x[3] + '" title="' + x[0] + ': ' + aed(x[1]) + ' AED"></i>'; }).join('');
+    $('stack').setAttribute('aria-label', parts.map(function (x) { return x[0] + ' ' + aed(x[1]) + ' AED'; }).join(', '));
+    $('keys').innerHTML = parts.map(function (x) { return '<li style="--c:' + x[3] + '"><i></i><span>' + x[0] + '</span><b>' + aed(x[1]) + '</b><small>' + (net > 0 ? Math.round(x[1] / net * 100) : 0) + '%</small></li>'; }).join('');
+    var B = { need: 0, want: 0, save: Math.max(0, left) }; L.forEach(function (x) { B[x[2]] += x[1]; });
+    $('rule').innerHTML = [['Needs', 'need', 50, '#84A0FF'], ['Wants', 'want', 30, '#F08AB3'], ['Savings (goals and what\'s left)', 'save', 20, '#4FD3BD']].map(function (r) {
+      var p = net > 0 ? B[r[1]] / net * 100 : 0, ok = r[1] === 'save' ? p >= r[2] : p <= r[2];
+      return '<div class="r"><div><span>' + r[0] + '</span><span style="font-family:var(--font-mono);color:' + (ok ? 'var(--sat-b)' : 'var(--sat-c)') + '">' + Math.round(p) + '% <small style="color:var(--muted)">/ ' + r[2] + '%</small></span></div><div class="t"><i style="width:' + Math.min(100, p) + '%;background:' + r[3] + '"></i><u style="left:' + r[2] + '%"></u></div></div>';
+    }).join('');
+    // emergency fund = essentials (needs, incl. remittances if counted as need) x months
+    var ess = B.need, efT = ess * +$('efMonths').value, gap = Math.max(0, efT - n('efHave')), canSave = Math.max(0, left) + (goals.length && /emergency/i.test(goals[0].name) ? goals[0].m : 0);
+    var mt = gap === 0 ? 0 : canSave > 0 ? Math.ceil(gap / canSave) : Infinity;
+    $('stats').innerHTML = '<div><b>' + aed(efT) + '</b><span>AED emergency fund target</span></div><div><b>' + aed(gap) + '</b><span>AED still to save</span></div><div><b>' + (mt === 0 ? 'Done' : mt === Infinity ? '—' : mt + ' mo') + '</b><span>' + (mt === Infinity ? 'nothing left to save' : 'at your current pace') + '</span></div>';
+    $('efFact').innerHTML = 'Your essentials come to about <b>' + aed(ess) + ' AED a month</b>. For most expats a residence visa depends on the job, and after a job ends there is usually a short grace period to find the next one, so many planners suggest at least 6 months of essentials put aside. Your end-of-service gratuity helps, but it can take weeks to be paid. See the <a href="../gratuity/">gratuity calculator</a> to estimate yours.';
+    save();
+  }
+  document.addEventListener('input', render);
+  document.addEventListener('change', render);
+  $('reset').onclick = function () { fields.forEach(function (e) { if (e.type === 'checkbox') e.checked = defaults[e.id]; else e.value = defaults[e.id]; }); render(); };
+  render();
+})();
+</script>
+</body>
+</html>

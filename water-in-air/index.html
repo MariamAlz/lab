@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Water in the Air · Mariam's Lab</title>
+<meta name="description" content="How much water is in the air around you right now? Live dew point and absolute humidity, litres of water in your room, how much your AC pulls out, and why UAE mornings get foggy and glasses steam up.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/water-in-air/">
+<meta property="og:title" content="Water in the Air · Mariam's Lab"><meta property="og:description" content="Dew point, litres of water in your room, AC drip and fog, live."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.form { display: grid; gap: 12px; }
+.f { display: grid; gap: 5px; min-width: 0; }
+.f > span { font-size: 0.84rem; color: var(--muted); }
+.f input, .f select { font: inherit; color: var(--ink); background: rgba(7, 10, 24, 0.6); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; min-width: 0; width: 100%; }
+.f input[type=number] { font-family: var(--font-mono); }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.three { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.grp { border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; display: grid; gap: 10px; background: rgba(7,10,24,.5); }
+.grp legend { padding: 0 6px; font-family: var(--font-display); font-weight: 600; }
+.where { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 8px 0 0; }
+.src { font-size: 0.75rem; color: var(--muted); margin: 0; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; }
+.tile { padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.tile span { font-size: 0.76rem; color: var(--muted); display: block; }
+.tile b { font-family: var(--font-display); font-size: clamp(1.1rem, 4vw, 1.5rem); display: block; }
+.tile small { font-size: 0.76rem; color: var(--muted); }
+.room { padding: 18px; border: 1px solid var(--line); border-radius: var(--radius); background: rgba(7,10,24,.6); display: grid; gap: 6px; }
+.room b.big { font-family: var(--font-display); font-weight: 800; font-size: clamp(2.2rem, 7vw, 3.2rem); color: var(--sat-b); line-height: 1; }
+.room p { margin: 0; color: var(--muted); font-size: 0.9rem; }
+.bottles { display: flex; flex-wrap: wrap; gap: 3px; }
+.bottles i { width: 10px; height: 22px; border-radius: 3px 3px 2px 2px; background: linear-gradient(to top, var(--sat-b) var(--f), rgba(79,211,189,.15) var(--f)); }
+.chart { width: 100%; height: auto; display: block; }
+.chart text { fill: var(--muted); font-family: var(--font-mono); font-size: 11px; }
+.legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 0.78rem; color: var(--muted); }
+.legend span::before { content: ''; display: inline-block; width: 12px; height: 3px; border-radius: 2px; margin-inline-end: 5px; vertical-align: 3px; background: var(--c); }
+.verdict { padding: 12px 14px; border-radius: 10px; border: 1px solid var(--line); font-size: 0.92rem; }
+.verdict b { color: var(--accent); }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Weather · Science · Live</span>
+    <h1 style="font-size:var(--step-3)">How much water is in the air.</h1>
+    <p>On a humid UAE summer night, the outdoor air that would fill an ordinary bedroom carries about a litre of water as invisible vapour. This turns the live temperature and humidity at your spot into numbers you can picture: grams per cubic metre, litres in your room, what your AC drips out each hour, and whether tomorrow morning will be foggy.</p>
+  </div>
+  <div class="where" id="where"><button class="sm" type="button" id="me">📍 Use my location</button></div>
+  <p class="msg" id="msg" role="status"></p>
+  <div class="tiles" id="tiles" style="margin-top:12px"></div>
+  <div class="game" style="margin-top:18px">
+    <div class="panel">
+      <div class="room" id="room"><b class="big">—</b></div>
+      <div class="grp"><span class="label">Your AC as a dehumidifier</span><div id="acOut"></div></div>
+      <div class="grp"><span class="label">Fog watch · next 36 hours</span><svg class="chart" id="chart" viewBox="0 0 640 220" role="img" aria-label="Temperature and dew point"></svg><div class="legend"><span style="--c:#F08AB3">Temperature</span><span style="--c:#4FD3BD">Dew point</span><span style="--c:rgba(132,160,255,.5)">Fog likely (gap under 1.5°C)</span></div><div class="verdict" id="fog"></div></div>
+      <div class="verdict" id="glass"></div>
+      <p class="fact"><b>Why mornings get foggy.</b> The dew point is the temperature at which the air is full and can't hold its water as vapour any more. On clear, calm nights the ground loses heat to the sky and the air above it cools. If it cools down to the dew point, the extra water condenses on dust and salt particles as tiny droplets: fog. Coastal UAE gets it most from September to March, when nights are cool and sea air is moist. It usually burns off within a couple of hours of sunrise.</p>
+      <p class="fact"><b>Why glasses and car windows steam up.</b> Any surface colder than the dew point collects water. Step out of a 22°C car into air with a 28°C dew point and your sunglasses fog instantly. In winter it flips: your breath makes the air inside the car more humid than the cold windscreen can handle, so it mists on the inside. Point the AC at the glass: it dries the air first.</p>
+    </div>
+    <div class="panel form" id="form">
+      <fieldset class="grp"><legend>Your room</legend>
+        <div class="three">
+          <label class="f"><span>Length (m)</span><input type="number" id="len" min="1" step="0.1" value="4"></label>
+          <label class="f"><span>Width (m)</span><input type="number" id="wid" min="1" step="0.1" value="4"></label>
+          <label class="f"><span>Height (m)</span><input type="number" id="hgt" min="2" step="0.1" value="2.8"></label>
+        </div>
+        <div class="two">
+          <label class="f"><span>Room temperature (°C)</span><input type="number" id="tin" min="10" max="40" step="0.5" value="24"></label>
+          <label class="f"><span>Room humidity (%)</span><input type="number" id="rhin" min="5" max="100" step="1" value="55"></label>
+        </div>
+        <p class="src">A cheap hygrometer will tell you the room's humidity. Most AC'd UAE homes sit at 40–60%.</p>
+      </fieldset>
+      <fieldset class="grp"><legend>Your AC</legend>
+        <div class="two">
+          <label class="f"><span>Size (tons)</span><select id="tons"><option value="1">1 ton</option><option value="1.5" selected>1.5 ton</option><option value="2">2 ton</option><option value="2.5">2.5 ton</option><option value="3">3 ton</option></select></label>
+          <label class="f"><span>Airflow (m³ per hour)</span><input type="number" id="flow" min="50" step="10" value="1020"></label>
+        </div>
+        <div class="two">
+          <label class="f"><span>Coil temperature (°C)</span><input type="number" id="coil" min="0" max="20" step="0.5" value="12"></label>
+          <label class="f"><span>Outside air leaking in (room volumes per hour)</span><input type="number" id="ach" min="0" max="10" step="0.1" value="0.5"></label>
+        </div>
+        <p class="src">Typical figures, edit to match yours. Split units move about 400 cubic feet a minute per ton (680 m³/h per ton). The cold coil inside the unit is usually 8 to 14°C. Picking a size fills in a typical airflow.</p>
+      </fieldset>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var KEY = 'waterAir1';
+  var PLACES = [['Abu Dhabi', 24.4539, 54.3773], ['Dubai', 25.2048, 55.2708], ['Sharjah', 25.3463, 55.4209], ['Al Ain', 24.2075, 55.7447], ['Ajman', 25.4052, 55.5136], ['Ras Al Khaimah', 25.7895, 55.9432], ['Fujairah', 25.1288, 56.3265], ['Liwa', 23.1333, 53.7667]];
+  var cur = null, hourly = null, name = '';
+  var fields = [].slice.call(document.querySelectorAll('#form input, #form select')).filter(function (e) { return e.id; });
+  try { var s = JSON.parse(localStorage.getItem(KEY) || 'null'); if (s) fields.forEach(function (e) { if (s[e.id] != null) e.value = s[e.id]; }); } catch (x) {}
+  function saveState(place) { var o = {}; fields.forEach(function (e) { o[e.id] = e.value; }); try { var old = JSON.parse(localStorage.getItem(KEY) || '{}'); o.place = place != null ? place : old.place; localStorage.setItem(KEY, JSON.stringify(o)); } catch (x) {} }
+  function n(id) { var v = parseFloat($(id).value); return isFinite(v) ? v : 0; }
+  function fmt(v, d) { return v.toLocaleString('en-US', { minimumFractionDigits: d || 0, maximumFractionDigits: d || 0 }); }
+  // Magnus formula (Sonntag constants), hPa
+  function es(T) { return 6.112 * Math.exp(17.62 * T / (243.12 + T)); }
+  function dew(T, RH) { var g = Math.log(Math.max(1e-3, RH) / 100 * es(T) / 6.112); return 243.12 * g / (17.62 - g); }
+  function ah(T, RH) { return 216.7 * (RH / 100 * es(T)) / (T + 273.15); } // g/m³
+  function rhFrom(T, Td) { return 100 * es(Td) / es(T); }
+
+  function load(lat, lon, nm) {
+    name = nm; $('msg').textContent = 'Fetching live conditions for ' + nm + '…';
+    var u = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon + '&current=temperature_2m,relative_humidity_2m,dew_point_2m&hourly=temperature_2m,relative_humidity_2m,dew_point_2m,wind_speed_10m,visibility&timezone=auto&forecast_days=3';
+    fetch(u).then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(function (j) {
+      var H = j.hourly, off = j.utc_offset_seconds || 0;
+      hourly = H.time.map(function (t, i) { return { t: t, ms: Date.parse(t + ':00Z') - off * 1000, T: H.temperature_2m[i], RH: H.relative_humidity_2m[i], Td: H.dew_point_2m ? H.dew_point_2m[i] : dew(H.temperature_2m[i], H.relative_humidity_2m[i]), w: H.wind_speed_10m ? H.wind_speed_10m[i] : null, vis: H.visibility ? H.visibility[i] : null }; }).filter(function (h) { return h.T != null && h.RH != null; });
+      var k = 0; for (var i = 0; i < hourly.length; i++) if (hourly[i].ms <= Date.now()) k = i;
+      if (j.current && j.current.temperature_2m != null) cur = { T: j.current.temperature_2m, RH: j.current.relative_humidity_2m, t: j.current.time };
+      else cur = { T: hourly[k].T, RH: hourly[k].RH, t: hourly[k].t };
+      hourly = hourly.slice(k, k + 37);
+      $('msg').textContent = nm + ' · live from Open-Meteo, ' + (cur.t || '').slice(11, 16) + ' local time';
+      render();
+    }).catch(function () { $('msg').textContent = 'Couldn\'t reach the weather service. Showing the room maths with typical summer values (35°C, 60%).'; cur = { T: 35, RH: 60 }; hourly = null; render(); });
+  }
+  function render() {
+    saveState();
+    if (!cur) return;
+    var T = cur.T, RH = cur.RH, Td = dew(T, RH), A = ah(T, RH), Amax = ah(T, 100);
+    $('tiles').innerHTML = [['Temperature', fmt(T, 1) + '°C', ''], ['Humidity', Math.round(RH) + '%', 'relative'], ['Dew point', fmt(Td, 1) + '°C', Td >= 24 ? 'oppressive' : Td >= 20 ? 'muggy' : Td >= 15 ? 'sticky' : 'comfortable'], ['Water in the air', fmt(A, 1) + ' g/m³', 'could hold ' + fmt(Amax, 0) + ' at this temperature']].map(function (t) { return '<div class="tile"><span>' + t[0] + '</span><b>' + t[1] + '</b><small>' + t[2] + '</small></div>'; }).join('');
+    var V = Math.max(0, n('len') * n('wid') * n('hgt')), Tin = n('tin'), RHin = Math.max(1, Math.min(100, n('rhin')));
+    var Ain = ah(Tin, RHin), Lin = Ain * V / 1000, Lout = A * V / 1000;
+    var cups = Math.round(Lout / 0.25);
+    $('room').innerHTML = '<span class="label">In your ' + fmt(V, 0) + ' m³ room</span><b class="big">' + fmt(Lout * 1000, 0) + ' ml</b><p>That\'s the water in the same volume of outdoor air right now (' + fmt(A, 1) + ' g in every cubic metre), about ' + (cups < 1 ? 'a few sips' : cups + ' glass' + (cups === 1 ? '' : 'es')) + '. Your room at ' + Tin + '°C and ' + RHin + '% holds ' + fmt(Lin * 1000, 0) + ' ml. Spread over the floor, the outdoor amount would make a film ' + fmt(Lout / Math.max(1, n('len') * n('wid')), 2) + ' mm thick.</p><div class="bottles" aria-hidden="true">' + Array.apply(null, Array(Math.min(40, Math.max(1, Math.ceil(Lout / 0.25))))).map(function (_, i) { var f = Math.min(1, Lout / 0.25 - i); return '<i style="--f:' + Math.round(f * 100) + '%"></i>'; }).join('') + '</div><p class="src">Each bar is a 250 ml glass.</p>';
+    // AC: air leaving a coil at temperature Tc is close to saturated; water removed = airflow × (moisture in − moisture out)
+    var flow = n('flow'), Tc = n('coil'), Acoil = Math.min(Ain, ah(Tc + 1, 95)), bypass = 0.85;
+    var remove = Math.max(0, flow * (Ain - Acoil) * bypass / 1000);
+    var leak = Math.max(0, V * n('ach') * (A - Ain) / 1000), ppl = 0.05;
+    var coilDew = dew(Tin, RHin) > Tc;
+    $('acOut').innerHTML = '<p style="margin:0">While the compressor runs, about <b>' + fmt(remove, 2) + ' litres an hour</b> condense on the coil and drip out of the drain pipe.</p><p class="src" style="margin-top:6px">How: ' + fmt(flow, 0) + ' m³ of room air an hour carries ' + fmt(Ain, 1) + ' g of water per m³ into the unit. Air leaving a ' + Tc + '°C coil can only hold about ' + fmt(Acoil, 1) + ' g/m³, so the difference becomes liquid (allowing for some air slipping past the coil). ' + (coilDew ? '' : 'Right now the room\'s dew point is below the coil temperature, so the coil stays dry and nothing drips. ') + 'To keep the room at ' + RHin + '%, the AC only needs to remove the moisture that arrives: about ' + fmt(leak, 2) + ' L/h leaking in from outside plus about ' + ppl + ' L/h per person breathing and sweating. Once it has, it cycles off or slows down, which is why a too-big AC leaves rooms cold but clammy.</p>';
+    var gl = 22, glassFog = Td > gl;
+    $('glass').innerHTML = glassFog ? 'Right now, glasses or a phone at <b>' + gl + '°C</b> from an AC\'d car or room will <b>steam up</b> outdoors: the dew point is ' + fmt(Td, 1) + '°C, warmer than the glass.' : 'Right now, glasses at ' + gl + '°C from an AC\'d room <b>stay clear</b> outdoors: the dew point (' + fmt(Td, 1) + '°C) is below their temperature. Anything colder than ' + fmt(Td, 1) + '°C would still mist.';
+    renderFog();
+  }
+  function renderFog() {
+    if (!hourly || !hourly.length) { $('chart').innerHTML = ''; $('fog').textContent = 'The fog forecast needs live data.'; return; }
+    var W = Math.max(300, Math.round($('chart').getBoundingClientRect().width) || 640), H = 200, pl = 30, pr = 6, pt = 10, pb = 24;
+    var vals = []; hourly.forEach(function (h) { vals.push(h.T, h.Td); });
+    var lo = Math.floor(Math.min.apply(null, vals) - 1), hi = Math.ceil(Math.max.apply(null, vals) + 1);
+    function X(i) { return pl + i / (hourly.length - 1) * (W - pl - pr); }
+    function Y(v) { return pt + (1 - (v - lo) / (hi - lo)) * (H - pt - pb); }
+    var g = '', stepv = Math.max(1, Math.round((hi - lo) / 4));
+    for (var v = lo; v <= hi; v += stepv) g += '<line x1="' + pl + '" x2="' + (W - pr) + '" y1="' + Y(v) + '" y2="' + Y(v) + '" stroke="rgba(120,132,190,.18)"/><text x="' + (pl - 4) + '" y="' + (Y(v) + 4) + '" text-anchor="end">' + v + '°</text>';
+    var bw = (W - pl - pr) / (hourly.length - 1);
+    hourly.forEach(function (h, i) {
+      if (h.T - h.Td < 1.5) g += '<rect x="' + (X(i) - bw / 2) + '" y="' + pt + '" width="' + bw + '" height="' + (H - pt - pb) + '" fill="rgba(132,160,255,.25)"><title>' + h.t.slice(11, 16) + ' fog likely</title></rect>';
+      var hr = +h.t.slice(11, 13); if (hr % 6 === 0) g += '<text x="' + X(i) + '" y="' + (H - 7) + '" text-anchor="middle">' + (hr === 0 ? h.t.slice(8, 10) + '/' + h.t.slice(5, 7) : hr + 'h') + '</text>';
+    });
+    function line(k, c) { return '<polyline fill="none" stroke="' + c + '" stroke-width="2.2" stroke-linejoin="round" points="' + hourly.map(function (h, i) { return X(i).toFixed(1) + ',' + Y(h[k]).toFixed(1); }).join(' ') + '"/>'; }
+    g += line('T', '#F08AB3') + line('Td', '#4FD3BD');
+    $('chart').setAttribute('viewBox', '0 0 ' + W + ' ' + H); $('chart').innerHTML = g;
+    // tonight: the coolest hour between now and 10am tomorrow (or the next 24h)
+    var win = hourly.slice(0, 24), m = win[0];
+    win.forEach(function (h) { var hr = +h.t.slice(11, 13); if ((hr >= 20 || hr <= 9) && h.T - h.Td < m.T - m.Td) m = h; });
+    var spread = m.T - m.Td, calm = m.w == null || m.w < 15;
+    var risk = spread < 1.5 && calm ? 'Fog is likely' : spread < 3 ? 'Mist or patchy fog is possible' : 'Fog is unlikely';
+    $('fog').innerHTML = '<b>' + risk + '</b>. The closest the air gets to its dew point is around <b>' + m.t.slice(11, 16) + '</b> ' + (m.t.slice(0, 10) === hourly[0].t.slice(0, 10) ? 'today' : 'tomorrow') + ': ' + fmt(m.T, 1) + '°C against a dew point of ' + fmt(m.Td, 1) + '°C, a gap of ' + fmt(spread, 1) + '°C' + (m.w != null ? ', with ' + Math.round(m.w) + ' km/h wind' : '') + (m.vis != null && m.vis < 2000 ? ', and the model expects visibility down to ' + fmt(m.vis / 1000, 1) + ' km' : '') + '. ' + (spread < 3 ? 'Drive with low beams and keep your distance; watch for NCM fog alerts.' : 'Fog needs the gap to close to about 1°C, ideally with little wind.');
+  }
+  PLACES.forEach(function (p, i) {
+    var b = document.createElement('button'); b.className = 'sm'; b.type = 'button'; b.textContent = p[0]; b.setAttribute('aria-pressed', 'false');
+    b.onclick = function () { pick(b); saveState(i); load(p[1], p[2], p[0]); };
+    $('where').appendChild(b);
+  });
+  function pick(b) { [].forEach.call(document.querySelectorAll('#where .sm'), function (x) { x.setAttribute('aria-pressed', x === b); }); }
+  $('me').onclick = function () {
+    if (!navigator.geolocation) { $('msg').textContent = 'Your browser can\'t share a location.'; return; }
+    $('msg').textContent = 'Asking for your location…';
+    navigator.geolocation.getCurrentPosition(function (p) { pick($('me')); load(p.coords.latitude.toFixed(3), p.coords.longitude.toFixed(3), 'Your location'); }, function () { $('msg').textContent = 'Location was not shared. Pick a city instead.'; }, { maximumAge: 6e5, timeout: 10000 });
+  };
+  $('tons').addEventListener('change', function () { $('flow').value = Math.round(+$('tons').value * 680 / 10) * 10; });
+  document.addEventListener('input', function (e) { if (e.target.closest('#form')) render(); });
+  document.addEventListener('change', function (e) { if (e.target.closest('#form')) render(); });
+  var rz; window.addEventListener('resize', function () { clearTimeout(rz); rz = setTimeout(render, 150); });
+  var i0 = 1; try { var sp = JSON.parse(localStorage.getItem(KEY) || '{}').place; if (sp != null && PLACES[+sp]) i0 = +sp; } catch (x) {}
+  document.querySelectorAll('#where .sm')[i0 + 1].click();
+})();
+</script>
+</body>
+</html>
