@@ -283,3 +283,10 @@ LabAr.add({
  "Zakat on cash, gold, silver, shares, business stock and crypto, with today's nisab and the scholars' views side by side.": "الزكاة على النقد والذهب والفضة والأسهم وعروض التجارة والعملات المشفرة، مع نصاب اليوم وآراء العلماء جنبًا إلى جنب.",
  "Work it out →": "احسب زكاتك ←"
 });
+/* index cards for newer tools */
+LabAr.add({
+ "Tool · Health · Sun": "أداة · الصحة · الشمس",
+ "Sunburn timer": "مؤقت حروق الشمس",
+ "Minutes until you burn from live UV, your skin type and sunscreen, with reapply reminders.": "كم دقيقة حتى تحترق بشرتك حسب الأشعة الحالية ونوع بشرتك والواقي، مع تذكير بإعادة وضعه.",
+ "Start the timer →": "شغّل المؤقت ←"
+});

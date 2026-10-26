@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sunburn Timer · Mariam's Lab</title>
+<meta name="description" content="How long until you burn in today's UAE sun? Live UV index, your skin type, sunscreen and the beach or pool around you turned into a countdown, with reapply reminders.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/sunburn/">
+<meta property="og:title" content="Sunburn Timer · Mariam's Lab"><meta property="og:description" content="Minutes until you burn, from live UV, skin type and sunscreen."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.where { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm[aria-pressed="true"], .sm.pri { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin-top: 8px; }
+.timer { padding: 20px; border-radius: var(--radius); border: 1px solid var(--line); background: rgba(7,10,24,.82); display: grid; gap: 8px; }
+.timer b.big { font-family: var(--font-display); font-size: clamp(2.2rem, 9vw, 3.4rem); font-weight: 800; line-height: 1; }
+.timer p { margin: 0; color: var(--muted); }
+.bar { height: 10px; border-radius: 99px; background: rgba(255,255,255,.08); overflow: hidden; }
+.bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #4fd3bd, #ffc857 60%, #ff4f6d); transition: width .5s; }
+.alarm { padding: 12px 14px; border-radius: 12px; border: 1px solid var(--sat-c); background: rgba(255,79,109,.1); font-size: 0.9rem; }
+.skins { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
+.skins button { font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 8px 2px 6px; cursor: pointer; display: grid; justify-items: center; gap: 4px; font-size: 0.78rem; min-width: 0; }
+.skins button i { width: 30px; height: 30px; border-radius: 50%; background: var(--s); border: 2px solid rgba(255,255,255,.25); }
+.skins button[aria-pressed="true"] { border-color: var(--accent); background: rgba(255,200,87,.12); }
+.skinTxt { font-size: 0.86rem; color: var(--muted); margin: 0; }
+.quiz { border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: grid; gap: 8px; font-size: 0.88rem; }
+.quiz summary { cursor: pointer; color: var(--accent); }
+.qrow { display: grid; gap: 5px; }
+.qrow div { display: flex; flex-wrap: wrap; gap: 5px; }
+.fl { display: grid; gap: 5px; min-width: 0; }
+.fl > span { font-size: 0.84rem; color: var(--muted); }
+.fl input, .fl select { font: inherit; color: var(--ink); background: rgba(7,10,24,.6); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; min-width: 0; width: 100%; }
+.duo { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.chk { display: flex; gap: 8px; align-items: center; font-size: 0.88rem; }
+.uvtiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.uvtiles div { padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); min-width: 0; }
+.uvtiles span { font-size: 0.74rem; color: var(--muted); display: block; }
+.uvtiles b { font-family: var(--font-display); font-size: 1.3rem; }
+.uvc { width: 100%; height: auto; display: block; }
+.uvc text { font-family: var(--font-mono); font-size: 11px; fill: var(--muted); }
+.legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 0.75rem; color: var(--muted); }
+.legend span::before { content: ''; display: inline-block; width: 12px; height: 8px; border-radius: 2px; margin-inline-end: 5px; background: var(--c); }
+[hidden] { display: none !important; }
+html.ar .timer b.big { unicode-bidi: plaintext; }
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Health · Sun · Live</span>
+    <h1 style="font-size:var(--step-3)">Sunburn timer.</h1>
+    <p>The UAE sun reaches a UV index of 11 or more for much of the year, enough to burn fair skin in about 15 minutes. Tell this your skin type and sunscreen, start the timer when you step out, and it counts down using the live UV for where you are, reminding you to reapply.</p>
+  </div>
+  <div class="where" id="where"><button class="sm" type="button" id="me">📍 Use my location</button></div>
+  <p class="msg" id="msg" role="status"></p>
+  <div class="game" style="margin-top:12px">
+    <div class="panel" style="min-width:0">
+      <div class="timer" id="timer">
+        <span class="label" id="tLabel">Time to burn at today's UV</span>
+        <b class="big" id="tBig">—</b>
+        <div class="bar" aria-hidden="true"><i id="tBar"></i></div>
+        <p id="tTxt">Pick your skin type to start.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="sm pri" type="button" id="go">☀ I'm going out now</button><button class="sm" type="button" id="stop" hidden>I'm back in the shade</button></div>
+      </div>
+      <div class="alarm" id="alarm" hidden></div>
+      <div class="uvtiles" id="uvt"></div>
+      <span class="label">Today's UV</span>
+      <svg class="uvc" id="chart" viewBox="0 0 640 220" role="img" aria-label="Today's UV index by hour"></svg>
+      <div class="legend"><span style="--c:#ffc857">UV forecast</span><span style="--c:rgba(255,255,255,.35)">Clear-sky UV</span><span style="--c:rgba(79,211,189,.25)">Low risk (UV under 3)</span></div>
+    </div>
+    <div class="panel" id="frm" style="min-width:0">
+      <span class="label">Your skin</span>
+      <div class="skins" id="skins"></div>
+      <p class="skinTxt" id="skinTxt"></p>
+      <details class="quiz"><summary>Not sure? Answer three quick questions</summary>
+        <div class="qrow"><span>Your natural hair colour</span><div data-q="0"><button class="sm" type="button" data-v="0">Red or blond</button><button class="sm" type="button" data-v="1">Light brown</button><button class="sm" type="button" data-v="2">Dark brown</button><button class="sm" type="button" data-v="3">Black</button></div></div>
+        <div class="qrow"><span>After an hour in strong sun without protection, you…</span><div data-q="1"><button class="sm" type="button" data-v="0">Always burn, never tan</button><button class="sm" type="button" data-v="1">Burn, then tan a little</button><button class="sm" type="button" data-v="2">Sometimes burn, tan well</button><button class="sm" type="button" data-v="3">Rarely or never burn</button></div></div>
+        <div class="qrow"><span>Your skin on the inside of your arm is…</span><div data-q="2"><button class="sm" type="button" data-v="0">Very pale</button><button class="sm" type="button" data-v="1">Fair or beige</button><button class="sm" type="button" data-v="2">Olive or light brown</button><button class="sm" type="button" data-v="3">Brown or dark brown</button></div></div>
+        <p class="skinTxt" id="quizOut"></p>
+      </details>
+      <span class="label">Sunscreen</span>
+      <div class="duo">
+        <label class="fl"><span>SPF</span><select id="spf"><option value="1">None</option><option value="15">SPF 15</option><option value="30" selected>SPF 30</option><option value="50">SPF 50</option><option value="60">SPF 50+</option></select></label>
+        <label class="fl"><span>Applied at</span><input type="time" id="applied"></label>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="sm" type="button" id="justNow">Applied just now</button><button class="sm" type="button" id="swam">🏊 I've been swimming</button></div>
+      <label class="chk"><input type="checkbox" id="thick"> I used a thick layer (about a teaspoon for each arm, the face and neck)</label>
+      <label class="fl"><span>What's around you</span><select id="surf"><option value="0">Grass, soil or shade around</option><option value="0.15">Sand (beach or desert), +15%</option><option value="0.1">Water (pool or sea), +10%</option><option value="0.1">Concrete or paving, +10%</option><option value="0" disabled>Snow, +80% (not in the UAE)</option></select></label>
+      <p class="fact" style="margin:0"><b>How it's worked out.</b> Burning starts at one "minimal erythema dose": about 200 J/m² of sunburn-weighted UV for skin type I, 250 for II, 300 for III, 450 for IV, 600 for V and 1,000 for VI. Each point of UV index is 0.025 W/m² of that light. So at UV 10, type II skin collects 250 J/m² in 1,000 seconds: about 17 minutes. Sunscreen multiplies the time, but most people put on half the tested amount, which gives roughly the square root of the SPF. SPF 30 behaves like SPF 5 or 6.</p>
+      <p class="fact" style="margin:0"><b>Vitamin D.</b> Skin makes vitamin D from the same UV that burns. For lighter skin, a few minutes of midday sun on arms and legs is usually enough; darker skin needs several times longer. When the UV is under 3, very little is made. There's no need to burn to get it.</p>
+      <p class="fact" style="margin:0"><b>What's approximate.</b> UV comes from the Open-Meteo forecast, not a meter beside you, and clouds, dust and shade change it minute to minute. Skin types and burn doses vary a lot between people, and darker skin can still burn and still gets skin damage. Sunscreen wears off with sweat, towels and water whatever the label says. This is an estimate, not medical advice. If you're on medicines that make you sun-sensitive, ask your pharmacist.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var KEY = 'sunburn1';
+  var PLACES = [['Abu Dhabi', 24.4539, 54.3773], ['Dubai', 25.2048, 55.2708], ['Sharjah', 25.3463, 55.4209], ['Al Ain', 24.2075, 55.7447], ['Ras Al Khaimah', 25.7895, 55.9432], ['Fujairah', 25.1288, 56.3265], ['Liwa', 23.1333, 53.7667]];
+  var MED = [200, 250, 300, 450, 600, 1000];
+  var SKIN = [['I', '#f7e1d3', 'Type I: very pale, always burns, never tans.'], ['II', '#efcfb4', 'Type II: fair, burns easily, tans a little.'], ['III', '#d9a97f', 'Type III: light olive, sometimes burns, tans evenly.'], ['IV', '#b47c50', 'Type IV: olive or light brown, rarely burns, tans well.'], ['V', '#835232', 'Type V: brown, very rarely burns.'], ['VI', '#4a2c1c', 'Type VI: dark brown or black, almost never burns, but still can.']];
+  var st = { type: 0, appliedMs: null, swamMs: null, outAt: null, dose: 0, lastT: null };
+  var uv = null; // {off, hours:[{ms, uv, clear}], cur}
+  // ---------- maths ----------
+  function spfEff(spf, thick) { spf = +spf || 1; return spf <= 1 ? 1 : thick ? spf : Math.sqrt(spf); }
+  function minutesToBurn(uvi, type, spfE, refl) { if (!(uvi > 0)) return Infinity; return MED[type - 1] / (uvi * 0.025 * (1 + (refl || 0))) * (spfE || 1) / 60; }
+  window.SunMath = { MED: MED, spfEff: spfEff, minutesToBurn: minutesToBurn };
+  // protection right now: sunscreen counts for 2 hours after applying, and not after a swim
+  function protNow(t) {
+    if (!st.appliedMs || +$('spf').value <= 1) return { f: 1, why: +$('spf').value > 1 ? 'no-time' : 'none' };
+    if (st.appliedMs > t) return { f: 1, why: 'future' };
+    if (st.swamMs && st.swamMs > st.appliedMs) return { f: 1, why: 'swam' };
+    if (t - st.appliedMs > 2 * 3600e3) return { f: 1, why: 'expired' };
+    return { f: spfEff($('spf').value, $('thick').checked), why: 'ok' };
+  }
+  function uvAt(t) {
+    if (!uv) return null;
+    var h = uv.hours; if (!h.length) return null;
+    if (uv.cur != null && Math.abs(t - uv.curMs) < 900e3) return uv.cur;
+    for (var i = 0; i < h.length - 1; i++) if (t >= h[i].ms && t < h[i + 1].ms) { var k = (t - h[i].ms) / 3600e3; return h[i].uv + (h[i + 1].uv - h[i].uv) * k; }
+    return t < h[0].ms ? h[0].uv : h[h.length - 1].uv;
+  }
+  // minutes from now until the dose reaches 1 MED, walking forward through the forecast
+  function projectLeft(now, dose) {
+    var type = st.type, refl = +$('surf').value, need = MED[type - 1] - dose, t = now, step = 60000;
+    for (var k = 0; k < 24 * 60; k++) {
+      var u = uvAt(t) || 0, rate = u * 0.025 * (1 + refl) / protNow(t).f; // J/m² per second
+      need -= rate * 60; if (need <= 0) return k + 1;
+      t += step;
+    }
+    return Infinity;
+  }
+  // ---------- UI ----------
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function hmL(ms) { var d = new Date(ms + (uv ? uv.off : 14400) * 1000); return pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes()); }
+  function mins(m) { if (!isFinite(m)) return 'No burn risk'; m = Math.round(m); return m >= 60 ? Math.floor(m / 60) + ' h ' + pad(m % 60) + ' min' : m + ' min'; }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify({ type: st.type, appliedMs: st.appliedMs, swamMs: st.swamMs, outAt: st.outAt, dose: st.dose, lastT: st.lastT, spf: $('spf').value, thick: $('thick').checked, surf: $('surf').selectedIndex })); } catch (e) {} }
+  SKIN.forEach(function (s, i) {
+    var b = document.createElement('button'); b.type = 'button'; b.dataset.t = i + 1; b.style.setProperty('--s', s[1]); b.setAttribute('aria-pressed', 'false'); b.setAttribute('aria-label', s[2]);
+    b.innerHTML = '<i></i>' + s[0];
+    b.onclick = function () { setType(i + 1); };
+    $('skins').appendChild(b);
+  });
+  function setType(t) { st.type = t; [].forEach.call(document.querySelectorAll('#skins button'), function (b) { b.setAttribute('aria-pressed', +b.dataset.t === t); }); $('skinTxt').textContent = SKIN[t - 1][2]; save(); update(); }
+  var qa = [null, null, null];
+  [].forEach.call(document.querySelectorAll('.quiz [data-q]'), function (row) {
+    row.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-v]'); if (!b) return; qa[+row.dataset.q] = +b.dataset.v;
+      [].forEach.call(row.querySelectorAll('[data-v]'), function (x) { x.setAttribute('aria-pressed', x === b); });
+      if (qa.every(function (x) { return x != null; })) { var s = qa[0] + qa[1] * 2 + qa[2] * 2, t = Math.max(1, Math.min(6, 1 + Math.round(s / 15 * 5))); setType(t); $('quizOut').textContent = 'That sounds like skin type ' + SKIN[t - 1][0] + '. It\'s selected above.'; }
+    });
+  });
+  function todayH() { var d0 = new Date(Date.now() + uv.off * 1000).toISOString().slice(0, 10); return uv.hours.filter(function (x) { return new Date(x.ms + uv.off * 1000).toISOString().slice(0, 10) === d0; }); }
+  function update() {
+    var now = Date.now(), refl = +$('surf').value, u = uvAt(now), p = protNow(now);
+    var tiles = [['UV now', u == null ? '—' : u.toFixed(1)], ['Peak today', uv && todayH().length ? Math.max.apply(null, todayH().map(function (h) { return h.uv; })).toFixed(0) + ' at ' + hmL(todayH().reduce(function (a, b) { return b.uv > a.uv ? b : a; }).ms) : '—'], ['Sunscreen', p.why === 'ok' ? '×' + p.f.toFixed(1) : p.why === 'none' ? 'none' : 'worn off']];
+    $('uvt').innerHTML = tiles.map(function (x) { return '<div><span>' + x[0] + '</span><b>' + x[1] + '</b></div>'; }).join('');
+    // reapply alarm
+    var al = '';
+    if (p.why === 'swam') al = '🏊 You\'ve been swimming since you put sunscreen on. Reapply now, then tap "Applied just now".';
+    else if (p.why === 'expired') al = '⏰ It\'s been over 2 hours since you put sunscreen on (' + hmL(st.appliedMs) + '). Reapply now, then tap "Applied just now".';
+    else if (p.why === 'no-time') al = 'Tap "Applied just now" when you put sunscreen on, so the timer can count it.';
+    $('alarm').hidden = !al; $('alarm').textContent = al;
+    if ((p.why === 'expired' || p.why === 'swam') && st.outAt && remind !== st.appliedMs) { remind = st.appliedMs; buzz('Time to reapply sunscreen', 'Your last coat has worn off.'); }
+    if (!st.type) { $('tBig').textContent = '—'; $('tTxt').textContent = 'Pick your skin type to start.'; return; }
+    if (st.outAt) {
+      // integrate the dose since the last tick
+      var dt = Math.min(120, (now - (st.lastT || now)) / 1000); st.dose += (u || 0) * 0.025 * (1 + refl) / p.f * dt; st.lastT = now;
+      var frac = st.dose / MED[st.type - 1], left = projectLeft(now, st.dose);
+      $('tLabel').textContent = 'You\'ve been out for ' + mins((now - st.outAt) / 60000).replace('No burn risk', '0 min');
+      $('tBig').textContent = frac >= 1 ? 'Get into the shade' : mins(left);
+      $('tBig').style.color = frac >= 1 ? 'var(--sat-c)' : frac > 0.66 ? 'var(--accent)' : 'var(--ink)';
+      $('tBar').style.width = Math.min(100, frac * 100).toFixed(1) + '%';
+      $('tTxt').textContent = frac >= 1 ? 'You\'ve had about a full burning dose. Redness usually shows a few hours later.' : 'You\'ve had about ' + Math.round(frac * 100) + '% of a burning dose' + (isFinite(left) ? '. At this rate you\'d start to burn around ' + hmL(now + left * 60000) + '.' : '.');
+      if (frac >= 1 && warned !== st.outAt) { warned = st.outAt; buzz('Get into the shade', 'You\'ve had about a full sunburn dose.'); }
+      if (frac >= 0.8 && frac < 1 && warned80 !== st.outAt) { warned80 = st.outAt; buzz('Nearly at your sunburn limit', 'About ' + Math.round(left) + ' minutes left.'); }
+      if (Math.floor(now / 10000) !== lastSave) { lastSave = Math.floor(now / 10000); save(); }
+    } else {
+      var m = minutesToBurn(u, st.type, p.f, refl);
+      $('tLabel').textContent = 'Time to burn at today\'s UV';
+      $('tBig').textContent = u == null ? '—' : mins(m); $('tBig').style.color = '';
+      $('tBar').style.width = '0';
+      $('tTxt').textContent = u == null ? 'Waiting for the UV forecast.' : !(u > 0.5) ? 'The UV is too low to burn right now.' : 'At UV ' + u.toFixed(1) + ' with ' + (p.f > 1 ? 'sunscreen working like SPF ' + p.f.toFixed(0) : 'no sunscreen') + (refl ? ' and ' + Math.round(refl * 100) + '% extra reflected light' : '') + '. Start the timer when you go out.';
+    }
+    $('go').hidden = !!st.outAt; $('stop').hidden = !st.outAt;
+  }
+  var remind = null, warned = null, warned80 = null, lastSave = 0;
+  function buzz(t, b) { var T = function (x) { return window.LabAr ? LabAr.t(x) : x; }; try { if (window.Notification && Notification.permission === 'granted') new Notification(T(t), { body: T(b), icon: 'https://mariamalzaabi.ae/assets/favicon.svg' }); } catch (e) {} try { if (navigator.vibrate && (!navigator.userActivation || navigator.userActivation.hasBeenActive)) navigator.vibrate([300, 100, 300]); } catch (e) {} }
+  $('go').onclick = function () { if (!st.type) { $('tTxt').textContent = 'Pick your skin type first.'; return; } st.outAt = Date.now(); st.dose = 0; st.lastT = st.outAt; warned = warned80 = null; save(); try { if (window.Notification && Notification.permission === 'default') Notification.requestPermission().catch(function () {}); } catch (e) {} update(); };
+  $('stop').onclick = function () { var f = st.dose / MED[st.type - 1]; st.outAt = null; save(); update(); $('tTxt').textContent = 'Welcome back. You had about ' + Math.round(f * 100) + '% of a burning dose. Skin recovers overnight, so the count starts fresh tomorrow.'; };
+  function setApplied(ms) { st.appliedMs = ms; var d = new Date(ms + (uv ? uv.off : 14400) * 1000); $('applied').value = pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes()); save(); update(); }
+  $('justNow').onclick = function () { if (+$('spf').value <= 1) $('spf').value = '30'; setApplied(Date.now()); };
+  $('swam').onclick = function () { st.swamMs = Date.now(); save(); update(); };
+  $('applied').addEventListener('change', function () { var v = $('applied').value; if (!v) { st.appliedMs = null; save(); update(); return; } var p = v.split(':'), off = (uv ? uv.off : 14400) * 1000, d = new Date(Date.now() + off), ms = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), +p[0], +p[1]) - off; if (ms > Date.now() + 60000) ms -= 864e5; st.appliedMs = ms; save(); update(); });
+  ['spf', 'thick', 'surf'].forEach(function (id) { $(id).addEventListener('change', function () { save(); update(); }); });
+  // ---------- chart ----------
+  function chart() {
+    if (!uv) return;
+    var h = todayH().filter(function (x) { var hr = new Date(x.ms + uv.off * 1000).getUTCHours(); return hr >= 5 && hr <= 20; });
+    if (h.length < 3) return;
+    var W = 640, Ht = 220, L = 30, Rr = 8, T = 12, B = 26, hi = Math.max(11, Math.ceil(Math.max.apply(null, h.map(function (x) { return Math.max(x.uv, x.clear || 0); })))), n = h.length;
+    var X = function (i) { return L + i / (n - 1) * (W - L - Rr); }, Y = function (v) { return T + (1 - v / hi) * (Ht - T - B); }, s = '';
+    s += '<rect x="' + L + '" y="' + Y(3) + '" width="' + (W - L - Rr) + '" height="' + (Y(0) - Y(3)) + '" fill="rgba(79,211,189,.12)"/>';
+    [3, 6, 8, 11].forEach(function (g) { if (g <= hi) s += '<line x1="' + L + '" x2="' + (W - Rr) + '" y1="' + Y(g) + '" y2="' + Y(g) + '" stroke="rgba(255,255,255,.08)"/><text x="' + (L - 5) + '" y="' + (Y(g) + 4) + '" text-anchor="end">' + g + '</text>'; });
+    h.forEach(function (x, i) { var hr = new Date(x.ms + uv.off * 1000).getUTCHours(); if (hr % 3 === 0) s += '<text x="' + X(i) + '" y="' + (Ht - 8) + '" text-anchor="middle">' + pad(hr) + ':00</text>'; });
+    if (h[0].clear != null) s += '<polyline fill="none" stroke="rgba(255,255,255,.35)" stroke-dasharray="4 4" stroke-width="1.5" points="' + h.map(function (x, i) { return X(i).toFixed(1) + ',' + Y(x.clear).toFixed(1); }).join(' ') + '"/>';
+    s += '<polyline fill="none" stroke="#ffc857" stroke-width="2.4" stroke-linejoin="round" points="' + h.map(function (x, i) { return X(i).toFixed(1) + ',' + Y(x.uv).toFixed(1); }).join(' ') + '"/>';
+    if (st.type) h.forEach(function (x, i) { var hr = new Date(x.ms + uv.off * 1000).getUTCHours(); if (hr % 2 === 0 && x.uv >= 3) s += '<text x="' + X(i) + '" y="' + (Y(x.uv) - 8) + '" text-anchor="middle" style="fill:#e6e8f0;font-size:10px">' + Math.round(minutesToBurn(x.uv, st.type, 1, +$('surf').value)) + 'm</text>'; });
+    var now = Date.now(), i0 = (now - h[0].ms) / 3600e3; if (i0 >= 0 && i0 <= n - 1) s += '<line x1="' + X(i0) + '" x2="' + X(i0) + '" y1="' + T + '" y2="' + (Ht - B) + '" stroke="var(--sat-c)" stroke-dasharray="3 3"/>';
+    $('chart').innerHTML = s;
+  }
+  // ---------- data ----------
+  function load(lat, lon, name) {
+    $('msg').textContent = 'Fetching the UV forecast for ' + name + '…';
+    fetch('https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon + '&current=uv_index,uv_index_clear_sky&hourly=uv_index,uv_index_clear_sky&timezone=auto&forecast_days=2').then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(function (j) {
+      var off = j.utc_offset_seconds || 0, H = j.hourly;
+      uv = { off: off, hours: H.time.map(function (t, i) { return { ms: Date.parse(t + ':00Z') - off * 1000, uv: H.uv_index[i] || 0, clear: H.uv_index_clear_sky ? H.uv_index_clear_sky[i] : null }; }) };
+      var today = H.time[0].slice(0, 10), d0 = new Date(Date.now() + off * 1000).toISOString().slice(0, 10);
+      uv.hours = uv.hours.filter(function (x) { return new Date(x.ms + off * 1000).toISOString().slice(0, 10) === d0 || x.ms > Date.now(); }).slice(0, 36);
+      if (j.current && j.current.uv_index != null) { uv.cur = j.current.uv_index; uv.curMs = Date.now(); }
+      $('msg').textContent = name + ' · UV from Open-Meteo' + (today ? '' : '');
+      update(); chart();
+    }).catch(function () { $('msg').textContent = 'Couldn\'t reach the UV forecast. Check your connection and try again.'; });
+  }
+  PLACES.forEach(function (p, i) {
+    var b = document.createElement('button'); b.className = 'sm'; b.type = 'button'; b.textContent = p[0]; b.setAttribute('aria-pressed', 'false');
+    b.onclick = function () { pick(b); load(p[1], p[2], p[0]); try { localStorage.setItem('sunburnPlace', i); } catch (e) {} };
+    $('where').appendChild(b);
+  });
+  function pick(b) { [].forEach.call(document.querySelectorAll('#where .sm'), function (x) { x.setAttribute('aria-pressed', x === b); }); }
+  $('me').onclick = function () {
+    if (!navigator.geolocation) { $('msg').textContent = 'Your browser can\'t share a location.'; return; }
+    $('msg').textContent = 'Asking for your location…';
+    navigator.geolocation.getCurrentPosition(function (p) { pick($('me')); load(p.coords.latitude.toFixed(3), p.coords.longitude.toFixed(3), 'Your location'); }, function () { $('msg').textContent = 'Location was not shared. Pick a city instead.'; }, { maximumAge: 6e5, timeout: 10000 });
+  };
+  try {
+    var s = JSON.parse(localStorage.getItem(KEY) || 'null');
+    if (s) {
+      if (s.spf) $('spf').value = s.spf; $('thick').checked = !!s.thick; if (s.surf != null) $('surf').selectedIndex = s.surf;
+      st.appliedMs = s.appliedMs || null; st.swamMs = s.swamMs || null;
+      // an outing from an earlier day doesn't carry over
+      if (s.outAt && Date.now() - s.outAt < 12 * 3600e3) { st.outAt = s.outAt; st.dose = s.dose || 0; st.lastT = s.lastT; }
+      if (st.appliedMs && Date.now() - st.appliedMs > 12 * 3600e3) st.appliedMs = null;
+      if (s.type) setType(s.type);
+      if (st.appliedMs) setApplied(st.appliedMs);
+    }
+  } catch (e) {}
+  var i0 = 1; try { var sp = localStorage.getItem('sunburnPlace'); if (sp != null && PLACES[+sp]) i0 = +sp; } catch (e) {}
+  document.querySelectorAll('#where .sm')[i0 + 1].click();
+  setInterval(update, 1000);
+  setInterval(function () { if (!document.hidden) chart(); }, 60000);
+  var rz; window.addEventListener('resize', function () { clearTimeout(rz); rz = setTimeout(chart, 150); });
+})();
+</script>
+</body>
+</html>
