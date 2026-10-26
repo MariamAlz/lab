@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>QR Code Safety Scanner · Mariam's Lab</title>
+<meta name="description" content="Scan a QR code and see exactly what it does before you open it: where a link really goes, Wi-Fi details, app installs, payment requests and other tricks.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/qr-check/">
+<meta property="og:title" content="QR Code Safety Scanner · Mariam's Lab"><meta property="og:description" content="See what a QR code does before you open it."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.cam { position: relative; aspect-ratio: 1; max-width: 420px; width: 100%; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); background: #05070f; display: grid; place-items: center; }
+.cam video, .cam canvas.v { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.cam .aim { position: absolute; inset: 18%; border: 2px solid rgba(255,255,255,.7); border-radius: 18px; box-shadow: 0 0 0 999px rgba(0,0,0,.35); pointer-events: none; }
+.cam p { position: relative; color: var(--muted); font-size: 0.9rem; text-align: center; padding: 0 20px; }
+.btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.sm { font: inherit; font-size: 0.85rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 7px 14px; cursor: pointer; }
+.sm.pri { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.drop { border: 1px dashed var(--line); border-radius: 12px; padding: 14px; text-align: center; color: var(--muted); font-size: 0.86rem; }
+.drop.on { border-color: var(--accent); color: var(--ink); }
+.res { padding: 18px; border-radius: var(--radius); border: 1px solid var(--line); background: rgba(7,10,24,.82); display: grid; gap: 12px; }
+.res .big { font-family: var(--font-display); font-size: clamp(1.4rem, 4vw, 2rem); font-weight: 800; line-height: 1.1; }
+.raw { font-family: var(--font-mono); font-size: 0.82rem; word-break: break-all; padding: 10px 12px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); }
+.raw mark { background: var(--accent); color: var(--bg); border-radius: 3px; padding: 0 2px; }
+.checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.checks li { display: grid; grid-template-columns: 1.4em minmax(0, 1fr); gap: 8px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; font-size: 0.92rem; }
+.checks small { display: block; color: var(--muted); font-size: 0.82rem; word-break: break-word; }
+.kv { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 14px; font-size: 0.9rem; margin: 0; }
+.kv dt { color: var(--muted); } .kv dd { margin: 0; font-family: var(--font-mono); font-size: 0.84rem; word-break: break-word; }
+.ok { color: var(--sat-b); } .bad { color: var(--sat-c); } .meh { color: var(--accent); } .na { color: var(--muted); }
+.tips { margin: 0; padding-inline-start: 1.1em; display: grid; gap: 6px; font-size: 0.88rem; color: var(--muted); }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Security</span>
+    <h1 style="font-size:var(--step-3)">QR code safety scanner.</h1>
+    <p>A phone camera opens a QR code the moment it sees one, and you can't read a QR code by eye. Scammers stick fake codes over real ones on parking meters, menus and posters. This scanner never opens anything. It shows what the code would do and flags the tricks first.</p>
+  </div>
+  <div class="game">
+    <div class="panel" style="display:grid;gap:12px;justify-items:start">
+      <div class="cam" id="cam"><p id="camMsg">Start the camera, or drop a photo or screenshot of a QR code below.</p></div>
+      <div class="btns"><button class="sm pri" type="button" id="start">Start camera</button><button class="sm" type="button" id="stop" hidden>Stop</button><label class="sm" style="cursor:pointer">Choose a photo<input type="file" id="file" accept="image/*" hidden></label></div>
+      <div class="drop" id="drop" style="width:100%">Drop or paste an image here (Ctrl+V works too)</div>
+      <button class="sm" type="button" id="demo">Try a fake parking QR</button>
+    </div>
+    <div style="display:grid;gap:14px;align-content:start">
+      <div class="res" id="res" hidden></div>
+      <div class="panel" style="display:grid;gap:10px">
+        <span class="label">Before you scan in the street</span>
+        <ul class="tips">
+          <li>Run a finger over the code. A sticker on top of the printed one is the classic parking-meter scam.</li>
+          <li>Pay parking through the official app or SMS number printed on the sign, never through a QR code you found on it.</li>
+          <li>A QR code that asks you to log in, pay a fine or "verify" anything is a red flag.</li>
+          <li>Restaurant menus are usually fine. If a menu code asks for card details, close the page and pay at the till.</li>
+        </ul>
+        <p class="fact" style="margin:0">Decoding happens on your device using jsQR (Apache 2.0). Nothing you scan is sent anywhere unless you choose "Check the site in depth".</p>
+      </div>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script src="../assets/vendor/jsQR.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var BRANDS = ['emiratesnbd', 'adcb', 'bankfab', 'fab', 'mashreq', 'dib', 'adib', 'rakbank', 'cbd', 'etisalat', 'eand', 'du', 'dewa', 'addc', 'rta', 'mohre', 'icp', 'uaepass', 'emirates', 'flydubai', 'etihad', 'airarabia', 'aramex', 'emiratespost', 'noon', 'amazon', 'paypal', 'apple', 'icloud', 'google', 'gmail', 'microsoft', 'outlook', 'office', 'whatsapp', 'instagram', 'facebook', 'netflix', 'dhl', 'fedex', 'careem', 'talabat', 'binance', 'coinbase', 'salik', 'tabby', 'tamara'];
+  var SECOND = /^(co|com|net|org|gov|ac|edu|sch|mil|nhs|ltd|plc)$/;
+  var RISKY_TLD = /\.(zip|mov|top|xyz|click|link|work|loan|win|gq|ml|cf|tk|ga|rest|cam|icu|buzz|sbs|cfd|monster|lol)$/;
+  var SHORT = /^(bit\.ly|tinyurl\.com|t\.co|goo\.gl|ow\.ly|is\.gd|cutt\.ly|rb\.gy|shorturl\.at|s\.id|t\.ly|rebrand\.ly)$/;
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function lev(a, b) { var d = []; for (var i = 0; i <= a.length; i++) { d[i] = [i]; } for (var j = 1; j <= b.length; j++) d[0][j] = j; for (i = 1; i <= a.length; i++) for (j = 1; j <= b.length; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); return d[a.length][b.length]; }
+  function unpuny(host) {
+    // decode xn-- labels (RFC 3492)
+    return host.split('.').map(function (l) {
+      if (l.indexOf('xn--') !== 0) return l;
+      var input = l.slice(4), out = [], n = 128, i = 0, bias = 72, b = input.lastIndexOf('-');
+      if (b > 0) for (var k = 0; k < b; k++) out.push(input.charCodeAt(k));
+      for (var idx = b > 0 ? b + 1 : 0; idx < input.length;) {
+        var oldi = i, w = 1;
+        for (var kk = 36; ; kk += 36) {
+          var c = input.charCodeAt(idx++), digit = c - 48 < 10 ? c - 22 : c - 65 < 26 ? c - 65 : c - 97 < 26 ? c - 97 : 36;
+          i += digit * w; var t = kk <= bias ? 1 : kk >= bias + 26 ? 26 : kk - bias; if (digit < t) break; w *= 36 - t;
+        }
+        var len = out.length + 1, delta = i - oldi; delta = oldi === 0 ? Math.floor(delta / 700) : delta >> 1; delta += Math.floor(delta / len);
+        for (var kb = 0; delta > 455; kb += 36) delta = Math.floor(delta / 35); bias = kb + Math.floor(36 * delta / (delta + 38));
+        n += Math.floor(i / len); i %= len; out.splice(i++, 0, n);
+      }
+      return String.fromCodePoint.apply(null, out);
+    }).join('.');
+  }
+  function registrable(host) { var p = host.split('.'); if (p.length <= 2) return host; return (SECOND.test(p[p.length - 2]) ? p.slice(-3) : p.slice(-2)).join('.'); }
+
+  function parse(q) {
+    q = q.trim(); var url;
+    try { url = new URL(/^[a-z]+:\/\//i.test(q) ? q : 'https://' + q); } catch (e) { return null; }
+    var host = url.hostname.replace(/\.$/, '').toLowerCase();
+    if (!/\./.test(host)) return null;
+    return { raw: q, url: url, host: host, reg: registrable(host), hasPath: /^[a-z]+:\/\//i.test(q) };
+  }
+  function linkChecks(p) {
+    var f = [], score = 0, u = p.url, host = p.host, shown = unpuny(host), reg = p.reg, regName = reg.split('.')[0];
+    if (shown !== host) { score += 3; f.push(['bad', 'Hidden international letters', 'It displays as "' + shown + '" but is really ' + host + '. Letters from other alphabets can look identical to Latin ones.']); }
+    if (/^\d+\.\d+\.\d+\.\d+$/.test(host) || host.indexOf(':') >= 0) { score += 2; f.push(['bad', 'A bare IP address', 'Real companies use names, not numbers.']); }
+    if (SHORT.test(host)) { score += 1; f.push(['meh', 'A link shortener', 'It hides where you will really end up. Ask the sender for the full link.']); }
+    var sub = host.slice(0, host.length - reg.length).replace(/\.$/, '');
+    BRANDS.forEach(function (b) {
+      if (regName === b || BRANDS.indexOf(regName) >= 0) return;
+      if (sub && sub.split(/[.-]/).indexOf(b) >= 0) { score += 3; f.push(['bad', 'Brand name in the wrong place', '"' + b + '" appears before the real domain, which is ' + reg + '. The part just before the ending is what counts.']); }
+      else if (regName.length >= 4 && b.length >= 4 && regName !== b && (regName.indexOf(b) >= 0 || lev(regName.replace(/0/g, 'o').replace(/1/g, 'l'), b) <= 1 || lev(regName, b) <= 2 && b.length >= 7)) { score += 2; f.push(['bad', 'Looks like ' + b, reg + ' is not ' + b + '\'s domain, but it is close enough to fool a quick glance.']); }
+    });
+    if (RISKY_TLD.test(host)) { score += 1; f.push(['meh', 'A cheap, often-abused ending', '.' + host.split('.').pop() + ' domains cost very little and are common in scam texts.']); }
+    var shownName = unpuny(reg).split('.')[0];
+    BRANDS.forEach(function (b) { if (regName !== b && shownName.split('-').indexOf(b) >= 0 && regName.indexOf('-') >= 0) { score += 2; var B = b.length <= 4 ? b.toUpperCase() : b; f.push(['bad', 'Borrows the name ' + B, reg + ' is not run by ' + B + '; anyone can buy a name with a company\'s name in it.']); } });
+    if ((shownName.match(/-/g) || []).length >= 2) { score += 1; f.push(['meh', 'Lots of hyphens', 'Names like "pay-fine-now-online" are a scam favourite.']); }
+    if (p.hasPath && u.protocol === 'http:') { score += 1; f.push(['meh', 'Not encrypted', 'The link starts with http://, so anything you type could be read on the way.']); }
+    if (u.username || u.password || /@/.test(p.raw.split('?')[0].replace(/^[a-z]+:\/\//i, '').split('/')[0])) { score += 3; f.push(['bad', 'An @ sign in the address', 'Everything before @ is ignored; you would really go to ' + host + '.']); }
+    if (p.hasPath && /login|verify|secure|update|account|confirm|pay|fine|refund|otp|wallet/i.test(u.pathname + u.search) && score) f.push(['meh', 'Asks you to act', 'The link points at a login, payment or verification page. Scams nearly always do.']);
+    if (!f.length) f.push(['ok', 'Nothing odd in the address', 'The name is plain and the real domain is ' + reg + '.']);
+    return { flags: f, score: score };
+  }
+  var ic = { ok: '✓', bad: '✕', meh: '!', na: '·' };
+  function list(f) { return '<ul class="checks">' + f.map(function (x) { return '<li><span class="' + x[0] + '">' + ic[x[0]] + '</span><span>' + esc(x[1]) + '<small>' + esc(x[2]) + '</small></span></li>'; }).join('') + '</ul>'; }
+  function kv(rows) { return '<dl class="kv">' + rows.filter(function (r) { return r[1]; }).map(function (r) { return '<dt>' + esc(r[0]) + '</dt><dd>' + esc(r[1]) + '</dd>'; }).join('') + '</dl>'; }
+  function fields(s, sep) { var o = {}; s.replace(/([A-Z]+):((?:\\.|[^;])*);/g, function (_, k, v) { o[k] = v.replace(/\\(.)/g, '$1'); }); return o; }
+  function verdict(level, title) { var c = { ok: 'var(--sat-b)', meh: 'var(--accent)', bad: 'var(--sat-c)', na: 'var(--ink)' }[level]; $('res').style.borderColor = c; return '<span class="label">This QR code</span><div class="big" style="color:' + c + '">' + esc(title) + '</div>'; }
+  function analyse(text) {
+    var t = text.trim(), low = t.toLowerCase(), h = '', f = [];
+    var rawHTML = '<div class="raw">' + esc(t) + '</div>';
+    if (/^https?:\/\//i.test(t)) {
+      var p = parse(t), r = p ? linkChecks(p) : { flags: [], score: 3 };
+      f = r.flags;
+      if (p && /parking|mawaqif|park|fine|salik|rta|police|traffic|toll/i.test(t) && !/^(rta\.ae|mawaqif\.ae|itc\.gov\.ae|salik\.ae|dubaipolice\.gov\.ae|adpolice\.gov\.ae|moi\.gov\.ae|parkin\.ae)$/.test(p.reg)) { r.score += 3; f.unshift(['bad', 'Parking or fine payment on an unofficial site', 'UAE parking and fines are paid on government sites or apps (RTA, Parkin, ITC, Mawaqif, police). ' + p.reg + ' is none of them.']); }
+      if (p && /\.gov\.ae$|\.ae$/.test(p.reg) && r.score === 0) f.push(['ok', 'A UAE address', p.reg + ' is registered under .ae.']);
+      var lvl = r.score >= 3 ? 'bad' : r.score >= 1 ? 'meh' : 'ok';
+      var shown = p ? esc(t).replace(esc(p.reg), '<mark>' + esc(p.reg) + '</mark>') : esc(t);
+      h = verdict(lvl, lvl === 'bad' ? 'Don\'t open this link' : lvl === 'meh' ? 'Open with care' : 'A normal-looking link') +
+        '<div class="raw">' + shown + '</div><p style="margin:0;font-size:.88rem;color:var(--muted)">The highlighted part is who really runs the site.</p>' + list(f) +
+        '<div class="btns"><a class="sm" href="../inspect/?q=' + encodeURIComponent(t) + '">Check the site in depth →</a>' + (lvl !== 'bad' ? '<a class="sm" href="' + esc(t) + '" target="_blank" rel="noopener noreferrer">Open it ↗</a>' : '') + '</div>';
+    } else if (/^wifi:/i.test(t)) {
+      var w = fields(t.slice(5)), sec = (w.T || 'nopass').toUpperCase();
+      f.push(sec === 'NOPASS' || sec === '' ? ['meh', 'An open network', 'Anyone nearby can see unencrypted traffic. Fine for browsing, but avoid banking without a VPN.'] : sec === 'WEP' ? ['bad', 'WEP security', 'WEP can be cracked in minutes. Treat it as an open network.'] : ['ok', sec + ' security', 'The network uses a password with modern encryption.']);
+      f.push(['na', 'Check the name with staff', 'Fake hotspots copy café and hotel network names. Ask what the real name is before joining.']);
+      h = verdict(sec === 'WEP' ? 'bad' : 'na', 'Joins a Wi-Fi network') + kv([['Network', w.S], ['Security', sec === 'NOPASS' ? 'none' : sec], ['Password', w.P ? '••••••• (tap to show)' : ''], ['Hidden', w.H === 'true' ? 'yes' : '']]) + list(f);
+      setTimeout(function () { var dd = [].filter.call(document.querySelectorAll('.kv dd'), function (d) { return /tap to show/.test(d.textContent); })[0]; if (dd) { dd.style.cursor = 'pointer'; dd.onclick = function () { dd.textContent = w.P; }; } });
+    } else if (/^begin:vcard|^mecard:/i.test(t)) {
+      var n = (t.match(/\nFN[^:]*:(.*)/i) || t.match(/N:([^;\n]*)/i) || [])[1], tel = (t.match(/TEL[^:]*:([^;\n]*)/i) || [])[1], em = (t.match(/EMAIL[^:]*:([^;\n]*)/i) || [])[1], url = (t.match(/URL[^:]*:([^\n;]*)/i) || [])[1];
+      h = verdict('ok', 'Adds a contact') + kv([['Name', n], ['Phone', tel], ['Email', em], ['Website', url]]) + list([['ok', 'Harmless by itself', 'Your phone will ask before saving. Check the details match who gave you the code.']]) + rawHTML;
+    } else if (/^(smsto?|mmsto):/i.test(t)) {
+      var parts = t.replace(/^(smsto?|mmsto):/i, '').split(/[:?]/), num = parts[0], body = parts.slice(1).join(':').replace(/^body=/i, '');
+      h = verdict('meh', 'Sends a text message') + kv([['To', num], ['Message', decodeURIComponent(body || '')]]) + list([['meh', 'Check the number before sending', 'Some codes send a text to a premium-rate number or sign you up to a paid service. Short numbers (4 to 6 digits) can charge your phone bill.']]);
+    } else if (/^tel:/i.test(t)) {
+      var nm = t.slice(4);
+      h = verdict(/^(\+971|0|8|9)/.test(nm.replace(/\s/g, '')) ? 'na' : 'meh', 'Calls a phone number') + kv([['Number', nm]]) + list([/^\+971|^0/.test(nm.replace(/\s/g, '')) ? ['ok', 'A UAE number', 'Your phone will show the number before calling.'] : ['meh', 'An international or unusual number', 'Calls abroad can be expensive, and scammers use them for callback fraud.']]);
+    } else if (/^mailto:/i.test(t)) {
+      var m = t.slice(7).split('?');
+      h = verdict('na', 'Writes an email') + kv([['To', decodeURIComponent(m[0])], ['Details', decodeURIComponent(m[1] || '').replace(/&/g, ' · ')]]) + list([['ok', 'Nothing is sent until you press send', 'Read the draft first.']]);
+    } else if (/^geo:/i.test(t)) {
+      var g = t.slice(4).split(/[,?;]/);
+      h = verdict('ok', 'Shows a place on a map') + kv([['Latitude', g[0]], ['Longitude', g[1]]]) + '<div class="btns"><a class="sm" target="_blank" rel="noopener" href="https://www.openstreetmap.org/?mlat=' + encodeURIComponent(g[0]) + '&mlon=' + encodeURIComponent(g[1]) + '#map=16/' + encodeURIComponent(g[0]) + '/' + encodeURIComponent(g[1]) + '">View on map ↗</a></div>';
+    } else if (/^(bitcoin|ethereum|litecoin|tron|usdt|solana|bnb):/i.test(t)) {
+      h = verdict('bad', 'Requests a crypto payment') + rawHTML + list([['bad', 'Crypto payments can\'t be reversed', 'No bank, government office or delivery company in the UAE asks for crypto through a QR code. If someone urges you to pay this way, it\'s almost certainly a scam.']]);
+    } else if (/^otpauth:/i.test(t)) {
+      var o; try { o = new URL(t); } catch (e) {}
+      h = verdict('meh', 'Sets up a two-factor login code') + kv([['Account', o && decodeURIComponent(o.pathname.replace(/^\/+(totp|hotp)\//, ''))], ['Issuer', o && o.searchParams.get('issuer')]]) + list([['meh', 'Only scan this from the site\'s own security page', 'This code contains a secret key. Anyone with it can generate your login codes. Never scan one someone sends you, and never share a screenshot of it.']]);
+    } else if (/^(intent|market|itms-services|itms-apps|ms-appinstaller):/i.test(t)) {
+      h = verdict(/itms-services|ms-appinstaller/i.test(t) ? 'bad' : 'meh', 'Opens or installs an app') + rawHTML + list([/itms-services|ms-appinstaller/i.test(t) ? ['bad', 'Installs an app from outside the App Store', 'This bypasses Apple or Microsoft checks. Only do this for your employer\'s own apps.'] : ['meh', 'Opens an app or app store page', 'Check the app\'s name and developer in the store before installing.']]);
+    } else if (/^(javascript|data|file|vbscript):/i.test(t)) {
+      h = verdict('bad', 'Runs code or loads a hidden page') + rawHTML + list([['bad', 'No legitimate QR code does this', 'This tries to run code or show a page built into the code itself. Don\'t open it.']]);
+    } else if (/^begin:vevent|^begin:vcalendar/i.test(t)) {
+      var su = (t.match(/SUMMARY:(.*)/i) || [])[1], st = (t.match(/DTSTART[^:]*:(.*)/i) || [])[1];
+      h = verdict('ok', 'Adds a calendar event') + kv([['Event', su], ['Starts', st]]) + list([['ok', 'Your calendar asks before adding', 'Check any links inside the event before tapping them.']]);
+    } else if (/^[\w.-]+\.[a-z]{2,}(\/\S*)?$/i.test(t)) { return analyse('https://' + t);
+    } else {
+      h = verdict('ok', 'Just text') + rawHTML + list([['ok', 'Plain text', 'This code only shows words. It can\'t open anything by itself.']].concat(/https?:\/\//i.test(t) ? [['meh', 'Mentions a link', 'The text includes a web address. Check it with the link inspector before visiting.']] : []));
+    }
+    $('res').innerHTML = h; $('res').hidden = false;
+    if (window.innerWidth < 900) $('res').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  // decoding
+  var cv = document.createElement('canvas'), cx = cv.getContext('2d', { willReadFrequently: true }), stream = null, video = null, raf = 0, last = '';
+  function decode(src, w, h) {
+    var s = Math.min(1, 1200 / Math.max(w, h)); cv.width = Math.round(w * s); cv.height = Math.round(h * s);
+    cx.drawImage(src, 0, 0, cv.width, cv.height);
+    var d = cx.getImageData(0, 0, cv.width, cv.height);
+    return jsQR(d.data, d.width, d.height, { inversionAttempts: 'attemptBoth' });
+  }
+  function fromImage(file) {
+    if (!file || !/^image\//.test(file.type)) return;
+    var img = new Image(); img.onload = function () {
+      var r = decode(img, img.naturalWidth, img.naturalHeight); URL.revokeObjectURL(img.src);
+      if (r && r.data) analyse(r.data); else { $('res').hidden = false; $('res').style.borderColor = ''; $('res').innerHTML = '<b>No QR code found.</b><p style="margin:0;color:var(--muted)">Try a sharper photo, closer, with the whole code in view and no glare.</p>'; }
+    }; img.src = URL.createObjectURL(file);
+  }
+  function tick() {
+    if (video.readyState >= 2) { var r = decode(video, video.videoWidth, video.videoHeight); if (r && r.data && r.data !== last) { last = r.data; if (navigator.vibrate) navigator.vibrate(60); analyse(r.data); stop(); return; } }
+    raf = requestAnimationFrame(tick);
+  }
+  function stop() { cancelAnimationFrame(raf); if (stream) stream.getTracks().forEach(function (t) { t.stop(); }); stream = null; $('stop').hidden = true; $('start').hidden = false; $('start').textContent = 'Scan another'; }
+  $('start').onclick = function () {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { $('camMsg').textContent = 'This browser can\'t use the camera here. Choose a photo instead.'; return; }
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false }).then(function (s) {
+      stream = s; last = ''; $('cam').innerHTML = '<video playsinline muted></video><div class="aim"></div>'; video = $('cam').querySelector('video'); video.srcObject = s; video.play();
+      $('start').hidden = true; $('stop').hidden = false; raf = requestAnimationFrame(tick);
+    }).catch(function () { $('cam').innerHTML = '<p id="camMsg">Camera access was blocked. Allow it in your browser settings, or choose a photo instead.</p>'; });
+  };
+  $('stop').onclick = stop;
+  $('file').onchange = function () { fromImage(this.files[0]); this.value = ''; };
+  var dr = $('drop');
+  dr.addEventListener('dragover', function (e) { e.preventDefault(); dr.classList.add('on'); });
+  dr.addEventListener('dragleave', function () { dr.classList.remove('on'); });
+  dr.addEventListener('drop', function (e) { e.preventDefault(); dr.classList.remove('on'); fromImage(e.dataTransfer.files[0]); });
+  document.addEventListener('paste', function (e) { var it = [].filter.call(e.clipboardData.items || [], function (x) { return /^image\//.test(x.type); })[0]; if (it) fromImage(it.getAsFile()); });
+  $('demo').onclick = function () { analyse('https://rta-parking-pay.top/fine?plate=verify'); };
+  window.QRCHECK = analyse;
+})();
+</script>
+</body>
+</html>

@@ -102,7 +102,7 @@
     if (SHORT.test(host)) { score += 1; f.push(['meh', 'A link shortener', 'It hides where you will really end up. Ask the sender for the full link.']); }
     var sub = host.slice(0, host.length - reg.length).replace(/\.$/, '');
     BRANDS.forEach(function (b) {
-      if (regName === b) return;
+      if (regName === b || BRANDS.indexOf(regName) >= 0) return;
       if (sub && sub.split(/[.-]/).indexOf(b) >= 0) { score += 3; f.push(['bad', 'Brand name in the wrong place', '"' + b + '" appears before the real domain, which is ' + reg + '. The part just before the ending is what counts.']); }
       else if (regName.length >= 4 && b.length >= 4 && regName !== b && (regName.indexOf(b) >= 0 || lev(regName.replace(/0/g, 'o').replace(/1/g, 'l'), b) <= 1 || lev(regName, b) <= 2 && b.length >= 7)) { score += 2; f.push(['bad', 'Looks like ' + b, reg + ' is not ' + b + '\'s domain, but it is close enough to fool a quick glance.']); }
     });
