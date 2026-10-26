@@ -80,7 +80,9 @@
   .lbl ul { font-size: var(--lsz, 10pt); }
   .lbl .fx span { font-size: 10pt; }
 }
+html.ar .blist li { border-left: 1px solid var(--line); border-right: 5px solid var(--rc, var(--line)); }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar noprint"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -152,7 +154,7 @@
   function save() { try { localStorage.setItem('boxLabels', JSON.stringify(S)); } catch (e) {} }
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function hasAr(s) { return /[؀-ۿ]/.test(s); }
-  function txt(s) { return hasAr(s) ? '<span dir="rtl" lang="ar">' + esc(s) + '</span>' : esc(s); }
+  function txt(s) { return hasAr(s) ? '<span dir="rtl" lang="ar">' + esc(s) + '</span>' : '<span data-noar>' + esc(s) + '</span>'; }
   function roomColor(room) {
     var rs = []; S.boxes.forEach(function (b) { var k = b.room.trim().toLowerCase(); if (rs.indexOf(k) < 0) rs.push(k); });
     var i = rs.indexOf(room.trim().toLowerCase()); return PAL[(i < 0 ? rs.length : i) % PAL.length];
@@ -230,7 +232,7 @@
   // ---- list
   function renderList() {
     $('blist').innerHTML = S.boxes.length ? S.boxes.map(function (b) {
-      return '<li style="--rc:' + roomColor(b.room) + '" data-id="' + b.id + '"><span class="no">' + b.no + '</span><div style="min-width:0"><b>' + txt(b.room) + '</b>' + (b.flags ? '<span class="fl">' + b.flags.split('').map(function (f) { return FL[f]; }).join(' · ').toUpperCase() + '</span>' : '') + '<small>' + (b.items.length ? b.items.map(esc).join(', ') : 'No contents listed') + '</small></div><span class="act"><button type="button" data-e="' + b.id + '">Edit</button><button type="button" data-d="' + b.id + '" aria-label="Delete box ' + b.no + '">✕</button></span></li>';
+      return '<li style="--rc:' + roomColor(b.room) + '" data-id="' + b.id + '"><span class="no">' + b.no + '</span><div style="min-width:0"><b>' + txt(b.room) + '</b>' + (b.flags ? '<span class="fl">' + b.flags.split('').map(function (f) { return FL[f]; }).join(' · ').toUpperCase() + '</span>' : '') + '<small>' + (b.items.length ? '<span data-noar>' + b.items.map(esc).join(', ') + '</span>' : 'No contents listed') + '</small></div><span class="act"><button type="button" data-e="' + b.id + '">Edit</button><button type="button" data-d="' + b.id + '" aria-label="Delete box ' + b.no + '">✕</button></span></li>';
     }).join('') : '<li style="grid-template-columns:1fr"><small>No boxes yet. Add your first one above.</small></li>';
     var items = 0, frag = 0; S.boxes.forEach(function (b) { items += b.items.length; if (b.flags.indexOf('f') >= 0) frag++; });
     $('sBoxes').textContent = S.boxes.length; $('sItems').textContent = items; $('sFrag').textContent = frag;
@@ -242,12 +244,12 @@
   };
 
   // ---- search
-  var STOP = { which: 1, what: 1, where: 1, box: 1, boxes: 1, has: 1, have: 1, is: 1, are: 1, the: 1, a: 1, an: 1, my: 1, our: 1, in: 1, did: 1, i: 1, put: 1, pack: 1, packed: 1, of: 1, with: 1, it: 1, 'in?': 1 };
+  var STOP = { which: 1, what: 1, where: 1, box: 1, boxes: 1, has: 1, have: 1, is: 1, are: 1, the: 1, a: 1, an: 1, my: 1, our: 1, in: 1, did: 1, i: 1, put: 1, pack: 1, packed: 1, of: 1, with: 1, it: 1, 'in?': 1, 'أي': 1, 'اي': 1, 'ما': 1, 'ماذا': 1, 'أين': 1, 'اين': 1, 'في': 1, 'فيه': 1, 'فيها': 1, 'صندوق': 1, 'الصندوق': 1, 'صناديق': 1, 'الذي': 1, 'التي': 1, 'هل': 1, 'من': 1, 'على': 1, 'وضعت': 1 };
   function search() {
-    var q = $('q').value.toLowerCase().replace(/[?!.,]/g, ' ').trim();
+    var q = $('q').value.toLowerCase().replace(/[?!.,؟،]/g, ' ').trim();
     var words = q.split(/\s+/).filter(function (w) { return w && !STOP[w]; });
     if (!words.length) { $('found').innerHTML = q ? '<p class="msg">Type the thing you\'re looking for, like "kettle" or "passports".</p>' : ''; return; }
-    function stem(w) { return w.replace(/(es|s)$/, ''); }
+    function stem(w) { return hasAr(w) ? w.replace(/^(و?)(ال)(?=..)/, '') : w.replace(/(es|s)$/, ''); }
     var res = [];
     S.boxes.forEach(function (b) {
       var hits = b.items.filter(function (it) { var l = it.toLowerCase(); return words.every(function (w) { return l.indexOf(stem(w)) >= 0; }); });
@@ -256,7 +258,7 @@
     });
     function mark(s) { var h = esc(s); words.forEach(function (w) { var st = stem(w).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); if (st) h = h.replace(new RegExp('(' + st + ')', 'ig'), '<mark>$1</mark>'); }); return h; }
     $('found').innerHTML = res.length ? res.slice(0, 12).map(function (r) {
-      return '<div class="r"><b>Box ' + r.b.no + '</b> · ' + txt(r.b.room) + (r.hits.length ? '<br>' + r.hits.map(mark).join(', ') : '<br><span class="msg">All boxes for this room</span>') + '</div>';
+      return '<div class="r"><b>Box ' + r.b.no + '</b> · ' + txt(r.b.room) + (r.hits.length ? '<br><span data-noar>' + r.hits.map(mark).join(', ') + '</span>' : '<br><span class="msg">All boxes for this room</span>') + '</div>';
     }).join('') : '<p class="msg">Nothing matches "' + esc(words.join(' ')) + '". It may be listed under another word.</p>';
   }
   $('q').oninput = search;

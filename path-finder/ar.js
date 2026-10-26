@@ -1,0 +1,33 @@
+LabAr.add({
+  "Path Finder": "مستكشف المسار",
+  "Experiment · Algorithms": "تجربة · الخوارزميات",
+  "Path finder.": "مستكشف المسار.",
+  "Get from the green dot to the gold one. Draw walls and soft sand (slow, costs 5), then watch how different search algorithms explore. Some find the cheapest route; some just find a route, fast.": "انتقل من النقطة الخضراء إلى الذهبية. ارسم جدرانًا ورملًا ناعمًا (بطيء، تكلفته 5)، ثم شاهد كيف تستكشف خوارزميات البحث المختلفة الطريق. بعضها يجد أرخص مسار، وبعضها يجد أي مسار بسرعة.",
+  "Grid map. Draw with the selected brush; drag the dots to move them.": "خريطة شبكية. ارسم بالفرشاة المختارة، واسحب النقطتين لتحريكهما.",
+  "Brush": "الفرشاة",
+  "Draw": "ارسم",
+  "Wall": "جدار",
+  "Sand": "رمل",
+  "Eraser": "ممحاة",
+  "Map": "الخريطة",
+  "Maze": "متاهة",
+  "Desert": "صحراء",
+  "A*": "\u2066A*\u2069",
+  "Cheapest route, heads for the goal.": "أرخص مسار، ويتجه نحو الهدف.",
+  "Dijkstra": "ديكسترا",
+  "Cheapest route, explores evenly in all directions.": "أرخص مسار، ويستكشف بالتساوي في كل الاتجاهات.",
+  "Breadth-first": "البحث بالعرض أولًا",
+  "Fewest squares, ignores sand cost.": "أقل عدد من المربعات، ويتجاهل تكلفة الرمل.",
+  "Greedy best-first": "البحث الجشع (الأفضل أولًا)",
+  "Rushes at the goal. Fast, not always cheap.": "يندفع نحو الهدف. سريع، لكنه ليس الأرخص دائمًا.",
+  "Find the way": "ابحث عن الطريق",
+  "Race all four": "سباق بين الأربعة",
+  "Looked at": "مربعات فُحصت",
+  "Steps": "الخطوات",
+  "Cost": "التكلفة",
+  "blocked": "مسدود",
+  "no way through": "لا يوجد طريق",
+  "A* is what sat-navs and game characters use: it explores like Dijkstra but leans toward the goal with a guess of the remaining distance. As long as that guess never overestimates, A* still finds the cheapest route, while looking at far fewer squares.": "خوارزمية A* هي ما تستخدمه أجهزة الملاحة وشخصيات الألعاب: تستكشف مثل ديكسترا لكنها تميل نحو الهدف بتقدير للمسافة المتبقية. وما دام هذا التقدير لا يبالغ أبدًا، تجد A* أرخص مسار مع فحص عدد أقل بكثير من المربعات."
+}, [
+  [/^(\d+) looked · cost (\d+)$/, 'فُحص $1 · التكلفة $2']
+]);

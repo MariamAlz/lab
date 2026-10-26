@@ -31,7 +31,9 @@
 .log b { color: var(--ink); }
 .acts { display: flex; flex-wrap: wrap; gap: 10px; }
 .btn:disabled { opacity: .45; cursor: default; transform: none; }
+html.ar .rose { direction: ltr; }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -179,7 +181,7 @@
       var x = mx(p.lon), y = my(p.lat), isD = p === dest; c.fillStyle = isD ? '#E9B467' : '#132046'; c.strokeStyle = '#E9B467'; c.lineWidth = 1.5 * u;
       c.beginPath(); c.arc(x, y, (isD ? 5 : 3.5) * u, 0, 7); c.fill(); c.stroke();
       c.fillStyle = '#132046'; c.font = '600 ' + (11 * u) + 'px "Instrument Sans", sans-serif';
-      var t = p.n, tw = c.measureText(t).width, lx = p.lon > 70 ? x - tw - 8 * u : x + 8 * u;
+      var t = window.LabAr && LabAr.on ? p.ar : p.n, tw = c.measureText(t).width, lx = p.lon > 70 ? x - tw - 8 * u : x + 8 * u;
       c.fillStyle = 'rgba(7,10,24,0.65)'; c.fillRect(lx - 3 * u, y - 10 * u, tw + 6 * u, 14 * u); c.fillStyle = isD ? '#E9B467' : '#EEF0FA'; c.fillText(t, lx, y + 1 * u);
     });
     function track(tr, col, dash) { if (tr.length < 2) return; c.strokeStyle = col; c.lineWidth = 2 * u; c.setLineDash(dash ? [4 * u, 4 * u] : []); c.beginPath(); tr.forEach(function (p, i) { if (i) c.lineTo(mx(p[0]), my(p[1])); else c.moveTo(mx(p[0]), my(p[1])); }); c.stroke(); c.setLineDash([]); }

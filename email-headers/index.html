@@ -46,7 +46,14 @@ details.how li { margin: 4px 0; }
 .res[hidden] { display: none !important; }
 h3.sub { font-size: 1rem; font-weight: 700; margin-top: 6px; }
 @media (max-width: 520px) { .auth b { font-size: 0.82rem; } }
+html.ar #raw { unicode-bidi: plaintext; }
+html.ar .route b { direction: ltr; text-align: right; }
+html.ar .route li { padding: 0 28px 16px 0; }
+html.ar .route li::before { left: auto; right: 7px; }
+html.ar .route li::after { left: auto; right: 12px; }
+html.ar .kv dd { direction: ltr; text-align: right; unicode-bidi: plaintext; }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -219,7 +226,7 @@ h3.sub { font-size: 1rem; font-weight: 700; margin-top: 6px; }
 
     // who
     var who = [['From', fromA], ['Display name', disp], ['Reply-To', reply], ['Return-Path', rp], ['Signed by (DKIM)', dk], ['Message-ID host', midD], ['First public IP', (rec.filter(function (r) { return r.ip && !priv(r.ip); })[0] || {}).ip], ['Subject', one(h, 'subject')], ['Date', one(h, 'date')], ['Mail program', mailer]];
-    $('who').innerHTML = who.filter(function (x) { return x[1]; }).map(function (x) { return '<dt>' + x[0] + '</dt><dd>' + esc(x[1]) + '</dd>'; }).join('');
+    $('who').innerHTML = who.filter(function (x) { return x[1]; }).map(function (x) { return '<dt>' + x[0] + '</dt><dd data-noar>' + esc(x[1]) + '</dd>'; }).join('');
 
     var v = score >= 4 ? ['bad', 'Very likely spoofed or phishing', 'Several warning signs together. Don\'t click links or reply; report it as phishing.']
       : score >= 2 ? ['meh', 'Suspicious', 'Something doesn\'t line up. Check with the sender through a channel you already trust.']

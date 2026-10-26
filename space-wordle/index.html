@@ -49,7 +49,9 @@
 .legend span { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 6px; font-family: var(--font-display); font-weight: 800; margin-inline-end: 8px; vertical-align: middle; }
 .legend span.tile { aspect-ratio: auto; font-size: 0.9rem; border-width: 0; }
 .next { font-family: var(--font-mono); font-size: 0.85rem; color: var(--muted); }
+html.ar .grid, html.ar .kb, html.ar #dword { direction: ltr; }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -61,14 +63,14 @@
   </div>
   <div class="sw">
     <div class="play">
-      <div class="grid" id="grid" aria-label="Guesses"></div>
+      <div class="grid" id="grid" aria-label="Guesses" data-noar></div>
       <p class="msg" id="msg" role="status" aria-live="polite"></p>
-      <div class="kb" id="kb" aria-label="Keyboard"></div>
+      <div class="kb" id="kb" aria-label="Keyboard" data-noar></div>
     </div>
     <div class="side">
       <div class="done" id="done" hidden>
         <span class="label" id="dlab">Today's word</span>
-        <h2 id="dword"></h2>
+        <h2 id="dword" data-noar></h2>
         <p id="dfact"></p>
         <div class="acts">
           <button class="btn primary" id="shareB" type="button">Share result</button>
@@ -84,9 +86,9 @@
       </div>
       <div class="dist" id="dist" aria-label="Guess distribution"></div>
       <div class="legend">
-        <div><span class="tile c" aria-hidden="true">O</span>Right letter, right spot.</div>
-        <div><span class="tile p" aria-hidden="true">R</span>In the word, wrong spot.</div>
-        <div><span class="tile a" aria-hidden="true">B</span>Not in the word.</div>
+        <div><span class="tile c" aria-hidden="true" data-noar>O</span>Right letter, right spot.</div>
+        <div><span class="tile p" aria-hidden="true" data-noar>R</span>In the word, wrong spot.</div>
+        <div><span class="tile a" aria-hidden="true" data-noar>B</span>Not in the word.</div>
       </div>
       <p class="fact">Type on your keyboard or tap the keys. A new word arrives at midnight in Abu Dhabi.</p>
     </div>

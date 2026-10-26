@@ -1,0 +1,45 @@
+(function () {
+  var WHY = { 'eyes closed': 'عينان مغمضتان', 'turned away': 'الوجه ملتفت', 'looking away': 'النظر بعيد' };
+  LabAr.add({
+    "Open-Eyes Group Photo": "صورة جماعية بعيون مفتوحة",
+    "Tool · Camera · Photos": "أداة · الكاميرا · الصور",
+    "A group photo that waits for open eyes.": "صورة جماعية تنتظر العيون المفتوحة.",
+    "In every family photo someone blinks. Set how many people are in the shot and prop up your phone. The camera watches every face and takes the picture only when everyone's eyes are open and they're facing the lens. The photos stay on your phone.": "في كل صورة عائلية هناك من يرمش. حدّد عدد الأشخاص في الصورة وثبّت هاتفك. تراقب الكاميرا كل وجه ولا تلتقط الصورة إلا حين تكون عيون الجميع مفتوحة ووجوههم متجهة إلى العدسة. تبقى الصور على هاتفك.",
+    "Looking for faces…": "جارٍ البحث عن الوجوه…",
+    "Start the camera": "شغّل الكاميرا",
+    "Your browser will ask to use the camera. The face model (about 4 MB) downloads once. Nothing you film is uploaded.": "سيطلب متصفحك إذن استخدام الكاميرا. يُنزَّل نموذج الوجوه (نحو 4 ميغابايت) مرة واحدة. لا يُرفع شيء مما تصوّره.",
+    "Take it now": "التقط الآن",
+    "Switch camera": "بدّل الكاميرا",
+    "Auto-capture on": "الالتقاط التلقائي مفعّل",
+    "Auto-capture off": "الالتقاط التلقائي متوقف",
+    "People in the photo": "عدد الأشخاص في الصورة",
+    "Burst": "التصوير المتتابع",
+    "Single photo": "صورة واحدة",
+    "3 photos": "3 صور",
+    "5 photos": "5 صور",
+    "Hold steady for": "الثبات لمدة",
+    "Pause after each capture": "التوقف بعد كل التقاط",
+    "Your photos": "صورك",
+    "Photos you take appear here. Tap Download to save one.": "تظهر هنا الصور التي تلتقطها. انقر \"تنزيل\" لحفظ أي منها.",
+    "The face model finds 478 points on each face and scores 52 expressions, including how closed each eye is and where the eyes are looking. A blink scores above about 0.5. The camera also checks that each nose is roughly centred between the cheeks, which means the head is turned to the lens.": "يحدّد نموذج الوجوه 478 نقطة على كل وجه ويقيّم 52 تعبيرًا، منها مدى انغلاق كل عين واتجاه النظر. تتجاوز درجة الرمشة نحو 0.5. وتتحقق الكاميرا أيضًا من أن الأنف في منتصف المسافة بين الخدّين تقريبًا، أي أن الرأس متجه إلى العدسة.",
+    "It's approximate. Glasses with glare, very small faces at the back of a big group, strong backlight and people in profile can confuse it. Use the burst to get a few to choose from, and keep the faces reasonably large in the frame.": "النتيجة تقريبية. قد تربكها النظارات اللامعة، والوجوه الصغيرة جدًا في آخر مجموعة كبيرة، والإضاءة الخلفية القوية، والوجوه الجانبية. استخدم التصوير المتتابع لتختار من بين عدة صور، واجعل الوجوه كبيرة بما يكفي في الإطار.",
+    "eyes closed": "عينان مغمضتان", "turned away": "الوجه ملتفت", "looking away": "النظر بعيد",
+    "Photo taken.": "تم التقاط الصورة.",
+    "Loading the face model…": "جارٍ تحميل نموذج الوجوه…",
+    "Camera on.": "الكاميرا تعمل.",
+    "Ready. Frame everyone and wait for the green boxes.": "جاهز. اجعل الجميع داخل الإطار وانتظر المربعات الخضراء.",
+    "Camera permission was refused. Allow it in your browser settings and try again.": "رُفض إذن الكاميرا. اسمح به من إعدادات المتصفح وحاول مرة أخرى.",
+    "This device has no other camera.": "لا توجد كاميرا أخرى في هذا الجهاز.",
+    "Start the camera first.": "شغّل الكاميرا أولًا.",
+    "Everyone ready. Pausing between shots": "الجميع جاهزون. استراحة بين اللقطات",
+    "Everyone ready. Hold still": "الجميع جاهزون. اثبتوا"
+  }, [
+    [/^([\d.]+) s$/, '$1 ث'],
+    [/^(\d+) \/ (\d+) ready$/, '$1 / $2 جاهزون'],
+    [/^I can see (\d+) of (\d+) faces$/, 'أرى $1 من $2 وجوه'],
+    [/^Waiting: (.+)$/, function (m, w) { return 'بانتظار: ' + w.split(', ').map(function (x) { return WHY[x] || x; }).join('، '); }],
+    [/^Took (\d+) photos\. Pick the best below\.$/, 'التُقطت $1 صور. اختر أفضلها أدناه.'],
+    [/^Captured photo (\d+)$/, 'الصورة الملتقطة $1'],
+    [/^Couldn't start: ([\s\S]+)\. Check your connection for the first model download\.$/, 'تعذّر البدء: $1. تحقّق من اتصالك لتنزيل النموذج أول مرة.']
+  ]);
+})();

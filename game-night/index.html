@@ -64,7 +64,9 @@ table.sheet tfoot td.lead { color: var(--accent); }
 .wheel b { font-family: var(--font-display); font-weight: 800; font-size: clamp(1.8rem, 7vw, 2.8rem); padding: 10px 22px; border-radius: 14px; border: 3px solid var(--c, var(--line)); transition: border-color .1s; overflow-wrap: anywhere; text-align: center; }
 .sw { display: flex; gap: 8px; align-items: center; font-size: 0.88rem; cursor: pointer; }
 .sw input { accent-color: var(--accent); width: 18px; height: 18px; }
+html.ar #sides button, html.ar .total small, html.ar .hist span { direction: ltr; unicode-bidi: isolate; }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -125,9 +127,10 @@ table.sheet tfoot td.lead { color: var(--accent); }
   'use strict';
   var $ = function (id) { return document.getElementById(id); };
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  var PN = window.LabAr && LabAr.on ? 'لاعب ' : 'Player '; // default names start in the page's language
   var COLS = ['#e9b467', '#4fd3bd', '#84a0ff', '#f08ab3', '#9be36a', '#ff8a4c', '#c79bff', '#5ad1ff'];
   var st = {
-    players: [{ n: 'Player 1', c: COLS[0] }, { n: 'Player 2', c: COLS[1] }, { n: 'Player 3', c: COLS[2] }],
+    players: [{ n: PN + 1, c: COLS[0] }, { n: PN + 2, c: COLS[1] }, { n: PN + 3, c: COLS[2] }],
     sides: 6, count: 2, mod: 0, custom: 7, hist: [],
     mode: 'none', secs: 60, beep: true, cur: 0, round: 1, bank: [], low: false,
     scores: [[], [], []]
@@ -153,7 +156,7 @@ table.sheet tfoot td.lead { color: var(--accent); }
   }
   $('players').addEventListener('input', function (e) {
     var row = e.target.closest('.pl'); if (!row) return; var p = st.players[+row.dataset.i];
-    if (e.target.type === 'color') p.c = e.target.value; else p.n = e.target.value || 'Player';
+    if (e.target.type === 'color') p.c = e.target.value; else p.n = e.target.value || PN.trim();
     save(); renderTurn(); renderSheet(true);
   });
   $('players').addEventListener('click', function (e) {
@@ -170,7 +173,7 @@ table.sheet tfoot td.lead { color: var(--accent); }
   function swap(a, i, j) { var t = a[i]; a[i] = a[j]; a[j] = t; }
   $('addP').onclick = function () {
     if (st.players.length >= 12) return;
-    var n = st.players.length; st.players.push({ n: 'Player ' + (n + 1), c: COLS[n % COLS.length] }); st.scores.push([]); st.bank.push(st.secs);
+    var n = st.players.length; st.players.push({ n: PN + (n + 1), c: COLS[n % COLS.length] }); st.scores.push([]); st.bank.push(st.secs);
     save(); all();
   };
   $('shuffle').onclick = function () {

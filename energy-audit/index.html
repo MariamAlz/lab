@@ -63,6 +63,7 @@ table.slabs input { width: 6em; font: inherit; font-family: var(--font-mono); fo
 .row input { width: 5em; font: inherit; font-family: var(--font-mono); color: var(--ink); background: rgba(7,10,24,.55); border: 1px solid var(--line); border-radius: 6px; padding: 3px 6px; }
 #tip { position: fixed; pointer-events: none; z-index: 20; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 6px 9px; font-size: 0.8rem; display: none; max-width: 240px; }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -133,14 +134,18 @@ table.slabs input { width: 6em; font: inherit; font-family: var(--font-mono); fo
   };
   function acW(it) { return Math.round((P[it.p] ? P[it.p][5] : 1.5) * KW_TON[it.ac || 'std'] * 1000); }
   function mk(p, n, h, ac) { var x = P[p]; var it = { p: p, n: n || 1, h: h != null ? h : x[4], d: x[3], ac: ac }; it.w = x[5] ? 0 : x[2]; if (x[5]) { it.ac = ac || 'std'; it.w = acW(it); } return it; }
+  // Arabic mode starts the sample with Arabic room names (they are the user's own data after that)
+  var AR = window.LabAr && LabAr.on, RN = { 'Living room': 'غرفة الجلوس', 'Main bedroom': 'غرفة النوم الرئيسية', 'Second bedroom': 'غرفة النوم الثانية', 'Kitchen': 'المطبخ', 'Bathrooms and laundry': 'الحمّامات والغسيل' };
   function sample() {
-    return [
+    var a = [
       { name: 'Living room', items: [mk('ac2', 1, 12, 'std'), mk('tv', 1, 5), mk('led', 8, 6), mk('router'), mk('standby')] },
       { name: 'Main bedroom', items: [mk('ac15', 1, 9, 'old'), mk('led', 4, 3), mk('halogen', 4, 2)] },
       { name: 'Second bedroom', items: [mk('ac15', 1, 8, 'inv'), mk('led', 3, 3), mk('laptop', 1, 5)] },
       { name: 'Kitchen', items: [mk('fridge'), mk('oven', 1, 0.7), mk('micro'), mk('kettle'), mk('dispenser')] },
       { name: 'Bathrooms and laundry', items: [mk('wh50', 2), mk('washer', 1, 1), mk('dryer', 1, 0.7), mk('iron')] }
     ];
+    if (AR) a.forEach(function (r) { r.name = RN[r.name] || r.name; });
+    return a;
   }
   var TARIFFS = [
     ['dewa', 'Dubai, DEWA (residential)', [[2000, 23], [4000, 28], [6000, 32], [null, 38]], 6, 5, 'DEWA slab tariff as listed on dewa.gov.ae in October 2026, with a fuel surcharge of 6 fils per kWh for that month and 5% VAT. The surcharge changes monthly.'],
@@ -205,7 +210,7 @@ table.slabs input { width: 6em; font: inherit; font-family: var(--font-mono); fo
     if (t.dataset.delroom != null) { st.rooms.splice(ri, 1); save(); renderRooms(); }
     else if (t.dataset.del != null) { st.rooms[ri].items.splice(+t.closest('.item').dataset.i, 1); save(); renderRooms(); }
   });
-  $('addRoom').onclick = function () { st.rooms.push({ name: 'Room ' + (st.rooms.length + 1), items: [] }); save(); renderRooms(); };
+  $('addRoom').onclick = function () { st.rooms.push({ name: (AR ? 'غرفة ' : 'Room ') + (st.rooms.length + 1), items: [] }); save(); renderRooms(); };
   $('reset').onclick = function () { st.rooms = sample(); save(); renderRooms(); };
   $('empty').onclick = function () { if (confirm('Remove all rooms?')) { st.rooms = []; save(); renderRooms(); } };
 

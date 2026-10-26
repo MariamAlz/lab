@@ -437,3 +437,14 @@ LabAr.add({
  "Cost per visit and break-even for any gym, pool, club or class membership, with a tap-to-log visit counter.": "تكلفة الزيارة الواحدة ونقطة التعادل لأي اشتراك في نادٍ رياضي أو مسبح أو نادٍ أو حصص، مع عدّاد لتسجيل زياراتك بلمسة.",
  "Check →": "تحقّق ←"
 });
+/* index cards for newer tools */
+LabAr.add({
+ "Tool · Night sky": "أداة · سماء الليل",
+ "How dark is your sky?": "ما مدى ظلمة سمائك؟",
+ "Match a constellation to star charts and get your Bortle class, next to cities and deserts in the UAE.": "طابق كوكبة مع خرائط النجوم واعرف درجة بورتل لسمائك، مقارنة بمدن الإمارات وصحرائها.",
+ "Count stars →": "عُدّ النجوم ←",
+ "Tool · Travel · UAE": "أداة · السفر · الإمارات",
+ "Smart packing list": "قائمة التجهيز الذكية",
+ "A checklist sized to your trip length, the weather where you're going and your plans, with passport, adapter and power bank reminders for UAE travellers.": "قائمة تجهيز تناسب مدة رحلتك وطقس وجهتك وخططك، مع تذكيرات للمسافرين من الإمارات بشأن جواز السفر والمحوّل والشاحن المتنقل.",
+ "Start packing →": "ابدأ التجهيز ←"
+});

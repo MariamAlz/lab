@@ -57,7 +57,10 @@ section.pg[hidden], [hidden] { display: none !important; }
 .wlist li { display: flex; justify-content: space-between; gap: 8px; padding: 4px 8px; border-radius: 6px; background: rgba(255,255,255,.04); font-family: var(--font-mono); }
 .dateNav { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 .dateNav b { font-family: var(--font-display); font-size: 1.1rem; min-width: 8em; text-align: center; }
+html.ar .rings b { direction: ltr; unicode-bidi: isolate; }
+html.ar #dPrev, html.ar #dNext { transform: scaleX(-1); }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -351,10 +354,12 @@ section.pg[hidden], [hidden] { display: none !important; }
   (function () { var h = new Date().getHours(); $('meal').value = h < 11 ? 'breakfast' : h < 16 ? 'lunch' : h < 21 ? 'dinner' : 'snacks'; })();
 
   // ---- search and pick ----
+  // lowercases; for Arabic also drops harakat and folds alef/ta marbuta/ya variants (English unchanged)
+  function fold(s) { return s.toLowerCase().replace(/[\u064B-\u0652\u0640]/g, '').replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي'); }
   function search(q, lim) {
-    q = q.trim().toLowerCase(); if (!q) return [];
+    q = fold(q.trim()); if (!q) return [];
     var words = q.split(/\s+/);
-    return allFoods().map(function (f) { var n = f.n.toLowerCase(), sc = 0; for (var i = 0; i < words.length; i++) { var k = n.indexOf(words[i]); if (k < 0) return null; sc += k === 0 ? 3 : (n.charAt(k - 1) === ' ' || n.charAt(k - 1) === '(' ? 2 : 1); } return { f: f, sc: sc + (f.src !== 'db' ? 1 : 0) }; })
+    return allFoods().map(function (f) { var n = fold(f.n + (window.LabAr && LabAr.on ? ' ' + LabAr.t(f.n) : '')), sc = 0; for (var i = 0; i < words.length; i++) { var k = n.indexOf(words[i]); if (k < 0) return null; sc += k === 0 ? 3 : (n.charAt(k - 1) === ' ' || n.charAt(k - 1) === '(' ? 2 : 1); } return { f: f, sc: sc + (f.src !== 'db' ? 1 : 0) }; })
       .filter(Boolean).sort(function (a, b) { return b.sc - a.sc || a.f.n.length - b.f.n.length; }).slice(0, lim || 25).map(function (x) { return x.f; });
   }
   function resLi(f, i) { var por = Math.round(f.k * f.g / 100); return '<li data-i="' + i + '"><span>' + esc(f.n) + (f.src === 'off' ? ' <small>(barcode)</small>' : f.src === 'custom' || f.src === 'recipe' ? ' <small>(mine)</small>' : '') + '</span><small>' + esc(f.por) + ' (' + f.g + ' g) · ' + por + ' kcal · per 100 g: ' + Math.round(f.k) + ' kcal, P ' + f.p + ' C ' + f.c + ' F ' + f.f + ' fibre ' + f.fb + '</small></li>'; }
@@ -366,7 +371,7 @@ section.pg[hidden], [hidden] { display: none !important; }
   $('res').addEventListener('click', function (ev) { var li = ev.target.closest('[data-i]'); if (!li) return; showPick(found[+li.dataset.i]); });
   function showPick(f) {
     picked = f;
-    $('pick').innerHTML = '<b>' + esc(f.n) + '</b><div class="line"><input type="number" id="pkN" value="1" min="0" step="0.25" aria-label="Amount"><select id="pkU" class="inp" aria-label="Unit"><option value="por">× ' + esc(f.por) + ' (' + f.g + ' g)</option><option value="g">grams</option></select></div><div class="macro" id="pkOut"></div><div class="line"><button class="sm pri" type="button" id="pkAdd">Add to ' + $('meal').selectedOptions[0].textContent.toLowerCase() + '</button><button class="sm" type="button" id="pkX">Cancel</button></div>';
+    $('pick').innerHTML = '<b>' + esc(f.n) + '</b><div class="line"><input type="number" id="pkN" value="1" min="0" step="0.25" aria-label="Amount"><select id="pkU" class="inp" aria-label="Unit"><option value="por">× ' + esc(f.por) + ' (' + f.g + ' g)</option><option value="g">grams</option></select></div><div class="macro" id="pkOut"></div><div class="line"><button class="sm pri" type="button" id="pkAdd">Add to ' + MEALS.filter(function (m) { return m[0] === $('meal').value; })[0][1].toLowerCase() + '</button><button class="sm" type="button" id="pkX">Cancel</button></div>';
     $('pick').hidden = false;
     function upd() { var g = grams(); var e = scaled(f, g); $('pkOut').textContent = e.g + ' g · ' + e.k + ' kcal · P ' + e.p + ' C ' + e.c + ' F ' + e.f + ' fibre ' + e.fb; }
     function grams() { var n = Math.max(0, +$('pkN').value || 0); return $('pkU').value === 'g' ? n : n * f.g; }

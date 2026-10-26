@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>How Dark Is Your Sky? · Mariam's Lab</title>
+<meta name="description" content="Measure your sky's darkness with your own eyes: match a constellation to star charts, then see your naked-eye limiting magnitude, sky brightness and Bortle class, compared with cities and deserts in the UAE.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/sky-darkness/">
+<meta property="og:title" content="How Dark Is Your Sky? · Mariam's Lab"><meta property="og:description" content="Count the stars in one constellation and find your Bortle class."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.where { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.msg { font-size: 0.88rem; color: var(--muted); min-height: 1.2em; margin: 0; }
+.target { padding: 16px; border: 1px solid var(--line); border-radius: var(--radius); background: rgba(7,10,24,.82); display: grid; gap: 6px; margin-top: 12px; }
+.target b.big { font-family: var(--font-display); font-size: clamp(1.4rem, 4vw, 2rem); font-weight: 800; line-height: 1.1; }
+.moonw { padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(255,200,87,.5); background: rgba(255,200,87,.08); font-size: 0.88rem; }
+.moonw[hidden] { display: none; }
+.stepsl { margin: 0; padding-inline-start: 20px; display: grid; gap: 6px; font-size: 0.9rem; }
+.charts { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.chart { font: inherit; color: var(--ink); background: #03050d; border: 2px solid var(--line); border-radius: 12px; padding: 0 0 8px; cursor: pointer; display: grid; gap: 4px; overflow: hidden; }
+.chart canvas { width: 100%; aspect-ratio: 1; display: block; }
+.chart span { font-size: 0.8rem; }
+.chart small { font-family: var(--font-mono); font-size: 0.7rem; color: var(--muted); }
+.chart[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(255,200,87,.2); }
+.chart.more { display: grid; place-items: center; align-content: center; padding: 16px 8px; text-align: center; min-height: 150px; }
+.res { display: grid; gap: 10px; padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.res[hidden] { display: none; }
+.res .cls { font-family: var(--font-display); font-size: clamp(1.5rem, 4.5vw, 2.2rem); font-weight: 800; line-height: 1.1; }
+.scale { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 3px; direction: ltr; }
+.scale div { height: 34px; border-radius: 6px; display: grid; place-items: center; font-family: var(--font-mono); font-size: 0.78rem; color: rgba(0,0,0,.75); font-weight: 600; }
+.scale div.on { outline: 3px solid var(--ink); outline-offset: 1px; }
+.scalelab { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--muted); }
+.uae { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+.uae th, .uae td { padding: 7px 6px; border-bottom: 1px solid var(--line); text-align: start; vertical-align: top; }
+.uae td.n { font-family: var(--font-mono); white-space: nowrap; }
+.uae tr.you td { color: var(--accent); }
+html.ar .uae td.n { font-family: inherit; }
+.cl { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 0.86rem; }
+.cl li { display: grid; grid-template-columns: 2.2em minmax(0, 1fr); gap: 8px; align-items: baseline; }
+.cl li b { font-family: var(--font-mono); text-align: center; border-radius: 6px; color: #0b1020; padding: 1px 0; }
+.cl li.on { color: var(--accent); }
+.tips { margin: 0; padding-inline-start: 18px; display: grid; gap: 6px; font-size: 0.9rem; }
+.stats span { font-size: 0.76rem; color: var(--muted); }
+.btnrow { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.past { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 0.84rem; color: var(--muted); }
+</style>
+<script src="../assets/sky.js"></script>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Space · Night sky · UAE</span>
+    <h1 style="font-size:var(--step-3)">How dark is your sky?</h1>
+    <p>You don't need a meter to measure light pollution. Your eyes will do. Find one constellation, compare it with the charts below, and pick the one that matches what you see. You'll get the faintest star you can see, the sky brightness and the Bortle darkness class, next to typical spots around the UAE.</p>
+  </div>
+  <div class="where" id="where"><button class="sm" type="button" id="me">📍 Use my location</button></div>
+  <p class="msg" id="locmsg" role="status"></p>
+  <div class="target" id="target"><b class="big" id="tName">…</b><span class="msg" id="tWhere"></span></div>
+  <p class="moonw" id="moonw" hidden></p>
+  <div class="btnrow" style="margin-top:10px" id="cons" role="group" aria-label="Constellation"></div>
+
+  <div class="game" style="margin-top:18px">
+    <div class="panel" style="gap:12px">
+      <span class="label">Which chart matches what you see?</span>
+      <ol class="stepsl">
+        <li>Go somewhere away from direct lights, and wait 15 to 20 minutes without looking at your phone.</li>
+        <li id="stepFind">Find the constellation in the sky.</li>
+        <li>Pick the chart where the faintest stars just match the faintest ones you can see.</li>
+      </ol>
+      <div class="charts" id="charts"></div>
+      <p class="msg">Charts are shown with north up and east to the left, as when you face south. The sky turns through the night, so the pattern may look tilted.</p>
+    </div>
+    <div class="panel" style="gap:12px">
+      <div class="res" id="res" hidden>
+        <span class="label">Your sky</span>
+        <div class="cls" id="rCls"></div>
+        <div class="stats">
+          <div><b id="rNelm">–</b><span>faintest star (magnitude)</span></div>
+          <div><b id="rSqm">–</b><span>sky brightness, mag/arcsec²</span></div>
+          <div><b id="rBort">–</b><span>Bortle class</span></div>
+        </div>
+        <div class="scale" id="scale"></div>
+        <div class="scalelab"><span>Darkest</span><span>Brightest</span></div>
+        <p id="rDesc" style="margin:0"></p>
+        <p class="msg" id="rNote"></p>
+      </div>
+      <p class="msg" id="pick">Tap a chart to see your result.</p>
+      <span class="label">Around the UAE</span>
+      <table class="uae"><thead><tr><th>Typical spot</th><th>Bortle</th><th>Faintest star</th></tr></thead><tbody id="uae"></tbody></table>
+      <p class="msg">Rough values from satellite light-pollution maps and observers' reports. Dust and humidity can make any spot one or two classes worse on a hazy night.</p>
+      <ul class="past" id="past"></ul>
+    </div>
+  </div>
+
+  <div class="game" style="margin-top:22px">
+    <div class="panel" style="gap:10px">
+      <span class="label">The Bortle scale</span>
+      <ul class="cl" id="classes"></ul>
+    </div>
+    <div class="panel" style="gap:10px">
+      <span class="label">Tips for a good count</span>
+      <ul class="tips">
+        <li><b>Let your eyes adapt.</b> Pupils open in a minute, but the rods in your retina take 20 to 30 minutes to reach full sensitivity. One glance at a bright screen resets much of it.</li>
+        <li><b>Use red light.</b> Rods barely respond to deep red, so a red torch or a phone's red night mode keeps your night vision.</li>
+        <li><b>Check the Moon.</b> A bright Moon washes out faint stars almost as badly as a city. Count in the week around the new moon, or after the Moon sets.</li>
+        <li><b>Look a little to the side.</b> The edge of your vision is more sensitive in the dark. Astronomers call this averted vision.</li>
+        <li><b>Pick a clear night.</b> Dust, haze and summer humidity in the UAE dim faint stars. The best nights often come after rain or a strong wind.</li>
+      </ul>
+      <p class="fact" style="margin:0">Star brightness uses the magnitude scale, where bigger numbers are fainter. Each step is about 2.5 times dimmer. Under a pristine desert sky most people see stars to about magnitude 6.5 or 7, which is around 4,000 to 5,000 stars over the whole sky. In a city centre the limit drops to 3 or 4, leaving a few dozen. The same method is used by the Globe at Night citizen science campaign, which has collected hundreds of thousands of counts since 2006.</p>
+      <p class="fact" style="margin:0">Want the darkest sky? The <a href="../desert-night/">desert night planner</a> finds moonless, clear nights at camping spots across the UAE.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  // Star fields: [name, RA h, RA min, Dec deg, Dec arcmin, V mag]. Positions J2000, magnitudes from the Yale Bright Star Catalogue, rounded.
+  function S(n, h, m, d, dm, v) { return { n: n, ra: (h + m / 60) * 15, dec: d < 0 || Object.is(d, -0) ? d - dm / 60 : d + dm / 60, m: v }; }
+  var CONS = [
+    { id: 'orion', name: 'Orion', season: 'winter', stars: [
+      S('Betelgeuse', 5, 55.2, 7, 24, 0.5), S('Rigel', 5, 14.5, -8, 12, 0.13), S('Bellatrix', 5, 25.1, 6, 21, 1.64), S('Mintaka', 5, 32.0, -0, 18, 2.23), S('Alnilam', 5, 36.2, -1, 12, 1.69), S('Alnitak', 5, 40.8, -1, 57, 1.77), S('Saiph', 5, 47.8, -9, 40, 2.06),
+      S('Meissa', 5, 35.1, 9, 56, 3.39), S('iota', 5, 35.4, -5, 55, 2.77), S('theta1', 5, 35.3, -5, 23, 4.0), S('theta2', 5, 35.4, -5, 25, 5.0), S('42', 5, 35.4, -4, 50, 4.6), S('sigma', 5, 38.7, -2, 36, 3.8), S('eta', 5, 24.5, -2, 24, 3.35),
+      S('pi3', 4, 49.8, 6, 58, 3.19), S('pi2', 4, 50.6, 8, 54, 4.36), S('pi4', 4, 51.2, 5, 36, 3.69), S('pi5', 4, 54.2, 2, 26, 3.72), S('pi1', 4, 54.9, 10, 9, 4.65), S('pi6', 4, 58.5, 1, 43, 4.47), S('o2', 4, 56.4, 13, 31, 4.07), S('o1', 4, 52.5, 14, 15, 4.74),
+      S('phi1', 5, 34.8, 9, 29, 4.41), S('phi2', 5, 36.9, 9, 17, 4.09), S('mu', 6, 2.4, 9, 39, 4.12), S('xi', 6, 11.9, 14, 13, 4.48), S('nu', 6, 7.6, 14, 46, 4.42), S('chi1', 5, 54.4, 20, 17, 4.39), S('chi2', 6, 3.9, 20, 8, 4.63),
+      S('tau', 5, 17.6, -6, 51, 3.6), S('psi2', 5, 27.0, 3, 6, 4.59), S('omega', 5, 39.2, 4, 7, 4.57), S('31', 5, 29.7, -1, 6, 4.71), S('upsilon', 5, 31.9, -7, 18, 4.62), S('29', 5, 24.0, -7, 48, 4.13), S('rho', 5, 13.3, 2, 52, 4.46),
+      S('32', 5, 30.8, 5, 57, 4.2), S('33', 5, 31.2, 3, 18, 5.46), S('23', 5, 22.8, 3, 33, 4.99), S('22', 5, 21.8, -0, 23, 4.73), S('69', 6, 12.0, 16, 8, 4.95), S('51', 5, 42.5, 1, 29, 4.91), S('49', 5, 38.6, -7, 13, 4.8), S('psi1', 5, 24.7, 1, 51, 4.95),
+      S('15', 5, 9.7, 15, 36, 4.82), S('11', 5, 4.6, 15, 24, 4.68), S('56', 5, 52.4, 1, 51, 4.78), S('60', 6, 0.1, 0, 33, 5.22), S('52', 5, 48.0, 6, 27, 5.27), S('38', 5, 34.3, 3, 46, 5.36), S('27', 5, 24.5, -0, 53, 5.08), S('45', 5, 37.0, -4, 51, 5.25),
+      S('6', 5, 5.6, 11, 32, 5.19), S('5', 5, 3.9, 2, 36, 5.33), S('14', 5, 7.9, 8, 30, 5.34), S('21', 5, 19.2, 2, 36, 5.34), S('16', 5, 9.3, 9, 50, 5.43), S('64', 6, 3.9, 19, 41, 5.14), S('71', 6, 14.8, 19, 9, 5.2), S('72', 6, 15.4, 16, 8, 5.3), S('74', 6, 16.4, 12, 16, 5.04)
+    ], lines: [['Betelgeuse', 'Meissa'], ['Meissa', 'Bellatrix'], ['Betelgeuse', 'Alnitak'], ['Bellatrix', 'Mintaka'], ['Mintaka', 'Alnilam'], ['Alnilam', 'Alnitak'], ['Alnitak', 'Saiph'], ['Mintaka', 'Rigel'], ['Bellatrix', 'pi3'], ['pi3', 'pi2'], ['pi2', 'pi1'], ['pi3', 'pi4'], ['pi4', 'pi5'], ['pi5', 'pi6'], ['Betelgeuse', 'mu'], ['mu', 'xi'], ['xi', 'nu'], ['mu', 'chi1'], ['chi1', 'chi2']] },
+    { id: 'scorpius', name: 'Scorpius', season: 'summer', stars: [
+      S('Antares', 16, 29.4, -26, 26, 1.06), S('Shaula', 17, 33.6, -37, 6, 1.62), S('Sargas', 17, 37.3, -43, 0, 1.86), S('Dschubba', 16, 0.3, -22, 37, 2.29), S('eps', 16, 50.2, -34, 18, 2.29), S('kappa', 17, 42.5, -39, 2, 2.39), S('Acrab', 16, 5.4, -19, 48, 2.62),
+      S('Lesath', 17, 30.8, -37, 18, 2.69), S('tau', 16, 35.9, -28, 13, 2.82), S('pi', 15, 58.9, -26, 7, 2.89), S('sigma', 16, 21.2, -25, 36, 2.9), S('iota1', 17, 47.6, -40, 8, 2.99), S('mu1', 16, 51.9, -38, 3, 3.04), S('mu2', 16, 52.3, -38, 1, 3.57),
+      S('G', 17, 49.9, -37, 3, 3.19), S('eta', 17, 12.2, -43, 14, 3.33), S('zeta2', 16, 54.6, -42, 22, 3.62), S('zeta1', 16, 53.9, -42, 22, 4.73), S('rho', 15, 56.9, -29, 13, 3.88), S('omega1', 16, 6.8, -20, 40, 3.93), S('omega2', 16, 7.4, -20, 52, 4.32),
+      S('nu', 16, 12.0, -19, 28, 3.9), S('psi', 16, 12.0, -10, 4, 4.94), S('chi', 16, 13.8, -11, 50, 5.22), S('omicron', 16, 20.6, -24, 10, 4.55), S('13', 16, 12.3, -27, 56, 4.58), S('22', 16, 30.2, -25, 7, 4.79), S('H', 16, 36.4, -35, 15, 4.18),
+      S('N', 16, 31.4, -34, 42, 4.23), S('iota2', 17, 50.2, -40, 5, 4.79), S('Q', 17, 36.6, -38, 38, 4.27), S('1', 15, 51.0, -25, 45, 4.64), S('2', 15, 53.6, -25, 20, 4.59), S('18', 16, 15.6, -8, 22, 5.5), S('xi', 16, 4.4, -11, 22, 4.16)
+    ], lines: [['Acrab', 'Dschubba'], ['Dschubba', 'pi'], ['Acrab', 'nu'], ['Dschubba', 'sigma'], ['sigma', 'Antares'], ['Antares', 'tau'], ['tau', 'eps'], ['eps', 'mu1'], ['mu1', 'zeta2'], ['zeta2', 'eta'], ['eta', 'Sargas'], ['Sargas', 'iota1'], ['iota1', 'kappa'], ['kappa', 'Shaula'], ['Shaula', 'Lesath']] },
+    { id: 'cygnus', name: 'Cygnus', season: 'summer and autumn', stars: [
+      S('Deneb', 20, 41.4, 45, 17, 1.25), S('Sadr', 20, 22.2, 40, 15, 2.23), S('Gienah', 20, 46.2, 33, 58, 2.48), S('delta', 19, 45.0, 45, 8, 2.87), S('Albireo', 19, 30.7, 27, 58, 3.08), S('zeta', 21, 12.9, 30, 14, 3.21), S('xi', 21, 4.9, 43, 56, 3.72), S('tau', 21, 14.8, 38, 3, 3.72),
+      S('iota', 19, 29.7, 51, 44, 3.79), S('kappa', 19, 17.1, 53, 22, 3.77), S('o1', 20, 13.6, 46, 44, 3.79), S('o2', 20, 15.5, 47, 43, 3.98), S('eta', 19, 56.3, 35, 5, 3.89), S('nu', 20, 57.2, 41, 10, 3.94), S('theta', 19, 36.4, 50, 13, 4.48), S('sigma', 21, 17.4, 39, 24, 4.23),
+      S('upsilon', 21, 18.1, 34, 54, 4.43), S('rho', 21, 34.0, 45, 36, 3.98), S('61', 21, 6.9, 38, 45, 4.8), S('phi', 19, 39.4, 30, 9, 4.69), S('lambda', 20, 47.4, 36, 29, 4.53), S('mu', 21, 44.1, 28, 45, 4.49), S('39', 20, 23.9, 32, 11, 4.43), S('41', 20, 29.4, 30, 22, 4.01),
+      S('52', 20, 45.6, 30, 43, 4.22), S('28', 20, 9.4, 36, 50, 4.93), S('29', 20, 14.5, 36, 48, 4.97), S('30', 20, 13.3, 46, 49, 4.83), S('33', 20, 13.4, 56, 34, 4.3), S('15', 19, 44.3, 37, 21, 4.89), S('17', 19, 46.4, 33, 44, 4.99), S('9', 19, 34.8, 29, 28, 5.38),
+      S('8', 19, 31.8, 34, 27, 4.74), S('2', 19, 24.1, 29, 37, 4.97), S('pi1', 21, 42.1, 51, 11, 4.67), S('pi2', 21, 46.8, 49, 19, 4.23), S('63', 21, 6.6, 47, 39, 4.55), S('59', 20, 59.8, 47, 31, 4.74), S('60', 21, 1.2, 46, 9, 5.37), S('55', 20, 48.9, 46, 7, 4.84),
+      S('56', 20, 50.0, 44, 3, 5.04), S('47', 20, 33.9, 35, 15, 4.61), S('72', 21, 34.8, 38, 32, 4.9), S('68', 21, 18.5, 43, 57, 5.0), S('71', 21, 29.4, 46, 32, 5.24), S('25', 20, 0.0, 37, 0, 5.19), S('26', 20, 1.4, 50, 6, 5.05), S('35', 20, 18.7, 34, 59, 5.17)
+    ], lines: [['Deneb', 'Sadr'], ['Sadr', 'eta'], ['eta', 'Albireo'], ['Gienah', 'Sadr'], ['Sadr', 'delta'], ['delta', 'iota'], ['iota', 'kappa'], ['Gienah', 'zeta']] },
+    { id: 'pegasus', name: 'Pegasus', season: 'autumn', stars: [
+      S('Enif', 21, 44.2, 9, 53, 2.39), S('Scheat', 23, 3.8, 28, 5, 2.42), S('Markab', 23, 4.8, 15, 12, 2.49), S('Algenib', 0, 13.2, 15, 11, 2.83), S('Alpheratz', 0, 8.4, 29, 5, 2.06), S('eta', 22, 43.0, 30, 13, 2.94), S('zeta', 22, 41.5, 10, 50, 3.4),
+      S('mu', 22, 50.0, 24, 36, 3.48), S('theta', 22, 10.2, 6, 12, 3.53), S('iota', 22, 7.0, 25, 21, 3.76), S('lambda', 22, 46.5, 23, 34, 3.95), S('kappa', 21, 44.6, 25, 39, 4.13), S('xi', 22, 46.7, 12, 10, 4.19), S('pi', 22, 10.0, 33, 11, 4.29), S('omicron', 22, 41.8, 29, 18, 4.79),
+      S('nu', 22, 5.7, 5, 3, 4.84), S('tau', 23, 20.6, 23, 44, 4.6), S('upsilon', 23, 25.4, 23, 24, 4.4), S('phi', 23, 52.5, 19, 7, 5.08), S('psi', 23, 57.8, 25, 9, 4.66), S('chi', 0, 14.6, 20, 12, 4.8), S('1', 21, 22.1, 19, 48, 4.08), S('9', 21, 44.5, 17, 21, 4.34),
+      S('2', 21, 30.0, 23, 39, 4.57), S('sigma', 22, 52.4, 9, 50, 5.16), S('rho', 22, 55.2, 8, 49, 4.9), S('55', 23, 7.0, 9, 25, 4.52), S('56', 23, 7.1, 25, 28, 4.76), S('59', 23, 11.7, 8, 43, 5.16), S('66', 23, 22.7, 12, 19, 5.08), S('70', 23, 29.2, 12, 46, 4.55),
+      S('78', 23, 44.0, 29, 22, 4.93), S('35', 22, 27.9, 4, 42, 4.79), S('31', 22, 21.5, 12, 13, 5.01), S('32', 22, 21.0, 28, 20, 4.81), S('71', 23, 35.0, 22, 30, 5.32)
+    ], lines: [['Alpheratz', 'Scheat'], ['Scheat', 'Markab'], ['Markab', 'Algenib'], ['Algenib', 'Alpheratz'], ['Markab', 'zeta'], ['zeta', 'theta'], ['theta', 'Enif'], ['Scheat', 'eta'], ['eta', 'pi'], ['Scheat', 'mu'], ['mu', 'lambda'], ['lambda', 'iota'], ['iota', 'kappa']] }
+  ];
+  CONS.forEach(function (c) {
+    var x = 0, y = 0, z = 0; c.stars.forEach(function (s) { var r = Math.PI / 180; x += Math.cos(s.dec * r) * Math.cos(s.ra * r); y += Math.cos(s.dec * r) * Math.sin(s.ra * r); z += Math.sin(s.dec * r); });
+    c.ra = (Math.atan2(y, x) * 180 / Math.PI + 360) % 360; c.dec = Math.atan2(z, Math.hypot(x, y)) * 180 / Math.PI;
+    c.by = {}; c.stars.forEach(function (s) { c.by[s.n] = s; });
+  });
+  var LIMITS = [1, 2, 3, 3.5, 4, 4.5, 5, 5.5];
+
+  // ---- conversions ----
+  // NELM <-> SQM (mag/arcsec²), the formula used by Unihedron for its Sky Quality Meter
+  function nelmToSqm(n) { return 21.58 - 5 * Math.log10(Math.pow(10, 1.586 - n / 5) - 1); }
+  function sqmToNelm(q) { return 7.93 - 5 * Math.log10(Math.pow(10, 4.316 - q / 5) + 1); }
+  // Bortle (2001) limiting magnitude ranges
+  function bortle(n) { return n >= 7.6 ? 1 : n >= 7.1 ? 2 : n >= 6.6 ? 3 : n >= 6.1 ? 4 : n >= 5.6 ? 5 : n >= 5.1 ? 6 : n >= 4.6 ? 7 : n >= 4.1 ? 8 : 9; }
+  var BCOL = ['#0b1a3a', '#12306a', '#1f4f9a', '#2f7fb8', '#4fb6a3', '#b5c94f', '#ffc857', '#ff8a4c', '#ff4f6d'];
+  var BTXT = [
+    ['Excellent dark sky', 'The Milky Way casts faint shadows. Zodiacal light and the faint gegenschein are visible. Rare anywhere near people.'],
+    ['Truly dark sky', 'The Milky Way is full of detail and the zodiacal light is bright. The deep desert on a clear winter night.'],
+    ['Rural sky', 'A little glow from towns on the horizon, but the Milky Way still looks complex and textured overhead.'],
+    ['Rural and suburban edge', 'Light domes over towns in several directions. The Milky Way is clear overhead but fades near the horizon.'],
+    ['Suburban sky', 'The Milky Way is faint and washed out, and gone near the horizon. Clouds look brighter than the sky.'],
+    ['Bright suburban sky', 'The Milky Way is barely visible, only straight up on the best nights. The sky glows grey near the horizon.'],
+    ['Suburban and city edge', 'No Milky Way. The whole sky has a grey or orange glow, and only the main constellation patterns stand out.'],
+    ['City sky', 'The sky is bright grey or orange. You can see the brightest stars of the main constellations and not much else.'],
+    ['Inner-city sky', 'Only the Moon, the planets and a handful of the brightest stars. Most constellations are unrecognisable.']
+  ];
+  var UAE = [['Downtown Dubai or central Abu Dhabi', '9', '3 to 4'], ['Suburbs such as Mirdif or Khalifa City', '7 to 8', '4 to 4.8'], ['Edge of town, Al Ain outskirts', '6', '5 to 5.5'], ['Al Qudra or Al Wathba desert', '4 to 5', '5.5 to 6.2'], ['Jebel Jais summit area', '4', '6 to 6.3'], ['Liwa and the edge of the Empty Quarter', '2 to 3', '6.6 to 7.3']];
+
+  // ---- place and time ----
+  var PLACES = [['Abu Dhabi', 24.4539, 54.3773], ['Dubai', 25.2048, 55.2708], ['Sharjah', 25.3463, 55.4209], ['Al Ain', 24.2075, 55.7447], ['Ras Al Khaimah', 25.7895, 55.9432], ['Fujairah', 25.1288, 56.3265], ['Liwa', 23.1333, 53.7667]];
+  var loc = { name: 'Dubai', lat: 25.2048, lon: 55.2708 }, chosen = null, manual = null, when = null;
+  try { var sv = JSON.parse(localStorage.getItem('skyDark') || 'null'); if (sv && sv.loc) loc = sv.loc; } catch (e) {}
+  function sunAlt(ms) { var b = Sky.bodies(ms)[0], l = Sky.lst(ms, loc.lon); return Sky.toHoriz(b.ra, b.dec, l, loc.lat).alt; }
+  function darkTime() {
+    var now = Date.now(); if (sunAlt(now) < -15) return { ms: now, now: true };
+    for (var k = 1; k <= 48; k++) { var t = now + k * 30 * 60000; if (sunAlt(t) < -18) return { ms: t + 30 * 60000, now: false }; }
+    return { ms: now, now: true };
+  }
+  function altOf(c, ms) { return Sky.toHoriz(c.ra, c.dec, Sky.lst(ms, loc.lon), loc.lat); }
+  var DIRS = ['north', 'north-east', 'east', 'south-east', 'south', 'south-west', 'west', 'north-west'];
+  function dir(az) { return DIRS[Math.round(az / 45) % 8]; }
+  function hhmm(ms) { var d = new Date(ms), h = d.getHours(), m = d.getMinutes(); return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0'); }
+  function pickCons(ms) {
+    var best = null;
+    CONS.forEach(function (c) { var h = altOf(c, ms); if (!best || h.alt > best.h.alt) best = { c: c, h: h }; });
+    return best;
+  }
+  function update() {
+    when = darkTime();
+    var auto = pickCons(when.ms), c = manual || auto.c, h = altOf(c, when.ms);
+    chosen = c;
+    [].forEach.call($('cons').children, function (b) { b.setAttribute('aria-pressed', b.dataset.c === c.id); });
+    $('tName').textContent = c.name;
+    var t = hhmm(when.ms), d = dir(h.az), alt = Math.round(h.alt);
+    if (h.alt < 10) $('tWhere').textContent = c.name + ' is below or near the horizon ' + (when.now ? 'right now' : 'at ' + t) + '. Pick another constellation, or try at a different time of year. It is best seen in ' + c.season + '.';
+    else $('tWhere').textContent = (when.now ? 'Up now, ' : 'Dark from about ' + t + '. Then it is ') + alt + '° high in the ' + d + '.' + (alt < 30 ? ' That is quite low, so haze near the horizon will hide some stars.' : '');
+    $('stepFind').textContent = h.alt < 10 ? 'Find the constellation in the sky.' : 'Find ' + c.name + ', ' + alt + '° up in the ' + d + '.';
+    // moon
+    var mb = Sky.bodies(when.ms)[1], mh = Sky.toHoriz(mb.ra, mb.dec, Sky.lst(when.ms, loc.lon), loc.lat), lit = Math.round(mb.lit * 100);
+    if (mh.alt > 0 && mb.lit > 0.25) { $('moonw').hidden = false; $('moonw').textContent = 'The Moon is up and ' + lit + '% lit' + (when.now ? '' : ' at ' + t) + '. Its glow hides faint stars, so your result will read brighter than your sky really is. For a fair count, wait until the Moon sets or try in the week around new moon.'; }
+    else if (mh.alt > 0) { $('moonw').hidden = false; $('moonw').textContent = 'A thin Moon (' + lit + '% lit) is up. It has only a small effect, but keep it out of your view.'; }
+    else $('moonw').hidden = true;
+    drawCharts();
+  }
+
+  // ---- charts ----
+  function drawChart(cv, c, L) {
+    var d = window.devicePixelRatio || 1, w = cv.clientWidth || 160; cv.width = Math.round(w * d); cv.height = Math.round(w * d);
+    var x = cv.getContext('2d'); x.setTransform(d, 0, 0, d, 0, 0); x.fillStyle = '#03050d'; x.fillRect(0, 0, w, w);
+    var R = Math.PI / 180, ra0 = c.ra * R, de0 = c.dec * R;
+    function proj(s) { var ra = s.ra * R, de = s.dec * R, cosc = Math.sin(de0) * Math.sin(de) + Math.cos(de0) * Math.cos(de) * Math.cos(ra - ra0); return [-(Math.cos(de) * Math.sin(ra - ra0)) / cosc, (Math.cos(de0) * Math.sin(de) - Math.sin(de0) * Math.cos(de) * Math.cos(ra - ra0)) / cosc]; }
+    if (!c.fov) { var mx = 0; c.stars.forEach(function (s) { var p = proj(s); mx = Math.max(mx, Math.abs(p[0]), Math.abs(p[1])); }); c.fov = mx * 1.08; }
+    var sc = w / 2 / c.fov, P = function (s) { var p = proj(s); return [w / 2 + p[0] * sc, w / 2 - p[1] * sc]; };
+    var vis = c.stars.filter(function (s) { return s.m <= L + 0.1; });
+    x.strokeStyle = 'rgba(127,180,255,.18)'; x.lineWidth = 1;
+    c.lines.forEach(function (l) { var a = c.by[l[0]], b = c.by[l[1]]; if (a.m > L + 0.1 || b.m > L + 0.1) return; var p = P(a), q = P(b); x.beginPath(); x.moveTo(p[0], p[1]); x.lineTo(q[0], q[1]); x.stroke(); });
+    x.fillStyle = '#fff';
+    vis.forEach(function (s) { var p = P(s), r = Math.max(0.9, (w / 200) * (1 + (5.6 - s.m) * 0.62)); x.beginPath(); x.arc(p[0], p[1], r, 0, 7); x.fill(); });
+    return vis.length;
+  }
+  function drawCharts() {
+    var c = chosen, lims = LIMITS.filter(function (L) { return c.stars.filter(function (s) { return s.m <= L + 0.1; }).length >= 3; });
+    var html = '<button type="button" class="chart more" data-l="' + (lims[0] - 0.5) + '" data-fewer="1" aria-pressed="false"><span>I see fewer stars than chart 1, or can\'t find it</span></button>' + lims.map(function (L, i) { return '<button type="button" class="chart" data-l="' + L + '" aria-pressed="false"><canvas aria-hidden="true"></canvas><span>Chart ' + (i + 1) + '</span><small>mag ' + L + '</small></button>'; }).join('') +
+      '<button type="button" class="chart more" data-l="6" data-plus="1" aria-pressed="false"><span>I see even more stars than chart ' + lims.length + '</span></button>';
+    $('charts').innerHTML = html;
+    [].forEach.call($('charts').querySelectorAll('.chart[data-l]'), function (b) { var cv = b.querySelector('canvas'); if (cv) b.dataset.n = drawChart(cv, c, +b.dataset.l); });
+    $('res').hidden = true; $('pick').hidden = false;
+  }
+  $('charts').addEventListener('click', function (e) {
+    var b = e.target.closest('.chart'); if (!b) return;
+    [].forEach.call($('charts').children, function (z) { z.setAttribute('aria-pressed', z === b); });
+    show(+b.dataset.l, !!b.dataset.plus, !!b.dataset.fewer); if (window.innerWidth < 860) $('res').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+  function show(nelm, plus, fewer) {
+    var q = nelmToSqm(nelm), bc = bortle(nelm);
+    $('res').hidden = false; $('pick').hidden = true;
+    $('rNelm').textContent = (plus ? '≥ ' : fewer ? '≤ ' : '') + nelm.toFixed(1); $('rSqm').textContent = (plus ? '≥ ' : fewer ? '≤ ' : '') + q.toFixed(1); $('rBort').textContent = plus ? '1 to 4' : String(bc);
+    $('rCls').textContent = plus ? 'Dark sky. Well done!' : BTXT[bc - 1][0];
+    $('rDesc').textContent = plus ? 'Your sky is at least Bortle 4 and could be much darker. The charts here stop at magnitude 5.5. Under skies like this, try counting the faint stars inside the Square of Pegasus or around Orion\'s belt with a detailed star atlas.' : BTXT[bc - 1][1];
+    var notes = [];
+    if (fewer) notes.push('If you could not find the constellation at all, check that it is above the horizon and not hidden by buildings or cloud.');
+    if (!$('moonw').hidden) notes.push('The Moon is up, so the real darkness is probably better than this.');
+    var h = altOf(chosen, when.ms).alt; if (h < 30) notes.push('The constellation is low, where haze dims stars, so your overhead sky is likely a little darker.');
+    $('rNote').innerHTML = notes.map(function (n) { return '<span>' + n + '</span>'; }).join(' ');
+    $('scale').innerHTML = BCOL.map(function (col, i) { var on = plus ? i < 4 : i === bc - 1; return '<div class="' + (on ? 'on' : '') + '" style="background:' + col + ';color:' + (i < 3 ? '#e9ecf5' : 'rgba(0,0,0,.75)') + '">' + (i + 1) + '</div>'; }).join('');
+    renderClasses(plus ? 0 : bc);
+    try {
+      var past = JSON.parse(localStorage.getItem('skyDarkPast') || '[]'); past.push({ at: Date.now(), n: nelm, p: !!plus, c: chosen.id, loc: loc.name }); localStorage.setItem('skyDarkPast', JSON.stringify(past.slice(-12)));
+    } catch (e) {}
+    renderPast();
+  }
+  function renderClasses(on) {
+    $('classes').innerHTML = BTXT.map(function (t, i) { return '<li class="' + (on === i + 1 ? 'on' : '') + '"><b style="background:' + BCOL[i] + ';color:' + (i < 3 ? '#e9ecf5' : '#0b1020') + '">' + (i + 1) + '</b><span><strong>' + t[0] + '.</strong> <span>' + t[1] + '</span></span></li>'; }).join('');
+  }
+  function renderPast() {
+    var p = []; try { p = JSON.parse(localStorage.getItem('skyDarkPast') || '[]'); } catch (e) {}
+    if (p.length < 2) { $('past').innerHTML = ''; return; }
+    $('past').innerHTML = '<li><span>Your recent counts</span></li>' + p.slice(-5).reverse().map(function (r) { var d = new Date(r.at); return '<li><span>' + d.getDate() + '/' + (d.getMonth() + 1) + '</span> · <span>' + r.loc + '</span> · <span>Bortle ' + (r.p ? '1 to 4' : bortle(r.n)) + '</span></li>'; }).join('');
+  }
+  $('uae').innerHTML = UAE.map(function (r) { return '<tr><td>' + r[0] + '</td><td class="n">' + r[1] + '</td><td class="n">' + r[2] + '</td></tr>'; }).join('');
+
+  // ---- controls ----
+  CONS.forEach(function (c) { var b = document.createElement('button'); b.className = 'sm'; b.type = 'button'; b.dataset.c = c.id; b.textContent = c.name; b.onclick = function () { manual = c; update(); }; $('cons').appendChild(b); });
+  function mark() { [].forEach.call($('where').querySelectorAll('[data-p]'), function (b) { b.setAttribute('aria-pressed', b.dataset.p === loc.name); }); }
+  function setLoc(l) { loc = l; try { localStorage.setItem('skyDark', JSON.stringify({ loc: loc })); } catch (e) {} mark(); $('locmsg').textContent = ''; update(); }
+  PLACES.forEach(function (p) { var b = document.createElement('button'); b.className = 'sm'; b.type = 'button'; b.dataset.p = p[0]; b.textContent = p[0]; b.onclick = function () { setLoc({ name: p[0], lat: p[1], lon: p[2] }); }; $('where').appendChild(b); });
+  $('me').onclick = function () {
+    if (!navigator.geolocation) { $('locmsg').textContent = 'Location not available. Pick a place instead.'; return; }
+    navigator.geolocation.getCurrentPosition(function (p) { setLoc({ name: 'your location', lat: p.coords.latitude, lon: p.coords.longitude }); }, function () { $('locmsg').textContent = 'Location not available. Pick a place instead.'; }, { timeout: 10000, maximumAge: 6e5 });
+  };
+  var rt; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { if (chosen) [].forEach.call($('charts').querySelectorAll('.chart[data-l] canvas'), function (cv) { drawChart(cv, chosen, +cv.parentNode.dataset.l); }); }, 150); });
+  window.SkyDark = { nelmToSqm: nelmToSqm, sqmToNelm: sqmToNelm, bortle: bortle, CONS: CONS, pickCons: pickCons, show: show };
+  mark(); renderClasses(0); renderPast();
+  if (document.readyState === 'complete') update(); else window.addEventListener('load', update);
+})();
+</script>
+</body>
+</html>

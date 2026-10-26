@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Smart Packing List · Mariam's Lab</title>
+<meta name="description" content="A packing list built from your destination's weather, trip length and plans, with reminders for travellers from the UAE: passport validity, Emirates ID, plug adapters and power banks.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/packing/">
+<meta property="og:title" content="Smart Packing List · Mariam's Lab"><meta property="og:description" content="A packing list sized to your trip and the weather where you're going."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.form { display: grid; gap: 14px; }
+.f { display: grid; gap: 5px; min-width: 0; }
+.f > span, .sub { font-size: 0.84rem; color: var(--muted); }
+.f input, .f select, .addrow input { font: inherit; color: var(--ink); background: rgba(7, 10, 24, 0.6); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; min-width: 0; width: 100%; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.srch { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+.pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.sm { font: inherit; font-size: 0.84rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 13px; cursor: pointer; }
+.sm:hover { border-color: var(--muted); }
+.sm[aria-pressed="true"], .sm.pri { background: var(--accent); color: #1a1205; border-color: var(--accent); }
+.box { display: grid; gap: 12px; padding: 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); }
+.box h2 { font-size: 1.02rem; font-weight: 800; }
+.msg { font-size: 0.86rem; color: var(--muted); margin: 0; min-height: 1.2em; }
+.msg.err { color: var(--sat-c); }
+.places { display: grid; gap: 6px; }
+.places button { text-align: start; border-radius: 10px; }
+.wx { font-size: 0.9rem; }
+.wx b { font-family: var(--font-mono); }
+.cat { display: grid; gap: 2px; }
+.cat h3 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; margin: 6px 0 4px; }
+html.ar .cat h3 { letter-spacing: 0; text-transform: none; }
+.it { display: grid; grid-template-columns: 20px minmax(0, 1fr) auto auto; gap: 10px; align-items: center; padding: 7px 4px; border-bottom: 1px solid var(--line); font-size: 0.92rem; cursor: pointer; }
+.it input { accent-color: var(--accent); width: 18px; height: 18px; margin: 0; }
+.it.done .lb { color: var(--muted); text-decoration: line-through; }
+.it .q { font-family: var(--font-mono); font-size: 0.8rem; color: var(--accent); }
+.it .rm { font: inherit; color: var(--muted); background: none; border: 0; cursor: pointer; padding: 0 4px; }
+.it .why { display: block; font-size: 0.76rem; color: var(--muted); text-decoration: none; }
+.addrow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+.rem { margin: 0; padding-inline-start: 18px; display: grid; gap: 6px; font-size: 0.88rem; }
+.rem .bad { color: var(--sat-c); }
+.prog { height: 6px; border-radius: 99px; background: var(--line); overflow: hidden; }
+.prog i { display: block; height: 100%; background: var(--sat-b); width: 0; transition: width .2s; }
+[hidden] { display: none !important; }
+@media (max-width: 860px) { #formPanel { order: -1; } }
+@media print {
+  .labbar, .labfoot, .sec-head p, #formPanel, .noprint, .it .rm { display: none !important; }
+  body, .labmain { background: #fff !important; color: #000 !important; }
+  .game { display: block !important; }
+  .box { border: 0 !important; background: none !important; padding: 0 !important; }
+  .it { color: #000; border-color: #ccc; break-inside: avoid; }
+  .cat h3, .it .why, .sub { color: #444 !important; }
+  .it .q { color: #000; }
+  .rem, .wx { color: #000; }
+}
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Travel · UAE</span>
+    <h1 style="font-size:var(--step-3)">Smart packing list.</h1>
+    <p>Tell it where you're going, when, and what you'll do there. It checks the weather for those dates, works out how many of each thing you need, and adds the reminders people flying out of the UAE tend to forget. Tick things off as you pack; your list stays on this device.</p>
+  </div>
+  <div class="game">
+    <div class="panel" id="listPanel">
+      <div class="box">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap"><h2 id="listTitle">Your list</h2><span class="sub" id="count"></span></div>
+        <div class="prog"><i id="bar"></i></div>
+        <p class="wx" id="wx"></p>
+        <div id="list"></div>
+        <div class="addrow noprint"><input type="text" id="addTxt" placeholder="Add your own item" aria-label="Add your own item"><button class="sm" id="addBtn">Add</button></div>
+        <div class="pills noprint">
+          <button class="sm" id="print">Print</button>
+          <button class="sm" id="share">Share as text</button>
+          <button class="sm" id="uncheck">Untick all</button>
+          <span class="msg" id="shareMsg"></span>
+        </div>
+      </div>
+      <div class="box">
+        <h2>Before you fly from the UAE</h2>
+        <ul class="rem" id="rem"></ul>
+      </div>
+    </div>
+    <div class="panel form" id="formPanel">
+      <div class="f"><span>Where are you going?</span>
+        <div class="srch"><input type="text" id="q" placeholder="City, e.g. London" aria-label="City"><button class="sm pri" id="go">Find</button></div>
+      </div>
+      <div class="places" id="places"></div>
+      <p class="msg" id="msg"></p>
+      <div class="two">
+        <label class="f"><span>Leaving</span><input type="date" id="d1"></label>
+        <label class="f"><span>Coming back</span><input type="date" id="d2"></label>
+      </div>
+      <div class="f"><span>What are you doing there?</span>
+        <div class="pills" id="plans">
+          <button class="sm" data-p="beach" aria-pressed="false">Beach</button>
+          <button class="sm" data-p="business" aria-pressed="false">Business</button>
+          <button class="sm" data-p="hiking" aria-pressed="false">Hiking</button>
+          <button class="sm" data-p="umrah" aria-pressed="false">Umrah</button>
+          <button class="sm" data-p="winter" aria-pressed="false">Winter city</button>
+          <button class="sm" data-p="kids" aria-pressed="false">With kids</button>
+        </div>
+      </div>
+      <label class="f"><span>Laundry on the trip</span><select id="laundry"><option value="none">None</option><option value="some">Once or twice</option><option value="any">Whenever I want</option></select></label>
+      <div class="f"><span>Weather (filled in from the forecast, change it if you know better)</span>
+        <div class="pills" id="wflags">
+          <button class="sm" data-w="hot" aria-pressed="false">Hot</button>
+          <button class="sm" data-w="cold" aria-pressed="false">Cold</button>
+          <button class="sm" data-w="freeze" aria-pressed="false">Freezing</button>
+          <button class="sm" data-w="rain" aria-pressed="false">Rain</button>
+        </div>
+      </div>
+      <label class="f"><span>Passport expiry date (optional, stays on this device)</span><input type="date" id="pp"></label>
+      <p class="fact">How the numbers work: without laundry you pack one outfit a day, up to two weeks. With laundry once or twice it caps at a week, and with laundry whenever you like, four days. Socks and underwear get one spare. Weather comes from Open-Meteo: the forecast if your trip starts within two weeks, otherwise last year's weather for the same dates as a rough guide.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var KEY = 'packing.v1', DAY = 864e5;
+  // plug types and mains voltage for common destinations (UAE uses type G, 220–240 V)
+  var PLUGS = {
+    AE: ['G', 230], SA: ['G', 230], QA: ['G', 240], BH: ['G', 230], KW: ['G', 240], OM: ['G', 240], GB: ['G', 230], IE: ['G', 230], MT: ['G', 230], CY: ['G', 230],
+    HK: ['G', 220], SG: ['G', 230], MY: ['G', 240], KE: ['G', 240], SC: ['G', 240], MU: ['C/G', 230], LK: ['D/G/M', 230], MV: ['C/D/G', 230], BD: ['C/D/G', 220],
+    IN: ['C/D/M', 230], PK: ['C/D', 230], NP: ['C/D/M', 230], AF: ['C/F', 220], IR: ['C/F', 220], IQ: ['C/D/G', 230], JO: ['C/D/F/G', 230], LB: ['C/D/G', 220],
+    EG: ['C/F', 220], MA: ['C/E', 220], TN: ['C/E', 230], DZ: ['C/F', 230], SD: ['C/D', 230], ET: ['C/F', 220], TZ: ['D/G', 230], ZA: ['C/M/N', 230], NG: ['D/G', 230],
+    TR: ['C/F', 230], GE: ['C/F', 220], AZ: ['C/F', 220], AM: ['C/F', 230], RU: ['C/F', 230], UA: ['C/F', 230], KZ: ['C/F', 220], UZ: ['C/F', 220], KG: ['C/F', 220],
+    FR: ['E', 230], BE: ['E', 230], PL: ['E', 230], CZ: ['E', 230], SK: ['E', 230], DE: ['F', 230], AT: ['F', 230], NL: ['F', 230], ES: ['F', 230], PT: ['F', 230],
+    GR: ['F', 230], SE: ['F', 230], NO: ['F', 230], FI: ['F', 230], IS: ['F', 230], HU: ['F', 230], RO: ['F', 230], BG: ['F', 230], HR: ['F', 230], RS: ['F', 230],
+    BA: ['F', 230], ME: ['F', 230], AL: ['C/F', 230], SI: ['F', 230], EE: ['F', 230], LV: ['F', 230], LT: ['F', 230], IT: ['F/L', 230], CH: ['J', 230], DK: ['C/E/F/K', 230], LU: ['F', 230],
+    US: ['A/B', 120], CA: ['A/B', 120], MX: ['A/B', 127], BR: ['C/N', 127], AR: ['C/I', 220], CO: ['A/B', 110], PE: ['A/C', 220], CL: ['C/L', 220],
+    JP: ['A/B', 100], KR: ['C/F', 220], CN: ['A/C/I', 220], TW: ['A/B', 110], TH: ['A/B/C/O', 220], VN: ['A/C/F', 220], PH: ['A/B/C', 220], ID: ['C/F', 230],
+    KH: ['A/C/G', 230], LA: ['A/B/C/E/F', 230], MM: ['C/D/F/G', 230], AU: ['I', 230], NZ: ['I', 230], FJ: ['I', 240]
+  };
+  var st = { place: null, plans: {}, w: {}, laundry: 'none', d1: '', d2: '', pp: '', checked: {}, custom: [], wx: null };
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} }
+  try { var s0 = JSON.parse(localStorage.getItem(KEY) || 'null'); if (s0) for (var k in s0) st[k] = s0[k]; } catch (e) {}
+  function iso(d) { return d.toISOString().slice(0, 10); }
+  function parse(v) { var p = (v || '').split('-'); return p.length === 3 ? new Date(Date.UTC(+p[0], +p[1] - 1, +p[2])) : null; }
+  var now = new Date(), today = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+  if (!st.d1 || parse(st.d1) < today) { st.d1 = iso(new Date(+today + 14 * DAY)); st.d2 = iso(new Date(+today + 20 * DAY)); }
+  $('d1').value = st.d1; $('d2').value = st.d2; $('laundry').value = st.laundry; $('pp').value = st.pp || '';
+  function syncPills() {
+    [].forEach.call($('plans').children, function (b) { b.setAttribute('aria-pressed', st.plans[b.dataset.p] ? 'true' : 'false'); });
+    [].forEach.call($('wflags').children, function (b) { b.setAttribute('aria-pressed', st.w[b.dataset.w] ? 'true' : 'false'); });
+  }
+  function say(t, err) { $('msg').textContent = t; $('msg').className = 'msg' + (err ? ' err' : ''); }
+
+  // ---------- place search and weather ----------
+  function search() {
+    var q = $('q').value.trim(); if (!q) return;
+    say('Searching…'); $('places').innerHTML = '';
+    fetch('https://geocoding-api.open-meteo.com/v1/search?count=5&language=' + (window.LabAr && LabAr.on ? 'ar' : 'en') + '&format=json&name=' + encodeURIComponent(q))
+      .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+      .then(function (j) {
+        var rs = j.results || [];
+        if (!rs.length) { say('No place found. Try the city name in English.', true); return; }
+        say(rs.length === 1 ? '' : 'Pick the right one:');
+        if (rs.length === 1) { pick(rs[0]); return; }
+        rs.forEach(function (r) {
+          var b = document.createElement('button'); b.className = 'sm'; b.setAttribute('data-noar', '');
+          b.textContent = r.name + (r.admin1 && r.admin1 !== r.name ? ', ' + r.admin1 : '') + (r.country ? ', ' + r.country : '');
+          b.addEventListener('click', function () { pick(r); }); $('places').appendChild(b);
+        });
+      })
+      .catch(function () { say('Could not reach the place search. Set the weather by hand below.', true); });
+  }
+  function pick(r) {
+    $('places').innerHTML = '';
+    st.place = { name: r.name, country: r.country || '', cc: (r.country_code || '').toUpperCase(), lat: r.latitude, lon: r.longitude };
+    $('q').value = r.name + (r.country ? ', ' + r.country : '');
+    weather();
+  }
+  function weather() {
+    if (!st.place) { render(); return; }
+    var a = parse(st.d1), b = parse(st.d2); if (!a || !b || b < a) { render(); return; }
+    var ahead = (a - today) / DAY, url, typical = false, P = st.place;
+    var dl = 'temperature_2m_max,temperature_2m_min,precipitation_sum';
+    if (ahead >= 0 && (b - today) / DAY <= 15) {
+      url = 'https://api.open-meteo.com/v1/forecast?latitude=' + P.lat + '&longitude=' + P.lon + '&daily=' + dl + '&timezone=auto&start_date=' + st.d1 + '&end_date=' + st.d2;
+    } else {
+      typical = true;
+      var ly = function (d) { var x = new Date(d); x.setUTCFullYear(x.getUTCFullYear() - 1); return iso(x); };
+      var e2 = b - a > 30 * DAY ? new Date(+a + 30 * DAY) : b;
+      url = 'https://archive-api.open-meteo.com/v1/archive?latitude=' + P.lat + '&longitude=' + P.lon + '&daily=' + dl + '&timezone=auto&start_date=' + ly(a) + '&end_date=' + ly(e2);
+    }
+    say('Checking the weather…');
+    fetch(url).then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(function (j) {
+      var d = j.daily || {}, mx = (d.temperature_2m_max || []).filter(isFinite), mn = (d.temperature_2m_min || []).filter(isFinite), pr = (d.precipitation_sum || []).filter(isFinite);
+      if (!mx.length) throw 0;
+      var hi = Math.max.apply(null, mx), lo = Math.min.apply(null, mn), avg = mx.reduce(function (s, v) { return s + v; }, 0) / mx.length, wet = pr.filter(function (v) { return v >= 1; }).length;
+      st.wx = { hi: Math.round(hi), lo: Math.round(lo), avg: Math.round(avg), wet: wet, n: mx.length, typical: typical };
+      st.w = { hot: avg >= 28 || hi >= 32, cold: lo <= 10, freeze: lo <= 0, rain: wet >= 1 };
+      say(''); syncPills(); render();
+    }).catch(function () { st.wx = null; say('Could not get the weather. Set it by hand below.', true); render(); });
+  }
+
+  // ---------- the list ----------
+  function plan() {
+    var a = parse(st.d1), b = parse(st.d2);
+    var n = a && b && b >= a ? Math.round((b - a) / DAY) + 1 : 7;
+    var cap = st.laundry === 'any' ? 4 : st.laundry === 'some' ? 7 : 14, c = Math.max(1, Math.min(n, cap));
+    var P = st.plans, W = st.w, cc = st.place ? st.place.cc : '', intl = cc !== 'AE';
+    var L = [];
+    function add(cat, id, label, q, why) { L.push({ cat: cat, id: id, label: label, q: q, why: why || '' }); }
+    // documents
+    if (intl) add('Documents', 'passport', 'Passport');
+    add('Documents', 'eid', 'Emirates ID');
+    if (intl) add('Documents', 'visa', 'Visa or entry approval, printed and on your phone');
+    add('Documents', 'tickets', 'Boarding passes and booking confirmations');
+    add('Documents', 'insurance', 'Travel insurance details');
+    add('Documents', 'licence', 'Driving licence (and an international permit if you will drive)');
+    add('Documents', 'copies', 'Photos of your passport and ID saved offline');
+    // money and phone
+    add('Money and phone', 'cards', 'Bank cards, plus a backup card packed separately');
+    if (intl) add('Money and phone', 'cash', 'Some local cash');
+    add('Money and phone', 'phone', 'Phone and charger');
+    if (intl) add('Money and phone', 'roaming', 'Roaming plan or eSIM set up');
+    // clothes
+    add('Clothes', 'under', 'Underwear', c + 1);
+    add('Clothes', 'socks', 'Socks', c + 1);
+    add('Clothes', 'tops', W.hot ? 'Light breathable tops' : 'Tops', c);
+    add('Clothes', 'bottoms', 'Trousers, skirts or shorts', Math.max(1, Math.ceil(c / 3)));
+    add('Clothes', 'sleep', 'Sleepwear', Math.max(1, Math.ceil(c / 4)));
+    add('Clothes', 'shoes', 'Comfortable walking shoes', 1);
+    add('Clothes', 'layer', 'Light layer for the plane and air conditioning', 1);
+    if (W.cold) {
+      add('Clothes', 'jacket', 'Warm jacket', 1);
+      add('Clothes', 'jumper', 'Jumpers or fleeces', Math.max(1, Math.min(3, Math.ceil(c / 4))));
+      add('Clothes', 'scarf', 'Scarf', 1);
+    }
+    if (W.freeze || P.winter) {
+      add('Clothes', 'thermal', 'Thermal base layers', Math.max(1, Math.min(3, Math.ceil(c / 4))));
+      add('Clothes', 'gloves', 'Gloves and a warm hat', 1);
+      add('Clothes', 'wsocks', 'Warm socks', Math.max(2, Math.ceil(c / 2)));
+      add('Clothes', 'boots', 'Waterproof boots with grip', 1);
+    }
+    if (W.rain) {
+      add('Clothes', 'rainjacket', 'Waterproof jacket', 1);
+      add('Clothes', 'umbrella', 'Compact umbrella', 1);
+    }
+    if (W.hot) {
+      add('Clothes', 'hat', 'Sun hat', 1);
+      add('Clothes', 'sunglasses', 'Sunglasses', 1);
+    }
+    // toiletries and health
+    add('Toiletries', 'teeth', 'Toothbrush and toothpaste');
+    add('Toiletries', 'deo', 'Deodorant');
+    add('Toiletries', 'hair', 'Shampoo and hairbrush, travel sizes');
+    add('Toiletries', 'skin', 'Skincare and lip balm');
+    if (W.hot || P.beach || P.hiking) add('Toiletries', 'spf', 'Sunscreen');
+    if (W.cold || W.freeze) add('Toiletries', 'moist', 'Rich moisturiser for dry, cold air');
+    add('Health', 'meds', 'Your regular medicines, in original packs, with the prescription');
+    add('Health', 'pain', 'Painkillers and plasters');
+    add('Health', 'ors', 'Rehydration salts');
+    if (P.hiking || (W.hot && W.rain)) add('Health', 'insect', 'Insect repellent');
+    // electronics
+    var plug = PLUGS[cc], needs = plug && plug[0].split('/').indexOf('G') < 0;
+    if (needs) add('Electronics', 'adapter', 'Travel adapter for type ' + plug[0] + ' sockets', 1, plug[1] < 200 ? 'Mains here is ' + plug[1] + ' V. Check your chargers say 100–240 V.' : '');
+    else if (!plug && intl) add('Electronics', 'adapter', 'Universal travel adapter', 1);
+    add('Electronics', 'powerbank', 'Power bank, in hand luggage', 1);
+    add('Electronics', 'cables', 'Charging cables');
+    add('Electronics', 'headphones', 'Headphones');
+    // plans
+    if (P.beach) {
+      add('Beach', 'swim', 'Swimwear', 2);
+      add('Beach', 'flip', 'Sandals or flip-flops', 1);
+      add('Beach', 'btowel', 'Beach towel', 1);
+      add('Beach', 'aftersun', 'After-sun lotion');
+      add('Beach', 'pouch', 'Waterproof phone pouch', 1);
+    }
+    if (P.business) {
+      var bd = Math.max(1, Math.min(c, 5));
+      add('Business', 'formal', 'Work outfits', bd);
+      add('Business', 'fshoes', 'Formal shoes', 1);
+      add('Business', 'laptop', 'Laptop and charger', 1);
+      add('Business', 'dongle', 'Screen adapter (HDMI or USB-C) and clicker');
+      add('Business', 'cardsb', 'Business cards');
+    }
+    if (P.hiking) {
+      add('Hiking', 'hboots', 'Hiking shoes, worn in', 1);
+      add('Hiking', 'daypack', 'Daypack', 1);
+      add('Hiking', 'bottle', 'Water bottles or bladder (2 L or more)', 1);
+      add('Hiking', 'snacks', 'Trail snacks');
+      add('Hiking', 'quickdry', 'Quick-dry layers', 2);
+      add('Hiking', 'torch', 'Head torch', 1);
+      add('Hiking', 'offline', 'Offline map downloaded');
+    }
+    if (P.umrah) {
+      add('Umrah', 'ihram', 'Ihram (two sets) or modest loose clothing', 2);
+      add('Umrah', 'unscented', 'Unscented soap, shampoo and deodorant');
+      add('Umrah', 'sandals', 'Comfortable sandals and a shoe bag', 1);
+      add('Umrah', 'mat', 'Travel prayer mat', 1);
+      add('Umrah', 'smallbag', 'Small backpack or waist bag', 1);
+      add('Umrah', 'dua', 'Dua book or app');
+      add('Umrah', 'permit', 'Permits checked in the Nusuk app');
+    }
+    if (P.winter) {
+      add('Winter city', 'handwarm', 'Hand warmers');
+      add('Winter city', 'touch', 'Touchscreen gloves', 1);
+    }
+    if (P.kids) {
+      add('Kids', 'kclothes', 'Kids\' outfits', c + 2);
+      add('Kids', 'kspare', 'Spare kids\' outfit in hand luggage', 1);
+      add('Kids', 'nappies', 'Nappies, if needed', n * 6);
+      add('Kids', 'wipes', 'Wet wipes');
+      add('Kids', 'ksnacks', 'Snacks and a refillable cup');
+      add('Kids', 'kfun', 'Tablet, headphones and a few small toys');
+      add('Kids', 'kmeds', 'Children\'s fever medicine');
+      add('Kids', 'stroller', 'Stroller or carrier', 1);
+      if (intl) add('Kids', 'kdocs', 'Kids\' passports and a copy of birth certificates');
+    }
+    // hand luggage
+    add('Hand luggage', 'liquids', 'Liquids under 100 ml in a clear bag');
+    add('Hand luggage', 'valuables', 'Valuables, medicines and keys');
+    add('Hand luggage', 'change', 'A change of clothes in case a bag is delayed');
+    add('Hand luggage', 'pen', 'Pen for arrival forms');
+    st.custom.forEach(function (t, i) { L.push({ cat: 'Your own items', id: 'c:' + t, label: t, custom: true, ci: i }); });
+    return { L: L, n: n, c: c, plug: plug, needs: needs, intl: intl };
+  }
+  function render() {
+    var p = plan(), L = p.L, el = $('list'); el.innerHTML = '';
+    var cats = []; L.forEach(function (x) { if (cats.indexOf(x.cat) < 0) cats.push(x.cat); });
+    var done = 0;
+    cats.forEach(function (cname) {
+      var box = document.createElement('div'); box.className = 'cat';
+      var h = document.createElement('h3'); h.textContent = cname; box.appendChild(h);
+      L.filter(function (x) { return x.cat === cname; }).forEach(function (x) {
+        var row = document.createElement('label'); row.className = 'it' + (st.checked[x.id] ? ' done' : '');
+        var cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = !!st.checked[x.id];
+        if (cb.checked) done++;
+        cb.addEventListener('change', function () { if (cb.checked) st.checked[x.id] = 1; else delete st.checked[x.id]; save(); render(); });
+        var lb = document.createElement('span'); lb.className = 'lb';
+        var t = document.createElement('span'); t.textContent = x.label; if (x.custom) t.setAttribute('data-noar', ''); lb.appendChild(t);
+        if (x.why) { var w = document.createElement('span'); w.className = 'why'; w.textContent = x.why; lb.appendChild(w); }
+        var q = document.createElement('span'); q.className = 'q'; q.textContent = x.q ? '× ' + x.q : '';
+        row.appendChild(cb); row.appendChild(lb); row.appendChild(q);
+        var rm = document.createElement('button'); rm.className = 'rm'; rm.textContent = x.custom ? '×' : '';
+        rm.setAttribute('aria-label', 'Remove item'); rm.hidden = !x.custom;
+        rm.addEventListener('click', function (e) { e.preventDefault(); st.custom.splice(x.ci, 1); delete st.checked[x.id]; save(); render(); });
+        row.appendChild(rm);
+        box.appendChild(row);
+      });
+      el.appendChild(box);
+    });
+    $('count').textContent = done + ' of ' + L.length + ' packed';
+    $('bar').style.width = (L.length ? done / L.length * 100 : 0) + '%';
+    $('listTitle').textContent = st.place ? 'Packing for ' + st.place.name : 'Your list';
+    var wx = st.wx, wt = '';
+    if (st.place && wx) wt = (wx.typical ? 'Last year on these dates: ' : 'Forecast: ') + wx.lo + ' to ' + wx.hi + ' °C, rain on ' + wx.wet + ' of ' + wx.n + ' days.';
+    $('wx').textContent = wt + (wt ? ' ' : '') + p.n + (p.n === 1 ? ' day' : ' days') + ', clothes for ' + p.c + '.';
+    // reminders
+    var R = [], a = parse(st.d1), b = parse(st.d2), pp = parse(st.pp);
+    if (p.intl) {
+      if (pp && b) {
+        var need = new Date(b); need.setUTCMonth(need.getUTCMonth() + 6);
+        R.push(pp < need ? ['Your passport expires less than 6 months after you come back. Many countries refuse entry, so renew it first.', 1] : ['Passport is valid for 6 months after your return.', 0]);
+      } else R.push(['Check your passport is valid for at least 6 months after your return. Many countries ask for it.', 0]);
+      R.push(['Check visa or entry rules for your passport before booking.', 0]);
+    }
+    R.push(['Carry your Emirates ID. Residents need a valid residence visa to come back in.', 0]);
+    if (p.plug) R.push([p.needs ? 'Sockets there are type ' + p.plug[0] + ' at ' + p.plug[1] + ' V. UAE plugs are type G, so bring an adapter.' : 'Sockets there are type G like the UAE, no adapter needed.', 0]);
+    else if (p.intl && st.place) R.push(['Plug type for this country isn\'t in the built-in table. A universal adapter covers most.', 0]);
+    R.push(['Power banks go in hand luggage, never in checked bags. Some airlines ban using them on board.', 0]);
+    R.push(['Bring prescriptions for any medicines. Some common medicines are controlled in the UAE and abroad, so check before you travel.', 0]);
+    R.push(['UAE citizens can register the trip with the Tawajudi service from the Ministry of Foreign Affairs.', 0]);
+    $('rem').innerHTML = ''; R.forEach(function (r) { var li = document.createElement('li'); li.textContent = r[0]; if (r[1]) li.className = 'bad'; $('rem').appendChild(li); });
+    window.__pack = p;
+  }
+
+  // ---------- events ----------
+  $('go').addEventListener('click', search);
+  $('q').addEventListener('keydown', function (e) { if (e.key === 'Enter') search(); });
+  $('plans').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; st.plans[b.dataset.p] = !st.plans[b.dataset.p]; syncPills(); save(); render(); });
+  $('wflags').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; st.w[b.dataset.w] = !st.w[b.dataset.w]; if (b.dataset.w === 'freeze' && st.w.freeze) st.w.cold = true; syncPills(); save(); render(); });
+  $('laundry').addEventListener('change', function () { st.laundry = $('laundry').value; save(); render(); });
+  ['d1', 'd2'].forEach(function (k) { $(k).addEventListener('change', function () { st[k] = $(k).value; if (k === 'd1' && parse(st.d2) < parse(st.d1)) { st.d2 = st.d1; $('d2').value = st.d1; } save(); weather(); }); });
+  $('pp').addEventListener('change', function () { st.pp = $('pp').value; save(); render(); });
+  function addItem() { var t = $('addTxt').value.trim(); if (!t) return; st.custom.push(t.slice(0, 80)); $('addTxt').value = ''; save(); render(); }
+  $('addBtn').addEventListener('click', addItem);
+  $('addTxt').addEventListener('keydown', function (e) { if (e.key === 'Enter') addItem(); });
+  $('uncheck').addEventListener('click', function () { st.checked = {}; save(); render(); });
+  $('print').addEventListener('click', function () { window.print(); });
+  $('share').addEventListener('click', function () {
+    var lines = [$('listTitle').textContent, $('wx').textContent, ''];
+    [].forEach.call($('list').children, function (c) {
+      lines.push(c.querySelector('h3').textContent);
+      [].forEach.call(c.querySelectorAll('.it'), function (r) {
+        var lb = r.querySelector('.lb > span').textContent, q = r.querySelector('.q').textContent;
+        lines.push((r.querySelector('input').checked ? '☑ ' : '☐ ') + lb + (q ? ' ' + q : ''));
+      });
+      lines.push('');
+    });
+    var txt = lines.join('\n').trim();
+    function ok() { $('shareMsg').textContent = 'Copied.'; setTimeout(function () { $('shareMsg').textContent = ''; }, 2000); }
+    function copy() {
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(ok, fb); else fb();
+      function fb() { var ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); ok(); } catch (e) {} ta.remove(); }
+    }
+    if (navigator.share && /Mobi|Android|iPhone|iPad/.test(navigator.userAgent)) navigator.share({ text: txt }).catch(function () {}); else copy();
+  });
+  if (st.place) $('q').value = st.place.name + (st.place.country ? ', ' + st.place.country : '');
+  syncPills(); render();
+})();
+</script>
+</body>
+</html>
