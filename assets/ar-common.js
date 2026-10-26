@@ -332,3 +332,10 @@ LabAr.add({
  "Twenty made-up posts and twelve real tricks: fake urgency, recycled photos, bot swarms, lookalike accounts and more. Spot them, then learn how to check.": "عشرون منشورًا مختلَقًا واثنتا عشرة حيلة حقيقية: استعجال مصطنع، وصور معاد تدويرها، وحسابات آلية ومنتحلة. اكتشفها وتعلّم كيف تتحقق.",
  "Play →": "العب ←"
 });
+/* index cards for newer tools */
+LabAr.add({
+ "Tool · Privacy": "أداة · خصوصية",
+ "Personal OPSEC audit": "تدقيق أمنك الشخصي",
+ "37 quick questions on posts, accounts, devices, home and travel, scored by area, with a step-by-step fix plan.": "37 سؤالًا سريعًا عن منشوراتك وحساباتك وأجهزتك ومنزلك وسفرك، مع نتيجة لكل مجال وخطة إصلاح خطوة بخطوة.",
+ "Start the audit →": "ابدأ التدقيق ←"
+});

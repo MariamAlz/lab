@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Personal OPSEC Audit · Mariam's Lab</title>
+<meta name="description" content="A 37-question privacy check-up: what your posts, accounts, devices, home network and travel habits give away, scored by area, with a step-by-step fix plan. Answers stay on your device.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/opsec-audit/">
+<meta property="og:title" content="Personal OPSEC Audit · Mariam's Lab"><meta property="og:description" content="What do you give away without meaning to? A privacy check-up with a fix plan."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm.pri { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.sm:disabled { opacity: .4; cursor: default; }
+.btns { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.tabs button { font: inherit; font-size: 0.8rem; color: var(--muted); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 11px; cursor: pointer; }
+.tabs button[aria-current="true"] { color: var(--bg); background: var(--accent); border-color: var(--accent); }
+.tabs button i { font-style: normal; font-family: var(--font-mono); font-size: 0.72rem; opacity: .8; }
+.prog { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.prog i { display: block; height: 100%; background: var(--sat-b); transition: width .2s; }
+.qs { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.qs li { padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); display: grid; gap: 8px; }
+.qs li.done { border-color: color-mix(in srgb, var(--sat-b) 35%, var(--line)); }
+.qs p { font-size: 0.95rem; font-weight: 500; }
+.qs small { color: var(--muted); font-size: 0.8rem; display: block; }
+.opts { display: flex; gap: 6px; flex-wrap: wrap; }
+.opts button { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.opts button[aria-pressed="true"].s2 { background: var(--sat-b); border-color: var(--sat-b); color: var(--bg); }
+.opts button[aria-pressed="true"].s1 { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+.opts button[aria-pressed="true"].s0 { background: var(--sat-c); border-color: var(--sat-c); color: var(--bg); }
+.opts button[aria-pressed="true"].na { background: var(--line); border-color: var(--muted); }
+.radar { width: 100%; max-width: 420px; justify-self: center; display: block; }
+.radar text { fill: var(--muted); font: 500 11px var(--font-body); }
+.radar .val { fill: var(--ink); font: 600 11px var(--font-mono); }
+.big { font-family: var(--font-display); font-size: clamp(2.2rem, 7vw, 3.2rem); font-weight: 800; line-height: 1; }
+.ok { color: var(--sat-b); } .bad { color: var(--sat-c); } .meh { color: var(--accent); }
+.plan { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; counter-reset: fx; }
+.plan > li { padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; display: grid; gap: 6px; counter-increment: fx; }
+.plan .ph { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: baseline; }
+.plan .ph::before { content: counter(fx); font-family: var(--font-mono); color: var(--muted); font-size: 0.8rem; }
+.plan .ph b { font-size: 0.95rem; }
+.plan .pri-h { color: var(--sat-c); } .plan .pri-m { color: var(--accent); } .plan .pri-l { color: var(--sat-b); }
+.plan .ph em { font-style: normal; font-size: 0.72rem; font-family: var(--font-mono); white-space: nowrap; }
+.plan ol { margin: 0; padding-inline-start: 1.3em; display: grid; gap: 4px; font-size: 0.87rem; color: var(--muted); }
+.plan a.tool { font-size: 0.82rem; color: var(--accent); justify-self: start; }
+.secs { display: grid; gap: 6px; }
+.secs div { display: grid; grid-template-columns: minmax(0, 1fr) 46px; gap: 10px; align-items: center; font-size: 0.86rem; }
+.secs .bar2 { grid-column: 1 / -1; height: 5px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.secs .bar2 i { display: block; height: 100%; }
+.secs b { font-family: var(--font-mono); font-size: 0.82rem; text-align: end; }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; }
+[hidden] { display: none !important; }
+@media print {
+  body { background: #fff !important; color: #000 !important; }
+  .labbar, .labfoot, #quiz, .noprint, .sec-head p { display: none !important; }
+  .game { display: block !important; }
+  .plan > li, .secs div { break-inside: avoid; border-color: #999 !important; color: #000 !important; }
+  .plan ol, .msg, .fact, .radar text { color: #333 !important; fill: #333 !important; }
+  .sec-head h1 { color: #000 !important; text-shadow: none !important; }
+}
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Privacy · Security</span>
+    <h1 style="font-size:var(--step-3)">Personal OPSEC audit.</h1>
+    <p>OPSEC means thinking like someone who wants to find you, then closing the gaps. Most leaks are small and innocent: a school logo in a photo, a Wi-Fi name, a story posted while you're still at the café. Answer 37 quick questions to see where you're exposed, and get a fix plan in order of importance. Your answers stay in this browser.</p>
+  </div>
+  <div id="quiz" style="display:grid;gap:14px">
+    <nav class="tabs" id="tabs" aria-label="Sections"></nav>
+    <div class="prog" aria-hidden="true"><i id="prog"></i></div>
+    <p class="msg" id="count" style="margin:0"></p>
+    <ul class="qs" id="qs"></ul>
+    <div class="btns"><button class="sm" type="button" id="prev">← Previous section</button><button class="sm pri" type="button" id="next">Next section →</button></div>
+  </div>
+  <div class="game" style="margin-top:30px">
+    <div class="panel">
+      <span class="label">Your exposure by area</span>
+      <div style="display:flex;gap:14px;align-items:center"><span class="big" id="total">–</span><span class="msg" id="totalTxt" style="margin:0">Answer a few questions to see your score.</span></div>
+      <svg class="radar" id="radar" viewBox="-170 -150 340 300" role="img" aria-label="Radar chart of scores by area"></svg>
+      <div class="secs" id="secs"></div>
+      <div class="btns noprint"><button class="sm" type="button" id="print">Print or save as PDF</button><button class="sm" type="button" id="export">Download plan (.md)</button><button class="sm" type="button" id="reset">Clear my answers</button></div>
+      <p class="fact"><b>How the score works.</b> Each answer scores 0, 1 or 2, weighted by how much harm the gap could do (1 to 3). An area's score is the share of the best possible points you have, ignoring questions that don't apply to you. The fix plan puts the heaviest, worst-scoring items first.</p>
+      <p class="fact"><b>Why it matters.</b> Stalkers, scammers and burglars rarely hack anything. They piece together public crumbs: a car plate from one post, a school from another, a holiday from a third. Each crumb is harmless alone. Together they answer "where, when and who".</p>
+    </div>
+    <div class="panel">
+      <span class="label">Your fix plan, most important first</span>
+      <ol class="plan" id="plan"></ol>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function T(s) { return window.LabAr && LabAr.on ? LabAr.t(s) : s; }
+  var OPT = { bad: [['Never', 2], ['Sometimes', 1], ['Often', 0]], good: [['Yes', 2], ['Partly', 1], ['No', 0]], ever: [['No', 2], ['Once or twice', 1], ['Yes', 0]] };
+  var TOOL = { photo: ['../photo-metadata/', 'Photo metadata cleaner'], boarding: ['../boarding-pass/', 'Boarding pass decoder'], docs: ['../doc-leaks/', 'Document leak checker'], pw: ['../password/', 'Password strength checker'], pwned: ['../pwned/', 'Breach checker'], fp: ['../fingerprint/', 'Browser fingerprint test'], fit: ['../fitness-privacy/', 'Fitness app privacy check'], wifi: ['../wifi/', 'Wi-Fi checker'], leak: ['../leak-test/', 'IP and VPN leak test'], req: ['../data-request/', 'Data request letter'] };
+  var SECTIONS = [
+    { id: 'social', n: 'Social posting', short: 'Posting', qs: [
+      ['live', 'Do you post where you are while you are still there?', 'Stories, check-ins, tagged locations.', 'bad', 3, 'Post after you leave', ['Wait until you have left before posting a place ("late posting").', 'Turn off location tags by default in Instagram, Snapchat and TikTok.', 'In Snapchat, turn on Ghost Mode for Snap Map.'], 'photo'],
+      ['routine', 'Do your posts show a routine?', 'The same gym, café or school run at the same time each week.', 'bad', 2, 'Break the pattern in your posts', ['Avoid posting regular places on a fixed schedule.', 'Mix up timing, or post in batches later.', 'Review older posts that show a weekly habit and archive them.']],
+      ['kids', 'Do photos show your children\'s school name, uniform or logo?', 'Including sports kits and school bags.', 'bad', 3, 'Hide school details in children\'s photos', ['Crop or blur school logos, uniforms and name tags before posting.', 'Ask family members and WhatsApp groups to do the same.', 'Set accounts that show your children to private, and check who follows them.']],
+      ['plates', 'Do car number plates show up in your photos?', 'Your car outside home, at work, at events.', 'bad', 2, 'Blur number plates', ['Blur or crop plates before posting; most photo editors have a blur tool.', 'A plate ties a photo to you, your car and your emirate.']],
+      ['house', 'Does the outside of your home appear in posts?', 'Villa number, building name, the view from your balcony, your street.', 'bad', 3, 'Keep your home unidentifiable', ['Avoid shots of the front of your villa, the building entrance or the villa number.', 'Views from a balcony or window can be matched to a building. Post them later, if at all.', 'Check old posts and archive the ones that show where you live.']],
+      ['board', 'Have you posted boarding passes or luggage tags?', 'Even a cropped barcode can be read.', 'ever', 3, 'Never post boarding passes', ['The barcode holds your name and booking reference, enough to view or change a booking.', 'Delete any posts that show one, and shred paper passes after a trip.', 'See what a boarding pass barcode reveals with the decoder.'], 'boarding'],
+      ['ids', 'Have you shared Emirates ID, passport or licence photos?', 'In posts, chats, or with services that didn\'t really need them.', 'ever', 3, 'Protect copies of your ID', ['Only send ID copies to organisations that genuinely need them.', 'Add a visible note across the copy, such as "For XYZ rental only, March 2026".', 'Delete ID photos from chats and your camera roll once used; keep them in an encrypted folder.', 'If an ID copy was leaked, watch for fraud and tell the issuing authority if it is misused.']],
+      ['badge', 'Do work badges or lanyards appear in your photos?', 'Including selfies at your desk or on the way to work.', 'bad', 2, 'Take your badge off for photos', ['Remove or flip your badge before selfies and group photos.', 'Badges can be copied from a photo and reveal your employer and role.']],
+      ['screens', 'Do photos show screens, papers or whiteboards?', 'Laptops, monitors, letters, delivery labels, tickets.', 'bad', 2, 'Check the background before you post', ['Zoom in on every photo before posting and look for screens and papers.', 'Before sharing files, check them for hidden names and comments.'], 'docs'],
+      ['meta', 'Do you remove location data before sharing original photos?', 'Email, AirDrop and file sharing keep GPS data. Most social apps remove it.', 'good', 2, 'Strip GPS from photos you share', ['On iPhone, tap Options in the share sheet and turn off Location.', 'On Android, turn off location tags in the camera settings, or remove them before sharing.', 'Check a photo with the metadata cleaner.'], 'photo']
+    ] },
+    { id: 'accounts', n: 'Accounts', short: 'Accounts', qs: [
+      ['mfa', 'Is two-step verification on for your main email?', 'Your email can reset every other password.', 'good', 3, 'Turn on two-step verification for email', ['Open your email account\'s security settings and turn on two-step verification.', 'Prefer an authenticator app or passkey over SMS codes.', 'Save the backup codes somewhere safe, offline.']],
+      ['mfa2', 'Is two-step verification on for social media and WhatsApp?', 'WhatsApp calls it two-step verification and uses a PIN.', 'good', 2, 'Lock social and messaging accounts', ['WhatsApp: Settings, Account, Two-step verification, and set a PIN.', 'Instagram, Snapchat, X, TikTok: turn on two-factor authentication in security settings.', 'Never share a verification code with anyone, even someone claiming to be the app or a bank.']],
+      ['pm', 'Do you use a password manager or unique passwords everywhere?', 'Reused passwords are the most common way accounts get taken over.', 'good', 3, 'Start using a password manager', ['Install a password manager (the one built into your phone or browser is fine).', 'Change passwords on email, banking and social first, making each one unique.', 'Test a passphrase with the password checker.'], 'pw'],
+      ['breach', 'Have you checked your email against data breaches this year?', 'Old leaks are how attackers guess passwords.', 'good', 2, 'Check for breaches', ['Check your email addresses in the breach checker.', 'Change the password for any breached service, and anywhere you reused it.'], 'pwned'],
+      ['recovery', 'Are your account recovery email and phone current and secure?', 'An old number or a forgotten email is a back door.', 'good', 2, 'Update recovery details', ['Check recovery email and phone on your main accounts.', 'Remove old numbers and addresses you no longer control.']],
+      ['sim', 'Is your phone number protected against SIM swap?', 'If someone moves your number to their SIM, they get your SMS codes.', 'good', 2, 'Reduce SIM-swap risk', ['Ask your mobile provider what extra checks or PINs they offer for SIM changes and number transfers.', 'Move important accounts from SMS codes to an authenticator app or passkeys.', 'If your phone suddenly loses signal for no reason, contact your provider straight away.']],
+      ['wa', 'Have you limited who sees your WhatsApp details and who can add you to groups?', 'Profile photo, About, Last seen, and group invites from strangers.', 'good', 2, 'Tighten WhatsApp privacy', ['Settings, Privacy: set Profile photo, About and Last seen to My contacts.', 'Settings, Privacy, Groups: set to My contacts, so strangers can\'t add you.', 'In big community groups, everyone can see your number. Leave the ones you don\'t need.']]
+    ] },
+    { id: 'devices', n: 'Devices', short: 'Devices', qs: [
+      ['upd', 'Do your phone and laptop install updates automatically?', 'Most attacks use flaws that were already fixed.', 'good', 3, 'Turn on automatic updates', ['Phone: turn on automatic updates in Settings, Software update.', 'Laptop: turn on automatic updates and restart when asked.', 'Update apps automatically too.']],
+      ['lock', 'Is your phone locked with a strong PIN or biometrics, with message previews hidden?', 'Previews on the lock screen show codes to anyone nearby.', 'good', 2, 'Harden the lock screen', ['Use at least a 6-digit PIN, plus Face ID or fingerprint.', 'Hide notification previews on the lock screen.']],
+      ['lochist', 'Is location history off, or set to delete itself?', 'Google Timeline or Apple Significant Locations log where you sleep and work.', 'good', 2, 'Limit location history', ['Google: open Timeline settings and turn it off or set auto-delete.', 'iPhone: Settings, Privacy, Location Services, System Services, Significant Locations.']],
+      ['perms', 'Have you reviewed app permissions in the last six months?', 'Location, microphone, contacts and photos.', 'good', 2, 'Review app permissions', ['Open the privacy settings and check which apps can use location, microphone, camera and contacts.', 'Set location to "While using" or "Never" for most apps.', 'Delete apps you no longer use.']],
+      ['btname', 'Do your device names include your real name?', 'Phones, laptops, AirDrop and hotspots broadcast their names to anyone nearby.', 'bad', 2, 'Rename your devices', ['iPhone: Settings, General, About, Name. Android: Settings, About phone, Device name.', 'Use something neutral, without your name.', 'Set AirDrop or Quick Share to Contacts only, or off when you\'re out.']],
+      ['fit', 'Are fitness apps private, with your home hidden?', 'Public runs and rides start and end at your door.', 'good', 2, 'Lock down fitness apps', ['Set activities to Followers or Only me.', 'Add a privacy zone around your home and workplace.', 'Use the fitness privacy check for step-by-step settings.'], 'fit'],
+      ['browser', 'Do you use a privacy-friendly browser or tracker blocking?', 'Sites can recognise you without cookies.', 'good', 1, 'Reduce browser tracking', ['Turn on strict tracking protection in your browser.', 'See what your browser gives away with the fingerprint test.'], 'fp']
+    ] },
+    { id: 'home', n: 'Home', short: 'Home', qs: [
+      ['smart', 'Have you changed the default passwords on cameras, doorbells and smart devices?', 'Default passwords are published online.', 'good', 3, 'Secure smart home devices', ['Change every default password, and turn on two-step verification in the device app.', 'Update the firmware, and remove devices you no longer use.', 'Point indoor cameras away from bedrooms and private spaces.']],
+      ['ssid', 'Does your Wi-Fi name reveal your family name, villa or flat number?', 'Anyone in the street can see it.', 'bad', 2, 'Rename your Wi-Fi', ['Log in to your router and change the network name to something neutral.', 'Check your Wi-Fi settings with the Wi-Fi checker.'], 'wifi'],
+      ['router', 'Is your router\'s admin password changed and WPS turned off?', 'The admin login controls everything on your network.', 'good', 2, 'Lock down the router', ['Change the router admin password from the one on the sticker.', 'Use WPA2 or WPA3, and turn off WPS.', 'Update the router firmware, or ask your internet provider to.'], 'wifi'],
+      ['labels', 'Do you remove your name and address from delivery boxes before throwing them out?', 'Labels show your name, phone and address.', 'good', 1, 'Destroy delivery labels', ['Peel off or black out labels before recycling boxes.', 'Shred letters and receipts with personal details.']]
+    ] },
+    { id: 'travel', n: 'Travel', short: 'Travel', qs: [
+      ['plans', 'Do you announce trips before or during travel?', 'An empty home, and where to find you.', 'bad', 2, 'Post trips after you\'re back', ['Share holiday photos when you get home.', 'Avoid posting dates, flight numbers or "off to the airport".']],
+      ['room', 'Have you shared hotel names or room numbers while staying there?', 'Key card sleeves often show the room number.', 'bad', 2, 'Keep your room private', ['Don\'t post the hotel or room number while you\'re there.', 'Keep the key card sleeve out of photos.']],
+      ['wifi', 'On public Wi-Fi, do you avoid important logins or use mobile data instead?', 'Hotel, airport and café networks.', 'good', 1, 'Be careful on public Wi-Fi', ['Use mobile data or your phone\'s hotspot for banking and email.', 'Check what a network sees with the leak test.'], 'leak']
+    ] },
+    { id: 'work', n: 'Work and life', short: 'Work', qs: [
+      ['wdet', 'Do you post details about your work: projects, systems, colleagues?', 'Small details help scammers write convincing messages.', 'bad', 2, 'Keep work details off social media', ['Keep posts about work general.', 'Don\'t name colleagues, clients or internal systems.']],
+      ['title', 'Is your job title online more detailed than it needs to be?', 'Team names, exact roles and projects make you a target for phishing.', 'bad', 1, 'Trim your public job details', ['Keep your public title broad.', 'Remove team names and internal project names from public profiles.']],
+      ['wphoto', 'Do you post photos taken at your workplace?', 'Desks, screens, badges, building interiors.', 'bad', 2, 'Think twice about workplace photos', ['Check every workplace photo for screens, documents, badges and whiteboards.', 'Follow your employer\'s rules on photography.']]
+    ] },
+    { id: 'public', n: 'Public records and data', short: 'Records', qs: [
+      ['self', 'Have you searched your own name, phone and email in the last year?', 'See what a stranger would find.', 'good', 2, 'Search yourself', ['Search your name, phone number and email in a few search engines, in English and Arabic.', 'Check image search with your profile photo.', 'Note what you can delete, and what you need to ask others to remove.']],
+      ['phone', 'Is your phone number public on social profiles or in caller-ID apps?', 'Your number links all your accounts together.', 'bad', 2, 'Hide your phone number', ['Remove your number from public profiles and bios.', 'Many caller-ID apps let you unlist your number; check their websites.', 'Use a second number for online shopping and sign-ups if you can.']],
+      ['req', 'Have you asked companies to delete data you no longer need them to keep?', 'Old accounts and loyalty schemes still hold your details.', 'good', 1, 'Ask companies to delete your data', ['Close accounts you no longer use.', 'Send a deletion request to services holding your data.'], 'req']
+    ] }
+  ];
+  var ALL = []; SECTIONS.forEach(function (s) { s.qs.forEach(function (q) { ALL.push({ s: s.id, id: q[0], q: q[1], h: q[2], t: q[3], w: q[4], fix: q[5], steps: q[6], tool: q[7] }); }); });
+  var KEY = 'opsecAudit', A = {}, cur = 0;
+  try { A = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { A = {}; }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(A)); } catch (e) {} }
+  function score(q) { var a = A[q.id]; if (a == null || a === 'na') return null; return OPT[q.t][a][1]; }
+
+  function renderTabs() {
+    $('tabs').innerHTML = SECTIONS.map(function (s, i) { var n = s.qs.filter(function (q) { return A[q[0]] != null; }).length; return '<button type="button" data-i="' + i + '"' + (i === cur ? ' aria-current="true"' : '') + '>' + esc(s.n) + ' <i>' + n + '/' + s.qs.length + '</i></button>'; }).join('');
+    [].forEach.call($('tabs').children, function (b) { b.onclick = function () { cur = +b.dataset.i; renderAll(); }; });
+  }
+  function renderQs() {
+    var s = SECTIONS[cur];
+    $('qs').innerHTML = s.qs.map(function (q) {
+      var a = A[q[0]];
+      return '<li' + (a != null ? ' class="done"' : '') + '><p>' + esc(q[1]) + '<small>' + esc(q[2]) + '</small></p><div class="opts" role="group" aria-label="' + esc(q[1]) + '">' +
+        OPT[q[3]].map(function (o, k) { return '<button type="button" class="s' + o[1] + '" data-q="' + q[0] + '" data-a="' + k + '" aria-pressed="' + (a === k) + '">' + o[0] + '</button>'; }).join('') +
+        '<button type="button" class="na" data-q="' + q[0] + '" data-a="na" aria-pressed="' + (a === 'na') + '">Doesn\'t apply</button></div></li>';
+    }).join('');
+    [].forEach.call($('qs').querySelectorAll('button'), function (b) { b.onclick = function () { var v = b.dataset.a === 'na' ? 'na' : +b.dataset.a; A[b.dataset.q] = A[b.dataset.q] === v ? undefined : v; if (A[b.dataset.q] === undefined) delete A[b.dataset.q]; save(); renderAll(true); }; });
+    $('prev').disabled = cur === 0; $('next').textContent = cur === SECTIONS.length - 1 ? 'See my plan ↓' : 'Next section →';
+  }
+  function results() {
+    var out = SECTIONS.map(function (s) {
+      var got = 0, max = 0;
+      ALL.filter(function (q) { return q.s === s.id; }).forEach(function (q) { var v = score(q); if (v == null) return; got += v * q.w; max += 2 * q.w; });
+      return { s: s, pct: max ? got / max : null };
+    });
+    var g = 0, m = 0; ALL.forEach(function (q) { var v = score(q); if (v == null) return; g += v * q.w; m += 2 * q.w; });
+    return { secs: out, total: m ? g / m : null };
+  }
+  function col(p) { return p == null ? 'var(--line)' : p >= 0.8 ? 'var(--sat-b)' : p >= 0.5 ? 'var(--accent)' : 'var(--sat-c)'; }
+  function radar(r) {
+    var n = r.secs.length, R = 100, svg = '';
+    function pt(i, f) { var a = -Math.PI / 2 + i * 2 * Math.PI / n; return [Math.cos(a) * R * f, Math.sin(a) * R * f]; }
+    [0.25, 0.5, 0.75, 1].forEach(function (f) { svg += '<polygon points="' + r.secs.map(function (x, i) { return pt(i, f).join(','); }).join(' ') + '" fill="none" stroke="rgba(120,132,190,.25)"/>'; });
+    r.secs.forEach(function (x, i) {
+      var e = pt(i, 1), l = pt(i, 1.28), anchor = Math.abs(l[0]) < 8 ? 'middle' : l[0] > 0 ? 'start' : 'end';
+      svg += '<line x1="0" y1="0" x2="' + e[0] + '" y2="' + e[1] + '" stroke="rgba(120,132,190,.25)"/>';
+      svg += '<text x="' + l[0].toFixed(1) + '" y="' + (l[1] + 4).toFixed(1) + '" text-anchor="' + anchor + '">' + esc(x.s.short) + '</text>';
+      if (x.pct != null) { var v = pt(i, 1.12); svg += '<text class="val" x="' + v[0].toFixed(1) + '" y="' + (v[1] + 4).toFixed(1) + '" text-anchor="middle">' + Math.round(x.pct * 100) + '</text>'; }
+    });
+    svg += '<polygon points="' + r.secs.map(function (x, i) { return pt(i, x.pct == null ? 0 : Math.max(0.03, x.pct)).join(','); }).join(' ') + '" fill="rgba(79,211,189,.25)" stroke="#4FD3BD" stroke-width="2"/>';
+    $('radar').innerHTML = svg;
+  }
+  function plan() {
+    var items = ALL.filter(function (q) { var v = score(q); return v != null && v < 2; }).map(function (q) { return { q: q, p: q.w * (2 - score(q)) }; }).sort(function (a, b) { return b.p - a.p || b.q.w - a.q.w; });
+    return items;
+  }
+  function renderResults() {
+    var r = results(), n = Object.keys(A).length;
+    $('total').textContent = r.total == null ? '–' : Math.round(r.total * 100) + '%'; $('total').style.color = col(r.total);
+    $('totalTxt').textContent = r.total == null ? 'Answer a few questions to see your score.' : r.total >= 0.8 ? 'Well protected. Keep it up and fix the few gaps below.' : r.total >= 0.5 ? 'Some gaps. The plan below starts with the ones that matter most.' : 'Quite exposed. Start at the top of the plan; the first few fixes make the biggest difference.';
+    radar(r);
+    $('secs').innerHTML = r.secs.map(function (x) { return '<div><span>' + esc(x.s.n) + '</span><b>' + (x.pct == null ? '–' : Math.round(x.pct * 100) + '%') + '</b><span class="bar2"><i style="width:' + (x.pct == null ? 0 : Math.round(x.pct * 100)) + '%;background:' + col(x.pct) + '"></i></span></div>'; }).join('');
+    var items = plan();
+    $('plan').innerHTML = items.length ? items.map(function (it) {
+      var q = it.q, lvl = it.p >= 4 ? ['pri-h', 'High priority'] : it.p >= 2 ? ['pri-m', 'Medium priority'] : ['pri-l', 'Low priority'], tl = q.tool ? TOOL[q.tool] : null;
+      return '<li><div class="ph"><b>' + esc(q.fix) + '</b><em class="' + lvl[0] + '">' + lvl[1] + '</em></div><ol>' + q.steps.map(function (s) { return '<li>' + esc(s) + '</li>'; }).join('') + '</ol>' + (tl ? '<a class="tool" href="' + tl[0] + '">' + esc(tl[1]) + ' →</a>' : '') + '</li>';
+    }).join('') : '<li><div class="ph"><b>' + (n ? 'Nothing to fix in what you\'ve answered so far.' : 'Your plan appears here as you answer.') + '</b></div></li>';
+  }
+  function renderCount() {
+    var n = ALL.filter(function (q) { return A[q.id] != null; }).length;
+    $('count').textContent = n + ' of ' + ALL.length + ' answered'; $('prog').style.width = Math.round(100 * n / ALL.length) + '%';
+  }
+  function renderAll(keepQs) { renderTabs(); if (!keepQs) renderQs(); else [].forEach.call($('qs').querySelectorAll('.opts button'), function (b) { var v = b.dataset.a === 'na' ? 'na' : +b.dataset.a; b.setAttribute('aria-pressed', String(A[b.dataset.q] === v)); b.closest('li').classList.toggle('done', A[b.dataset.q] != null); }); renderCount(); renderResults(); }
+  $('prev').onclick = function () { if (cur > 0) { cur--; renderAll(); $('tabs').scrollIntoView({ block: 'start' }); } };
+  $('next').onclick = function () { if (cur < SECTIONS.length - 1) { cur++; renderAll(); $('tabs').scrollIntoView({ block: 'start' }); } else $('plan').scrollIntoView({ block: 'start' }); };
+  $('print').onclick = function () { window.print(); };
+  $('reset').onclick = function () { if (!confirm('Clear all your answers?')) return; A = {}; save(); cur = 0; renderAll(); };
+  $('export').onclick = function () {
+    var r = results(), L = ['# ' + T('Personal OPSEC audit'), '', T('Overall') + ': ' + (r.total == null ? '–' : Math.round(r.total * 100) + '%'), ''];
+    r.secs.forEach(function (x) { L.push('- ' + T(x.s.n) + ': ' + (x.pct == null ? '–' : Math.round(x.pct * 100) + '%')); });
+    L.push('', '## ' + T('Fix plan'), '');
+    plan().forEach(function (it, i) { L.push((i + 1) + '. **' + T(it.q.fix) + '**'); it.q.steps.forEach(function (s) { L.push('   - ' + T(s)); }); if (it.q.tool) L.push('   - ' + T(TOOL[it.q.tool][1]) + ': https://lab.mariamalzaabi.ae/' + TOOL[it.q.tool][0].replace('../', '')); });
+    var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([L.join('\n') + '\n'], { type: 'text/markdown' })); a.download = 'opsec-plan.md'; a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+  };
+  window.__opsec = { ALL: ALL, SECTIONS: SECTIONS };
+  renderAll();
+})();
+</script>
+</body>
+</html>
