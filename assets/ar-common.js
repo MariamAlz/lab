@@ -385,3 +385,10 @@ LabAr.add({
  "Stroop, reaction time, change blindness and memory span, against typical ranges.": "ستروب وزمن الاستجابة وعمى التغيير ومدى الذاكرة، مقارنة بالنطاقات المعتادة.",
  "Test yourself →": "اختبر نفسك ←"
 });
+/* index cards for newer tools */
+LabAr.add({
+ "Tool · Files · UAE": "أداة · ملفات · الإمارات",
+ "Portal upload fixer": "مُصلح ملفات البوابات",
+ "Shrink photos and PDFs under a portal's size limit, turn iPhone HEIC into JPG and crop to exact pixels, all on your device.": "صغّر الصور وملفات PDF لتناسب حد الحجم في البوابات، وحوّل صور HEIC من iPhone إلى JPG، واقصّها بأبعاد دقيقة بالبكسل، وكل ذلك على جهازك.",
+ "Fix a file →": "أصلح ملفًا ←"
+});

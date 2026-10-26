@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Portal Upload Fixer · Mariam's Lab</title>
+<meta name="description" content="Shrink photos and PDFs to fit government portal upload limits like 200 KB or 1 MB, turn iPhone HEIC photos into JPG, and crop to exact pixel sizes. Everything happens in your browser.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/portal-upload/">
+<meta property="og:title" content="Portal Upload Fixer · Mariam's Lab"><meta property="og:description" content="Get your photo or PDF under the portal's size limit without uploading it anywhere."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.drop { position: relative; display: grid; place-items: center; gap: 6px; padding: 28px 18px; text-align: center; border: 1.5px dashed var(--line); border-radius: var(--radius); background: var(--surface); cursor: pointer; transition: border-color .2s; }
+.drop:hover, .drop.over, .drop:focus-within { border-color: var(--accent); }
+.drop b { font-size: 1.1rem; }
+.drop span { color: var(--muted); font-size: 0.9rem; }
+.drop input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.f { display: grid; gap: 6px; }
+.f > span, .sub { font-size: 0.84rem; color: var(--muted); }
+.f input, .f select { font: inherit; color: var(--ink); background: rgba(7, 10, 24, 0.6); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; min-width: 0; width: 100%; }
+.f input[type=number] { font-family: var(--font-mono); }
+.f input[type=color] { padding: 2px; height: 38px; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.three { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.sm { font: inherit; font-size: 0.84rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 13px; cursor: pointer; }
+.sm:hover { border-color: var(--muted); }
+.sm[aria-pressed="true"], .sm.pri { background: var(--accent); color: #1a1205; border-color: var(--accent); }
+.sm:disabled { opacity: .45; cursor: default; }
+.chk { display: flex; gap: 8px; align-items: flex-start; font-size: 0.9rem; cursor: pointer; }
+.chk input { accent-color: var(--accent); width: 17px; height: 17px; margin: 2px 0 0; flex: none; }
+.box { display: grid; gap: 12px; padding: 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); }
+.box h2 { font-size: 1.02rem; font-weight: 800; }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 0; }
+.msg.err { color: var(--sat-c); }
+.acts { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.outs { display: grid; gap: 10px; }
+.out { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 12px; align-items: center; padding: 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.out .th { width: 64px; height: 64px; border-radius: 8px; background: rgba(7, 10, 24, 0.6); display: grid; place-items: center; overflow: hidden; font-family: var(--font-mono); font-size: 0.72rem; color: var(--muted); }
+.out .th img { width: 100%; height: 100%; object-fit: contain; background: #fff; }
+.out .nm { font-weight: 600; font-size: 0.92rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.out .ba { display: flex; flex-wrap: wrap; gap: 4px 10px; font-family: var(--font-mono); font-size: 0.78rem; color: var(--muted); margin: 3px 0 6px; }
+.out .ba .ok { color: var(--sat-b); }
+.out .ba .bad { color: var(--sat-c); }
+.out .why { font-size: 0.8rem; color: var(--muted); margin: 0 0 6px; }
+.out a.sm { text-decoration: none; display: inline-block; }
+.empty { color: var(--muted); font-size: 0.9rem; padding: 6px 0; }
+[hidden] { display: none !important; }
+html.ar .out .ba, html.ar .out .nm{ unicode-bidi: plaintext; }
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Files · UAE</span>
+    <h1 style="font-size:var(--step-3)">Portal upload fixer.</h1>
+    <p>Government and visa portals often reject a file for being 1.4 MB when the limit is 500 KB, or for being an iPhone HEIC photo. Drop your photos or PDFs here, pick the limit, and get files that fit. Nothing is uploaded: the shrinking happens on your device.</p>
+  </div>
+
+  <label class="drop" id="drop">
+    <input type="file" id="file" multiple accept="image/*,.heic,.heif,application/pdf">
+    <b>Drop photos or PDFs here</b>
+    <span>or tap to choose. JPG, PNG, HEIC, WebP and PDF.</span>
+  </label>
+
+  <div class="game" style="margin-top:22px">
+    <div class="panel">
+      <div class="box">
+        <h2>Your files</h2>
+        <p class="msg" id="msg">Nothing yet. Add a file above.</p>
+        <div class="outs" id="outs"></div>
+        <div class="acts" id="allActs" hidden>
+          <button class="sm pri" id="zip">Download all (.zip)</button>
+          <button class="sm" id="redo">Redo with new settings</button>
+          <button class="sm" id="clr">Clear</button>
+        </div>
+      </div>
+      <p class="fact">How it hits the limit: a JPG has a quality dial from 0 to 100. The page saves your photo at the middle setting, checks the size, then halves the gap again and again (a binary search). Seven tries finds the best quality that still fits. If even low quality is too big, it makes the picture a bit smaller and tries again.</p>
+      <p class="fact">To be safe it counts 1 KB as 1000 bytes, the stricter reading, and aims a little under. Saving a photo again also removes its hidden location and camera data.</p>
+    </div>
+
+    <div class="panel">
+      <div class="box">
+        <h2>Size limit</h2>
+        <div class="pills" id="limits">
+          <button class="sm" data-kb="100">100 KB</button>
+          <button class="sm" data-kb="200" aria-pressed="true">200 KB</button>
+          <button class="sm" data-kb="500">500 KB</button>
+          <button class="sm" data-kb="1000">1 MB</button>
+          <button class="sm" data-kb="2000">2 MB</button>
+          <button class="sm" data-kb="custom">Custom</button>
+        </div>
+        <label class="f" id="customF" hidden><span>Custom limit (KB)</span><input type="number" id="customKb" min="10" step="10" value="300"></label>
+      </div>
+
+      <div class="box">
+        <h2>Photo size in pixels</h2>
+        <label class="f"><span>What to do with the dimensions</span>
+          <select id="mode">
+            <option value="keep">Keep, shrink only if needed to fit the limit</option>
+            <option value="max">Make the longest side at most…</option>
+            <option value="crop">Exact size, crop to fill</option>
+            <option value="pad">Exact size, fit inside with padding</option>
+          </select>
+        </label>
+        <label class="f" id="maxF" hidden><span>Longest side (px)</span><input type="number" id="maxSide" min="100" step="50" value="1600"></label>
+        <div id="exactF" hidden style="display:grid;gap:10px">
+          <div class="two">
+            <label class="f"><span>Width (px)</span><input type="number" id="w" min="50" step="1" value="413"></label>
+            <label class="f"><span>Height (px)</span><input type="number" id="h" min="50" step="1" value="531"></label>
+          </div>
+          <div class="pills" id="presets">
+            <button class="sm" data-wh="413x531">35 × 45 mm at 300 dpi</button>
+            <button class="sm" data-wh="472x709">40 × 60 mm at 300 dpi</button>
+            <button class="sm" data-wh="600x600">600 × 600</button>
+            <button class="sm" data-wh="1200x1600">1200 × 1600</button>
+          </div>
+          <span class="sub">Starting points, not official specs. Check the portal's own rule for pixels, background and face size.</span>
+          <div class="three">
+            <label class="f"><span>mm wide</span><input type="number" id="mmw" min="5" step="1" value="35"></label>
+            <label class="f"><span>mm high</span><input type="number" id="mmh" min="5" step="1" value="45"></label>
+            <label class="f"><span>dpi</span><input type="number" id="dpi" min="72" step="1" value="300"></label>
+          </div>
+          <button class="sm" id="mm2px" style="justify-self:start">Use these mm as pixels</button>
+        </div>
+        <div class="two">
+          <label class="f"><span>Background and padding colour</span><input type="color" id="bg" value="#ffffff"></label>
+          <label class="chk" style="align-self:end;padding-bottom:8px"><input type="checkbox" id="white" checked><span>White background</span></label>
+        </div>
+        <span class="sub">Fills transparent areas and padding. It doesn't remove the background behind a person.</span>
+      </div>
+
+      <div class="box">
+        <h2>PDFs</h2>
+        <label class="f"><span>Sharpest page quality to try first</span>
+          <select id="pdfDpi">
+            <option value="200">200 dpi (crisp, bigger)</option>
+            <option value="150" selected>150 dpi (good for forms)</option>
+            <option value="110">110 dpi (smaller)</option>
+          </select>
+        </label>
+        <label class="chk"><input type="checkbox" id="merge"><span>Put all the photos into one PDF (for "upload one file" boxes)</span></label>
+        <label class="f" id="pageF" hidden><span>Pages</span>
+          <select id="pageMode"><option value="a4">A4, photo fitted with a margin</option><option value="fit">Page the same size as each photo</option></select>
+        </label>
+        <span class="sub">PDFs are shrunk by turning each page into a JPG picture. Text will no longer be selectable, which portals don't mind. Keep the original. To merge or reorder PDFs first, use <a href="../pdf-tools/">PDF tools</a>.</span>
+      </div>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script src="../assets/vendor/pdf-lib.min.js"></script>
+<script src="../assets/vendor/pdf.min.js"></script>
+<script src="../assets/vendor/jszip.min.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  pdfjsLib.GlobalWorkerOptions.workerSrc = '../assets/vendor/pdf.worker.min.js';
+  var files = [], outs = [], busy = false, kb = 200;
+  var Q_LEVELS = [0.92, 0.84, 0.76, 0.68, 0.6, 0.52, 0.44, 0.36, 0.28, 0.2];
+
+  function fmt(b) { return b >= 1e6 ? (b / 1e6).toFixed(2) + ' MB' : Math.max(1, Math.round(b / 1e3)) + ' KB'; }
+  function budget() { return Math.floor(kb * 1000 * 0.98); }
+  function limitLabel() { return kb >= 1000 && kb % 1000 === 0 ? (kb / 1000) + 'MB' : kb + 'KB'; }
+  function say(t, err) { $('msg').textContent = t; $('msg').className = 'msg' + (err ? ' err' : ''); }
+  function base(n) { return n.replace(/\.[^.]+$/, '').replace(/[^\w\-]+/g, '-').replace(/^-+|-+$/g, '') || 'file'; }
+  function isHeic(f) { return /heic|heif/i.test(f.type) || /\.(heic|heif)$/i.test(f.name); }
+  function isPdf(f) { return f.type === 'application/pdf' || /\.pdf$/i.test(f.name); }
+  function fill() { return $('white').checked ? '#ffffff' : $('bg').value; }
+  function toBlob(c, q) { return new Promise(function (res) { c.toBlob(function (b) { res(b); }, 'image/jpeg', q); }); }
+  function tick() { return new Promise(function (r) { setTimeout(r, 0); }); }
+
+  // ---------- settings UI ----------
+  $('limits').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    [].forEach.call($('limits').children, function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+    $('customF').hidden = b.dataset.kb !== 'custom';
+    kb = b.dataset.kb === 'custom' ? Math.max(10, +$('customKb').value || 300) : +b.dataset.kb;
+    changed();
+  });
+  $('customKb').addEventListener('input', function () { kb = Math.max(10, +$('customKb').value || 300); changed(); });
+  function modeUi() { var m = $('mode').value; $('maxF').hidden = m !== 'max'; $('exactF').hidden = !(m === 'crop' || m === 'pad'); }
+  $('mode').addEventListener('change', function () { modeUi(); changed(); });
+  $('presets').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return; var p = b.dataset.wh.split('x');
+    $('w').value = p[0]; $('h').value = p[1]; changed();
+  });
+  $('mm2px').addEventListener('click', function () {
+    var d = +$('dpi').value || 300;
+    $('w').value = Math.round((+$('mmw').value || 35) / 25.4 * d); $('h').value = Math.round((+$('mmh').value || 45) / 25.4 * d); changed();
+  });
+  $('white').addEventListener('change', changed); $('bg').addEventListener('input', function () { $('white').checked = $('bg').value.toLowerCase() === '#ffffff'; changed(); });
+  $('merge').addEventListener('change', function () { $('pageF').hidden = !$('merge').checked; changed(); });
+  ['maxSide', 'w', 'h', 'pdfDpi', 'pageMode'].forEach(function (k) { $(k).addEventListener('change', changed); });
+  function changed() { if (outs.length && !busy) $('redo').classList.add('pri'); }
+
+  // ---------- input ----------
+  var drop = $('drop');
+  ['dragenter', 'dragover'].forEach(function (ev) { drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.add('over'); }); });
+  ['dragleave', 'drop'].forEach(function (ev) { drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.remove('over'); }); });
+  drop.addEventListener('drop', function (e) { add(e.dataTransfer.files); });
+  $('file').addEventListener('change', function () { add($('file').files); $('file').value = ''; });
+  function add(list) {
+    [].forEach.call(list, function (f) { if (isPdf(f) || isHeic(f) || /^image\//.test(f.type)) files.push(f); });
+    if (!files.length) { say('Those files are not photos or PDFs.', true); return; }
+    run();
+  }
+  $('redo').addEventListener('click', function () { if (files.length) run(); });
+  $('clr').addEventListener('click', function () { files = []; clearOuts(); $('allActs').hidden = true; say('Nothing yet. Add a file above.'); });
+  function clearOuts() { outs.forEach(function (o) { if (o.url) URL.revokeObjectURL(o.url); if (o.thumb) URL.revokeObjectURL(o.thumb); }); outs = []; $('outs').innerHTML = ''; }
+
+  // ---------- decoding ----------
+  var heicLib = null;
+  function loadHeicLib() {
+    if (heicLib) return heicLib;
+    heicLib = new Promise(function (res, rej) {
+      var s = document.createElement('script'); s.src = '../assets/vendor/heic2any.min.js';
+      s.onload = function () { window.heic2any ? res(window.heic2any) : rej(new Error('no heic2any')); };
+      s.onerror = function () { heicLib = null; rej(new Error('load')); };
+      document.head.appendChild(s);
+    });
+    return heicLib;
+  }
+  function imgFromBlob(b) {
+    return new Promise(function (res, rej) {
+      var u = URL.createObjectURL(b), im = new Image();
+      im.onload = function () { res({ img: im, w: im.naturalWidth, h: im.naturalHeight, url: u }); };
+      im.onerror = function () { URL.revokeObjectURL(u); rej(new Error('decode')); };
+      im.src = u;
+    });
+  }
+  function decode(f) {
+    return imgFromBlob(f).catch(function () {
+      if (!isHeic(f)) throw new Error('This photo could not be opened.');
+      say('Opening HEIC photo (first time loads a 1.3 MB decoder)…');
+      return loadHeicLib().then(function (h) { return h({ blob: f, toType: 'image/jpeg', quality: 0.95 }); })
+        .then(function (b) { return imgFromBlob(Array.isArray(b) ? b[0] : b); })
+        .catch(function () { throw new Error('This HEIC photo could not be opened here. On an iPhone, open it in Safari, or set Camera > Formats to Most Compatible.'); });
+    });
+  }
+
+  // draw the photo at a given scale using the chosen pixel mode
+  function plan(w, h) {
+    var m = $('mode').value, W = Math.max(50, +$('w').value || 413), H = Math.max(50, +$('h').value || 531);
+    if (m === 'crop' || m === 'pad') return { fixed: true, W: W, H: H, mode: m };
+    var cap = m === 'max' ? Math.max(100, +$('maxSide').value || 1600) : 4096;
+    var s = Math.min(1, cap / Math.max(w, h));
+    return { fixed: false, W: Math.round(w * s), H: Math.round(h * s), mode: 'keep' };
+  }
+  function draw(src, p, f) {
+    var W = Math.max(1, Math.round(p.W * f)), H = Math.max(1, Math.round(p.H * f));
+    var c = document.createElement('canvas'); c.width = W; c.height = H;
+    var x = c.getContext('2d'); x.fillStyle = fill(); x.fillRect(0, 0, W, H);
+    x.imageSmoothingQuality = 'high';
+    var iw = src.w, ih = src.h;
+    if (p.mode === 'crop') {
+      var s = Math.max(W / iw, H / ih), sw = W / s, sh = H / s;
+      x.drawImage(src.img, (iw - sw) / 2, (ih - sh) / 2, sw, sh, 0, 0, W, H);
+    } else if (p.mode === 'pad') {
+      var t = Math.min(W / iw, H / ih), dw = iw * t, dh = ih * t;
+      x.drawImage(src.img, (W - dw) / 2, (H - dh) / 2, dw, dh);
+    } else x.drawImage(src.img, 0, 0, W, H);
+    return c;
+  }
+
+  // ---------- one photo to a JPG under the limit ----------
+  function shrinkPhoto(src) {
+    var p = plan(src.w, src.h), lim = budget(), f = 1, best = null, smallest = null, tries = 0;
+    function attempt() {
+      var c = draw(src, p, f), lo = p.fixed ? 0.08 : 0.4, hi = 0.92, fit = null;
+      return toBlob(c, hi).then(function (b) {
+        if (b.size <= lim) return { blob: b, q: hi };
+        return toBlob(c, lo).then(function (bl) {
+          if (!smallest || bl.size < smallest.blob.size) smallest = { blob: bl, q: lo, w: c.width, h: c.height };
+          if (bl.size > lim) return null;
+          fit = { blob: bl, q: lo };
+          var i = 0;
+          function step() {
+            if (i++ >= 6) return fit;
+            var mid = (lo + hi) / 2;
+            return toBlob(c, mid).then(function (bm) { if (bm.size <= lim) { fit = { blob: bm, q: mid }; lo = mid; } else hi = mid; return step(); });
+          }
+          return step();
+        });
+      }).then(function (r) {
+        if (r) { r.w = c.width; r.h = c.height; return r; }
+        if (p.fixed || ++tries > 12 || Math.max(c.width, c.height) < 240) return null;
+        f *= Math.max(0.5, Math.min(0.88, Math.sqrt(lim / smallest.blob.size) * 0.95));
+        return attempt();
+      });
+    }
+    return attempt().then(function (r) { best = r; return { fit: !!best, r: best || smallest, fixed: p.fixed }; });
+  }
+
+  // ---------- pages to a PDF under the limit ----------
+  // pages: [{ wPt, hPt, render(f) -> Promise<canvas>, a4 }]
+  function pagesToPdf(pages, lim, label) {
+    var factors = [1, 0.75, 0.56, 0.42, 0.32], fi = 0, smallest = null;
+    function level() {
+      var f = factors[fi], enc = [], i = 0;
+      function next() {
+        if (i >= pages.length) return Promise.resolve();
+        say(label + ': page ' + (i + 1) + ' of ' + pages.length + '…');
+        return pages[i].render(f).then(function (c) {
+          var row = [], k = 0;
+          function q() {
+            if (k >= Q_LEVELS.length) return Promise.resolve();
+            return toBlob(c, Q_LEVELS[k++]).then(function (b) { row.push(b); return q(); });
+          }
+          return q().then(function () { enc.push({ row: row, w: c.width, h: c.height }); c.width = c.height = 0; i++; return tick().then(next); });
+        });
+      }
+      return next().then(function () {
+        var k = 0;
+        function tryQ() {
+          if (k >= Q_LEVELS.length) return null;
+          var total = enc.reduce(function (s, e) { return s + e.row[k].size; }, 0) + pages.length * 700 + 1500;
+          if (total > lim && k < Q_LEVELS.length - 1) { k++; return tryQ(); }
+          return build(pages, enc, k).then(function (bytes) {
+            if (!smallest || bytes.length < smallest.bytes.length) smallest = { bytes: bytes, k: k, f: f };
+            if (bytes.length <= lim) return { bytes: bytes, k: k, f: f };
+            k++; return tryQ();
+          });
+        }
+        return tryQ();
+      }).then(function (r) {
+        if (r) return { fit: true, r: r };
+        if (++fi >= factors.length) return { fit: false, r: smallest };
+        return level();
+      });
+    }
+    return level();
+  }
+  function build(pages, enc, k) {
+    var L = PDFLib;
+    return L.PDFDocument.create().then(function (doc) {
+      var chain = Promise.resolve();
+      enc.forEach(function (e, i) {
+        chain = chain.then(function () { return e.row[k].arrayBuffer(); }).then(function (ab) { return doc.embedJpg(ab); }).then(function (img) {
+          var pg = pages[i];
+          if (pg.a4) {
+            var PW = 595.28, PH = 841.89, m = 28, s = Math.min((PW - 2 * m) / pg.wPt, (PH - 2 * m) / pg.hPt);
+            var page = doc.addPage([PW, PH]), dw = pg.wPt * s, dh = pg.hPt * s;
+            page.drawImage(img, { x: (PW - dw) / 2, y: (PH - dh) / 2, width: dw, height: dh });
+          } else {
+            var pp = doc.addPage([pg.wPt, pg.hPt]);
+            pp.drawImage(img, { x: 0, y: 0, width: pg.wPt, height: pg.hPt });
+          }
+        });
+      });
+      return chain.then(function () { doc.setProducer('Mariam\'s Lab portal upload fixer'); doc.setCreator(''); return doc.save({ useObjectStreams: true }); });
+    });
+  }
+  function pdfPages(f) {
+    return f.arrayBuffer().then(function (ab) { return pdfjsLib.getDocument({ data: new Uint8Array(ab) }).promise; }).then(function (doc) {
+      var maxDpi = +$('pdfDpi').value, list = [];
+      var n = Math.min(doc.numPages, 200), chain = Promise.resolve();
+      for (var i = 1; i <= n; i++) (function (i) {
+        chain = chain.then(function () { return doc.getPage(i); }).then(function (pg) {
+          var v = pg.getViewport({ scale: 1 });
+          list.push({ wPt: v.width, hPt: v.height, render: function (fct) {
+            var sc = Math.min(maxDpi * fct / 72, 3000 / Math.max(v.width, v.height));
+            var vp = pg.getViewport({ scale: sc }), c = document.createElement('canvas');
+            c.width = Math.ceil(vp.width); c.height = Math.ceil(vp.height);
+            var x = c.getContext('2d'); x.fillStyle = '#ffffff'; x.fillRect(0, 0, c.width, c.height);
+            return pg.render({ canvasContext: x, viewport: vp }).promise.then(function () { return c; });
+          } });
+        });
+      })(i);
+      return chain.then(function () { return { pages: list, total: doc.numPages }; });
+    });
+  }
+
+  // ---------- run everything ----------
+  function run() {
+    if (busy) return; busy = true; clearOuts(); $('redo').classList.remove('pri'); $('allActs').hidden = true;
+    var merge = $('merge').checked, photos = [], chain = Promise.resolve(), lim = budget();
+    files.forEach(function (f) {
+      chain = chain.then(function () {
+        if (isPdf(f)) return doPdf(f, lim);
+        say('Working on ' + f.name + '…');
+        return decode(f).then(function (src) {
+          if (merge) { photos.push({ f: f, src: src }); return; }
+          return shrinkPhoto(src).then(function (res) {
+            var r = res.r;
+            addOut({ name: f.name, before: f.size, bdim: src.w + ' × ' + src.h, blob: r.blob, after: r.blob.size, adim: r.w + ' × ' + r.h,
+              fit: res.fit, out: base(f.name) + '-' + limitLabel() + '.jpg', why: res.fit ? '' : (res.fixed ? 'Too detailed to fit at these exact pixels, even at low quality. Try a smaller size or a higher limit.' : 'Could not get it under the limit.'),
+              heic: isHeic(f) });
+            URL.revokeObjectURL(src.url);
+          });
+        }).catch(function (e) { addOut({ name: f.name, before: f.size, err: e.message }); });
+      }).then(tick);
+    });
+    chain.then(function () {
+      if (!merge || !photos.length) return;
+      var pages = photos.map(function (ph) {
+        var p = plan(ph.src.w, ph.src.h);
+        return { wPt: p.W, hPt: p.H, a4: $('pageMode').value === 'a4', render: function (fct) {
+          var cap = Math.min(1, 2000 / Math.max(p.W, p.H));
+          return Promise.resolve(draw(ph.src, p, fct * cap));
+        } };
+      });
+      return pagesToPdf(pages, lim, 'Combining photos').then(function (res) {
+        var b = new Blob([res.r.bytes], { type: 'application/pdf' });
+        addOut({ merged: true, name: photos.length + (photos.length === 1 ? ' photo' : ' photos'), before: photos.reduce(function (s, p) { return s + p.f.size; }, 0), bdim: '', blob: b, after: b.size,
+          adim: photos.length + (photos.length === 1 ? ' page' : ' pages'), fit: res.fit, pdf: true, out: 'photos-' + limitLabel() + '.pdf',
+          why: res.fit ? '' : 'Could not get it under the limit. Try fewer photos or a higher limit.' });
+        photos.forEach(function (p) { URL.revokeObjectURL(p.src.url); });
+      });
+    }).catch(function (e) { say(e.message || 'Something went wrong.', true); }).then(function () {
+      busy = false;
+      var good = outs.filter(function (o) { return o.blob; }).length;
+      if (outs.length) {
+        $('allActs').hidden = false; $('zip').disabled = !good;
+        var miss = outs.filter(function (o) { return o.blob && !o.fit; }).length;
+        say(good + (good === 1 ? ' file ready' : ' files ready') + (miss ? ', ' + miss + ' still over the limit.' : ', all under ' + fmt(kb * 1000) + '.'), !!miss);
+      }
+    });
+  }
+  function doPdf(f, lim) {
+    say('Working on ' + f.name + '…');
+    if (f.size <= lim) { addOut({ name: f.name, before: f.size, bdim: '', blob: f, after: f.size, adim: '', fit: true, pdf: true, out: f.name, why: 'Already under the limit. You can upload the original.' }); return Promise.resolve(); }
+    return pdfPages(f).then(function (info) {
+      return pagesToPdf(info.pages, lim, f.name).then(function (res) {
+        var b = new Blob([res.r.bytes], { type: 'application/pdf' });
+        addOut({ name: f.name, before: f.size, bdim: info.total + (info.total === 1 ? ' page' : ' pages'), blob: b, after: b.size, adim: info.pages.length + (info.pages.length === 1 ? ' page' : ' pages'),
+          fit: res.fit, pdf: true, out: base(f.name) + '-' + limitLabel() + '.pdf',
+          why: res.fit ? (info.total > info.pages.length ? 'Only the first 200 pages were kept.' : '') : 'Could not get it under the limit, even at low quality. Try a higher limit or split it with PDF tools.' });
+      });
+    }).catch(function () { addOut({ name: f.name, before: f.size, err: 'This PDF could not be read. It may be password protected.' }); });
+  }
+  function addOut(o) {
+    outs.push(o);
+    var d = document.createElement('div'); d.className = 'out';
+    var th = document.createElement('div'); th.className = 'th';
+    if (o.blob && !o.pdf) { o.thumb = URL.createObjectURL(o.blob); var im = document.createElement('img'); im.alt = ''; im.src = o.thumb; th.appendChild(im); }
+    else th.textContent = o.err ? '!' : 'PDF';
+    var body = document.createElement('div');
+    var nm = document.createElement('div'); nm.className = 'nm'; nm.textContent = o.name; if (!o.merged) nm.setAttribute('data-noar', ''); body.appendChild(nm);
+    var ba = document.createElement('div'); ba.className = 'ba';
+    function sp(t, cls) { var s = document.createElement('span'); s.textContent = t; if (cls) s.className = cls; ba.appendChild(s); }
+    if (o.err) { sp(fmt(o.before)); } else {
+      sp('Before ' + fmt(o.before) + (o.bdim ? ' · ' + o.bdim : ''));
+      sp('After ' + fmt(o.after) + (o.adim ? ' · ' + o.adim : ''), o.fit ? 'ok' : 'bad');
+      if (o.heic) sp('HEIC → JPG');
+    }
+    body.appendChild(ba);
+    if (o.err || o.why) { var w = document.createElement('p'); w.className = 'why'; w.textContent = o.err || o.why; body.appendChild(w); }
+    if (o.blob) {
+      o.url = URL.createObjectURL(o.blob);
+      var a = document.createElement('a'); a.className = 'sm' + (o.fit ? ' pri' : ''); a.href = o.url; a.download = o.out; a.textContent = 'Download ' + (o.pdf ? 'PDF' : 'JPG');
+      body.appendChild(a);
+    }
+    d.appendChild(th); d.appendChild(body); $('outs').appendChild(d);
+  }
+  $('zip').addEventListener('click', function () {
+    var z = new JSZip(), used = {};
+    outs.forEach(function (o) {
+      if (!o.blob) return; var n = o.out, i = 2;
+      while (used[n]) n = o.out.replace(/(\.\w+)$/, '-' + (i++) + '$1');
+      used[n] = 1; z.file(n, o.blob);
+    });
+    z.generateAsync({ type: 'blob' }).then(function (b) {
+      var a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'portal-files-' + limitLabel() + '.zip';
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+    });
+  });
+  modeUi();
+  window.__portal = { budget: budget, outs: function () { return outs; } };
+})();
+</script>
+</body>
+</html>
