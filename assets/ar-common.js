@@ -364,3 +364,10 @@ LabAr.add({
  "Find and cover faces, plates, documents and addresses in a photo, then save a clean copy without location data.": "اكتشف الوجوه ولوحات السيارات والمستندات والعناوين في الصورة وغطِّها، ثم احفظ نسخة نظيفة بلا بيانات الموقع.",
  "Check a photo →": "افحص صورة ←"
 });
+/* index cards for newer tools */
+LabAr.add({
+ "Sound · Music": "صوت · موسيقى",
+ "Arabic rhythm machine": "آلة الإيقاعات العربية",
+ "Play maqsum, baladi, saidi, sama'i thaqil, khaleeji and more on a synthesised darbuka and riq.": "اعزف المقسوم والبلدي والصعيدي والسماعي الثقيل والخليجي وغيرها على دربكة ورق مُركّبين رقميًا.",
+ "Play →": "اعزف ←"
+});
