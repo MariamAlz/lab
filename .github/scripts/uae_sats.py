@@ -14,7 +14,7 @@ import urllib.request
 
 UA = {"User-Agent": "lab.mariamalzaabi.ae UAE in orbit"}
 # Not shown: the Hope probe orbits Mars, and defence and commercial radar satellites are left out on purpose.
-SKIP = re.compile(r"HOPE|AL-AMAL|FALCON EYE|ICEYE")
+SKIP = re.compile(r"HOPE|AL-AMAL|FALCON EYE|ICEYE|LEONAV")
 
 
 def get(url):

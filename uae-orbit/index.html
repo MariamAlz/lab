@@ -23,11 +23,11 @@
 .list li:hover, .list li:focus-visible, .list li.on { border-color: var(--accent); outline: none; }
 .list li i { width: 10px; height: 10px; border-radius: 50%; }
 .list li span:last-child { font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); text-align: end; }
-.card { display: grid; gap: 6px; padding: 14px; border-radius: 12px; border: 1px solid var(--accent); background: var(--surface); }
-.card h3 { font-size: 1.15rem; font-weight: 800; }
-.card p { color: var(--muted); font-size: 0.9rem; }
-.card dl { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; margin: 4px 0 0; font-size: 0.85rem; }
-.card dt { color: var(--muted); } .card dd { margin: 0; font-family: var(--font-mono); text-align: end; }
+.info { display: grid; gap: 6px; padding: 14px; border-radius: 12px; border: 1px solid var(--accent); background: var(--surface); }
+.info h3 { font-size: 1.15rem; font-weight: 800; }
+.info p { color: var(--muted); font-size: 0.9rem; }
+.info dl { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; margin: 4px 0 0; font-size: 0.85rem; }
+.info dt { color: var(--muted); } .info dd { margin: 0; font-family: var(--font-mono); text-align: end; }
 .credit { font-size: 0.8rem; color: var(--muted); }
 </style>
 </head>
@@ -49,7 +49,7 @@
       </div>
     </div>
     <div class="panel">
-      <div class="card" id="card"><h3>Pick a satellite</h3><p>Tap one on the map or in the list.</p></div>
+      <div class="info" id="card"><h3>Pick a satellite</h3><p>Tap one on the map or in the list.</p></div>
       <ul class="list" id="list" aria-label="Satellites"></ul>
       <p class="fact">The low satellites (KhalifaSat, MBZ-SAT and smaller ones) image the Earth or test new technology. Defence satellites aren't shown. The high ones, 36,000 km up, carry TV, internet and satellite phone calls across the region. Positions come from public orbital elements refreshed every six hours.</p>
       <p class="credit" id="credit">Orbital elements: CelesTrak. Map: Natural Earth.</p>
@@ -75,7 +75,7 @@
     [/ETIHAD-SAT/, 'Etihad-SAT', 'A radar imaging satellite from the Mohammed bin Rashid Space Centre. Radar sees through cloud and dust, by day or night.'],
     [/SHARJAH/, null, 'A small satellite from Sharjah, built with university students and researchers.'],
     [/THURAYA/, null, 'A Thuraya satellite: it relays satellite-phone calls and data across Europe, Africa, the Middle East and Asia.'],
-    [/YAHSAT|AL YAH/, null, 'A Yahsat (Al Yah) satellite carrying TV, broadband and government communications.']
+    [/YAHSAT|AL YAH/, null, 'A Yahsat (Al Yah) satellite carrying TV, broadband and communications.']
   ];
   var COL = ['#E9B467', '#4FD3BD', '#84A0FF', '#F08AB3', '#EEF0FA', '#b7e07a', '#ffb38a', '#c9a7ff'];
   var sats = [], land = [], sel = null, live = true, simT = Date.now(), lastReal = Date.now(), speed = 1;
