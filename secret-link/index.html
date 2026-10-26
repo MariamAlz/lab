@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Secret Link · Mariam's Lab</title>
+<meta name="description" content="Send a password, a Wi-Fi key or a private note as a link that only the receiver can read. Encrypted in your browser with AES-256; no server ever sees the note or the key.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/secret-link/">
+<meta property="og:title" content="Secret Link · Mariam's Lab"><meta property="og:description" content="An encrypted note inside a link. No server sees it."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.85rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 7px 14px; cursor: pointer; text-decoration: none; display: inline-block; }
+.sm.pri { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 600; }
+.sm:disabled { opacity: .5; cursor: default; }
+.sl-btns { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.sl-field { display: grid; gap: 6px; }
+.sl-field > span { font-size: 0.82rem; color: var(--muted); }
+.sl-in { font: inherit; color: var(--ink); background: rgba(7,10,24,.7); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; width: 100%; min-width: 0; }
+textarea.sl-in { min-height: 140px; resize: vertical; line-height: 1.5; }
+select.sl-in { padding: 8px 10px; }
+.sl-mono { font-family: var(--font-mono); font-size: 0.82rem; word-break: break-all; }
+.sl-opts { display: grid; gap: 8px; }
+.sl-opt { display: grid; grid-template-columns: 1.4em minmax(0, 1fr); gap: 6px; align-items: start; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; cursor: pointer; font-size: 0.92rem; }
+.sl-opt input { margin-top: 5px; accent-color: var(--accent); }
+.sl-opt small { display: block; color: var(--muted); font-size: 0.8rem; }
+.sl-opt:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+.sl-out { padding: 18px; border-radius: var(--radius); border: 1px solid var(--sat-b); background: rgba(7,10,24,.82); display: grid; gap: 12px; min-width: 0; }
+.sl-qr { width: 200px; max-width: 100%; background: #fff; border-radius: 10px; padding: 8px; }
+.sl-qr svg { display: block; width: 100%; height: auto; }
+.sl-msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; }
+.sl-bad { color: var(--sat-c); } .sl-ok { color: var(--sat-b); } .sl-meh { color: var(--accent); }
+.sl-note { white-space: pre-wrap; word-break: break-word; padding: 14px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); font-size: 1rem; unicode-bidi: plaintext; }
+.sl-big { font-family: var(--font-display); font-size: clamp(1.3rem, 4vw, 1.8rem); font-weight: 800; line-height: 1.15; }
+.sl-list { margin: 0; padding-inline-start: 1.1em; display: grid; gap: 6px; font-size: 0.88rem; color: var(--muted); }
+.sl-pw { display: flex; gap: 6px; }
+.sl-pw .sl-in { flex: 1; }
+[hidden] { display: none !important; }
+@media print { .labbar, .labfoot { display: none; } }
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Security · Privacy</span>
+    <h1 style="font-size:var(--step-3)">Secret link.</h1>
+    <p>Need to send a Wi-Fi password, a door code or a bank detail? Pasting it into a chat leaves it in that chat forever. This locks the note with AES-256 encryption on your device and packs it into a link. Only someone with the link (and the password, if you set one) can read it.</p>
+  </div>
+
+  <div class="game" id="make">
+    <div class="panel" style="display:grid;gap:14px">
+      <label class="sl-field"><span>Your secret note</span><textarea class="sl-in" id="note" dir="auto" maxlength="4000" placeholder="e.g. Wi-Fi: HomeNet5G · password: sunny-falcon-42"></textarea></label>
+      <p class="sl-msg" id="count" style="margin-top:-8px">0 / 4000</p>
+      <div class="sl-field"><span>How the receiver unlocks it</span>
+        <div class="sl-opts" id="mode">
+          <label class="sl-opt"><input type="radio" name="mode" value="key" checked><span>Key inside the link<small>Simplest. Anyone who gets the full link can read the note.</small></span></label>
+          <label class="sl-opt"><input type="radio" name="mode" value="split"><span>Split key<small>You get a link and a separate key. Send them through two different apps, e.g. the link by email and the key by text.</small></span></label>
+          <label class="sl-opt"><input type="radio" name="mode" value="pw"><span>Password<small>The receiver must type a password you tell them another way, ideally by phone or in person.</small></span></label>
+        </div>
+      </div>
+      <div class="sl-field" id="pwBox" hidden><span>Password (at least 8 characters)</span>
+        <div class="sl-pw"><input class="sl-in" id="pw" type="password" autocomplete="new-password" aria-label="Password"><button class="sm" type="button" id="pwShow">Show</button></div>
+        <p class="sl-msg" id="pwMsg"></p>
+      </div>
+      <label class="sl-field"><span>Stop opening after</span>
+        <select class="sl-in" id="exp">
+          <option value="0">No time limit</option>
+          <option value="3600">1 hour</option>
+          <option value="86400" selected>24 hours</option>
+          <option value="604800">7 days</option>
+          <option value="2592000">30 days</option>
+          <option value="custom">Pick a date and time…</option>
+        </select>
+      </label>
+      <input class="sl-in" id="expAt" type="datetime-local" hidden aria-label="Expiry date and time">
+      <label class="sl-opt"><input type="checkbox" id="burn"><span>Burn after reading<small>Asks the receiver's browser to refuse a second opening. See the honest limits below.</small></span></label>
+      <div class="sl-btns"><button class="sm pri" type="button" id="go">Create secret link</button><span class="sl-msg" id="goMsg" style="margin:0"></span></div>
+    </div>
+    <div class="panel" style="display:grid;gap:14px">
+      <div class="sl-out" id="out" hidden>
+        <span class="label">Your secret link</span>
+        <textarea class="sl-in sl-mono" id="link" dir="ltr" readonly rows="4" aria-label="Secret link"></textarea>
+        <div class="sl-btns"><button class="sm pri" type="button" id="copyLink">Copy link</button><a class="sm" id="openLink" href="#" target="_blank" rel="noopener">Open it to test ↗</a></div>
+        <div id="keyBox" hidden style="display:grid;gap:8px">
+          <span class="label">The key (send it separately)</span>
+          <input class="sl-in sl-mono" id="key" dir="ltr" readonly aria-label="Key">
+          <div class="sl-btns"><button class="sm" type="button" id="copyKey">Copy key</button></div>
+        </div>
+        <p class="sl-msg" id="pwRemind" hidden>The receiver also needs the password. Tell them by phone or in person, not in the same chat as the link.</p>
+        <div class="sl-qr" id="qr" hidden></div>
+        <p class="sl-msg" id="outMsg"></p>
+      </div>
+      <div class="panel" style="display:grid;gap:10px">
+        <span class="label">What is honest about this</span>
+        <ul class="sl-list">
+          <li><b>Nothing is uploaded.</b> The note and key live after the # in the link. Browsers never send that part to any server, including this site.</li>
+          <li><b>Expiry is checked, not enforced.</b> The time limit is sealed into the encrypted data, so nobody can change it without breaking the lock, and this page refuses to open it late. But whoever has the link still has the locked data and could decrypt it with their own code.</li>
+          <li><b>Burn after reading is only a local flag.</b> The receiver's browser remembers it opened the note and refuses next time. A different browser or a private window can still open it. True one-time links need a server, and this page has none.</li>
+          <li><b>The link is the secret.</b> It stays in chat history and browser history. Use a password or split key for anything serious, and change shared passwords afterwards.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div id="read" hidden style="max-width:640px">
+    <div class="sl-out" style="border-color:var(--accent)">
+      <span class="label">Someone sent you a secret note</span>
+      <div class="sl-big" id="rTitle">Ready to unlock</div>
+      <ul class="sl-list" id="rInfo"></ul>
+      <label class="sl-field" id="rKeyBox" hidden><span>Key (the sender sent it separately)</span><input class="sl-in sl-mono" id="rKey" dir="ltr" autocomplete="off" spellcheck="false"></label>
+      <label class="sl-field" id="rPwBox" hidden><span>Password</span><input class="sl-in" id="rPw" type="password" autocomplete="off"></label>
+      <div class="sl-btns"><button class="sm pri" type="button" id="reveal">Unlock the note</button><a class="sm" href="./">Make your own</a></div>
+      <p class="sl-msg" id="rMsg" role="status"></p>
+      <div id="rOut" hidden style="display:grid;gap:10px">
+        <div class="sl-note" id="rNote" data-noar></div>
+        <div class="sl-btns"><button class="sm" type="button" id="rCopy">Copy note</button><button class="sm" type="button" id="rClear">Hide and clear the link</button></div>
+      </div>
+    </div>
+    <p class="fact" style="margin-top:18px">The note was decrypted on this device. Nothing was downloaded from or sent to a server. If you're asked to type a password or a bank PIN into a link like this, stop: a secret link only shows a note, it never asks for your details.</p>
+  </div>
+
+  <p class="fact" style="margin-top:22px"><b>How it works.</b> Your browser makes a random 256-bit key and locks the note with AES-GCM, which also detects any change to the locked data. With a password, the key is instead stretched from the password with PBKDF2 (600,000 rounds of SHA-256 with a random salt), so each guess costs an attacker real time. The locked note goes into the link after #c=, and the key after #k=. Everything after # stays in the browser.</p>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var te = new TextEncoder(), td = new TextDecoder(), ITER = 600000, BURN_KEY = 'secretLinkBurned';
+  var T = function (s) { return window.LabAr && LabAr.t ? LabAr.t(s) : s; };
+
+  // ---- crypto core
+  function b64u(bytes) { var s = ''; for (var i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
+  function unb64u(s) { s = String(s).replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; var b = atob(s), u = new Uint8Array(b.length); for (var i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u; }
+  function rnd(n) { var u = new Uint8Array(n); crypto.getRandomValues(u); return u; }
+  function fromPassword(pw, salt) {
+    return crypto.subtle.importKey('raw', te.encode(pw), 'PBKDF2', false, ['deriveKey']).then(function (k) {
+      return crypto.subtle.deriveKey({ name: 'PBKDF2', hash: 'SHA-256', salt: salt, iterations: ITER }, k, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+    });
+  }
+  function err(code) { var e = new Error(code); e.code = code; return e; }
+  // payload = header | iv(12) | ciphertext+tag. header = ver(1) flags(1) expiry-seconds(4, big endian) [salt(16)]
+  // the header is the AES-GCM additional data, so changing the expiry or flags breaks decryption
+  function encrypt(text, opt) {
+    opt = opt || {};
+    var pw = opt.password || '', flags = (pw ? 1 : 0) | (opt.burn ? 2 : 0);
+    var exp = opt.expires ? Math.floor(opt.expires / 1000) : 0;
+    var head = new Uint8Array(6 + (pw ? 16 : 0)); head[0] = 1; head[1] = flags; new DataView(head.buffer).setUint32(2, exp);
+    var salt = pw ? rnd(16) : null; if (salt) head.set(salt, 6);
+    var iv = rnd(12), rawKey = null;
+    var kp = pw ? fromPassword(pw, salt) : crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, ['encrypt', 'decrypt']).then(function (k) {
+      return crypto.subtle.exportKey('raw', k).then(function (r) { rawKey = new Uint8Array(r); return k; });
+    });
+    return kp.then(function (key) { return crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv, additionalData: head }, key, te.encode(text)); }).then(function (ct) {
+      ct = new Uint8Array(ct); var all = new Uint8Array(head.length + 12 + ct.length);
+      all.set(head, 0); all.set(iv, head.length); all.set(ct, head.length + 12);
+      return { c: b64u(all), k: rawKey ? b64u(rawKey) : null };
+    });
+  }
+  function info(c) {
+    var b; try { b = unb64u(c); } catch (e) { throw err('format'); }
+    if (b.length < 6 || b[0] !== 1) throw err('format');
+    var flags = b[1], pw = !!(flags & 1), hl = 6 + (pw ? 16 : 0);
+    if (b.length < hl + 12 + 16) throw err('format');
+    return { bytes: b, password: pw, burn: !!(flags & 2), expires: new DataView(b.buffer).getUint32(2) * 1000, head: b.slice(0, hl), salt: pw ? b.slice(6, 22) : null, iv: b.slice(hl, hl + 12), ct: b.slice(hl + 12) };
+  }
+  function decrypt(c, secret, now) {
+    return Promise.resolve().then(function () {
+      var h = info(c); secret = secret || {};
+      if (h.expires && (now || Date.now()) > h.expires) throw err('expired');
+      var kp;
+      if (h.password) { if (!secret.password) throw err('needpw'); kp = fromPassword(secret.password, h.salt); }
+      else { if (!secret.key) throw err('needkey'); var raw; try { raw = unb64u(secret.key); } catch (e) { throw err('badkey'); } if (raw.length !== 32) throw err('badkey'); kp = crypto.subtle.importKey('raw', raw, 'AES-GCM', false, ['decrypt']); }
+      return kp.then(function (key) { return crypto.subtle.decrypt({ name: 'AES-GCM', iv: h.iv, additionalData: h.head }, key, h.ct); })
+        .then(function (pt) { return td.decode(pt); }, function (e) { if (e && e.code) throw e; throw err('bad'); });
+    });
+  }
+  window.__secret = { encrypt: encrypt, decrypt: decrypt, info: info, ITER: ITER };
+
+  // ---- helpers
+  function fmt(ms) { return new Date(ms).toLocaleString(window.LabAr && LabAr.on ? 'ar-AE-u-nu-latn' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }); }
+  function copy(text, btn) {
+    var done = function () { var o = btn.textContent; btn.textContent = 'Copied'; setTimeout(function () { btn.textContent = o; }, 1500); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, function () { fallback(); });
+    else fallback();
+    function fallback() { var t = document.createElement('textarea'); t.value = text; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); done(); } catch (e) {} t.remove(); }
+  }
+  function burnId(c) { return crypto.subtle.digest('SHA-256', te.encode(c)).then(function (d) { return b64u(new Uint8Array(d).slice(0, 12)); }); }
+  function burned() { try { return JSON.parse(localStorage.getItem(BURN_KEY) || '[]'); } catch (e) { return []; } }
+  function setBurned(id) { try { var l = burned(); if (l.indexOf(id) < 0) l.push(id); localStorage.setItem(BURN_KEY, JSON.stringify(l.slice(-500))); } catch (e) {} }
+  function hashParams() { var o = {}; location.hash.replace(/^#/, '').split('&').forEach(function (p) { var i = p.indexOf('='); if (i > 0) o[p.slice(0, i)] = p.slice(i + 1); }); return o; }
+  function mode() { return document.querySelector('input[name=mode]:checked').value; }
+
+  // ---- make view
+  $('note').addEventListener('input', function () { $('count').textContent = $('note').value.length + ' / 4000'; });
+  $('mode').addEventListener('change', function () { $('pwBox').hidden = mode() !== 'pw'; });
+  $('pwShow').onclick = function () { var p = $('pw'); p.type = p.type === 'password' ? 'text' : 'password'; this.textContent = p.type === 'password' ? 'Show' : 'Hide'; };
+  $('pw').addEventListener('input', function () {
+    var v = $('pw').value, s = (v.length >= 12) + (/[a-z]/.test(v) && /[A-Z]/.test(v)) + /\d/.test(v) + /[^A-Za-z0-9]/.test(v) + (v.length >= 16);
+    $('pwMsg').className = 'sl-msg ' + (v.length < 8 ? 'sl-bad' : s >= 3 ? 'sl-ok' : 'sl-meh');
+    $('pwMsg').textContent = !v ? '' : v.length < 8 ? 'Too short.' : s >= 3 ? 'Strong enough. A few random words work well too.' : 'Okay. Longer is much better than more symbols.';
+  });
+  $('exp').addEventListener('change', function () {
+    var c = $('exp').value === 'custom'; $('expAt').hidden = !c;
+    if (c && !$('expAt').value) { var d = new Date(Date.now() + 2 * 864e5); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); $('expAt').value = d.toISOString().slice(0, 16); }
+  });
+  $('go').onclick = function () {
+    var text = $('note').value, m = mode(), pw = m === 'pw' ? $('pw').value : '', e = $('exp').value, expires = 0;
+    $('goMsg').className = 'sl-msg sl-bad';
+    if (!text.trim()) { $('goMsg').textContent = 'Write a note first.'; return; }
+    if (m === 'pw' && pw.length < 8) { $('goMsg').textContent = 'Use a password of at least 8 characters.'; return; }
+    if (e === 'custom') { expires = new Date($('expAt').value).getTime(); if (!(expires > Date.now())) { $('goMsg').textContent = 'Pick a time in the future.'; return; } }
+    else if (+e) expires = Date.now() + (+e) * 1000;
+    $('goMsg').className = 'sl-msg'; $('goMsg').textContent = m === 'pw' ? 'Stretching the password…' : 'Locking…'; $('go').disabled = true;
+    encrypt(text, { password: pw, expires: expires, burn: $('burn').checked }).then(function (r) {
+      var url = location.origin + location.pathname + '#c=' + r.c + (m === 'key' ? '&k=' + r.k : '');
+      $('out').hidden = false; $('link').value = url; $('openLink').href = url;
+      $('keyBox').hidden = m !== 'split'; $('key').value = m === 'split' ? r.k : '';
+      $('pwRemind').hidden = m !== 'pw';
+      var notes = [url.length + ' characters.'];
+      if (expires) notes.push('Opens until ' + fmt(expires) + '.');
+      if (url.length > 2000) notes.push('This is long. Some chat apps cut long links, so test it first.');
+      $('outMsg').textContent = notes.join(' ');
+      drawQR(url);
+      $('goMsg').textContent = 'Done. Nothing was uploaded.'; $('go').disabled = false;
+      if (innerWidth < 860) $('out').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }).catch(function () { $('goMsg').textContent = 'Your browser could not encrypt this. Try a current version of Chrome, Safari or Firefox.'; $('go').disabled = false; });
+  };
+  function drawQR(url) {
+    var box = $('qr'); box.hidden = true; box.innerHTML = '';
+    if (typeof qrcode !== 'function' || url.length > 2300) return;
+    try { qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8']; var q = qrcode(0, url.length < 600 ? 'M' : 'L'); q.addData(url, 'Byte'); q.make(); box.innerHTML = q.createSvgTag({ cellSize: 2, margin: 2, scalable: true }); box.hidden = false; } catch (e) {}
+  }
+  $('copyLink').onclick = function () { copy($('link').value, this); };
+  $('copyKey').onclick = function () { copy($('key').value, this); };
+
+  // ---- read view
+  var current = null;
+  function route() {
+    var p = hashParams();
+    if (!p.c) { $('make').hidden = false; $('read').hidden = true; return; }
+    $('make').hidden = true; $('read').hidden = false; $('rOut').hidden = true; $('rNote').textContent = ''; $('rMsg').textContent = ''; $('reveal').disabled = false;
+    var h; try { h = info(p.c); } catch (e) { $('rTitle').textContent = 'This link is broken'; $('rInfo').innerHTML = '<li>Part of it may have been cut off when it was copied. Ask the sender to send it again.</li>'; $('reveal').hidden = true; $('rKeyBox').hidden = $('rPwBox').hidden = true; return; }
+    current = { c: p.c, k: p.k, h: h }; $('reveal').hidden = false;
+    var li = [];
+    li.push(h.password ? 'Protected by a password.' : p.k ? 'The key is inside the link.' : 'You need a key the sender sent separately.');
+    if (h.expires) li.push(Date.now() > h.expires ? 'Expired on ' + fmt(h.expires) + '.' : 'Can be opened until ' + fmt(h.expires) + '.');
+    if (h.burn) li.push('Burn after reading: this browser will refuse to open it twice.');
+    $('rInfo').innerHTML = li.map(function (x) { return '<li>' + x + '</li>'; }).join('');
+    $('rKeyBox').hidden = h.password || !!p.k; $('rPwBox').hidden = !h.password;
+    $('rTitle').textContent = h.expires && Date.now() > h.expires ? 'This note has expired' : 'Ready to unlock';
+    if (h.expires && Date.now() > h.expires) { $('reveal').disabled = true; $('rMsg').textContent = 'The sender set a time limit and it has passed, so this page will not open it.'; }
+    if (h.burn) burnId(p.c).then(function (id) { current.id = id; if (burned().indexOf(id) >= 0) { $('rTitle').textContent = 'Already opened'; $('reveal').disabled = true; $('rMsg').textContent = 'This browser already opened this note once and the sender asked for burn after reading.'; } });
+  }
+  $('reveal').onclick = function () {
+    if (!current) return;
+    var sec = { key: current.k || $('rKey').value.trim(), password: $('rPw').value };
+    $('rMsg').className = 'sl-msg'; $('rMsg').textContent = current.h.password ? 'Checking the password…' : 'Unlocking…'; $('reveal').disabled = true;
+    decrypt(current.c, sec).then(function (text) {
+      $('rNote').textContent = text; $('rOut').hidden = false; $('rTitle').textContent = 'Unlocked';
+      $('rMsg').className = 'sl-msg sl-ok'; $('rMsg').textContent = current.h.burn ? 'Read it now. This browser will not open it again.' : 'Decrypted on your device.';
+      if (current.h.burn && current.id) setBurned(current.id);
+    }).catch(function (e) {
+      $('reveal').disabled = false; $('rMsg').className = 'sl-msg sl-bad';
+      $('rMsg').textContent = { expired: 'This note has expired.', needpw: 'Type the password first.', needkey: 'Paste the key first.', badkey: 'That key is not the right length. Copy it again in full.', format: 'This link is broken.' }[e.code] || (current.h.password ? 'Wrong password, or the link was changed.' : 'Wrong key, or the link was changed.');
+      if (e.code === 'expired') $('reveal').disabled = true;
+    });
+  };
+  $('rCopy').onclick = function () { copy($('rNote').textContent, this); };
+  $('rClear').onclick = function () { $('rNote').textContent = ''; $('rOut').hidden = true; history.replaceState(null, '', location.pathname + location.search); $('rTitle').textContent = 'Cleared'; $('rMsg').className = 'sl-msg'; $('rMsg').textContent = 'The note is gone from this page and the address bar. It may still be in your browser history and in the chat it came from.'; $('reveal').disabled = true; };
+  window.addEventListener('hashchange', route);
+  route();
+})();
+</script>
+</body>
+</html>

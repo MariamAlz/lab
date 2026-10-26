@@ -135,3 +135,10 @@ LabAr.add({
  "See the GPS spot, device, serial numbers and hidden preview inside a photo, then save a clean copy without them.": "اعرف موقع GPS والجهاز والأرقام التسلسلية والمعاينة الخفية داخل الصورة، ثم احفظ نسخة نظيفة منها.",
  "Check a photo →": "افحص صورة ←"
 });
+/* index cards for newer tools */
+LabAr.add({
+ "Tool · Privacy": "أداة · خصوصية",
+ "Secret link": "رابط سري",
+ "Lock a password or private note into a link with AES-256, encrypted on your device, with optional password, expiry and split key.": "اقفل كلمة مرور أو ملاحظة خاصة داخل رابط بتشفير AES-256 على جهازك، مع كلمة مرور ومدة صلاحية ومفتاح منفصل عند الحاجة.",
+ "Lock a note →": "اقفل ملاحظة ←"
+});
