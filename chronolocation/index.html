@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Shadow Chronolocation · Mariam's Lab</title>
+<meta name="description" content="When and where was this photo taken? Measure a shadow on a photo to find the sun's height and direction, then see which times of day, or which places on Earth, fit the claim.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/chronolocation/">
+<meta property="og:title" content="Shadow Chronolocation · Mariam's Lab"><meta property="og:description" content="Measure a shadow in a photo and check when and where it could have been taken."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="stylesheet" href="../assets/vendor/leaflet/leaflet.css">
+<style>
+.leaflet-container { font-family: 'Instrument Sans', sans-serif; background: #0b1020; }
+#map .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(.85) contrast(.9) saturate(.4); }
+#map { height: 380px; border-radius: var(--radius); border: 1px solid var(--line); }
+.photo { position: relative; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); background: rgba(7,10,24,.82); }
+.photo .ph { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; color: var(--muted); pointer-events: none; text-align: center; padding: 16px; }
+.photo canvas { display: block; width: 100%; height: auto; touch-action: none; cursor: crosshair; }
+.btns { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm.pri { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.sm[aria-pressed="true"] { border-color: var(--c, var(--accent)); color: var(--c, var(--accent)); box-shadow: inset 0 0 0 1px var(--c, var(--accent)); }
+.lbl { font-size: 0.78rem; color: var(--muted); }
+.flds { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.flds label { display: grid; gap: 4px; font-size: 0.8rem; color: var(--muted); min-width: 0; }
+.flds .wide { grid-column: 1 / -1; }
+.flds input, .flds select { font: inherit; font-size: 0.9rem; color: var(--ink); background: rgba(7,10,24,.7); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; min-width: 0; width: 100%; }
+.flds input[type=range] { padding: 0; accent-color: var(--accent); }
+.flds small { font-size: 0.74rem; }
+.times { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.times li { padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; font-size: 0.9rem; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; }
+.times li b { font-family: var(--font-mono); font-size: 0.95rem; color: var(--accent); }
+.times li small { display: block; color: var(--muted); font-size: 0.8rem; }
+.verdictline { padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); font-size: 0.9rem; }
+.ok { color: var(--sat-b); } .bad { color: var(--sat-c); } .meh { color: var(--accent); }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; }
+.legend2 { display: flex; gap: 12px; flex-wrap: wrap; font-size: 0.76rem; color: var(--muted); }
+.legend2 span::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-inline-end: 5px; vertical-align: -1px; background: var(--c); }
+.stats span { font-size: 0.78rem; color: var(--muted); }
+@media (max-width: 520px) { .flds { grid-template-columns: minmax(0, 1fr); } #map { height: 320px; } }
+[hidden] { display: none !important; }
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Verification · Sun</span>
+    <h1 style="font-size:var(--step-3)">When and where was this photo taken?</h1>
+    <p>A shadow is a clock. Its length tells you how high the sun was, and its direction tells you where the sun was in the sky. Draw an upright object and its shadow on a photo, and this checks which times of day fit a claimed place, or which places on Earth fit a claimed time. Your photo stays on your device.</p>
+  </div>
+  <div class="game">
+    <div class="panel">
+      <div class="photo"><canvas id="cv" width="960" height="640" aria-label="Photo. Drag on it to draw lines."></canvas><p class="ph" id="ph">Choose a photo, or try the demo</p></div>
+      <div class="btns"><label class="sm pri" style="cursor:pointer">Choose a photo<input type="file" id="file" accept="image/*" hidden></label><button class="sm" type="button" id="demo">Try the demo photo</button><button class="sm" type="button" id="clear">Clear lines</button></div>
+      <div class="btns" role="group" aria-label="What to draw"><span class="lbl">Draw</span>
+        <button class="sm mode" type="button" data-m="obj" style="--c:#E9B467" aria-pressed="true">1 · Object, base to top</button>
+        <button class="sm mode" type="button" data-m="sh" style="--c:#4FD3BD" aria-pressed="false">2 · Shadow, base to tip</button>
+        <button class="sm mode" type="button" data-m="north" style="--c:#F08AB3" aria-pressed="false">3 · North on the ground</button>
+      </div>
+      <p class="msg" id="hint">Pick an upright thing with a clear shadow on flat ground: a lamp post, a person, the edge of a wall. Drag from its base to its top, then from the same base to the tip of its shadow. Drag a dot to adjust it.</p>
+      <div class="stats"><div><b id="sElev">–</b><span>sun height</span></div><div><b id="sAz">–</b><span>sun direction</span></div><div><b id="sRatio">–</b><span>shadow ÷ height</span></div></div>
+      <p class="msg" id="src"></p>
+    </div>
+    <div class="panel">
+      <span class="label">The measurement</span>
+      <div class="flds">
+        <label class="wide">Camera looks down by <b id="tiltv">20°</b><input type="range" id="tilt" min="5" max="80" value="20"><small>Level, at eye height: about 10 to 20°. From a balcony or a drone: 35 to 70°. Only used for drawn lines.</small></label>
+        <label>Real object height (m)<input type="number" id="hgt" min="0" step="0.01" placeholder="from drawing"></label>
+        <label>Real shadow length (m)<input type="number" id="len" min="0" step="0.01" placeholder="from drawing"></label>
+        <label>Shadow direction from<select id="dirm"><option value="north">North line I drew</option><option value="heading">Camera heading</option><option value="none">Unknown (height only)</option></select></label>
+        <label>Camera heading (° from north)<input type="number" id="head" min="0" max="360" step="1" placeholder="e.g. 90 = facing east"></label>
+      </div>
+      <span class="label" style="margin-top:6px">The claim</span>
+      <div class="flds">
+        <label>Latitude<input type="number" id="lat" step="0.0001" placeholder="24.4539"></label>
+        <label>Longitude<input type="number" id="lon" step="0.0001" placeholder="54.3773"></label>
+        <div class="btns wide" id="places"></div>
+        <label>Date<input type="date" id="date"></label>
+        <label>Time (optional)<input type="time" id="time"></label>
+        <label>UTC offset (hours)<input type="number" id="off" step="0.5" value="4"></label>
+        <label>Tolerance ± (sun height / direction)<select id="tol"><option value="0.5,5">0.5° / 5°</option><option value="1,10" selected>1° / 10°</option><option value="2,15">2° / 15°</option><option value="4,25">4° / 25°</option></select></label>
+      </div>
+      <p class="msg" id="exif"></p>
+    </div>
+  </div>
+  <div class="game" style="margin-top:22px">
+    <div class="panel">
+      <span class="label">Where the sun was this high at the claimed time</span>
+      <div id="map"></div>
+      <div class="legend2"><span style="--c:rgba(233,180,103,.55)">Sun height matches</span><span style="--c:#4FD3BD">Height and direction match</span><span style="--c:#F08AB3">Claimed place</span></div>
+      <p class="msg" id="bandmsg">Enter a date and a time to draw the band. Click the map to set the claimed place.</p>
+    </div>
+    <div class="panel">
+      <span class="label">When the sun matched at the claimed place</span>
+      <div class="verdictline" id="check" hidden></div>
+      <ul class="times" id="times"><li><span>Enter a place and a date.<small>The list fills in as soon as there is a measurement.</small></span></li></ul>
+    </div>
+  </div>
+  <div class="game" style="margin-top:22px">
+    <p class="fact"><b>How it works.</b> An upright object of height h casts a shadow of length L on flat ground when the sun is at height atan(h ÷ L) above the horizon. The same sun height happens twice a day, once in the morning and once in the afternoon, so direction is what tells them apart. Across the whole planet at one instant, the places where the sun has a given height form a ring around the point where the sun is straight overhead. That ring is the band on the map.</p>
+    <p class="fact"><b>What goes wrong.</b> A photo squashes the ground. A shadow pointing away from the camera looks much shorter than it is, while one running across the frame keeps its length. The tilt slider corrects for that, assuming a simple camera with little lens distortion, so prefer shadows near the middle of the picture. Sloping ground, a leaning pole, or a shadow falling on a wall or kerb all break the maths. Wide-angle and phone lenses bend lines near the edges. If you know the real height and shadow length (from a map, a satellite image, or a standard object like a door), type them in: that beats any drawing. Sun maths here is good to a few hundredths of a degree and ignores atmospheric refraction, which only matters within a few degrees of the horizon.</p>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script src="../assets/sky.js"></script>
+<script src="../assets/vendor/leaflet/leaflet.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var R = Math.PI / 180, D = 180 / Math.PI;
+  var PLACES = [['Abu Dhabi', 24.4539, 54.3773], ['Dubai', 25.2048, 55.2708], ['Sharjah', 25.3463, 55.4209], ['Al Ain', 24.2075, 55.7447], ['Ras Al Khaimah', 25.7895, 55.9432], ['Fujairah', 25.1288, 56.3265]];
+  var COLORS = { obj: '#E9B467', sh: '#4FD3BD', north: '#F08AB3' }, NAMES = { obj: 'object', sh: 'shadow', north: 'N' };
+  var cv = $('cv'), ctx = cv.getContext('2d'), img = null, lines = {}, mode = 'obj', drag = null;
+  function rev(x) { return x - Math.floor(x / 360) * 360; }
+  function angDiff(a, b) { var d = Math.abs(rev(a) - rev(b)); return d > 180 ? 360 - d : d; }
+  function num(id) { var v = $(id).value; return v === '' ? null : +v; }
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+
+  // ---------- sun ----------
+  function sunEq(ms) { var d = Sky.dayNum(ms), s = Sky.sun(d); return Sky.eclToEq(s, d); }
+  function sunAt(ms, lat, lon) { var e = sunEq(ms); return Sky.toHoriz(e.ra, e.dec, Sky.lst(ms, lon), lat); }
+
+  // ---------- drawing ----------
+  function draw() {
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    $('ph').hidden = !!img;
+    if (img) ctx.drawImage(img, 0, 0, cv.width, cv.height);
+    else {
+      ctx.fillStyle = '#0b1020'; ctx.fillRect(0, 0, cv.width, cv.height);
+    }
+    var lw = Math.max(2, cv.width / 320);
+    Object.keys(lines).forEach(function (k) {
+      var l = lines[k]; if (!l) return;
+      ctx.strokeStyle = COLORS[k]; ctx.fillStyle = COLORS[k]; ctx.lineWidth = lw; ctx.lineCap = 'round';
+      ctx.shadowColor = 'rgba(0,0,0,.8)'; ctx.shadowBlur = lw * 2;
+      ctx.beginPath(); ctx.moveTo(l[0], l[1]); ctx.lineTo(l[2], l[3]); ctx.stroke();
+      var a = Math.atan2(l[3] - l[1], l[2] - l[0]), h = lw * 5;
+      ctx.beginPath(); ctx.moveTo(l[2], l[3]); ctx.lineTo(l[2] - h * Math.cos(a - 0.45), l[3] - h * Math.sin(a - 0.45)); ctx.lineTo(l[2] - h * Math.cos(a + 0.45), l[3] - h * Math.sin(a + 0.45)); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.arc(l[0], l[1], lw * 2.2, 0, 7); ctx.fill();
+      ctx.font = 'bold ' + Math.round(lw * 7) + 'px Instrument Sans, sans-serif'; ctx.textAlign = 'left';
+      ctx.fillText(NAMES[k], l[2] + lw * 4, l[3] - lw * 3);
+      ctx.shadowBlur = 0;
+    });
+  }
+  function toCanvas(e) { var r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) * cv.width / r.width, y: (e.clientY - r.top) * cv.height / r.height }; }
+  cv.addEventListener('pointerdown', function (e) {
+    if (!img) return;
+    var p = toCanvas(e), rr = 18 * cv.width / cv.getBoundingClientRect().width, best = null;
+    Object.keys(lines).forEach(function (k) { var l = lines[k]; if (!l) return; [0, 1].forEach(function (i) { var d = Math.hypot(l[i * 2] - p.x, l[i * 2 + 1] - p.y); if (d < rr && (!best || d < best.d)) best = { k: k, i: i, d: d }; }); });
+    if (best && lines[mode]) drag = best; else {
+      var start = [p.x, p.y];
+      if (mode === 'sh' && lines.obj) start = [lines.obj[0], lines.obj[1]]; // a shadow starts at the object's base
+      lines[mode] = [start[0], start[1], p.x, p.y]; drag = { k: mode, i: 1 };
+    }
+    cv.setPointerCapture(e.pointerId); e.preventDefault();
+  });
+  cv.addEventListener('pointermove', function (e) { if (!drag) return; var p = toCanvas(e), l = lines[drag.k]; l[drag.i * 2] = p.x; l[drag.i * 2 + 1] = p.y; if (drag.k === 'obj' && drag.i === 0 && lines.sh) { lines.sh[0] = p.x; lines.sh[1] = p.y; } draw(); });
+  function endDrag() {
+    if (!drag) return; var l = lines[drag.k];
+    if (l && Math.hypot(l[2] - l[0], l[3] - l[1]) < 4) delete lines[drag.k];
+    var k = drag.k; drag = null; draw(); update();
+    if (k === mode) { var nx = { obj: 'sh', sh: 'north' }[k]; if (nx && !lines[nx]) setMode(nx); }
+  }
+  cv.addEventListener('pointerup', endDrag); cv.addEventListener('pointercancel', endDrag);
+  function setMode(m) { mode = m; [].forEach.call(document.querySelectorAll('.mode'), function (b) { b.setAttribute('aria-pressed', b.dataset.m === m ? 'true' : 'false'); }); }
+  [].forEach.call(document.querySelectorAll('.mode'), function (b) { b.onclick = function () { setMode(b.dataset.m); }; });
+  $('clear').onclick = function () { lines = {}; setMode('obj'); draw(); update(); };
+
+  // ---------- measurement ----------
+  function ground(l, tilt) { var sx = l[2] - l[0], sy = l[3] - l[1], f = -sy / Math.sin(tilt * R); return { x: sx, f: f, len: Math.hypot(sx, f), dir: rev(Math.atan2(sx, f) * D) }; }
+  function measure() {
+    var tilt = +$('tilt').value, out = { elev: null, az: null, src: '' }, H = num('hgt'), L = num('len');
+    if (H > 0 && L > 0) { out.elev = Math.atan2(H, L) * D; out.ratio = L / H; out.src = 'Height from the lengths you typed'; }
+    else if (lines.obj && lines.sh) {
+      var o = lines.obj, hImg = Math.hypot(o[2] - o[0], o[3] - o[1]) / Math.cos(tilt * R), g = ground(lines.sh, tilt);
+      out.elev = Math.atan2(hImg, g.len) * D; out.ratio = g.len / hImg; out.src = 'Height from the drawn lines, corrected for a ' + tilt + '° camera tilt';
+    }
+    var dm = $('dirm').value;
+    if (lines.sh && dm === 'north' && lines.north) { out.az = rev(ground(lines.sh, tilt).dir - ground(lines.north, tilt).dir + 180); out.src += '; direction from your north line'; }
+    else if (lines.sh && dm === 'heading' && num('head') != null) { out.az = rev(num('head') + ground(lines.sh, tilt).dir + 180); out.src += '; direction from the camera heading'; }
+    return out;
+  }
+  function compass(a) { return ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'][Math.round(rev(a) / 22.5) % 16]; }
+
+  // ---------- claim ----------
+  function claim() {
+    var dv = $('date').value, tv = $('time').value, c = { lat: num('lat'), lon: num('lon'), off: num('off') || 0 };
+    var tol = $('tol').value.split(','); c.tolE = +tol[0]; c.tolA = +tol[1];
+    if (dv) { var p = dv.split('-'); c.y = +p[0]; c.m = +p[1]; c.d = +p[2]; c.day0 = Date.UTC(c.y, c.m - 1, c.d) - c.off * 3600e3; }
+    if (dv && tv) { var t = tv.split(':'); c.ms = c.day0 + (+t[0] * 60 + +t[1]) * 60000; }
+    return c;
+  }
+  function solveTimes(m, c) {
+    // scan the local day minute by minute for times the sun matches the measurement
+    var wins = [], cur = null, best = null, maxAlt = -90;
+    for (var i = 0; i < 1440; i++) {
+      var p = sunAt(c.day0 + i * 60000, c.lat, c.lon), eE = Math.abs(p.alt - m.elev), eA = m.az == null ? 0 : angDiff(p.az, m.az);
+      if (p.alt > maxAlt) maxAlt = p.alt;
+      var score = eE + eA / 8;
+      if (!best || score < best.score) best = { i: i, score: score, p: p };
+      if (p.alt > 0 && eE <= c.tolE && eA <= c.tolA) {
+        if (!cur) { cur = { a: i, b: i, best: i, score: score, p: p }; wins.push(cur); }
+        cur.b = i; if (score < cur.score) { cur.score = score; cur.best = i; cur.p = p; }
+      } else cur = null;
+    }
+    return { wins: wins, best: best, maxAlt: maxAlt };
+  }
+  function hm(i) { i = ((Math.round(i) % 1440) + 1440) % 1440; return pad(Math.floor(i / 60)) + ':' + pad(i % 60); }
+  window.__chrono = { sunAt: sunAt, solveTimes: solveTimes, measure: measure, claim: claim };
+
+  // ---------- map ----------
+  var map = L.map('map', { worldCopyJump: true, preferCanvas: true }).setView([24.4, 54.4], 3);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 12, attribution: '© OpenStreetMap contributors' }).addTo(map);
+  var bandLayer = L.layerGroup().addTo(map), placeMk = null, lastBandKey = '';
+  map.on('click', function (e) { $('lat').value = e.latlng.lat.toFixed(4); $('lon').value = (rev(e.latlng.lng + 180) - 180).toFixed(4); update(); });
+  function drawBand(m, c) {
+    var key = [m.elev, m.az, c.ms, c.tolE, c.tolA].join('|'); if (key === lastBandKey) return; lastBandKey = key;
+    bandLayer.clearLayers();
+    var e = sunEq(c.ms), lst0 = Sky.lst(c.ms, 0), sd = Math.sin(e.dec * R), cd = Math.cos(e.dec * R), td = Math.tan(e.dec * R), n1 = 0, n2 = 0, bounds = null;
+    for (var lat = -70; lat <= 74; lat += 1) {
+      var sl = Math.sin(lat * R), cl = Math.cos(lat * R), run = [null, null];
+      for (var lon = -180; lon <= 180; lon += 1) {
+        var cls = 0;
+        if (lon < 180) {
+          var H = (lst0 + lon - e.ra) * R, alt = Math.asin(sl * sd + cl * cd * Math.cos(H)) * D;
+          if (Math.abs(alt - m.elev) <= c.tolE) {
+            cls = 1;
+            if (m.az != null) { var az = rev(Math.atan2(Math.sin(H), Math.cos(H) * sl - td * cl) * D + 180); if (angDiff(az, m.az) <= c.tolA) cls = 2; }
+          }
+        }
+        for (var k = 1; k <= 2; k++) {
+          var inK = cls >= k;
+          if (inK && run[k - 1] == null) run[k - 1] = lon;
+          if (!inK && run[k - 1] != null) {
+            var b = [[lat - 0.5, run[k - 1] - 0.5], [lat + 0.5, lon - 0.5]];
+            L.rectangle(b, { stroke: false, fillColor: k === 2 ? '#4FD3BD' : '#E9B467', fillOpacity: k === 2 ? 0.75 : 0.4, interactive: false }).addTo(bandLayer);
+            if (k === 1) n1++; else n2++;
+            var tgt = (m.az != null) ? 2 : 1; if (k === tgt) bounds = bounds ? bounds.extend(b) : L.latLngBounds(b);
+            run[k - 1] = null;
+          }
+        }
+      }
+    }
+    var sublon = rev(e.ra - lst0 + 180) - 180;
+    L.circleMarker([e.dec, sublon], { radius: 7, color: '#fff', weight: 2, fillColor: '#E9B467', fillOpacity: 1 }).bindTooltip('Sun straight overhead').addTo(bandLayer);
+    if (bounds) map.fitBounds(bounds.pad(0.15), { maxZoom: 6 });
+    var t = new Date(c.ms), utc = pad(t.getUTCHours()) + ':' + pad(t.getUTCMinutes()) + ' UTC';
+    $('bandmsg').textContent = n1 ? ('At ' + utc + ' the sun stood ' + m.elev.toFixed(1) + '° ± ' + c.tolE + '° high along the gold ring.' + (m.az != null ? (n2 ? ' The teal part also matches the shadow direction.' : ' No part of it matches the shadow direction too.') : ' Add a shadow direction to narrow it down.')) : 'Nowhere on Earth had the sun at that height at ' + utc + '.';
+  }
+  function drawPlace(c) {
+    if (c.lat == null || c.lon == null) { if (placeMk) { map.removeLayer(placeMk); placeMk = null; } return; }
+    if (!placeMk) placeMk = L.circleMarker([c.lat, c.lon], { radius: 6, color: '#F08AB3', weight: 3, fillOpacity: 0 }).addTo(map); else placeMk.setLatLng([c.lat, c.lon]);
+  }
+
+  // ---------- update ----------
+  var ut = null;
+  function update() { clearTimeout(ut); ut = setTimeout(run, 60); }
+  function run() {
+    var m = measure(), c = claim();
+    $('sElev').textContent = m.elev == null ? '–' : m.elev.toFixed(1) + '°';
+    $('sAz').textContent = m.az == null ? '–' : Math.round(m.az) + '° ' + compass(m.az);
+    $('sRatio').textContent = m.ratio == null ? '–' : m.ratio.toFixed(2);
+    $('src').textContent = m.src;
+    drawPlace(c);
+    var T = $('times'), ck = $('check');
+    if (m.elev == null) { T.innerHTML = '<li><span>Draw the object and its shadow, or type the two lengths.<small>Then the matching times appear here.</small></span></li>'; ck.hidden = true; bandLayer.clearLayers(); lastBandKey = ''; return; }
+    if (c.ms != null) drawBand(m, c); else { bandLayer.clearLayers(); lastBandKey = ''; $('bandmsg').textContent = 'Enter a date and a time to draw the band. Click the map to set the claimed place.'; }
+    if (c.lat == null || c.lon == null || c.day0 == null) { T.innerHTML = '<li><span>Enter a place and a date.<small>Pick a city, type coordinates, or click the map.</small></span></li>'; ck.hidden = true; return; }
+    var r = solveTimes(m, c), off = c.off;
+    if (!r.wins.length) {
+      T.innerHTML = '<li><span class="bad">No time that day fits.<small>' + (m.elev > r.maxAlt + c.tolE ? 'The sun never got higher than ' + r.maxAlt.toFixed(1) + '° there that day.' : 'Closest: ' + hm(r.best.i) + ' (UTC' + (off >= 0 ? '+' : '') + off + '), with the sun at ' + r.best.p.alt.toFixed(1) + '° high towards ' + Math.round(r.best.p.az) + '°.') + '</small></span></li>';
+    } else {
+      T.innerHTML = r.wins.map(function (w) {
+        return '<li><span>' + (w.a === w.b ? 'At ' + hm(w.a) : hm(w.a) + ' to ' + hm(w.b)) + ' local<small>Sun ' + w.p.alt.toFixed(1) + '° high, towards ' + Math.round(w.p.az) + '° (' + compass(w.p.az) + ')</small></span><b><button class="sm pick" type="button" data-t="' + hm(w.best) + '">' + hm(w.best) + '</button></b></li>';
+      }).join('') + '<li><span><small>Times are UTC' + (off >= 0 ? '+' : '') + off + '. Tap a time to see where else on Earth matched at that moment.</small></span></li>';
+      [].forEach.call(T.querySelectorAll('.pick'), function (b) { b.onclick = function () { $('time').value = b.dataset.t; update(); }; });
+    }
+    if (c.ms != null) {
+      var p = sunAt(c.ms, c.lat, c.lon), dE = p.alt - m.elev, dA = m.az == null ? null : angDiff(p.az, m.az), good = Math.abs(dE) <= c.tolE * 2 && (dA == null || dA <= c.tolA * 1.5);
+      ck.hidden = false;
+      ck.innerHTML = '<b class="' + (good ? 'ok' : 'bad') + '">' + (good ? 'The claim fits the shadow.' : 'The claim does not fit the shadow.') + '</b><br><span class="lbl">At ' + $('time').value + ' the sun there was ' + p.alt.toFixed(1) + '° high towards ' + Math.round(p.az) + '° ' + compass(p.az) + '. You measured ' + m.elev.toFixed(1) + '°' + (m.az != null ? ' towards ' + Math.round(m.az) + '°' : '') + '.</span>';
+    } else ck.hidden = true;
+  }
+  ['tilt', 'hgt', 'len', 'dirm', 'head', 'lat', 'lon', 'date', 'time', 'off', 'tol'].forEach(function (id) { $(id).addEventListener('input', function () { if (id === 'tilt') $('tiltv').textContent = $('tilt').value + '°'; update(); }); });
+  $('places').innerHTML = PLACES.map(function (p, i) { return '<button class="sm" type="button" data-i="' + i + '">' + p[0] + '</button>'; }).join('');
+  [].forEach.call($('places').children, function (b) { b.onclick = function () { var p = PLACES[b.dataset.i]; $('lat').value = p[1]; $('lon').value = p[2]; update(); }; });
+
+  // ---------- photos and EXIF ----------
+  function setImage(src, w, h) {
+    var s = Math.min(1, 1600 / Math.max(w, h)); cv.width = Math.round(w * s); cv.height = Math.round(h * s); img = src; lines = {}; setMode('obj'); draw(); update();
+  }
+  function readExif(buf) {
+    var v = new DataView(buf), out = {};
+    if (v.getUint16(0) !== 0xFFD8) return out;
+    var o = 2;
+    while (o + 4 < v.byteLength) {
+      var mk = v.getUint16(o), len = v.getUint16(o + 2);
+      if (mk === 0xFFE1 && v.getUint32(o + 4) === 0x45786966) { parseTiff(v, o + 10, out); break; }
+      if ((mk & 0xFF00) !== 0xFF00 || mk === 0xFFDA) break; o += 2 + len;
+    }
+    return out;
+  }
+  function parseTiff(v, t, out) {
+    var le = v.getUint16(t) === 0x4949;
+    function u16(p) { return v.getUint16(t + p, le); } function u32(p) { return v.getUint32(t + p, le); }
+    function str(p, n) { var s = ''; for (var i = 0; i < n; i++) { var c = v.getUint8(t + p + i); if (!c) break; s += String.fromCharCode(c); } return s; }
+    function ifd(p) {
+      var tags = {}, n = u16(p);
+      for (var i = 0; i < n; i++) {
+        var e = p + 2 + i * 12, tag = u16(e), type = u16(e + 2), cnt = u32(e + 4), vo = (type === 2 && cnt > 4) || (type === 5 || type === 10) || (type === 3 && cnt > 2) || (type === 4 && cnt > 1) ? u32(e + 8) : e + 8;
+        if (type === 2) tags[tag] = str(vo, cnt);
+        else if (type === 3) tags[tag] = u16(vo);
+        else if (type === 4) tags[tag] = u32(vo);
+        else if (type === 5 || type === 10) { var arr = []; for (var k = 0; k < cnt; k++) { var d = u32(vo + k * 8 + 4); arr.push(d ? u32(vo + k * 8) / d : 0); } tags[tag] = arr; }
+        else if (type === 1 || type === 7) tags[tag] = v.getUint8(t + vo);
+      }
+      return tags;
+    }
+    try {
+      var i0 = ifd(u32(4));
+      if (i0[0x8769]) { var ex = ifd(i0[0x8769]); out.dt = ex[0x9003] || ex[0x9004] || i0[0x132]; out.offT = ex[0x9011] || ex[0x9010]; }
+      else out.dt = i0[0x132];
+      if (i0[0x8825]) {
+        var g = ifd(i0[0x8825]);
+        if (g[2] && g[4]) { var la = g[2][0] + g[2][1] / 60 + g[2][2] / 3600, lo = g[4][0] + g[4][1] / 60 + g[4][2] / 3600; if (g[1] === 'S') la = -la; if (g[3] === 'W') lo = -lo; out.lat = la; out.lon = lo; }
+        if (g[0x11]) out.heading = g[0x11][0];
+      }
+    } catch (e) { /* damaged EXIF: ignore */ }
+  }
+  $('file').onchange = function () {
+    var f = this.files[0]; if (!f) return;
+    var url = URL.createObjectURL(f), im = new Image();
+    im.onload = function () { setImage(im, im.naturalWidth, im.naturalHeight); };
+    im.onerror = function () { $('exif').textContent = 'That file could not be opened as an image.'; };
+    im.src = url;
+    f.slice(0, 256 * 1024).arrayBuffer().then(function (b) {
+      var x = readExif(b), said = [];
+      if (x.dt && /^\d{4}:\d\d:\d\d \d\d:\d\d/.test(x.dt)) { $('date').value = x.dt.slice(0, 10).replace(/:/g, '-'); $('time').value = x.dt.slice(11, 16); said.push('date and time ' + x.dt.slice(0, 16)); }
+      if (x.offT && /^[+-]\d\d:\d\d/.test(x.offT)) { var sg = x.offT[0] === '-' ? -1 : 1; $('off').value = sg * (+x.offT.slice(1, 3) + +x.offT.slice(4, 6) / 60); said.push('time zone ' + x.offT); }
+      if (x.lat != null) { $('lat').value = x.lat.toFixed(5); $('lon').value = x.lon.toFixed(5); said.push('GPS position'); }
+      if (x.heading != null) { $('head').value = Math.round(x.heading); $('dirm').value = 'heading'; said.push('compass heading ' + Math.round(x.heading) + '°'); }
+      $('exif').textContent = said.length ? 'Filled in from the photo\'s metadata: ' + said.join(', ') + '. Metadata is easy to edit and camera clocks drift, so treat it as one more claim to test.' : 'No date or location in this file\'s metadata. Most apps strip it when sharing.';
+      update();
+    });
+  };
+
+  // ---------- demo ----------
+  // A synthetic scene drawn with the same simple camera model the solver assumes.
+  var DEMO = { lat: 24.4539, lon: 54.3773, date: '2026-03-15', time: '10:20', off: 4, heading: 30, tilt: 35, pole: 3 };
+  function demo() {
+    var W = 1200, H = 800, c = document.createElement('canvas'); c.width = W; c.height = H; var g = c.getContext('2d');
+    var ms = Date.UTC(2026, 2, 15, 10, 20) - 4 * 3600e3, sun = sunAt(ms, DEMO.lat, DEMO.lon), st = Math.sin(DEMO.tilt * R), ct = Math.cos(DEMO.tilt * R), s = 70;
+    function proj(gx, gf) { return [W * 0.45 + gx * s, H * 0.72 - gf * st * s]; } // ground metres → pixels
+    var sky = g.createLinearGradient(0, 0, 0, H * 0.18); sky.addColorStop(0, '#9cc3e6'); sky.addColorStop(1, '#e8dcc0');
+    g.fillStyle = '#d9c39a'; g.fillRect(0, 0, W, H); g.fillStyle = sky; g.fillRect(0, 0, W, H * 0.18);
+    g.strokeStyle = 'rgba(120,90,50,.35)'; g.lineWidth = 2;
+    for (var x = -12; x <= 12; x++) { var a = proj(x, -2), b = proj(x, 12); g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.stroke(); }
+    for (var f = -2; f <= 12; f++) { var a2 = proj(-12, f), b2 = proj(12, f); g.beginPath(); g.moveTo(a2[0], a2[1]); g.lineTo(b2[0], b2[1]); g.stroke(); }
+    var shAz = rev(sun.az + 180), rel = (shAz - DEMO.heading) * R, L = DEMO.pole / Math.tan(sun.alt * R), tip = proj(L * Math.sin(rel), L * Math.cos(rel)), base = proj(0, 0), top = [base[0], base[1] - DEMO.pole * ct * s];
+    g.strokeStyle = 'rgba(40,30,20,.55)'; g.lineWidth = 16; g.lineCap = 'round'; g.beginPath(); g.moveTo(base[0], base[1]); g.lineTo(tip[0], tip[1]); g.stroke();
+    g.strokeStyle = '#444b55'; g.lineWidth = 12; g.beginPath(); g.moveTo(base[0], base[1]); g.lineTo(top[0], top[1]); g.stroke();
+    g.fillStyle = '#f4e9a8'; g.beginPath(); g.arc(top[0], top[1] - 6, 14, 0, 7); g.fill();
+    // a north arrow painted on the ground (like a compass rose in a car park)
+    var nRel = -DEMO.heading * R, n0 = proj(-6, 3), n1 = proj(-6 + 2.5 * Math.sin(nRel), 3 + 2.5 * Math.cos(nRel));
+    g.strokeStyle = '#ffffff'; g.lineWidth = 8; g.beginPath(); g.moveTo(n0[0], n0[1]); g.lineTo(n1[0], n1[1]); g.stroke();
+    g.fillStyle = '#fff'; g.font = 'bold 40px sans-serif'; g.fillText('N', n1[0] - 12, n1[1] - 14);
+    g.fillStyle = 'rgba(0,0,0,.55)'; g.font = '22px sans-serif'; g.fillText('Demo scene: 3 m lamp post, camera tilted 35° down, facing 30° east of north', 24, H - 24);
+    setImage(c, W, H);
+    lines = { obj: [base[0], base[1], top[0], top[1]], sh: [base[0], base[1], tip[0], tip[1]], north: [n0[0], n0[1], n1[0], n1[1]] };
+    $('tilt').value = DEMO.tilt; $('tiltv').textContent = DEMO.tilt + '°'; $('dirm').value = 'north'; $('head').value = ''; $('hgt').value = ''; $('len').value = '';
+    $('lat').value = DEMO.lat; $('lon').value = DEMO.lon; $('date').value = DEMO.date; $('time').value = ''; $('off').value = DEMO.off;
+    $('exif').textContent = 'Demo: the scene was drawn for Abu Dhabi on 15 March 2026 at 10:20. See whether the solver finds it, then try a claimed time to see the band.';
+    setMode('sh'); draw(); update();
+  }
+  $('demo').onclick = demo;
+  var now = new Date(); $('date').value = now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate());
+  draw(); update();
+})();
+</script>
+</body>
+</html>

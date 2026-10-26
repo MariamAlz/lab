@@ -11,6 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Reem+Kufi:wght@500;700&display=swap">
 <link rel="stylesheet" href="./assets/site.css">
+<style>html.ar .finder .tags button,html.ar .exp .k,html.ar .exp .go{font-family:"IBM Plex Sans Arabic",var(--font-mono),sans-serif;letter-spacing:0}</style>
 <script src="./assets/i18n.js"></script>
 </head>
 <body>
@@ -24,6 +25,7 @@
 <p class="count mono" id="count" aria-live="polite"></p>
 </div>
 <div class="exps" id="exps">
+<a class="exp" href="chronolocation/" data-tags="vision earth tools security"><span class="k" style="color:var(--sat-b)">Tool · Verification</span><h2>When and where was this photo taken?</h2><p>Draw a shadow on a photo to find the sun's height and direction, then see which times or places fit the claim.</p><span class="go">Check a photo →</span></a>
 <a class="exp" href="meal-planner/" data-tags="tools"><span class="k" style="color:var(--sat-b)">Tool · Home</span><h2>Weekly meal planner</h2><p>Plan a week of Emirati and everyday meals and get one shopping list sorted by aisle.</p><span class="go">Plan →</span></a>
 <a class="exp" href="box-labels/" data-tags="tools"><span class="k" style="color:var(--sat-b)">Tool · Moving</span><h2>Moving box labels</h2><p>Big printable box labels with a QR code that shows what's inside, no server needed.</p><span class="go">Label →</span></a>
 <a class="exp" href="water-intake/" data-tags="tools live"><span class="k" style="color:var(--sat-b)">Tool · Health</span><h2>Water in the heat</h2><p>A daily water target from today's heat and humidity, with a glass log and Ramadan mode.</p><span class="go">Check →</span></a>
@@ -161,6 +163,9 @@ function css(n) { return getComputedStyle(document.documentElement).getPropertyV
 
 var TAGS = [['all','All'],['games','Games'],['gnss','GNSS'],['space','Space'],['earth','Earth & UAE'],['ai','AI & ML'],['vision','Vision'],['optimization','Optimization'],['language','Language'],['philosophy','Philosophy'],['signals','Signals'],['sound','Sound'],['security','Security'],['tools','Tools'],['live','Live data']];
 var cards = [].slice.call(document.querySelectorAll('.exp')), tag = 'all';
+// keep the English text for search, so both languages match after the Arabic switch translates the cards
+function fold(s) { return s.toLowerCase().replace(/[\u064B-\u0652\u0640]/g, '').replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي'); }
+cards.forEach(function (c) { c._en = c.textContent; });
 try { tag = new URLSearchParams(location.search).get('tag') || 'all'; } catch (e) {}
 var used = {}; cards.forEach(function (c) { (c.dataset.tags || '').split(/[\s,]+/).forEach(function (t) { used[t] = 1; }); });
 document.getElementById('tags').innerHTML = TAGS.filter(function (t) { return t[0] === 'all' || used[t[0]]; }).map(function (t) {
@@ -174,9 +179,9 @@ document.getElementById('tags').addEventListener('click', function (e) {
 });
 document.getElementById('q').addEventListener('input', apply);
 function apply() {
-  var words = document.getElementById('q').value.toLowerCase().split(/\s+/).filter(Boolean), n = 0;
+  var words = fold(document.getElementById('q').value).split(/\s+/).filter(Boolean), n = 0;
   cards.forEach(function (c) {
-    var text = (c.textContent + ' ' + c.dataset.tags).toLowerCase();
+    var text = fold(c._en + ' ' + c.textContent + ' ' + c.dataset.tags);
     var show = (tag === 'all' || (c.dataset.tags || '').split(/[\s,]+/).indexOf(tag) >= 0) && words.every(function (w) { return text.indexOf(w) >= 0; });
     c.hidden = !show; if (show) n++;
   });

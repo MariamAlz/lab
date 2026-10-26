@@ -114,3 +114,10 @@ LabAr.add({
   [/^In (\d+) h$/, 'بعد $1 ساعة'],
   [/^(\d+) days? ago$/, 'قبل $1 يوم']
 ]);
+/* index cards for newer tools */
+LabAr.add({
+ "Tool · Verification": "أداة · تحقق",
+ "When and where was this photo taken?": "متى وأين التُقطت هذه الصورة؟",
+ "Draw a shadow on a photo to find the sun's height and direction, then see which times or places fit the claim.": "ارسم ظلًا على صورة لتعرف ارتفاع الشمس واتجاهها، ثم الأوقات أو الأماكن التي تناسب الادعاء.",
+ "Check a photo →": "افحص صورة ←"
+});
