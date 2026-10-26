@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bad Redaction Finder · Mariam's Lab</title>
+<meta name="description" content="Check a PDF for black boxes that hide nothing: the text underneath is often still there. Check screenshots for pixelation and blur that can be undone. Runs in your browser.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/redaction-check/">
+<meta property="og:title" content="Bad Redaction Finder · Mariam's Lab"><meta property="og:description" content="Find black boxes that hide nothing, and pixelation that can be undone."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.privacy { display: flex; gap: 10px; align-items: center; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--sat-b); color: var(--ink); font-size: 0.92rem; margin-bottom: 18px; background: rgba(79,211,189,.08); }
+.privacy b { color: var(--sat-b); }
+.btns { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.sm { font: inherit; font-size: 0.85rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 7px 14px; cursor: pointer; text-decoration: none; display: inline-block; }
+.sm.pri { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.sm[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+.drop { border: 1px dashed var(--line); border-radius: 14px; padding: 22px 16px; text-align: center; color: var(--muted); font-size: 0.9rem; display: grid; gap: 10px; justify-items: center; }
+.drop.over { border-color: var(--accent); color: var(--ink); }
+.pane { padding: 18px; border-radius: var(--radius); border: 1px solid var(--line); background: rgba(7,10,24,.82); display: grid; gap: 12px; min-width: 0; }
+.pane h2 { font-size: 1.2rem; margin: 0; word-break: break-word; }
+.modes { display: flex; gap: 6px; }
+.pages { display: grid; gap: 14px; }
+.pgwrap { position: relative; border-radius: 8px; overflow: hidden; border: 1px solid var(--line); background: #fff; }
+.pgwrap canvas { display: block; width: 100%; height: auto; }
+.pgwrap .lay { position: absolute; inset: 0; pointer-events: none; }
+.hits { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.hits li { padding: 10px 12px; border: 1px solid var(--line); border-inline-start: 4px solid var(--c, var(--sat-c)); border-radius: 10px; font-size: 0.9rem; display: grid; gap: 4px; }
+.hits small { color: var(--muted); font-size: 0.8rem; }
+.leak { font-family: var(--font-mono); font-size: 0.86rem; background: var(--surface); border-radius: 6px; padding: 6px 8px; word-break: break-word; color: var(--sat-c); }
+.imgbox { position: relative; border-radius: 8px; overflow: hidden; border: 1px solid var(--line); background: #111; touch-action: none; cursor: crosshair; }
+.imgbox canvas { display: block; width: 100%; height: auto; }
+.verdict2 { padding: 12px 14px; border-radius: 10px; border: 1px solid var(--line); font-size: 0.9rem; display: grid; gap: 4px; }
+.verdict2 b { font-family: var(--font-display); font-size: 1.15rem; }
+.ok { color: var(--sat-b); } .bad { color: var(--sat-c); } .meh { color: var(--accent); }
+.tips { margin: 0; padding-inline-start: 1.1em; display: grid; gap: 6px; font-size: 0.88rem; color: var(--muted); }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 0; }
+[hidden] { display: none !important; }
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Privacy · Documents</span>
+    <h1 style="font-size:var(--step-3)">Bad redaction finder.</h1>
+    <p>A black box drawn over text in a PDF often hides nothing. The words are still in the file, and anyone can copy them out. Pixelating or blurring a screenshot can also be undone for short things like account numbers. Check your file here before you share it, so you know the hidden part is really gone.</p>
+  </div>
+  <div class="privacy" role="note"><span aria-hidden="true">🔒</span><span><b>Your file never leaves this device.</b> PDFs and images are checked inside this browser tab. Nothing is uploaded.</span></div>
+  <div class="game">
+    <div class="panel" style="align-content:start">
+      <div class="modes" role="tablist"><button class="sm" type="button" id="mPdf" aria-pressed="true">PDF</button><button class="sm" type="button" id="mImg" aria-pressed="false">Screenshot or photo</button></div>
+      <div id="pdfSide" class="panel" style="gap:12px">
+        <div class="drop" id="dropPdf">
+          <span>Drop a redacted PDF here, or</span>
+          <div class="btns" style="justify-content:center"><label class="sm pri" style="cursor:pointer">Choose a PDF<input type="file" id="filePdf" accept="application/pdf,.pdf" hidden></label><button class="sm" type="button" id="demoPdf">Try the demo PDF</button></div>
+        </div>
+        <p class="msg" id="pmsg" role="status"></p>
+        <div class="pane" id="prep" hidden></div>
+      </div>
+      <div id="imgSide" class="panel" style="gap:12px" hidden>
+        <div class="drop" id="dropImg">
+          <span>Drop a screenshot or photo with a hidden part, or</span>
+          <div class="btns" style="justify-content:center"><label class="sm pri" style="cursor:pointer">Choose an image<input type="file" id="fileImg" accept="image/*" hidden></label><button class="sm" type="button" id="demoImg">Try the demo image</button></div>
+        </div>
+        <p class="msg" id="imsg" role="status"></p>
+        <div class="pane" id="irep" hidden>
+          <span class="label">Drag over the hidden part to check it</span>
+          <div class="imgbox" id="ibox"><canvas id="icv"></canvas></div>
+          <div id="iauto"></div>
+          <div id="isel"></div>
+        </div>
+      </div>
+    </div>
+    <div class="panel" style="align-content:start">
+      <div class="pane">
+        <span class="label">How to redact properly</span>
+        <ul class="tips">
+          <li><b>Use a real redact tool.</b> In Acrobat: Tools › Redact › Mark for Redaction, then <b>Apply</b>, then Sanitize Document. Marking alone removes nothing.</li>
+          <li><b>Or delete, then cover.</b> Delete or retype the private words in the original (Word, Excel) first, then make the PDF. A box drawn in Word over text doesn't remove it.</li>
+          <li><b>Or flatten.</b> Print to an image, or export pages as images, then make a PDF from those. The text layer is gone. Run this check again afterwards.</li>
+          <li><b>For screenshots, use a solid box.</b> Fill the area with one solid colour at 100% opacity. Don't use blur, pixelate, or a highlighter set to black at less than full strength.</li>
+          <li><b>Crop instead</b> when you can. The safest pixels are the ones not in the file.</li>
+          <li>Check what else is in the file: names, comments and old versions. The <a href="../doc-leaks/">document leak check</a> covers those.</li>
+        </ul>
+      </div>
+      <p class="fact" style="margin:0"><b>Why black boxes fail.</b> A PDF page is a list of drawing steps: "write these letters here", "fill a black rectangle there". A box is just one more step drawn on top. Copy and paste, search, or any text tool reads the letters underneath. This page looks for dark rectangles in those drawing steps and checks which letters sit under them.</p>
+      <p class="fact" style="margin:0"><b>Why pixelation fails.</b> Pixelating replaces each block with its average colour. For a short number there are only so many possibilities. An attacker renders every candidate in the same font, pixelates it the same way, and picks the one that matches. Tools that do this automatically are freely available.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script src="../assets/vendor/pdf.min.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  try { pdfjsLib.GlobalWorkerOptions.workerSrc = '../assets/vendor/pdf.worker.min.js'; } catch (e) {}
+  // modes
+  function mode(m) { $('mPdf').setAttribute('aria-pressed', m === 'pdf'); $('mImg').setAttribute('aria-pressed', m === 'img'); $('pdfSide').hidden = m !== 'pdf'; $('imgSide').hidden = m !== 'img'; }
+  $('mPdf').onclick = function () { mode('pdf'); }; $('mImg').onclick = function () { mode('img'); };
+  function dropper(el, cb) {
+    el.addEventListener('dragover', function (e) { e.preventDefault(); el.classList.add('over'); });
+    el.addEventListener('dragleave', function () { el.classList.remove('over'); });
+    el.addEventListener('drop', function (e) { e.preventDefault(); el.classList.remove('over'); if (e.dataTransfer.files[0]) cb(e.dataTransfer.files[0]); });
+  }
+
+  // ---------------- PDF ----------------
+  function mul(m, n) { return [m[0] * n[0] + m[2] * n[1], m[1] * n[0] + m[3] * n[1], m[0] * n[2] + m[2] * n[3], m[1] * n[2] + m[3] * n[3], m[0] * n[4] + m[2] * n[5] + m[4], m[1] * n[4] + m[3] * n[5] + m[5]]; }
+  function apply(m, x, y) { return [m[0] * x + m[2] * y + m[4], m[1] * x + m[3] * y + m[5]]; }
+  function lum(c) { if (typeof c === 'string') { var h = c.replace('#', ''); c = [parseInt(h.substr(0, 2), 16), parseInt(h.substr(2, 2), 16), parseInt(h.substr(4, 2), 16)]; } return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; }
+  function darkBoxes(ops, pageW, pageH) {
+    var O = pdfjsLib.OPS, stack = [], st = { m: [1, 0, 0, 1, 0, 0], fill: [0, 0, 0] }, path = [], out = [], annot = null;
+    var FILL = {}; [O.fill, O.eoFill, O.fillStroke, O.eoFillStroke, O.closeFillStroke, O.closeEOFillStroke].forEach(function (k) { if (k != null) FILL[k] = 1; });
+    function bbox(pts) { var xs = pts.map(function (p) { return p[0]; }), ys = pts.map(function (p) { return p[1]; }); return [Math.min.apply(0, xs), Math.min.apply(0, ys), Math.max.apply(0, xs), Math.max.apply(0, ys)]; }
+    for (var i = 0; i < ops.fnArray.length; i++) {
+      var fn = ops.fnArray[i], a = ops.argsArray[i];
+      if (fn === O.beginAnnotation) { annot = { rect: a[1], dark: false }; stack.push(st); st = { m: st.m.slice(), fill: st.fill }; continue; }
+      if (fn === O.endAnnotation) { if (annot && annot.dark) out.push({ r: annot.rect.slice(), kind: 'annot' }); annot = null; st = stack.pop() || st; continue; }
+      if (fn === O.save) { stack.push({ m: st.m.slice(), fill: st.fill }); continue; }
+      if (fn === O.restore) { st = stack.pop() || st; continue; }
+      if (fn === O.transform) { st.m = mul(st.m, a); continue; }
+      if (fn === O.setFillRGBColor) { st.fill = a.length === 1 ? a[0] : [a[0], a[1], a[2]]; continue; }
+      if (fn === O.setFillGray) { st.fill = [a[0] * 255, a[0] * 255, a[0] * 255]; continue; }
+      if (fn === O.constructPath) {
+        var sub = a[0], co = a[1], k = 0, cur = null; path = [];
+        for (var j = 0; j < sub.length; j++) {
+          var o = sub[j];
+          if (o === O.rectangle) { var x = co[k], y = co[k + 1], w = co[k + 2], h = co[k + 3]; k += 4; path.push(bbox([apply(st.m, x, y), apply(st.m, x + w, y), apply(st.m, x, y + h), apply(st.m, x + w, y + h)])); cur = null; }
+          else if (o === O.moveTo) { cur = [apply(st.m, co[k], co[k + 1])]; path.push(cur); k += 2; }
+          else if (o === O.lineTo) { if (cur) cur.push(apply(st.m, co[k], co[k + 1])); k += 2; }
+          else if (o === O.curveTo) { if (cur) cur.push(apply(st.m, co[k + 4], co[k + 5])); k += 6; }
+          else if (o === O.curveTo2 || o === O.curveTo3) { if (cur) cur.push(apply(st.m, co[k + 2], co[k + 3])); k += 4; }
+        }
+        path = path.map(function (p) { return p.length === 4 && typeof p[0] === 'number' ? p : p.length > 2 ? bbox(p) : null; }).filter(Boolean);
+        continue;
+      }
+      if (FILL[fn]) {
+        var dark = lum(st.fill) < 80;
+        path.forEach(function (b) {
+          var w = b[2] - b[0], h = b[3] - b[1];
+          if (!dark || w < 3 || h < 3 || w * h > pageW * pageH * 0.4) return;
+          if (annot) annot.dark = true; else out.push({ r: b, kind: 'box' });
+        });
+        path = []; continue;
+      }
+      if (fn === O.endPath) path = [];
+    }
+    return out;
+  }
+  function under(box, items) {
+    var r = box.r, x1 = Math.min(r[0], r[2]) - 1, x2 = Math.max(r[0], r[2]) + 1, y1 = Math.min(r[1], r[3]) - 1, y2 = Math.max(r[1], r[3]) + 1, out = '', n = 0;
+    items.forEach(function (it) {
+      if (!it.str) return; var t = it.transform, h = Math.hypot(t[2], t[3]) || it.height || 10, len = it.str.length, w = it.width || 0;
+      var cy = t[5] + h * 0.3, line = '';
+      if (cy < y1 || cy > y2) return;
+      for (var c = 0; c < len; c++) { var cx = t[4] + (c + 0.5) * w / len; if (cx >= x1 && cx <= x2) { line += it.str[c]; n++; } }
+      if (line) out += (out ? ' ' : '') + line;
+    });
+    return { text: out.trim(), count: n };
+  }
+  var lastPdfName = '';
+  function checkPdf(file) {
+    $('pmsg').textContent = 'Reading ' + file.name + '…'; $('prep').hidden = true; lastPdfName = file.name;
+    file.arrayBuffer().then(function (buf) {
+      if (typeof pdfjsLib === 'undefined') throw new Error('The PDF reader didn\'t load. Check your connection and reload.');
+      return pdfjsLib.getDocument({ data: new Uint8Array(buf), isEvalSupported: false }).promise;
+    }).then(function (doc) {
+      var n = Math.min(doc.numPages, 50), jobs = [];
+      for (var p = 1; p <= n; p++) jobs.push(page(doc, p));
+      return Promise.all(jobs).then(function (pages) { report(file, doc, pages); });
+    }).catch(function (e) { $('pmsg').textContent = (e && e.message) || 'Could not open this PDF.'; });
+  }
+  function page(doc, num) {
+    return doc.getPage(num).then(function (pg) {
+      var vp1 = pg.getViewport({ scale: 1 });
+      return Promise.all([pg.getOperatorList(), pg.getTextContent(), pg.getAnnotations()]).then(function (r) {
+        var view = pg.view, boxes = darkBoxes(r[0], view[2] - view[0], view[3] - view[1]), items = r[1].items;
+        r[2].forEach(function (a) { if (a.subtype === 'Redact') boxes.push({ r: a.rect, kind: 'redact' }); });
+        // annotation boxes found via appearance streams may duplicate a Redact rect
+        var hits = boxes.map(function (b) { var u = under(b, items); b.text = u.text; b.count = u.count; return b; });
+        return { num: num, pg: pg, vp1: vp1, hits: hits, textCount: items.reduce(function (s, it) { return s + (it.str || '').length; }, 0) };
+      });
+    });
+  }
+  var KIND = { box: 'Black box drawn on the page', annot: 'Filled box added as a comment', redact: 'Redaction mark, not applied' };
+  function report(file, doc, pages) {
+    var all = [], leaks = 0, noText = pages.every(function (p) { return p.textCount === 0; });
+    pages.forEach(function (p) { p.hits.forEach(function (h, i) { h.page = p.num; h.idx = all.length + 1; all.push(h); if (h.count) leaks++; }); });
+    var v, cls;
+    if (leaks) { cls = 'bad'; v = leaks === 1 ? 'Text is still under 1 box' : 'Text is still under ' + leaks + ' boxes'; }
+    else if (all.length) { cls = 'ok'; v = 'Boxes found, no text under them'; }
+    else if (noText) { cls = 'meh'; v = 'No text layer at all'; }
+    else { cls = 'ok'; v = 'No black boxes over text'; }
+    var h = '<span class="label">' + doc.numPages + (doc.numPages === 1 ? ' page' : ' pages') + (doc.numPages > 50 ? ' · first 50 checked' : '') + '</span><h2 data-noar>' + esc(file.name) + '</h2>';
+    h += '<div class="verdict2" style="border-color:var(' + (cls === 'bad' ? '--sat-c' : cls === 'ok' ? '--sat-b' : '--accent') + ')"><b class="' + cls + '">' + v + '</b><span class="msg">' +
+      (leaks ? 'Anyone can select and copy the words below. This file is not safely redacted.' : all.length ? 'The boxes cover areas with no live text. If the hidden part was an image, it may still be underneath, so check the original was flattened.' : noText ? 'This PDF has no selectable text, so it is probably scanned or flattened. Black boxes here are part of the picture, which is good.' : 'Nothing dark is drawn over the text. If something was meant to be hidden, it isn\'t.') + '</span></div>';
+    if (all.length) h += '<ul class="hits">' + all.map(function (b) {
+      return '<li style="--c:var(' + (b.count ? '--sat-c' : '--sat-b') + ')"><span><b>' + b.idx + '.</b> ' + KIND[b.kind] + ' · page ' + b.page + '</span>' + (b.count ? '<span class="leak" data-noar>' + esc(b.text) + '</span><small>Still in the file. Copy, search and screen readers can all see it.</small>' : '<small>No text under this box.</small>') + (b.kind === 'redact' ? '<small>Redaction marks only work after Apply Redactions.</small>' : '') + '</li>';
+    }).join('') + '</ul>';
+    h += '<div class="pages" id="pages"></div>';
+    $('prep').innerHTML = h; $('prep').hidden = false; $('pmsg').textContent = '';
+    pages.filter(function (p) { return p.hits.length || p.num === 1; }).slice(0, 8).forEach(function (p) { render(p); });
+  }
+  function render(p) {
+    var wrap = document.createElement('div'); wrap.className = 'pgwrap'; $('pages').appendChild(wrap);
+    var w = Math.min(900, Math.max(320, $('pages').clientWidth || 600)) * (window.devicePixelRatio || 1), scale = w / p.vp1.width, vp = p.pg.getViewport({ scale: scale });
+    var c = document.createElement('canvas'); c.width = vp.width; c.height = vp.height; wrap.appendChild(c);
+    var lay = document.createElement('canvas'); lay.className = 'lay'; lay.width = vp.width; lay.height = vp.height; wrap.appendChild(lay);
+    p.pg.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise.then(function () {
+      var x = lay.getContext('2d');
+      p.hits.forEach(function (b) {
+        var r = vp.convertToViewportRectangle(b.r), x1 = Math.min(r[0], r[2]), y1 = Math.min(r[1], r[3]), bw = Math.abs(r[2] - r[0]), bh = Math.abs(r[3] - r[1]);
+        x.lineWidth = 3 * scale / 1.5; x.strokeStyle = b.count ? '#ff4f6d' : '#4fd3bd'; x.setLineDash([8, 5]); x.strokeRect(x1 - 4, y1 - 4, bw + 8, bh + 8);
+        if (b.count) { x.fillStyle = 'rgba(255,79,109,.18)'; x.fillRect(x1, y1, bw, bh); }
+        x.setLineDash([]); x.fillStyle = b.count ? '#ff4f6d' : '#4fd3bd'; var fs = Math.max(14, 11 * scale); x.font = 'bold ' + fs + 'px sans-serif';
+        var lbl = String(b.idx), tw = x.measureText(lbl).width + 10; x.fillRect(x1 - 4, y1 - fs - 10, tw, fs + 6); x.fillStyle = '#fff'; x.fillText(lbl, x1 + 1, y1 - 9);
+      });
+    }).catch(function () {});
+  }
+  $('filePdf').onchange = function () { if (this.files[0]) checkPdf(this.files[0]); this.value = ''; };
+  dropper($('dropPdf'), checkPdf);
+
+  // Demo PDF, written by hand: text, then a black rectangle over part of it, a filled Square comment and an unapplied Redact mark.
+  function demoPdf() {
+    var lines = [['Statement of account (fictional demo)', 72, 730, 16], ['Customer: Sam Example', 72, 690, 12], ['Account number: 0042 7731 5590 1185', 72, 666, 12], ['Card PIN reminder: 4821', 72, 642, 12], ['Home address: Villa 12, Example Street', 72, 618, 12], ['Balance: AED 18,240.00', 72, 594, 12], ['This line is not hidden.', 72, 560, 12]];
+    var cs = lines.map(function (l) { return 'BT /F1 ' + l[3] + ' Tf ' + l[1] + ' ' + l[2] + ' Td (' + l[0] + ') Tj ET'; }).join('\n');
+    // a black box drawn over the account digits and one over the balance
+    cs += '\nq 0 0 0 rg 168 662 160 15 re f Q\nq 0.05 g 125 590 100 15 re f Q';
+    var objs = [
+      '<< /Type /Catalog /Pages 2 0 R >>',
+      '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+      '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R /Annots [6 0 R 7 0 R] >>',
+      '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
+      '<< /Length ' + cs.length + ' >>\nstream\n' + cs + '\nendstream',
+      '<< /Type /Annot /Subtype /Square /Rect [178 614 300 629] /C [0 0 0] /IC [0 0 0] /BS << /W 0 >> /T (Reviewer) >>',
+      '<< /Type /Annot /Subtype /Redact /Rect [176 638 202 653] /IC [0 0 0] /OC [1 0 0] >>'
+    ];
+    var s = '%PDF-1.7\n', off = [];
+    objs.forEach(function (o, i) { off.push(s.length); s += (i + 1) + ' 0 obj\n' + o + '\nendobj\n'; });
+    var x = s.length; s += 'xref\n0 ' + (objs.length + 1) + '\n0000000000 65535 f \n' + off.map(function (o) { return ('000000000' + o).slice(-10) + ' 00000 n \n'; }).join('') + 'trailer\n<< /Size ' + (objs.length + 1) + ' /Root 1 0 R >>\nstartxref\n' + x + '\n%%EOF\n';
+    var u = new Uint8Array(s.length); for (var i = 0; i < s.length; i++) u[i] = s.charCodeAt(i) & 255;
+    return new File([u], 'demo-redacted-statement.pdf', { type: 'application/pdf' });
+  }
+  $('demoPdf').onclick = function () { checkPdf(demoPdf()); };
+
+  // ---------------- Images ----------------
+  var img = null, data = null, W = 0, H = 0, sel = null, auto = [], fileBytes = null;
+  function loadImg(file) {
+    $('imsg').textContent = 'Reading ' + file.name + '…';
+    file.arrayBuffer().then(function (b) { fileBytes = new Uint8Array(b); });
+    var url = URL.createObjectURL(file), im = new Image();
+    im.onload = function () {
+      var s = Math.min(1, 1600 / Math.max(im.naturalWidth, im.naturalHeight)); W = Math.round(im.naturalWidth * s); H = Math.round(im.naturalHeight * s);
+      var c = $('icv'); c.width = W; c.height = H; var x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(im, 0, 0, W, H);
+      data = x.getImageData(0, 0, W, H); img = im; sel = null; $('irep').hidden = false; $('imsg').textContent = ''; $('isel').innerHTML = '';
+      setTimeout(function () { autoScan(file); }, 30);
+    };
+    im.onerror = function () { $('imsg').textContent = 'This browser can\'t open that image.'; };
+    im.src = url;
+  }
+  function gray(x, y) { var i = (y * W + x) * 4, d = data.data; return 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]; }
+  // Find a block size where pixel changes happen only on a regular grid
+  function pixelation(x0, y0, w, h) {
+    var res = {};
+    ['x', 'y'].forEach(function (axis) {
+      var n = axis === 'x' ? w : h, m = axis === 'x' ? h : w, D = new Float64Array(n), best = null;
+      for (var a = 1; a < n; a++) {
+        var s = 0, cnt = 0;
+        for (var b = 0; b < m; b += 2) { var px = axis === 'x' ? x0 + a : x0 + b, py = axis === 'x' ? y0 + b : y0 + a; s += Math.abs(gray(px, py) - (axis === 'x' ? gray(px - 1, py) : gray(px, py - 1))); cnt++; }
+        D[a] = s / cnt;
+      }
+      for (var B = 4; B <= Math.min(40, n / 3); B++) for (var ph = 0; ph < B; ph++) {
+        var on = 0, nOn = 0, off = 0, nOff = 0, strong = 0;
+        for (a = 1; a < n; a++) { if ((a - ph) % B === 0) { on += D[a]; nOn++; if (D[a] > 1.5) strong++; } else { off += D[a]; nOff++; } }
+        if (nOn < 2) continue; var ratio = (on / nOn) / (off / nOff + 0.3);
+        if (on / nOn > 2 && strong / nOn >= 0.6 && ratio > 6 && (!best || ratio > best.ratio)) best = { B: B, ratio: ratio };
+      }
+      res[axis] = best;
+    });
+    if (!res.x || !res.y || Math.abs(res.x.B - res.y.B) > 1) return null;
+    return { B: Math.round((res.x.B + res.y.B) / 2), ratio: Math.min(res.x.ratio, res.y.ratio) };
+  }
+  function modeShare(x0, y0, w, h) { var hist = new Uint32Array(52), n = 0; for (var y = y0; y < y0 + h; y += 2) for (var x = x0; x < x0 + w; x += 2) { hist[Math.round(gray(x, y) / 5)]++; n++; } var mx = 0, k = 0; for (var i = 0; i < 52; i++) if (hist[i] > mx) { mx = hist[i]; k = i; } return { share: mx / n, level: k * 5 }; }
+  function stats(x0, y0, w, h) {
+    var s = 0, s2 = 0, n = 0, lap = 0, ln = 0;
+    for (var y = y0 + 1; y < y0 + h - 1; y += 1) for (var x = x0 + 1; x < x0 + w - 1; x += 1) {
+      var g = gray(x, y); s += g; s2 += g * g; n++;
+      var L = 4 * g - gray(x - 1, y) - gray(x + 1, y) - gray(x, y - 1) - gray(x, y + 1); lap += L * L; ln++;
+    }
+    var m = s / n; return { sd: Math.sqrt(Math.max(0, s2 / n - m * m)), lap: lap / ln };
+  }
+  function autoScan(file) {
+    auto = []; var T = 48;
+    for (var y = 0; y + T <= H; y += T / 2) for (var x = 0; x + T <= W; x += T / 2) { var p = pixelation(x, y, T, T); if (p) auto.push([x, y, T, T, p.B]); }
+    // merge overlapping tiles
+    var rects = [];
+    auto.forEach(function (t) { var m = rects.filter(function (r) { return t[0] <= r[2] + 2 && t[0] + t[2] >= r[0] - 2 && t[1] <= r[3] + 2 && t[1] + t[3] >= r[1] - 2; })[0]; if (m) { m[0] = Math.min(m[0], t[0]); m[1] = Math.min(m[1], t[1]); m[2] = Math.max(m[2], t[0] + t[2]); m[3] = Math.max(m[3], t[1] + t[3]); m[4].push(t[4]); } else rects.push([t[0], t[1], t[0] + t[2], t[1] + t[3], [t[4]]]); });
+    auto = rects.filter(function (r) { return r[4].length >= 2 || (r[2] - r[0]) * (r[3] - r[1]) < W * H; });
+    var trail = trailing(), h = '';
+    if (auto.length) h += '<div class="verdict2" style="border-color:var(--sat-c)"><b class="bad">' + (auto.length === 1 ? 'Found 1 pixelated area' : 'Found ' + auto.length + ' pixelated areas') + '</b><span class="msg">Marked in red. Pixelation can be reversed for short text such as numbers, dates or names. Cover it with a solid box instead.</span></div>';
+    else h += '<div class="verdict2"><b>No pixelation found automatically</b><span class="msg">Drag over a blurred or covered area to check it.</span></div>';
+    if (trail) h += '<div class="verdict2" style="border-color:var(--sat-c);margin-top:8px"><b class="bad">Extra data after the end of the image</b><span class="msg">' + trail + '</span></div>';
+    $('iauto').innerHTML = h; draw();
+  }
+  function trailing() {
+    var u = fileBytes; if (!u) return '';
+    if (u[0] === 0x89 && u[1] === 0x50) { for (var i = u.length - 12; i > 8; i--) if (u[i] === 0x49 && u[i + 1] === 0x45 && u[i + 2] === 0x4E && u[i + 3] === 0x44) { var extra = u.length - (i + 8); return extra > 16 ? 'This PNG has ' + Math.round(extra / 1024 * 10) / 10 + ' KB after its end marker. Some phone and PC screenshot editors once saved the edited image over the original without trimming the file, leaving part of the original picture recoverable. Re-save or re-screenshot it.' : ''; } }
+    return '';
+  }
+  function draw() {
+    var c = $('icv'), x = c.getContext('2d'); x.putImageData(data, 0, 0);
+    x.lineWidth = Math.max(2, W / 400);
+    auto.forEach(function (r) { x.strokeStyle = '#ff4f6d'; x.setLineDash([6, 4]); x.strokeRect(r[0] + 1, r[1] + 1, r[2] - r[0] - 2, r[3] - r[1] - 2); });
+    if (sel) { x.setLineDash([]); x.strokeStyle = '#ffc857'; x.strokeRect(sel[0], sel[1], sel[2], sel[3]); }
+  }
+  function checkSel() {
+    var x0 = Math.max(0, Math.round(sel[0])), y0 = Math.max(0, Math.round(sel[1])), w = Math.min(W - x0, Math.round(sel[2])), h = Math.min(H - y0, Math.round(sel[3]));
+    if (w < 8 || h < 8) { $('isel').innerHTML = ''; return; }
+    var st = stats(x0, y0, w, h), p = pixelation(x0, y0, w, h), whole = stats(0, 0, W, H), out;
+    var md = modeShare(x0, y0, w, h);
+    if (st.sd < 3 || md.share > 0.7 && md.level < 60) out = ['ok', 'A solid box', 'One flat colour with nothing behind it in this image. That is the right way to hide something in a screenshot, as long as the original file wasn\'t shared too.'];
+    else if (p) out = ['bad', 'Pixelated, blocks about ' + p.B + ' px', 'Short text under pixelation can often be recovered by guessing and comparing. The bigger the blocks compared with the letters, the safer, but a solid box is always safer.'];
+    else if (st.lap < whole.lap * 0.2 && st.sd > 6) out = ['bad', 'Looks blurred', 'Blur keeps the overall shapes. Light blur can be partly undone by sharpening, and short numbers can be guessed by blurring every candidate the same way. Use a solid box.'];
+    else if (st.sd > 6 && st.lap > whole.lap * 0.5) out = ['meh', 'Sharp detail is visible here', 'Nothing in this area looks hidden. If you meant to cover it, it is still readable.'];
+    else out = ['meh', 'Partly hidden', 'This area is low in detail but not a solid fill. A semi-transparent box or a soft brush can leave enough contrast to read the text. Use a solid, fully opaque box.'];
+    $('isel').innerHTML = '<div class="verdict2" style="border-color:var(' + (out[0] === 'bad' ? '--sat-c' : out[0] === 'ok' ? '--sat-b' : '--accent') + ');margin-top:8px"><b class="' + out[0] + '">' + out[1] + '</b><span class="msg">' + out[2] + '</span></div>';
+  }
+  (function () {
+    var c = $('icv'), start = null;
+    function pt(e) { var r = c.getBoundingClientRect(); return [(e.clientX - r.left) * W / r.width, (e.clientY - r.top) * H / r.height]; }
+    c.addEventListener('pointerdown', function (e) { if (!data) return; start = pt(e); c.setPointerCapture(e.pointerId); sel = null; });
+    c.addEventListener('pointermove', function (e) { if (!start) return; var q = pt(e); sel = [Math.min(start[0], q[0]), Math.min(start[1], q[1]), Math.abs(q[0] - start[0]), Math.abs(q[1] - start[1])]; draw(); });
+    c.addEventListener('pointerup', function () { if (!start) return; start = null; if (sel) checkSel(); window.__sel = sel; });
+  })();
+  $('fileImg').onchange = function () { if (this.files[0]) loadImg(this.files[0]); this.value = ''; };
+  dropper($('dropImg'), loadImg);
+  function demoImg() {
+    var c = document.createElement('canvas'); c.width = 720; c.height = 380; var x = c.getContext('2d'); x.direction = 'ltr'; x.textAlign = 'left';
+    x.fillStyle = '#f7f7f2'; x.fillRect(0, 0, 720, 380); x.fillStyle = '#1b2a4a'; x.fillRect(0, 0, 720, 54);
+    x.fillStyle = '#fff'; x.font = 'bold 24px sans-serif'; x.fillText('Example Bank · transfer receipt', 22, 36);
+    x.fillStyle = '#222'; x.font = '22px sans-serif';
+    [['Sent to:', 'Sam Example', 110], ['IBAN:', 'AE07 0331 2345 6789 0123 456', 160], ['Amount:', 'AED 2,500.00', 210], ['Reference:', 'rent March', 260], ['Mobile:', '050 123 4567', 310]].forEach(function (l) { x.fillText(l[0], 22, l[2]); x.fillText(l[1], l[0] === 'IBAN:' ? 100 : l[0] === 'Reference:' ? 132 : 116, l[2]); });
+    // pixelate the IBAN digits
+    var px = function (x0, y0, w, h, B) { var d = x.getImageData(x0, y0, w, h); for (var by = 0; by < h; by += B) for (var bx = 0; bx < w; bx += B) { var r = 0, g = 0, b = 0, n = 0; for (var yy = by; yy < Math.min(by + B, h); yy++) for (var xx = bx; xx < Math.min(bx + B, w); xx++) { var i = (yy * w + xx) * 4; r += d.data[i]; g += d.data[i + 1]; b += d.data[i + 2]; n++; } for (yy = by; yy < Math.min(by + B, h); yy++) for (xx = bx; xx < Math.min(bx + B, w); xx++) { i = (yy * w + xx) * 4; d.data[i] = r / n; d.data[i + 1] = g / n; d.data[i + 2] = b / n; } } x.putImageData(d, x0, y0); };
+    px(96, 136, 400, 32, 8);
+    // blur the name, solid box over the phone number
+    var t = document.createElement('canvas'); t.width = 140; t.height = 34; t.getContext('2d').drawImage(c, 112, 86, 140, 34, 0, 0, 140, 34);
+    x.save(); x.filter = 'blur(3px)'; x.drawImage(t, 112, 86); x.restore();
+    x.fillStyle = '#000'; x.fillRect(110, 288, 150, 30);
+    return new Promise(function (res) { c.toBlob(function (b) { res(new File([b], 'demo-receipt.png', { type: 'image/png' })); }, 'image/png'); });
+  }
+  $('demoImg').onclick = function () { demoImg().then(loadImg); };
+  window.REDACT = { demoPdf: demoPdf };
+})();
+</script>
+</body>
+</html>

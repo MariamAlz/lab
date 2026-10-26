@@ -251,3 +251,10 @@ LabAr.add({
  "A step-by-step security checklist for iPhone, Pixel and Samsung, with the exact settings path for every step, from everyday protection to maximum.": "قائمة خطوات لحماية iPhone وPixel وSamsung، مع المسار الدقيق في الإعدادات لكل خطوة، من الحماية اليومية إلى أقصى حماية.",
  "Start securing →": "ابدأ التأمين ←"
 });
+/* index cards for newer tools */
+LabAr.add({
+ "Privacy · Documents": "الخصوصية · المستندات",
+ "Bad redaction finder": "كاشف الحجب الخاطئ",
+ "Find black boxes in a PDF that still have readable text under them, and pixelation or blur in screenshots that can be undone.": "اكتشف المربعات السوداء في ملفات PDF التي ما زال تحتها نص مقروء، والبكسلة أو التمويه في لقطات الشاشة الذي يمكن عكسه.",
+ "Check a redaction →": "افحص الحجب ←"
+});

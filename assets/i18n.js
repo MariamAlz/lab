@@ -89,7 +89,7 @@
   // canvas charts and dialogs
   ['fillText', 'strokeText'].forEach(function (m) {
     var o = CanvasRenderingContext2D.prototype[m];
-    CanvasRenderingContext2D.prototype[m] = function (s) { arguments[0] = tr(s); return o.apply(this, arguments); };
+    CanvasRenderingContext2D.prototype[m] = function (s) { var c = this.canvas; if (typeof s === 'string' && s.length > 1 && !(c && c.closest && c.closest('[data-noar]')) && !(c && c.dataset && 'noar' in c.dataset)) arguments[0] = tr(s); return o.apply(this, arguments); };
   });
   ['alert', 'confirm', 'prompt'].forEach(function (m) { var o = window[m]; window[m] = function (s) { arguments[0] = tr(s); return o.apply(window, arguments); }; });
 
