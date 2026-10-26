@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Phone Sensor Lab · Mariam's Lab</title>
+<meta name="description" content="Your phone's hidden physics lab. Live graphs of the accelerometer, gyroscope and orientation, plus experiments: count lift floors, measure gravity with a pendulum, level a shelf, count steps and measure a shake in g.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/sensor-lab/">
+<meta property="og:title" content="Phone Sensor Lab · Mariam's Lab"><meta property="og:description" content="Live motion sensor graphs and five physics experiments with your phone."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.85rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; cursor: pointer; }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.sm:disabled { opacity: .45; cursor: default; }
+.big { font: inherit; font-weight: 600; font-size: 1.05rem; padding: 12px 30px; border-radius: 999px; border: 0; background: var(--accent); color: var(--bg); cursor: pointer; }
+.pills { display: flex; gap: 6px; flex-wrap: wrap; }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; }
+.plot { display: grid; gap: 4px; }
+.plot header { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; align-items: baseline; }
+.plot canvas { width: 100%; height: 110px; display: block; border-radius: 10px; background: rgba(7,10,24,.82); border: 1px solid var(--line); }
+.vals { font-family: var(--font-mono); font-size: 0.74rem; display: flex; gap: 10px; flex-wrap: wrap; }
+.vals i { font-style: normal; }
+.xp { padding: 16px; border: 1px solid var(--line); border-radius: var(--radius); background: rgba(7,10,24,.82); display: grid; gap: 12px; }
+.xp[hidden] { display: none; }
+.xp h2 { font-size: 1.3rem; }
+.xp ol { margin: 0; padding-inline-start: 20px; font-size: 0.9rem; color: var(--muted); }
+.xp ol li + li { margin-top: 3px; }
+.bigval { font-family: var(--font-display); font-weight: 800; font-size: clamp(2.4rem, 11vw, 3.6rem); line-height: 1; font-variant-numeric: tabular-nums; }
+.bigval small { font-size: 1rem; font-weight: 600; color: var(--muted); margin-inline-start: 4px; }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: 0.9rem; }
+.row input[type=number] { width: 5.5em; font: inherit; font-family: var(--font-mono); color: var(--ink); background: rgba(7,10,24,.6); border: 1px solid var(--line); border-radius: 8px; padding: 5px 8px; }
+.acts { display: flex; gap: 8px; flex-wrap: wrap; }
+.bubble { position: relative; width: min(260px, 70vw); aspect-ratio: 1; margin: 0 auto; border-radius: 50%; border: 2px solid var(--line); background: radial-gradient(circle, rgba(79,211,189,.10), rgba(7,10,24,.6) 70%); }
+.bubble::before, .bubble::after { content: ''; position: absolute; background: var(--line); }
+.bubble::before { left: 50%; top: 0; bottom: 0; width: 1px; }
+.bubble::after { top: 50%; left: 0; right: 0; height: 1px; }
+.bubble .ring { position: absolute; inset: 40%; border-radius: 50%; border: 1px dashed var(--muted); }
+.bubble .dot { position: absolute; width: 18%; height: 18%; left: 41%; top: 41%; border-radius: 50%; background: var(--sat-b); box-shadow: 0 0 18px var(--sat-b); transition: background .2s; }
+.edge { height: 44px; border-radius: 22px; border: 2px solid var(--line); position: relative; background: rgba(7,10,24,.6); overflow: hidden; }
+.edge i { position: absolute; top: 6px; bottom: 6px; width: 60px; left: calc(50% - 30px); border-radius: 16px; background: var(--sat-b); box-shadow: 0 0 14px var(--sat-b); }
+.edge::after { content: ''; position: absolute; left: calc(50% - 34px); width: 68px; top: 2px; bottom: 2px; border: 1px dashed var(--muted); border-radius: 18px; }
+.ok { color: var(--sat-b); } .warn { color: var(--accent); }
+.mini { width: 100%; height: 90px; display: block; border-radius: 10px; background: rgba(7,10,24,.6); border: 1px solid var(--line); }
+.tapper { font: inherit; font-weight: 600; width: 100%; padding: 18px; border-radius: var(--radius); border: 1px dashed var(--accent); background: var(--accent-soft); color: var(--ink); cursor: pointer; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Experiment · Physics · Sensors</span>
+    <h1 style="font-size:var(--step-3)">Your phone's hidden lab.</h1>
+    <p>Your phone carries an accelerometer and a gyroscope that most apps use quietly for screen rotation and step counts. Here you can see them live and use them for real experiments: count the floors a lift climbs, measure gravity with a pendulum, check a shelf is level, and more. Open it on your phone.</p>
+  </div>
+  <div class="acts" style="align-items:center"><button class="big" type="button" id="go">Start sensors</button><span class="msg" id="msg" role="status"></span></div>
+  <div class="game" style="margin-top:20px">
+    <div class="panel" style="align-content:start">
+      <div class="pills" role="group" aria-label="Experiment">
+        <button class="sm" type="button" data-x="lift" aria-pressed="true">Lift floors</button>
+        <button class="sm" type="button" data-x="pend" aria-pressed="false">Pendulum g</button>
+        <button class="sm" type="button" data-x="level" aria-pressed="false">Spirit level</button>
+        <button class="sm" type="button" data-x="steps" aria-pressed="false">Steps</button>
+        <button class="sm" type="button" data-x="shake" aria-pressed="false">Shake &amp; drop</button>
+      </div>
+
+      <section class="xp" id="x-lift">
+        <h2>How many floors did the lift go?</h2>
+        <ol><li>Get in the lift and hold the phone still (or put it flat on the floor).</li><li>Press Start while the doors are still open. Keep still for 2 seconds while it calibrates.</li><li>Ride the lift. Press Stop when the doors open.</li></ol>
+        <div class="bigval" id="liftH">0.0<small>m</small></div>
+        <p id="liftF" class="msg">Floors travelled appear here.</p>
+        <canvas class="mini" id="liftC" aria-label="Vertical acceleration during the ride"></canvas>
+        <label class="row"><span>Floor height (m)</span><input type="number" id="floorH" min="2.5" max="6" step="0.1" value="3.5"></label>
+        <div class="acts"><button class="sm" type="button" id="liftGo">Start ride</button></div>
+        <p class="fact" style="margin:0">The lift only pushes you during the first and last two or three seconds of a ride. In between it moves at a steady speed and you feel nothing. Adding up the acceleration once gives speed, and adding up speed gives height. Small errors grow fast, so the page assumes the lift ends at rest and corrects for that.</p>
+      </section>
+
+      <section class="xp" id="x-pend" hidden>
+        <h2>Measure gravity with a pendulum.</h2>
+        <div class="pills" role="group" aria-label="Pendulum method"><button class="sm" type="button" data-pm="phone" aria-pressed="true">Phone is the pendulum</button><button class="sm" type="button" data-pm="count" aria-pressed="false">Count swings by hand</button></div>
+        <ol id="pendPhone"><li>Hang the phone from a charger cable or string, screen facing you. Something soft below, please.</li><li>Measure from the pivot point to the middle of the phone and type it in.</li><li>Pull it a little to one side (small swings), let go, then press Start. It times 10 swings.</li></ol>
+        <ol id="pendCount" hidden><li>Hang any small weight (keys work) from a string and measure its length to the weight's centre.</li><li>Pull it a little to one side and let go.</li><li>Tap the big button every time the weight passes its lowest point going right. Ten taps or more is good.</li></ol>
+        <label class="row"><span>String length (cm)</span><input type="number" id="pendL" min="10" max="500" step="1" value="50"></label>
+        <div class="bigval" id="pendG">--<small>m/s²</small></div>
+        <p class="msg" id="pendT">Period: --</p>
+        <div class="acts" id="pendActs"><button class="sm" type="button" id="pendGo">Start timing</button></div>
+        <button class="tapper" type="button" id="pendTap" hidden>Tap at each full swing</button>
+        <p class="fact" style="margin:0">A pendulum's swing time depends only on its length and gravity: T = 2π√(L/g). So timing the swing measures g. In the UAE it's about 9.79 m/s², slightly less than at the poles (9.83) because the Earth bulges at the equator and spins. A phone is not a point weight, so expect to land within a few percent.</p>
+      </section>
+
+      <section class="xp" id="x-level" hidden>
+        <h2>Spirit level and shelf check.</h2>
+        <div class="pills" role="group" aria-label="Level mode"><button class="sm" type="button" data-lm="flat" aria-pressed="true">Flat (table, floor)</button><button class="sm" type="button" data-lm="edge" aria-pressed="false">On its edge (shelf, frame)</button></div>
+        <div class="bubble" id="bubbleFlat"><div class="ring"></div><div class="dot" id="bDot"></div></div>
+        <div class="edge" id="bubbleEdge" hidden><i id="eDot"></i></div>
+        <div class="bigval" id="lvl">--<small>°</small></div>
+        <p class="msg" id="lvlTxt">Lay the phone on the surface.</p>
+        <div class="acts"><button class="sm" type="button" id="lvlCal">Calibrate here</button><button class="sm" type="button" id="lvlReset">Clear calibration</button></div>
+        <p class="fact" style="margin:0">A phone's camera bump can tilt it, so calibrate on a surface you trust. Or try the carpenter's trick: read the angle, turn the phone round 180° on the same spot, and read again. The real slope is the average of the two. On a 1 m shelf, 0.5° is about 9 mm from one end to the other.</p>
+      </section>
+
+      <section class="xp" id="x-steps" hidden>
+        <h2>Step counter.</h2>
+        <ol><li>Put the phone in a pocket or hold it in your hand.</li><li>Press Start and walk normally.</li></ol>
+        <div class="bigval" id="stepN">0<small>steps</small></div>
+        <p class="msg" id="stepTxt">Cadence and distance appear here.</p>
+        <label class="row"><span>Your height (cm), for stride length</span><input type="number" id="stepH" min="100" max="220" step="1" value="165"></label>
+        <div class="acts"><button class="sm" type="button" id="stepGo">Start counting</button><button class="sm" type="button" id="stepReset">Reset</button></div>
+        <p class="fact" style="margin:0">Every step sends a small jolt through your body, about 1.2 to 1.5 times gravity at heel strike. The counter smooths the signal and counts the jolts that are at least a third of a second apart. Stride length is roughly 41% of your height.</p>
+      </section>
+
+      <section class="xp" id="x-shake" hidden>
+        <h2>How hard was that?</h2>
+        <ol><li>Shake the phone, tap it on your palm, or drop it onto a bed or cushion from a low height.</li><li>Please don't drop it onto anything hard.</li></ol>
+        <div class="bigval" id="peakG">1.00<small>g peak</small></div>
+        <p class="msg" id="shakeTxt">The strongest jolt since you last reset.</p>
+        <div class="acts"><button class="sm" type="button" id="shakeReset">Reset peak</button></div>
+        <p class="fact" style="margin:0">While it's falling, the phone feels weightless, so its accelerometer reads close to zero. The page times that quiet moment and works out the drop height from h = ½gt². A hard landing on a tiled floor can reach several hundred g for a millisecond, but phones only sample about 60 to 100 times a second, so short spikes are under-read.</p>
+      </section>
+    </div>
+
+    <div class="panel" style="align-content:start">
+      <span class="label">Live sensors</span>
+      <div class="plot"><header><span class="label">Acceleration with gravity · m/s²</span><span class="vals" id="vA"></span></header><canvas id="cA"></canvas></div>
+      <div class="plot"><header><span class="label">Acceleration without gravity · m/s²</span><span class="vals" id="vL"></span></header><canvas id="cL"></canvas></div>
+      <div class="plot"><header><span class="label">Gyroscope · °/s</span><span class="vals" id="vG"></span></header><canvas id="cG"></canvas></div>
+      <div class="plot"><header><span class="label">Orientation · °</span><span class="vals" id="vO"></span></header><canvas id="cO"></canvas></div>
+      <div class="stats"><div><b id="sRate">--</b><span>Samples a second</span></div><div><b id="sMag">--</b><span>Total, in g</span></div><div><b id="sPeak">--</b><span>Peak, in g</span></div></div>
+      <p class="fact" style="margin:0">The accelerometer is a tiny silicon comb on a spring. When the phone accelerates, the comb lags behind and the gap between its teeth changes, which changes a capacitance. Lying still on a table, it reads 9.8 m/s² upward: that's the table pushing back against gravity. The gyroscope uses a vibrating mass that gets nudged sideways when the phone turns.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var G0 = 9.80665, SPAN = 8000;
+  var buf = []; // {t, a:[x,y,z], l:[x,y,z], g:[a,b,g]}
+  var ori = []; // {t, o:[alpha,beta,gamma]}
+  var started = false, gotMotion = false, lastO = null, grav = null, peakAll = 0, rateN = 0, rateT = 0, rate = 0;
+  var COLS = ['#F08AB3', '#4FD3BD', '#84A0FF', '#E9B467'];
+  var KEY = 'sensorLab', cfg = { floorH: 3.5, pendL: 50, stepH: 165, lvlOff: null };
+  try { Object.assign(cfg, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) {}
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(cfg)); } catch (e) {} }
+  function v3(o) { return o && o.x != null ? [o.x, o.y, o.z] : null; }
+  function mag(v) { return Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]); }
+  function dot(a, b) { return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]; }
+  function f1(x, d) { return x == null || isNaN(x) ? '--' : x.toFixed(d == null ? 1 : d); }
+
+  // ---------- sensors ----------
+  function onMotion(e) {
+    var t = performance.now(), a = v3(e.accelerationIncludingGravity), l = v3(e.acceleration), r = e.rotationRate;
+    if (!a && !l) return;
+    if (!gotMotion) { gotMotion = true; $('msg').textContent = 'Sensors running.'; }
+    // gravity estimate (low-pass); used when the browser gives no gravity-free reading
+    if (a) { if (!grav) grav = a.slice(); else for (var i = 0; i < 3; i++) grav[i] += 0.08 * (a[i] - grav[i]); }
+    if (!l && a) l = [a[0] - grav[0], a[1] - grav[1], a[2] - grav[2]];
+    var g = r && r.alpha != null ? [r.alpha, r.beta, r.gamma] : null;
+    var s = { t: t, a: a, l: l, g: g };
+    buf.push(s); while (buf.length && buf[0].t < t - SPAN) buf.shift();
+    rateN++; if (t - rateT > 1000) { rate = rateN * 1000 / (t - rateT || 1); rateN = 0; rateT = t; }
+    if (a) { var m = mag(a) / G0; if (m > peakAll) peakAll = m; }
+    lift(s); pend(s); level(s); steps(s); shake(s);
+  }
+  function onOrient(e) {
+    if (e.beta == null && e.gamma == null) return;
+    var t = performance.now(); lastO = [e.alpha, e.beta, e.gamma]; ori.push({ t: t, o: lastO });
+    while (ori.length && ori[0].t < t - SPAN) ori.shift();
+  }
+  function begin(refused) {
+    if (started) return; started = true;
+    window.addEventListener('devicemotion', onMotion);
+    window.addEventListener('deviceorientation', onOrient);
+    $('go').textContent = 'Sensors on'; $('go').disabled = true;
+    $('msg').textContent = 'Waiting for sensor data…';
+    setTimeout(function () { if (!gotMotion) $('msg').textContent = refused ? 'Motion access was refused. On iPhone, close the tab, reopen the page and tap Allow when asked.' : 'No motion sensors found. This needs a phone or tablet. On a laptop, open this page on your phone instead.'; }, 2500);
+    requestAnimationFrame(draw);
+  }
+  $('go').onclick = function () {
+    var DM = window.DeviceMotionEvent, DO = window.DeviceOrientationEvent;
+    if (DM && typeof DM.requestPermission === 'function') {
+      // iPhone and iPad: must be asked from a tap
+      DM.requestPermission().then(function (p) {
+        if (DO && typeof DO.requestPermission === 'function') DO.requestPermission().catch(function () {});
+        begin(p !== 'granted');
+      }).catch(function () { begin(true); });
+    } else if (!DM) { $('msg').textContent = 'This browser has no motion sensor support.'; }
+    else begin();
+  };
+
+  // ---------- live plots ----------
+  function plot(id, list, key, fixed) {
+    var c = $(id), dpr = window.devicePixelRatio || 1, W = c.clientWidth, H = c.clientHeight;
+    if (!W) return;
+    if (c.width !== Math.round(W * dpr)) { c.width = Math.round(W * dpr); c.height = Math.round(H * dpr); }
+    var g = c.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+    var now = performance.now(), mx = fixed || 1;
+    if (!fixed) list.forEach(function (s) { var v = s[key]; if (v) for (var i = 0; i < 3; i++) if (v[i] != null) mx = Math.max(mx, Math.abs(v[i])); });
+    g.strokeStyle = 'rgba(120,132,190,.25)'; g.beginPath(); g.moveTo(0, H / 2); g.lineTo(W, H / 2); g.stroke();
+    
+    for (var k = 0; k < 3; k++) {
+      g.strokeStyle = COLS[k]; g.lineWidth = 1.5; g.beginPath(); var first = true;
+      for (var i = 0; i < list.length; i++) {
+        var v = list[i][key]; if (!v || v[k] == null) continue;
+        var x = W - (now - list[i].t) / SPAN * W, y = H / 2 - v[k] / mx * H * 0.42;
+        if (first) { g.moveTo(x, y); first = false; } else g.lineTo(x, y);
+      }
+      g.stroke();
+    }
+    label(g, '±' + (mx >= 100 ? Math.round(mx) : mx.toFixed(1)));
+    if (!list.length) { g.fillStyle = '#A7ADCB'; g.font = '12px "Instrument Sans", sans-serif'; g.textAlign = 'center'; g.fillText(started ? 'No data from this sensor yet' : 'Press Start sensors', W / 2, H / 2 - 6); g.textAlign = 'left'; }
+  }
+  function label(g, txt) { g.font = '10px "JetBrains Mono", monospace'; var w = g.measureText(txt).width; g.fillStyle = 'rgba(7,10,24,.85)'; g.fillRect(2, 2, w + 6, 13); g.fillStyle = '#A7ADCB'; g.fillText(txt, 5, 12); }
+  function vals(id, v, names) { $(id).innerHTML = v ? names.map(function (n, i) { return '<i style="color:' + COLS[i] + '">' + n + ' ' + f1(v[i]) + '</i>'; }).join('') : ''; }
+  function draw() {
+    plot('cA', buf, 'a'); plot('cL', buf, 'l'); plot('cG', buf, 'g'); plot('cO', ori, 'o', 180);
+    var s = buf[buf.length - 1];
+    vals('vA', s && s.a, ['x', 'y', 'z']); vals('vL', s && s.l, ['x', 'y', 'z']); vals('vG', s && s.g, ['α', 'β', 'γ']); vals('vO', lastO, ['α', 'β', 'γ']);
+    $('sRate').textContent = rate ? Math.round(rate) : '--';
+    $('sMag').textContent = s && s.a ? (mag(s.a) / G0).toFixed(2) : '--';
+    $('sPeak').textContent = peakAll ? peakAll.toFixed(2) : '--';
+    drawLift();
+    requestAnimationFrame(draw);
+  }
+
+  // ---------- experiment tabs ----------
+  var cur = 'lift';
+  [].forEach.call(document.querySelectorAll('[data-x]'), function (b) {
+    b.onclick = function () {
+      cur = b.dataset.x;
+      [].forEach.call(document.querySelectorAll('[data-x]'), function (x) { x.setAttribute('aria-pressed', x === b); $('x-' + x.dataset.x).hidden = x !== b; });
+    };
+  });
+  function bindNum(id, k) { $(id).value = cfg[k]; $(id).onchange = function () { var v = +this.value; if (v >= +this.min && v <= +this.max) { cfg[k] = v; save(); } else this.value = cfg[k]; if (k === 'pendL') showPend(); if (k === 'floorH') showLift(); }; }
+  bindNum('floorH', 'floorH'); bindNum('pendL', 'pendL'); bindNum('stepH', 'stepH');
+
+  // ---------- lift ----------
+  var L = { on: false, cal: [], up: null, g: 0, rec: [], v: 0, h: 0, lastT: 0, done: false };
+  $('liftGo').onclick = function () {
+    if (!started) { $('go').click(); }
+    if (L.on) { finishLift(); return; }
+    L = { on: true, cal: [], up: null, g: 0, rec: [], v: 0, h: 0, lastT: 0, done: false };
+    $('liftGo').textContent = 'Stop (doors open)'; $('liftF').textContent = 'Calibrating. Keep still…'; $('liftH').innerHTML = '0.0<small>m</small>';
+  };
+  function lift(s) {
+    if (!L.on || !s.a) return;
+    if (!L.up) {
+      L.cal.push(s.a);
+      if (L.cal.length && s.t - (L.calT || (L.calT = s.t)) > 1500) {
+        var m = [0, 0, 0]; L.cal.forEach(function (a) { for (var i = 0; i < 3; i++) m[i] += a[i] / L.cal.length; });
+        L.g = mag(m); L.up = m.map(function (x) { return x / L.g; }); L.lastT = s.t;
+        $('liftF').textContent = 'Ready. Ride the lift, then press Stop when the doors open.';
+      }
+      return;
+    }
+    var dt = (s.t - L.lastT) / 1000; L.lastT = s.t; if (dt <= 0 || dt > 0.5) return;
+    var av = dot(s.a, L.up) - L.g;
+    if (Math.abs(av) < 0.04) av = 0; // ignore sensor hum
+    L.v += av * dt; L.h += L.v * dt; L.rec.push({ t: s.t, a: av });
+    $('liftH').innerHTML = (L.h >= 0 ? '+' : '') + L.h.toFixed(1) + '<small>m</small>';
+    var dir = L.v > 0.15 ? 'Going up' : L.v < -0.15 ? 'Going down' : 'Not moving';
+    $('liftF').textContent = dir + ' · ' + Math.abs(L.v).toFixed(1) + ' m/s';
+  }
+  function finishLift() {
+    L.on = false; $('liftGo').textContent = 'Start ride';
+    var r = L.rec; if (r.length < 20) { $('liftF').textContent = 'Too short to measure. Try again, starting before the doors close.'; return; }
+    // integrate again, assuming the lift is at rest at the end: remove a linear velocity drift
+    var v = [0], h = 0, T = (r[r.length - 1].t - r[0].t) / 1000;
+    for (var i = 1; i < r.length; i++) v.push(v[i - 1] + r[i].a * (r[i].t - r[i - 1].t) / 1000);
+    var vEnd = v[v.length - 1];
+    for (i = 1; i < r.length; i++) { var u = (r[i].t - r[0].t) / 1000, vc = v[i] - vEnd * (u / T); h += vc * (r[i].t - r[i - 1].t) / 1000; }
+    L.h = h; L.done = true; showLift();
+    window.LIFT = { h: h, raw: L.v };
+  }
+  function showLift() {
+    if (!L.done) return;
+    var fl = L.h / cfg.floorH;
+    $('liftH').innerHTML = (L.h >= 0 ? '+' : '') + L.h.toFixed(1) + '<small>m</small>';
+    $('liftF').innerHTML = '<b class="ok">About ' + Math.abs(Math.round(fl)) + ' floor' + (Math.abs(Math.round(fl)) === 1 ? '' : 's') + ' ' + (L.h >= 0 ? 'up' : 'down') + '</b> (' + Math.abs(fl).toFixed(1) + ' × ' + cfg.floorH + ' m). Lobbies and car parks are often taller than other floors.';
+  }
+  function drawLift() {
+    if (cur !== 'lift') return;
+    var c = $('liftC'), dpr = window.devicePixelRatio || 1, W = c.clientWidth, H = c.clientHeight; if (!W) return;
+    if (c.width !== Math.round(W * dpr)) { c.width = Math.round(W * dpr); c.height = Math.round(H * dpr); }
+    var g = c.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+    g.strokeStyle = 'rgba(120,132,190,.25)'; g.beginPath(); g.moveTo(0, H / 2); g.lineTo(W, H / 2); g.stroke();
+    var r = L.rec; g.fillStyle = '#A7ADCB'; g.font = '10px "JetBrains Mono", monospace';
+    if (!r.length) { g.textAlign = 'center'; g.fillText('Vertical push during the ride', W / 2, H / 2 - 6); g.textAlign = 'left'; return; }
+    var t0 = r[0].t, T = Math.max(5000, r[r.length - 1].t - t0), mx = 0.5; r.forEach(function (p) { mx = Math.max(mx, Math.abs(p.a)); });
+    g.strokeStyle = '#4FD3BD'; g.lineWidth = 1.5; g.beginPath();
+    r.forEach(function (p, i) { var x = (p.t - t0) / T * W, y = H / 2 - p.a / mx * H * 0.42; if (i) g.lineTo(x, y); else g.moveTo(x, y); });
+    g.stroke();
+    label(g, 'up +' + mx.toFixed(1) + ' m/s²');
+  }
+
+  // ---------- pendulum ----------
+  var P = { mode: 'phone', on: false, axis: -1, hist: [], cross: [], taps: [], lastSign: 0 };
+  [].forEach.call(document.querySelectorAll('[data-pm]'), function (b) {
+    b.onclick = function () {
+      P.mode = b.dataset.pm; P.on = false; P.taps = []; P.cross = [];
+      [].forEach.call(document.querySelectorAll('[data-pm]'), function (x) { x.setAttribute('aria-pressed', x === b); });
+      $('pendPhone').hidden = P.mode !== 'phone'; $('pendCount').hidden = P.mode === 'phone';
+      $('pendActs').hidden = P.mode !== 'phone'; $('pendTap').hidden = P.mode === 'phone';
+      $('pendTap').textContent = 'Tap at each full swing'; $('pendG').innerHTML = '--<small>m/s²</small>'; $('pendT').textContent = 'Period: --';
+    };
+  });
+  $('pendGo').onclick = function () {
+    if (!started) $('go').click();
+    P.on = !P.on; P.hist = []; P.cross = []; P.lastSign = 0; P.axis = -1;
+    $('pendGo').textContent = P.on ? 'Stop' : 'Start timing';
+    if (P.on) $('pendT').textContent = 'Listening for the swing…';
+  };
+  function pend(s) {
+    if (!P.on || P.mode !== 'phone' || !s.g) return;
+    P.hist.push(s); while (P.hist.length && P.hist[0].t < s.t - 3000) P.hist.shift();
+    if (P.hist.length < 30) return;
+    // the swing axis is the gyroscope axis with the most activity
+    var vr = [0, 0, 0]; P.hist.forEach(function (h) { for (var i = 0; i < 3; i++) vr[i] += h.g[i] * h.g[i]; });
+    var ax = vr.indexOf(Math.max.apply(null, vr));
+    if (Math.sqrt(vr[ax] / P.hist.length) < 5) return; // not swinging yet
+    if (ax !== P.axis) { P.axis = ax; P.cross = []; P.lastSign = 0; }
+    var w = s.g[ax], sg = w > 3 ? 1 : w < -3 ? -1 : 0;
+    if (sg && sg !== P.lastSign) {
+      if (P.lastSign) P.cross.push(s.t);
+      P.lastSign = sg;
+    }
+    var n = P.cross.length - 1;
+    if (n >= 2) {
+      var T = 2 * (P.cross[n] - P.cross[0]) / n / 1000;
+      showPendT(T, Math.floor(n / 2));
+      if (n >= 20) { P.on = false; $('pendGo').textContent = 'Start timing'; }
+    }
+  }
+  function showPendT(T, swings) {
+    P.T = T; var Lm = cfg.pendL / 100, g = 4 * Math.PI * Math.PI * Lm / (T * T);
+    $('pendG').innerHTML = g.toFixed(2) + '<small>m/s²</small>';
+    var err = (g - 9.79) / 9.79 * 100;
+    $('pendT').innerHTML = 'Period ' + T.toFixed(3) + ' s over ' + swings + ' swing' + (swings === 1 ? '' : 's') + ' · ' + (Math.abs(err) < 3 ? '<span class="ok">within ' + Math.abs(err).toFixed(1) + '% of 9.79</span>' : '<span class="warn">' + (err > 0 ? '+' : '') + err.toFixed(0) + '% from 9.79. Check the length (pivot to centre of the weight).</span>');
+    window.PEND = { T: T, g: g };
+  }
+  function showPend() { if (P.T) showPendT(P.T, Math.max(1, P.mode === 'phone' ? Math.floor((P.cross.length - 1) / 2) : P.taps.length - 1)); }
+  $('pendTap').onclick = function () {
+    var t = performance.now(); P.taps.push(t);
+    if (P.taps.length > 1 && t - P.taps[P.taps.length - 2] > 6000) P.taps = [t]; // long pause: start again
+    var n = P.taps.length - 1;
+    $('pendTap').textContent = n < 1 ? 'Keep tapping…' : n + ' swing' + (n === 1 ? '' : 's') + ' timed. Keep tapping…';
+    if (n >= 2) showPendT((P.taps[n] - P.taps[0]) / n / 1000, n);
+  };
+
+  // ---------- level ----------
+  var lm = 'flat';
+  [].forEach.call(document.querySelectorAll('[data-lm]'), function (b) {
+    b.onclick = function () { lm = b.dataset.lm; [].forEach.call(document.querySelectorAll('[data-lm]'), function (x) { x.setAttribute('aria-pressed', x === b); }); $('bubbleFlat').hidden = lm !== 'flat'; $('bubbleEdge').hidden = lm === 'flat'; cfg.lvlOff = null; save(); };
+  });
+  var lvlSm = null, lvlRaw = null, lvlFlip = 1;
+  function level(s) {
+    if (!s.a) return;
+    if (!lvlSm) lvlSm = s.a.slice(); else for (var i = 0; i < 3; i++) lvlSm[i] += 0.15 * (s.a[i] - lvlSm[i]);
+    var gm = mag(lvlSm); if (!gm) return;
+    // some browsers report the axes with the opposite sign; a phone lying screen-up tells us which
+    if (Math.abs(lvlSm[2]) > 0.9 * gm) lvlFlip = lvlSm[2] < 0 ? -1 : 1;
+    var a = lvlSm.map(function (x) { return x * lvlFlip; });
+    var D = 180 / Math.PI, off = cfg.lvlOff || [0, 0];
+    if (lm === 'flat') {
+      var tx = Math.atan2(a[0], Math.abs(a[2])) * D, ty = Math.atan2(a[1], Math.abs(a[2])) * D;
+      lvlRaw = [tx, ty]; tx -= off[0]; ty -= off[1];
+      var tot = Math.sqrt(tx * tx + ty * ty), k = Math.min(1, tot / 10) / (tot || 1);
+      $('bDot').style.transform = 'translate(' + (tx * k * 230) + '%,' + (-ty * k * 230) + '%)';
+      $('bDot').style.background = tot < 0.5 ? 'var(--sat-b)' : tot < 2 ? 'var(--accent)' : 'var(--sat-c)';
+      $('lvl').innerHTML = tot.toFixed(1) + '<small>°</small>';
+      $('lvlTxt').innerHTML = Math.abs(a[2]) < gm * 0.7 ? '<span class="warn">Lay the phone flat, or switch to "On its edge".</span>' : tot < 0.5 ? '<span class="ok">Level.</span>' : 'Low side: ' + (Math.abs(tx) > Math.abs(ty) ? (tx > 0 ? 'left' : 'right') : (ty > 0 ? 'bottom of the phone' : 'top of the phone')) + '. Slope ' + (Math.tan(tot / D) * 1000).toFixed(0) + ' mm per metre.';
+    } else {
+      var ang = Math.atan2(a[0], Math.abs(a[1])) * D; // phone standing on its long edge in landscape, or upright
+      var landscape = Math.abs(a[0]) > Math.abs(a[1]);
+      if (landscape) ang = Math.atan2(a[1], Math.abs(a[0])) * D * (a[0] > 0 ? -1 : 1);
+      lvlRaw = [ang, 0]; ang -= off[0];
+      var p = Math.max(-1, Math.min(1, ang / 5));
+      $('eDot').style.transform = 'translateX(' + (p * 120) + '%)';
+      $('eDot').style.background = Math.abs(ang) < 0.3 ? 'var(--sat-b)' : Math.abs(ang) < 1 ? 'var(--accent)' : 'var(--sat-c)';
+      $('lvl').innerHTML = Math.abs(ang).toFixed(1) + '<small>°</small>';
+      $('lvlTxt').innerHTML = Math.abs(a[2]) > gm * 0.7 ? '<span class="warn">Stand the phone on its long edge on the shelf.</span>' : Math.abs(ang) < 0.3 ? '<span class="ok">Level.</span>' : 'Off by ' + (Math.tan(Math.abs(ang) / D) * 1000).toFixed(0) + ' mm per metre. ' + (ang > 0 ? 'Raise the left end.' : 'Raise the right end.');
+    }
+    window.LEVEL = $('lvl').textContent;
+  }
+  $('lvlCal').onclick = function () { if (lvlRaw) { cfg.lvlOff = lvlRaw.slice(); save(); } };
+  $('lvlReset').onclick = function () { cfg.lvlOff = null; save(); };
+
+  // ---------- steps ----------
+  var S = { on: false, n: 0, sm: null, base: null, last: 0, armed: true, times: [] };
+  $('stepGo').onclick = function () { if (!started) $('go').click(); S.on = !S.on; $('stepGo').textContent = S.on ? 'Pause' : 'Start counting'; };
+  $('stepReset').onclick = function () { S.n = 0; S.times = []; $('stepN').innerHTML = '0<small>steps</small>'; $('stepTxt').textContent = 'Cadence and distance appear here.'; };
+  function steps(s) {
+    if (!s.a) return;
+    var m = mag(s.a);
+    S.sm = S.sm == null ? m : S.sm + 0.35 * (m - S.sm);       // smooth out buzz
+    S.base = S.base == null ? m : S.base + 0.02 * (m - S.base); // slow average (about 1 g)
+    if (!S.on) return;
+    var d = S.sm - S.base;
+    if (S.armed && d > 1.3 && s.t - S.last > 330) {
+      S.armed = false; S.last = s.t; S.n++; S.times.push(s.t); while (S.times.length > 12) S.times.shift();
+      var cad = S.times.length > 3 ? 60000 * (S.times.length - 1) / (S.times[S.times.length - 1] - S.times[0]) : 0;
+      var dist = S.n * cfg.stepH * 0.00415;
+      $('stepN').innerHTML = S.n + '<small>step' + (S.n === 1 ? '' : 's') + '</small>';
+      $('stepTxt').textContent = (cad ? Math.round(cad) + ' steps a minute · ' : '') + 'about ' + (dist < 1000 ? Math.round(dist) + ' m' : (dist / 1000).toFixed(2) + ' km');
+      window.STEPS = S.n;
+    }
+    if (d < 0.3) S.armed = true;
+  }
+
+  // ---------- shake & drop ----------
+  var K = { peak: 0, fallStart: 0 };
+  $('shakeReset').onclick = function () { K.peak = 0; $('peakG').innerHTML = '1.00<small>g peak</small>'; $('shakeTxt').textContent = 'The strongest jolt since you last reset.'; };
+  function shake(s) {
+    if (!s.a) return;
+    var g = mag(s.a) / G0;
+    var dropped = false;
+    if (g < 0.3) { if (!K.fallStart) K.fallStart = s.t; }
+    else if (K.fallStart) {
+      var ft = (s.t - K.fallStart) / 1000; K.fallStart = 0;
+      if (ft > 0.08) { var h = 0.5 * G0 * ft * ft; K.lastDrop = h; $('shakeTxt').innerHTML = '<b class="warn">Free fall for ' + Math.round(ft * 1000) + ' ms</b>: a drop of about ' + (h * 100).toFixed(0) + ' cm.'; window.DROP = h; dropped = true; }
+    }
+    if (g > K.peak) {
+      K.peak = g; $('peakG').innerHTML = g.toFixed(2) + '<small>g peak</small>';
+      if (!dropped) $('shakeTxt').textContent = g < 1.5 ? 'A gentle move.' : g < 3 ? 'A firm shake. Like a sharp braking stop in a car, times three.' : g < 6 ? 'A hard jolt, about what a fighter pilot feels in a tight turn.' : 'Huge. Short spikes like this are roughly what a hard tap does.';
+    }
+  }
+  requestAnimationFrame(draw);
+})();
+</script>
+</body>
+</html>

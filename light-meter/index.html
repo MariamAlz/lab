@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Light Meter · Mariam's Lab</title>
+<meta name="description" content="Use your phone camera as a rough light meter. See an approximate lux level and whether the light suits reading, desk work, a screen setup, or low, medium or bright light houseplants.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/light-meter/">
+<meta property="og:title" content="Light Meter · Mariam's Lab"><meta property="og:description" content="Is there enough light to read, work, or grow that plant? A camera-based lux estimate."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.85rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; cursor: pointer; }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.sm:disabled { opacity: .45; cursor: default; }
+.big { font: inherit; font-weight: 600; font-size: 1.05rem; padding: 12px 30px; border-radius: 999px; border: 0; background: var(--accent); color: var(--bg); cursor: pointer; }
+.big.stop { background: var(--sat-c); }
+.ctl { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; }
+.lux { padding: 18px; border-radius: var(--radius); border: 1px solid var(--line); background: rgba(7,10,24,.82); display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; }
+.lux .v { font-family: var(--font-display); font-weight: 800; font-size: clamp(2.8rem, 13vw, 4.4rem); line-height: 1; font-variant-numeric: tabular-nums; }
+.lux .v small { font-size: 1rem; font-weight: 600; color: var(--muted); margin-inline-start: 6px; }
+.lux .band { font-weight: 600; font-size: 1.05rem; }
+.lux video { width: 84px; height: 84px; border-radius: 14px; object-fit: cover; background: #000; border: 1px solid var(--line); }
+.scale { position: relative; height: 54px; }
+.scale .bar { position: absolute; left: 0; right: 0; top: 0; height: 12px; border-radius: 99px; background: linear-gradient(90deg, #1b2347, #3b4a8a 30%, #84A0FF 50%, #E9B467 75%, #fff3c4); }
+.scale .mk { position: absolute; top: 16px; transform: translateX(-50%); font-family: var(--font-mono); font-size: 0.62rem; color: var(--muted); text-align: center; line-height: 1.2; white-space: nowrap; }
+.scale .mk::before { content: ''; display: block; width: 1px; height: 5px; background: var(--muted); margin: 0 auto 2px; }
+.scale .mk[style*="text-align:left"]::before { margin-left: 0; } .scale .mk[style*="text-align:right"]::before { margin-right: 0; }
+.scale .ptr { position: absolute; top: -5px; width: 4px; height: 22px; margin-left: -2px; border-radius: 2px; background: var(--ink); box-shadow: 0 0 8px rgba(0,0,0,.6); transition: left .25s; }
+.uses { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.uses li { display: grid; grid-template-columns: 1.6em minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 8px 12px; border: 1px solid var(--line); border-radius: 10px; font-size: 0.9rem; }
+.uses li small { display: block; color: var(--muted); font-size: 0.78rem; }
+.uses li i { font-style: normal; font-weight: 700; text-align: center; }
+.uses li b { font-family: var(--font-mono); font-size: 0.78rem; font-weight: 500; color: var(--muted); text-align: end; }
+.uses li.good i { color: var(--sat-b); } .uses li.low i { color: var(--accent); } .uses li.high i { color: var(--sat-c); }
+.plants { display: grid; gap: 8px; }
+.plants div { padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; font-size: 0.88rem; }
+.plants div.here { border-color: var(--sat-b); background: color-mix(in srgb, var(--sat-b) 10%, transparent); }
+.plants div b { display: block; }
+.plants div span { color: var(--muted); }
+.calib { padding: 12px 14px; border: 1px dashed var(--accent); border-radius: 12px; display: grid; gap: 8px; font-size: 0.88rem; }
+.calib[hidden] { display: none; }
+.calib select, .calib input { font: inherit; color: var(--ink); background: rgba(7,10,24,.6); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; max-width: 100%; }
+.lmnote { padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); font-size: 0.86rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Vision · Home</span>
+    <h1 style="font-size:var(--step-3)">Is there enough light here?</h1>
+    <p>Our eyes adjust so well that a dim room and a bright one can feel the same, even when one has ten times more light. This uses your phone camera to estimate the light level in lux, then tells you whether it suits reading, desk work or a screen, and which houseplants would be happy there.</p>
+  </div>
+  <div class="game">
+    <div class="panel" style="align-content:start">
+      <div class="lux">
+        <div><div class="v" id="val">--<small>lux</small></div><div class="band" id="band">Press start and aim the camera.</div><div class="msg" id="how"></div></div>
+        <video id="vid" playsinline muted autoplay aria-label="Camera preview"></video>
+      </div>
+      <div class="scale" aria-hidden="true"><div class="bar"></div><div class="ptr" id="ptr" style="left:0;display:none"></div><div id="marks"></div></div>
+      <div class="ctl"><button class="big" type="button" id="go">Start</button><button class="sm" type="button" id="hold" disabled>Hold reading</button><button class="sm" type="button" id="flip" disabled>Switch camera</button></div>
+      <div class="ctl" role="group" aria-label="What the camera is pointed at"><span class="msg">Aim at:</span><button class="sm" type="button" data-aim="paper" aria-pressed="true">A white sheet of paper</button><button class="sm" type="button" data-aim="scene" aria-pressed="false">The general scene</button></div>
+      <p class="msg" id="msg" role="status"></p>
+      <div class="calib" id="calib" hidden>
+        <b>Calibrate once for lux readings</b>
+        <span id="calWhy">This browser doesn't share the camera's exposure settings, so the page can only see relative brightness. Point the camera at a sheet of paper in a place where you know the light level, then press Set.</span>
+        <label class="ctl"><span>This spot is about</span><select id="calRef"><option value="400">a normally lit office desk (≈400 lux)</option><option value="1000">beside a window on a bright day (≈1,000 lux)</option><option value="10000">outdoors in open shade (≈10,000 lux)</option><option value="150">a living room in the evening (≈150 lux)</option><option value="custom">my own meter says…</option></select><input type="number" id="calLux" min="1" max="150000" placeholder="lux" style="width:7em" hidden></label>
+        <div class="ctl"><button class="sm" type="button" id="calSet">Set</button><button class="sm" type="button" id="calClear">Forget calibration</button></div>
+      </div>
+      <span class="label">Is it right for…</span>
+      <ul class="uses" id="uses"></ul>
+      <p class="lmnote"><b>An estimate.</b> Phone cameras aren't built to measure light, and the number can be off by a factor of two or more. It's good for comparing spots (this corner versus that window) and for a rough idea. For eye strain that doesn't go away, check with an optometrist.</p>
+    </div>
+    <div class="panel" style="align-content:start">
+      <span class="label">Houseplants by light</span>
+      <div class="plants" id="plants">
+        <div data-lo="50" data-hi="2500"><b>Low light · 50 to 2,500 lux</b><span>Snake plant (sansevieria), ZZ plant, pothos (money plant), peace lily, cast-iron plant, Chinese evergreen (aglaonema), heartleaf philodendron. Fine a few metres from a window or under office lights.</span></div>
+        <div data-lo="2500" data-hi="10000"><b>Medium light · 2,500 to 10,000 lux</b><span>Monstera, rubber plant, spider plant, calathea, dracaena, Boston fern, areca palm. Near a bright window but out of direct sun.</span></div>
+        <div data-lo="10000" data-hi="1000000"><b>Bright light · 10,000 lux and up</b><span>Cacti and succulents, aloe vera, desert rose (adenium), jade plant, fiddle-leaf fig, herbs like basil and mint, bougainvillea. A sunny window or a balcony. In a UAE summer, even these like shade at midday.</span></div>
+      </div>
+      <p class="fact" style="margin:0"><b>Lux</b> measures how much light lands on a surface. A moonlit night gives under 1 lux, a living room 50 to 150, an office 300 to 500, an overcast day around 2,000 to 10,000, and direct UAE sun over 100,000. Indoors near a window, light drops quickly: a metre or two back can mean a tenth of the light, even though it looks almost as bright to you.</p>
+      <p class="fact" style="margin:0"><b>How it works.</b> A camera chooses a shutter speed and sensitivity (ISO) to make the picture look normal. When the browser shares those settings, the page can work backwards: a bright picture taken with a fast shutter and low ISO means a lot of light. A white sheet of paper reflects about 80% of the light that hits it, which turns brightness into lux. When the settings are hidden, a one-time calibration against a known spot does the same job.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var KEY = 'lightMeter', st = { aim: 'paper', calib: null, facing: 'environment' };
+  try { Object.assign(st, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) {}
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} }
+  var stream = null, track = null, on = false, held = false, timer = 0, als = null, alsLux = null, manual = null, lastY = 0, lastLux = null, sm = null;
+  var cv = document.createElement('canvas'); cv.width = 48; cv.height = 36;
+  var cx = cv.getContext('2d', { willReadFrequently: true });
+  var LIN = []; for (var i = 0; i < 256; i++) { var c = i / 255; LIN[i] = c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }
+  var FNUM = 1.8, K = 12.5; // typical phone lens aperture; reflected-light meter constant
+  function rho() { return st.aim === 'paper' ? 0.8 : 0.18; }
+
+  // ---- scale ----
+  var LOGMIN = 0, LOGMAX = 5.2; // 1 to ~150,000 lux
+  function pos(lux) { return Math.max(0, Math.min(100, (Math.log10(Math.max(1, lux)) - LOGMIN) / (LOGMAX - LOGMIN) * 100)); }
+  $('marks').innerHTML = [[1, 'moon'], [50, 'lounge'], [500, 'office'], [5000, 'cloudy'], [100000, 'sun']].map(function (m, i, A) { return '<span class="mk" style="left:' + pos(m[0]) + '%' + (i === 0 ? ';transform:none;text-align:left' : i === A.length - 1 ? ';transform:translateX(-100%);text-align:right' : '') + '">' + (m[0] >= 1000 ? m[0] / 1000 + 'k' : m[0]) + '<br>' + m[1] + '</span>'; }).join('');
+
+  function band(l) {
+    return l < 10 ? 'Dark' : l < 50 ? 'Very dim' : l < 150 ? 'Dim, like a living room at night' : l < 300 ? 'Soft indoor light' : l < 750 ? 'Well lit, like an office' : l < 2500 ? 'Bright indoor light' : l < 10000 ? 'Daylight indoors, or overcast outside' : l < 30000 ? 'Bright daylight, or shade outdoors' : 'Direct sunlight';
+  }
+  var USES = [
+    ['Reading a book', 'Comfortable reading', 300, 750],
+    ['Desk work, homework', 'Office standard is about 500 lux', 400, 1000],
+    ['Screen setup', 'Room light similar to the screen, no glare', 150, 500],
+    ['Fine detail (sewing, crafts, makeup)', 'Detailed work needs more', 750, 2000],
+    ['Watching TV, relaxing', 'Lower light is easier on the eyes', 30, 200],
+    ['Sleep-friendly evening light', 'Dim before bed', 0, 50]
+  ];
+  function renderUses(l) {
+    $('uses').innerHTML = USES.map(function (u) {
+      var cls = l == null ? '' : l < u[2] ? 'low' : l > u[3] ? 'high' : 'good', sym = { '': '·', low: '↓', high: '↑', good: '✓' }[cls];
+      var tip = cls === 'low' ? 'Too dim' : cls === 'high' ? (u[0].indexOf('Screen') === 0 ? 'Too bright, may glare' : 'Brighter than needed') : cls === 'good' ? 'Good' : '';
+      return '<li class="' + cls + '"><i aria-hidden="true">' + sym + '</i><span>' + u[0] + '<small>' + (tip ? tip + ' · ' : '') + u[1] + '</small></span><b>' + u[2] + '–' + u[3] + '</b></li>';
+    }).join('');
+    [].forEach.call($('plants').children, function (d) { d.classList.toggle('here', l != null && l >= +d.dataset.lo && l < +d.dataset.hi); });
+  }
+
+  // ---- camera ----
+  function start() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { $('msg').textContent = 'This browser cannot use the camera.'; return; }
+    $('msg').textContent = 'Asking for the camera…';
+    navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: { ideal: st.facing }, width: { ideal: 320 }, height: { ideal: 240 } } }).then(function (s) {
+      stream = s; track = s.getVideoTracks()[0]; $('vid').srcObject = s; var p = $('vid').play(); if (p && p.catch) p.catch(function () {});
+      on = true; held = false; sm = null; $('go').textContent = 'Stop'; $('go').classList.add('stop'); $('hold').disabled = $('flip').disabled = false; $('hold').textContent = 'Hold reading';
+      $('msg').textContent = '';
+      setupExposure();
+      clearInterval(timer); timer = setInterval(measure, 250);
+    }).catch(function (e) { $('msg').textContent = e && e.name === 'NotAllowedError' ? 'Camera access was blocked. Allow it in your browser settings.' : 'Could not open the camera.'; });
+  }
+  function stop() {
+    on = false; clearInterval(timer); if (stream) stream.getTracks().forEach(function (t) { t.stop(); }); stream = track = null; manual = null;
+    $('vid').srcObject = null; $('go').textContent = 'Start'; $('go').classList.remove('stop'); $('hold').disabled = $('flip').disabled = true;
+  }
+  $('go').onclick = function () { if (on) stop(); else start(); };
+  $('hold').onclick = function () { held = !held; $('hold').textContent = held ? 'Release' : 'Hold reading'; $('hold').setAttribute('aria-pressed', held); };
+  $('flip').onclick = function () { st.facing = st.facing === 'environment' ? 'user' : 'environment'; save(); stop(); start(); };
+  [].forEach.call(document.querySelectorAll('[data-aim]'), function (b) {
+    b.setAttribute('aria-pressed', b.dataset.aim === st.aim);
+    b.onclick = function () { st.aim = b.dataset.aim; save(); sm = null; [].forEach.call(document.querySelectorAll('[data-aim]'), function (x) { x.setAttribute('aria-pressed', x === b); }); };
+  });
+
+  // Where the browser allows it (Chrome on many Android phones), fix the exposure ourselves so brightness maps straight to light.
+  function setupExposure() {
+    var caps = {}; try { caps = track.getCapabilities ? track.getCapabilities() : {}; } catch (e) {}
+    if (caps.exposureMode && caps.exposureMode.indexOf('manual') >= 0 && caps.exposureTime && caps.iso) {
+      manual = { tMin: caps.exposureTime.min, tMax: caps.exposureTime.max, iso: Math.max(caps.iso.min, Math.min(caps.iso.max, 100)), t: Math.max(caps.exposureTime.min, Math.min(caps.exposureTime.max, 100)), settle: 0 };
+      track.applyConstraints({ advanced: [{ exposureMode: 'manual', exposureTime: manual.t, iso: manual.iso }] }).then(function () { manual.settle = performance.now() + 400; }).catch(function () { manual = null; });
+    }
+  }
+  function exposure() {
+    // exposureTime is in units of 100 microseconds
+    if (manual) return { t: manual.t * 1e-4, iso: manual.iso, src: 'manual' };
+    var s = {}; try { s = track.getSettings ? track.getSettings() : {}; } catch (e) {}
+    if (s.exposureTime > 0 && s.iso > 0) return { t: s.exposureTime * 1e-4, iso: s.iso, src: 'auto' };
+    return null;
+  }
+  function autorange(Y) {
+    if (!manual || performance.now() < manual.settle) return false;
+    var want = Y > 0.7 ? 0.25 : Y < 0.03 ? 4 : 0;
+    if (!want) return false;
+    var nt = Math.max(manual.tMin, Math.min(manual.tMax, manual.t * want));
+    if (nt === manual.t) return false;
+    manual.t = nt; manual.settle = performance.now() + 500;
+    track.applyConstraints({ advanced: [{ exposureMode: 'manual', exposureTime: nt, iso: manual.iso }] }).catch(function () {});
+    return true;
+  }
+
+  // An ambient light sensor, where the browser exposes one, beats any camera trick.
+  try {
+    if ('AmbientLightSensor' in window) {
+      als = new window.AmbientLightSensor({ frequency: 4 });
+      als.addEventListener('reading', function () { alsLux = als.illuminance; });
+      als.addEventListener('error', function () { als = null; });
+      als.start();
+    }
+  } catch (e) { als = null; }
+
+  function measure() {
+    if (!on || held) return;
+    var v = $('vid'); if (v.readyState < 2 || !v.videoWidth) return;
+    // centre of the frame only
+    var w = v.videoWidth, h = v.videoHeight;
+    cx.drawImage(v, w * 0.25, h * 0.25, w * 0.5, h * 0.5, 0, 0, cv.width, cv.height);
+    var d = cx.getImageData(0, 0, cv.width, cv.height).data, n = d.length / 4, Y = 0, clip = 0;
+    for (var i = 0; i < d.length; i += 4) { Y += 0.2126 * LIN[d[i]] + 0.7152 * LIN[d[i + 1]] + 0.0722 * LIN[d[i + 2]]; if (d[i] > 250 && d[i + 1] > 250) clip++; }
+    Y /= n; lastY = Y;
+    if (autorange(Y)) return;
+    var lux = null, how = '', ex = exposure();
+    if (alsLux != null) { lux = alsLux; how = 'From your device\'s light sensor.'; }
+    else if (ex) {
+      lux = Math.PI * K * FNUM * FNUM * Y / (0.18 * rho() * ex.t * ex.iso);
+      how = 'From the camera exposure (1/' + Math.round(1 / ex.t) + ' s, ISO ' + Math.round(ex.iso) + ').' + (clip / n > 0.3 ? ' Part of the picture is blown out, so this may read low.' : '');
+    } else if (st.calib && st.calib.aim === st.aim) {
+      lux = st.calib.k * Y; how = 'Relative to your calibration. Auto exposure limits accuracy.';
+    }
+    $('calib').hidden = !!(ex || alsLux != null);
+    if (lux == null) {
+      var rel = Math.round(Math.sqrt(Y) * 100);
+      $('val').innerHTML = rel + '<small>/ 100 brightness</small>';
+      $('band').textContent = st.calib ? 'Calibrated for the other aim setting. Calibrate again.' : 'Calibrate below to see lux.';
+      $('how').textContent = 'Relative brightness only.'; $('ptr').style.display = 'none'; renderUses(null);
+      window.LM = { Y: Y, lux: null }; return;
+    }
+    sm = sm == null ? lux : Math.exp(Math.log(sm) + 0.35 * (Math.log(Math.max(0.01, lux)) - Math.log(sm)));
+    lastLux = sm;
+    var shown = sm < 10 ? sm.toFixed(1) : sm < 1000 ? String(Math.round(sm / 10) * 10 || Math.round(sm)) : (Math.round(sm / 100) * 100).toLocaleString('en-GB');
+    $('val').innerHTML = '≈' + shown + '<small>lux</small>';
+    $('band').textContent = band(sm);
+    $('how').textContent = how;
+    $('ptr').style.display = ''; $('ptr').style.left = pos(sm) + '%';
+    renderUses(sm);
+    window.LM = { Y: Y, lux: sm, src: alsLux != null ? 'als' : ex ? ex.src : 'calib' };
+  }
+
+  // ---- calibration ----
+  $('calRef').onchange = function () { $('calLux').hidden = this.value !== 'custom'; };
+  $('calSet').onclick = function () {
+    if (!on || !lastY) { $('msg').textContent = 'Start the camera and point it at the paper first.'; return; }
+    var ref = $('calRef').value === 'custom' ? +$('calLux').value : +$('calRef').value;
+    if (!(ref > 0)) { $('msg').textContent = 'Type the lux value from your meter.'; return; }
+    st.calib = { k: ref / Math.max(1e-4, lastY), aim: st.aim }; save(); sm = null;
+    $('msg').textContent = 'Calibrated. Readings are now relative to that spot.';
+  };
+  $('calClear').onclick = function () { st.calib = null; save(); sm = null; $('msg').textContent = 'Calibration cleared.'; };
+  document.addEventListener('visibilitychange', function () { if (document.hidden && on) stop(); });
+  renderUses(null);
+})();
+</script>
+</body>
+</html>

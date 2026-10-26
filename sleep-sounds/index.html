@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sleep Sounds Mixer · Mariam's Lab</title>
+<meta name="description" content="Mix rain, sea waves, desert wind, a fan, a campfire, crickets, soft noise and distant thunder, all generated live in your browser with no audio files. Save your mixes and set a sleep timer that fades out gently.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/sleep-sounds/">
+<meta property="og:title" content="Sleep Sounds Mixer · Mariam's Lab"><meta property="og:description" content="Rain, sea, desert wind, campfire and crickets, made live in your browser, with a fading sleep timer."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.85rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; cursor: pointer; }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.big { font: inherit; font-weight: 600; font-size: 1.05rem; padding: 12px 34px; border-radius: 999px; border: 0; background: var(--accent); color: var(--bg); cursor: pointer; }
+.ctl { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; }
+.player { padding: 18px; border-radius: var(--radius); border: 1px solid var(--line); background: rgba(7,10,24,.82); display: grid; gap: 12px; }
+.player canvas { width: 100%; height: 70px; display: block; }
+.player .tl { font-family: var(--font-display); font-weight: 800; font-size: 1.6rem; font-variant-numeric: tabular-nums; }
+.layers { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
+.layer { padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; display: grid; gap: 6px; transition: border-color .2s, background .2s; }
+.layer.on { border-color: color-mix(in srgb, var(--sat-b) 60%, transparent); background: color-mix(in srgb, var(--sat-b) 7%, transparent); }
+.layer label { display: flex; justify-content: space-between; gap: 8px; font-size: 0.92rem; font-weight: 600; }
+.layer label span:last-child { font-family: var(--font-mono); font-weight: 400; font-size: 0.78rem; color: var(--muted); }
+.layer small { color: var(--muted); font-size: 0.78rem; }
+.layer input[type=range] { width: 100%; }
+.mixes { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.mixes li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 6px; align-items: center; padding: 6px 6px 6px 12px; border: 1px solid var(--line); border-radius: 10px; font-size: 0.9rem; }
+.mixes li span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.namein { font: inherit; color: var(--ink); background: rgba(7,10,24,.6); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; min-width: 0; flex: 1 1 140px; }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: 0.9rem; }
+.row input[type=range] { grid-column: 1 / -1; width: 100%; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Sound · Sleep</span>
+    <h1 style="font-size:var(--step-3)">Sleep sounds mixer.</h1>
+    <p>Build your own background for sleeping, napping or calming down: rain on the window, waves, a desert night with wind and crickets, a fan, a campfire. None of it is recorded. Every sound is generated live by your browser, so it never loops, and the sleep timer fades it out slowly instead of cutting off.</p>
+  </div>
+  <div class="game">
+    <div class="panel" style="align-content:start">
+      <div class="player">
+        <canvas id="viz" aria-hidden="true"></canvas>
+        <div class="ctl" style="justify-content:space-between"><button class="big" type="button" id="play">Play</button><span class="tl" id="left" aria-live="off"></span></div>
+        <label class="row"><span>Master volume</span><span class="msg" id="mvV" style="min-height:0"></span><input type="range" id="mv" min="0" max="1" step="0.01" value="0.6"></label>
+        <div class="ctl" role="group" aria-label="Sleep timer"><span class="msg" style="min-height:0">Sleep timer:</span><span id="timers" class="ctl"></span></div>
+        <p class="msg" id="msg" role="status"></p>
+      </div>
+      <span class="label">Ready-made mixes</span>
+      <div class="ctl" id="presets"></div>
+      <div class="layers" id="layers"></div>
+    </div>
+    <div class="panel" style="align-content:start">
+      <span class="label">Your mixes (this device)</span>
+      <div class="ctl"><input class="namein" id="name" maxlength="40" placeholder="Name this mix" aria-label="Mix name"><button class="sm" type="button" id="save">Save mix</button></div>
+      <ul class="mixes" id="mixes"></ul>
+      <p class="fact" style="margin:0"><b>How the sounds are made.</b> Almost everything starts as noise: random numbers played as sound. White noise has equal energy at every pitch and sounds like hiss. Filtering it so lower pitches are louder gives pink noise (steady rain) and brown noise (a deep rumble, like distant surf). Waves are brown noise that swells and fades every 6 to 12 seconds. Crickets are a 4,500 Hz tone switched on and off in quick pulses, the way a real cricket scrapes its wings. Campfire crackles are tiny random bursts of filtered noise, a few milliseconds long.</p>
+      <p class="fact" style="margin:0"><b>Tips.</b> Keep the volume low: about the level of a quiet conversation is plenty, and well under the 60% mark on most phones. Some phones pause web audio when the screen locks. If that happens, leave the screen on at the lowest brightness, or plug in. Sound for sleep helps many people, but if you often can't sleep, talk to a doctor.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var LAYERS = [
+    ['rain', 'Rain', 'On a window, with drops'],
+    ['sea', 'Sea waves', 'Slow swells on a beach'],
+    ['wind', 'Desert wind', 'Gusts over open sand'],
+    ['fan', 'Fan', 'Steady whirr, low hum'],
+    ['fire', 'Campfire', 'Crackles and pops'],
+    ['crickets', 'Crickets', 'A summer night chorus'],
+    ['brown', 'Brown noise', 'Deep and soft'],
+    ['pink', 'Pink noise', 'Even, like steady rain'],
+    ['thunder', 'Distant thunder', 'A far-off rumble now and then']
+  ];
+  var PRESETS = [
+    ['Rainy night', { rain: 0.7, thunder: 0.45, brown: 0.2 }],
+    ['Beach camp', { sea: 0.7, fire: 0.4, wind: 0.15 }],
+    ['Desert night', { wind: 0.45, crickets: 0.35, fire: 0.3 }],
+    ['Bedroom fan', { fan: 0.7, pink: 0.15 }],
+    ['Just noise', { brown: 0.7 }],
+    ['Storm at sea', { sea: 0.6, rain: 0.5, thunder: 0.55, wind: 0.3 }]
+  ];
+  var TIMERS = [[0, 'Off'], [15, '15 min'], [30, '30 min'], [45, '45 min'], [60, '1 h'], [90, '1.5 h'], [120, '2 h']];
+  var KEY = 'sleepSounds', st = { mix: { rain: 0.6, brown: 0.2 }, mv: 0.6, timer: 30, saved: [] };
+  try { Object.assign(st, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) {}
+  if (!Array.isArray(st.saved)) st.saved = [];
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} }
+
+  // ---------- audio engine ----------
+  var ac = null, master = null, fader = null, an = null, bufs = {}, live = {}, playing = false, sched = 0, endAt = 0, fadeStart = 0, uiT = 0;
+  function ensure() {
+    if (ac) { if (ac.state === 'suspended') ac.resume(); return true; }
+    var A = window.AudioContext || window.webkitAudioContext; if (!A) { $('msg').textContent = 'This browser has no Web Audio support.'; return false; }
+    ac = new A();
+    master = ac.createGain(); master.gain.value = vol(st.mv);
+    fader = ac.createGain(); fader.gain.value = 1;
+    var comp = ac.createDynamicsCompressor(); comp.threshold.value = -10; comp.ratio.value = 4; // keeps stacked layers from clipping
+    an = ac.createAnalyser(); an.fftSize = 1024;
+    master.connect(fader); fader.connect(comp); comp.connect(an); an.connect(ac.destination);
+    ['white', 'pink', 'brown'].forEach(function (k) { bufs[k] = noise(k); });
+    return true;
+  }
+  function vol(v) { return v * v * 1.5; }
+  // 8 s of noise whose end crossfades into its start, so the loop has no seam
+  function noise(kind) {
+    var sr = ac.sampleRate, n = sr * 8, f = Math.floor(sr * 0.5), b = ac.createBuffer(2, n, sr);
+    for (var c = 0; c < 2; c++) {
+      var x = new Float32Array(n + f), last = 0, b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+      for (var i = 0; i < n + f; i++) {
+        var w = Math.random() * 2 - 1;
+        if (kind === 'brown') { last = (last + 0.02 * w) / 1.02; x[i] = last * 3.5; }
+        else if (kind === 'pink') { b0 = 0.99886 * b0 + w * 0.0555179; b1 = 0.99332 * b1 + w * 0.0750759; b2 = 0.969 * b2 + w * 0.153852; b3 = 0.8665 * b3 + w * 0.3104856; b4 = 0.55 * b4 + w * 0.5329522; b5 = -0.7616 * b5 - w * 0.016898; x[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + w * 0.5362) * 0.11; b6 = w * 0.115926; }
+        else x[i] = w * 0.5;
+      }
+      var d = b.getChannelData(c);
+      for (i = 0; i < n; i++) d[i] = i < f ? x[i] * Math.sqrt(i / f) + x[n + i] * Math.sqrt(1 - i / f) : x[i];
+    }
+    return b;
+  }
+  function src(kind) { var s = ac.createBufferSource(); s.buffer = bufs[kind]; s.loop = true; s.start(0, Math.random() * 7.5); return s; }
+  function filt(type, f, q) { var x = ac.createBiquadFilter(); x.type = type; x.frequency.value = f; if (q != null) x.Q.value = q; return x; }
+  function gain(v) { var g = ac.createGain(); g.gain.value = v; return g; }
+  function chain() { for (var i = 0; i < arguments.length - 1; i++) arguments[i].connect(arguments[i + 1]); return arguments[arguments.length - 1]; }
+  function pan(v) { if (!ac.createStereoPanner) return gain(1); var p = ac.createStereoPanner(); p.pan.value = v; return p; }
+  function lfo(rate, depth, param) { var o = ac.createOscillator(), g = gain(depth); o.frequency.value = rate; o.connect(g); g.connect(param); o.start(); return o; }
+  function rnd(a, b) { return a + Math.random() * (b - a); }
+
+  // Each builder returns { nodes: [sources to stop], tick(t, horizon): schedule events up to horizon }
+  var BUILD = {
+    rain: function (out) {
+      var s1 = src('white'), s2 = src('pink');
+      chain(s1, filt('highpass', 500), filt('lowpass', 7000), gain(0.45), out);
+      chain(s2, filt('lowpass', 1600), gain(0.55), out);
+      var next = 0;
+      return { nodes: [s1, s2], tick: function (t, h) {
+        if (!next) next = t;
+        while (next < h) {
+          // single drops: quick falling blips, panned around
+          var o = ac.createOscillator(), e = gain(0), p = pan(rnd(-0.9, 0.9)), f0 = rnd(1600, 4200);
+          o.frequency.setValueAtTime(f0, next); o.frequency.exponentialRampToValueAtTime(f0 * 0.3, next + 0.03);
+          e.gain.setValueAtTime(0.0001, next); e.gain.exponentialRampToValueAtTime(rnd(0.01, 0.045), next + 0.002); e.gain.exponentialRampToValueAtTime(0.0001, next + 0.04);
+          chain(o, e, p, out); o.start(next); o.stop(next + 0.05);
+          next += rnd(0.01, 0.06);
+        }
+      } };
+    },
+    sea: function (out) {
+      var s = src('brown'), lp = filt('lowpass', 500, 0.6), g = gain(0.2), s2 = src('white'), bp = filt('bandpass', 2500, 0.6), g2 = gain(0.01);
+      chain(s, lp, g, out); chain(s2, bp, g2, pan(rnd(-0.3, 0.3)), out);
+      var next = 0;
+      return { nodes: [s, s2], tick: function (t, h) {
+        if (!next) next = t + 0.05;
+        while (next < h) {
+          // one wave: a slow swell, a break, then a long wash back out
+          var D = rnd(6, 12), pk = rnd(0.6, 1.0), a = next, b = a + D * rnd(0.35, 0.5), e = a + D;
+          g.gain.setValueAtTime(g.gain.value > 0.1 ? 0.2 : 0.2, a); g.gain.linearRampToValueAtTime(pk, b); g.gain.linearRampToValueAtTime(0.18, e);
+          lp.frequency.setValueAtTime(450, a); lp.frequency.exponentialRampToValueAtTime(rnd(1100, 1800), b); lp.frequency.exponentialRampToValueAtTime(420, e);
+          g2.gain.setValueAtTime(0.01, a); g2.gain.linearRampToValueAtTime(0.01, b - 0.3); g2.gain.linearRampToValueAtTime(rnd(0.06, 0.12), b + 0.6); g2.gain.linearRampToValueAtTime(0.008, e);
+          next = e;
+        }
+      } };
+    },
+    wind: function (out) {
+      var s = src('white'), bp = filt('bandpass', 500, 5), g = gain(0.5), s2 = src('brown'), g2 = gain(0.35), s3 = src('white'), bp3 = filt('bandpass', 1800, 14), g3 = gain(0.04);
+      chain(s, bp, g, pan(-0.25), out); chain(s2, filt('lowpass', 500), g2, out); chain(s3, bp3, g3, pan(0.3), out);
+      var next = 0;
+      return { nodes: [s, s2, s3], tick: function (t, h) {
+        if (!next) next = t;
+        while (next < h) {
+          // gusts: random slow changes of pitch and strength
+          var d = rnd(1.5, 5), e = next + d, k = Math.random();
+          bp.frequency.setTargetAtTime(rnd(260, 900) + k * 200, next, d / 3);
+          g.gain.setTargetAtTime(0.25 + k * 0.75, next, d / 3);
+          g2.gain.setTargetAtTime(0.2 + k * 0.35, next, d / 2);
+          bp3.frequency.setTargetAtTime(rnd(1200, 2600), next, d / 2);
+          g3.gain.setTargetAtTime(k > 0.7 ? rnd(0.03, 0.08) : 0.01, next, d / 3);
+          next = e;
+        }
+      } };
+    },
+    fan: function (out) {
+      var s = src('pink'), s2 = src('brown'), am = gain(0.85), hum = ac.createOscillator(), hg = gain(0.012);
+      chain(s, filt('lowpass', 1300), filt('peaking', 450), am, out); chain(s2, filt('lowpass', 380), gain(0.5), out);
+      // blade pass: a faint, fast wobble in loudness
+      var l = lfo(13.5, 0.06, am.gain);
+      hum.frequency.value = 100; chain(hum, hg, out); hum.start(); // mains hum at twice 50 Hz
+      return { nodes: [s, s2, l, hum], tick: function () {} };
+    },
+    fire: function (out) {
+      var s = src('brown'), g = gain(0.45), s2 = src('pink'), g2 = gain(0.04), next = 0, nextPop = 0;
+      chain(s, filt('lowpass', 320), g, out); chain(s2, filt('bandpass', 3200, 0.7), g2, out);
+      var l = lfo(0.3, 0.1, g.gain);
+      function burst(at, f, len, amp) {
+        var b = ac.createBufferSource(), bp = filt('bandpass', f, 1.2), e = gain(0), p = pan(rnd(-0.6, 0.6));
+        b.buffer = bufs.white; e.gain.setValueAtTime(amp, at); e.gain.exponentialRampToValueAtTime(0.0001, at + len);
+        chain(b, bp, e, p, out); b.start(at, rnd(0, 7)); b.stop(at + len + 0.01);
+      }
+      return { nodes: [s, s2, l], tick: function (t, h) {
+        if (!next) { next = t; nextPop = t + rnd(1, 4); }
+        while (next < h) {
+          var n = Math.random() < 0.25 ? Math.floor(rnd(2, 6)) : 1; // crackles come in little clusters
+          for (var i = 0; i < n; i++) burst(next + i * rnd(0.008, 0.03), rnd(1800, 6500), rnd(0.003, 0.018), rnd(0.25, 0.9));
+          next += -Math.log(1 - Math.random()) / 6; // about six a second, at random
+        }
+        while (nextPop < h) { burst(nextPop, rnd(500, 1200), rnd(0.03, 0.07), rnd(0.6, 1.1)); nextPop += rnd(2.5, 9); }
+      } };
+    },
+    crickets: function (out) {
+      var voices = [4300, 4650, 5050].map(function (f, i) {
+        var o = ac.createOscillator(), e = gain(0); o.frequency.value = f + rnd(-60, 60);
+        chain(o, e, filt('lowpass', 7000), pan([-0.6, 0.5, 0.05][i]), out); o.start();
+        return { o: o, e: e, next: 0, per: rnd(0.55, 1.1), amp: [0.12, 0.085, 0.055][i] };
+      });
+      return { nodes: voices.map(function (v) { return v.o; }), tick: function (t, h) {
+        voices.forEach(function (v) {
+          if (!v.next) v.next = t + rnd(0, 1);
+          while (v.next < h) {
+            var pulses = Math.random() < 0.8 ? 3 : 4, at = v.next;
+            for (var p = 0; p < pulses; p++) {
+              var s = at + p * 0.032;
+              v.e.gain.setValueAtTime(0, s); v.e.gain.linearRampToValueAtTime(v.amp, s + 0.004); v.e.gain.setValueAtTime(v.amp, s + 0.016); v.e.gain.linearRampToValueAtTime(0, s + 0.022);
+            }
+            // every so often a cricket pauses
+            v.next += v.per * rnd(0.9, 1.1) + (Math.random() < 0.06 ? rnd(2, 6) : 0);
+          }
+        });
+      } };
+    },
+    brown: function (out) { var s = src('brown'); chain(s, gain(0.9), out); return { nodes: [s], tick: function () {} }; },
+    pink: function (out) { var s = src('pink'); chain(s, gain(1.1), out); return { nodes: [s], tick: function () {} }; },
+    thunder: function (out) {
+      var next = 0;
+      function roll(at) {
+        var b = ac.createBufferSource(), lp = filt('lowpass', rnd(140, 260), 0.8), e = gain(0), p = pan(rnd(-0.5, 0.5)), D = rnd(5, 10);
+        b.buffer = bufs.brown; b.loop = true;
+        e.gain.setValueAtTime(0.0001, at);
+        var tt = at + rnd(0.4, 1.4); e.gain.exponentialRampToValueAtTime(rnd(1.2, 2), tt);
+        // a few rolling peaks as the sound bounces off clouds and hills
+        var k = Math.floor(rnd(2, 5));
+        for (var i = 0; i < k; i++) { tt += rnd(0.6, 1.6); e.gain.exponentialRampToValueAtTime(rnd(0.5, 1.6) * (1 - i / (k + 1)), tt); }
+        e.gain.exponentialRampToValueAtTime(0.0001, tt + D);
+        lp.frequency.setValueAtTime(lp.frequency.value, at); lp.frequency.exponentialRampToValueAtTime(90, tt + D);
+        chain(b, lp, e, p, out); b.start(at, rnd(0, 7)); b.stop(tt + D + 0.1);
+      }
+      return { nodes: [], tick: function (t, h) {
+        if (!next) next = t + rnd(3, 10);
+        while (next < h) { roll(next); next += rnd(25, 70); }
+      } };
+    }
+  };
+  function setLayer(k, v) {
+    if (!ac) return;
+    var L = live[k], target = v * v; // squared feels more even on a slider
+    if (target > 0 && playing) {
+      if (!L) { var out = gain(0); out.connect(master); L = live[k] = BUILD[k](out); L.out = out; L.tick(ac.currentTime, ac.currentTime + 1.5); }
+      L.out.gain.setTargetAtTime(target, ac.currentTime, 0.5);
+    } else if (L) {
+      delete live[k]; L.out.gain.setTargetAtTime(0, ac.currentTime, 0.3);
+      setTimeout(function () { L.nodes.forEach(function (n) { try { n.stop(); } catch (e) {} }); L.out.disconnect(); }, 2000);
+    }
+  }
+  function tickAll() { var t = ac.currentTime; Object.keys(live).forEach(function (k) { live[k].tick(t, t + 1.5); }); timerStep(); }
+
+  function play() {
+    if (!ensure()) return;
+    playing = true; $('play').textContent = 'Pause';
+    fader.gain.cancelScheduledValues(ac.currentTime); fader.gain.setValueAtTime(fader.gain.value, ac.currentTime); fader.gain.setTargetAtTime(1, ac.currentTime, 0.3);
+    LAYERS.forEach(function (l) { setLayer(l[0], st.mix[l[0]] || 0); });
+    clearInterval(sched); sched = setInterval(tickAll, 250);
+    startTimer();
+    if (!Object.keys(live).length) $('msg').textContent = 'Turn up a sound below, or pick a ready-made mix.'; else $('msg').textContent = '';
+    try { if ('mediaSession' in navigator) { navigator.mediaSession.metadata = new MediaMetadata({ title: 'Sleep sounds', artist: "Mariam's Lab" }); navigator.mediaSession.setActionHandler('pause', pause); navigator.mediaSession.setActionHandler('play', play); } } catch (e) {}
+    loopViz();
+  }
+  function pause() {
+    if (!ac) return; playing = false; $('play').textContent = 'Play'; endAt = 0; showLeft();
+    fader.gain.cancelScheduledValues(ac.currentTime); fader.gain.setValueAtTime(fader.gain.value, ac.currentTime); fader.gain.setTargetAtTime(0, ac.currentTime, 0.3);
+    setTimeout(function () { if (!playing) { LAYERS.forEach(function (l) { setLayer(l[0], 0); }); clearInterval(sched); } }, 1200);
+  }
+  $('play').onclick = function () { if (playing) pause(); else play(); };
+
+  // ---------- sleep timer with a long, gentle fade ----------
+  function startTimer() {
+    endAt = st.timer ? Date.now() + st.timer * 60e3 : 0;
+    // fade over the last fifth of the time, between 1 and 5 minutes
+    fadeStart = endAt ? endAt - Math.min(5 * 60e3, Math.max(60e3, st.timer * 60e3 * 0.2)) : 0;
+    if (endAt && fadeStart < Date.now()) fadeStart = Date.now();
+    fader.gain.cancelScheduledValues(ac.currentTime); fader.gain.setValueAtTime(1, ac.currentTime);
+    showLeft();
+  }
+  function timerStep() {
+    if (!endAt || !playing) return;
+    var now = Date.now();
+    if (now >= endAt) { pause(); $('msg').textContent = 'Sleep timer finished. Good night.'; return; }
+    if (now >= fadeStart) { var f = 1 - (now - fadeStart) / (endAt - fadeStart); fader.gain.setTargetAtTime(Math.max(0.0001, f * f), ac.currentTime, 0.2); }
+  }
+  function showLeft() {
+    if (!endAt || !playing) { $('left').textContent = playing ? 'No timer' : ''; return; }
+    var s = Math.max(0, Math.round((endAt - Date.now()) / 1000)), m = Math.floor(s / 60);
+    $('left').textContent = (m >= 60 ? Math.floor(m / 60) + ':' + String(m % 60).padStart(2, '0') : m) + ':' + String(s % 60).padStart(2, '0') + (Date.now() >= fadeStart ? ' · fading' : '');
+  }
+  $('timers').innerHTML = TIMERS.map(function (t) { return '<button class="sm" type="button" data-min="' + t[0] + '" aria-pressed="' + (t[0] === st.timer) + '">' + t[1] + '</button>'; }).join('');
+  [].forEach.call($('timers').children, function (b) {
+    b.onclick = function () { st.timer = +b.dataset.min; save(); [].forEach.call($('timers').children, function (x) { x.setAttribute('aria-pressed', x === b); }); if (playing) startTimer(); };
+  });
+  uiT = setInterval(showLeft, 1000);
+
+  // ---------- layer sliders ----------
+  $('layers').innerHTML = LAYERS.map(function (l) {
+    return '<div class="layer" id="ly-' + l[0] + '"><label for="v-' + l[0] + '"><span>' + l[1] + '</span><span id="p-' + l[0] + '"></span></label><input type="range" id="v-' + l[0] + '" min="0" max="1" step="0.01"><small>' + l[2] + '</small></div>';
+  }).join('');
+  function syncUI() {
+    LAYERS.forEach(function (l) { var v = st.mix[l[0]] || 0; $('v-' + l[0]).value = v; $('p-' + l[0]).textContent = v ? Math.round(v * 100) + '%' : 'off'; $('ly-' + l[0]).classList.toggle('on', v > 0); });
+    $('mv').value = st.mv; $('mvV').textContent = Math.round(st.mv * 100) + '%';
+  }
+  LAYERS.forEach(function (l) {
+    $('v-' + l[0]).oninput = function () {
+      var v = +this.value; if (v) st.mix[l[0]] = v; else delete st.mix[l[0]];
+      save(); syncUI();
+      if (playing) { setLayer(l[0], v); $('msg').textContent = ''; }
+    };
+  });
+  $('mv').oninput = function () { st.mv = +this.value; save(); syncUI(); if (master) master.gain.setTargetAtTime(vol(st.mv), ac.currentTime, 0.1); };
+  function applyMix(m) {
+    st.mix = {}; Object.keys(m).forEach(function (k) { if (BUILD[k] && m[k] > 0) st.mix[k] = Math.min(1, +m[k]); });
+    save(); syncUI();
+    if (playing) LAYERS.forEach(function (l) { setLayer(l[0], st.mix[l[0]] || 0); }); else play();
+  }
+
+  // ---------- mixes ----------
+  $('presets').innerHTML = PRESETS.map(function (p, i) { return '<button class="sm" type="button" data-p="' + i + '">' + p[0] + '</button>'; }).join('');
+  [].forEach.call($('presets').children, function (b) { b.onclick = function () { applyMix(PRESETS[+b.dataset.p][1]); $('msg').textContent = PRESETS[+b.dataset.p][0] + '.'; }; });
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function renderMixes() {
+    $('mixes').innerHTML = st.saved.length ? st.saved.map(function (m, i) { return '<li><span>' + esc(m.name) + '</span><button class="sm" type="button" data-load="' + i + '">Play</button><button class="sm" type="button" data-del="' + i + '" aria-label="Delete ' + esc(m.name) + '">✕</button></li>'; }).join('') : '<li style="grid-template-columns:1fr"><span class="msg" style="min-height:0">Set the sliders how you like, name it and save.</span></li>';
+    [].forEach.call($('mixes').querySelectorAll('[data-load]'), function (b) { b.onclick = function () { var m = st.saved[+b.dataset.load]; applyMix(m.mix); $('msg').textContent = m.name + '.'; }; });
+    [].forEach.call($('mixes').querySelectorAll('[data-del]'), function (b) { b.onclick = function () { st.saved.splice(+b.dataset.del, 1); save(); renderMixes(); }; });
+  }
+  $('save').onclick = function () {
+    if (!Object.keys(st.mix).length) { $('msg').textContent = 'Turn up at least one sound first.'; return; }
+    var name = $('name').value.trim() || 'Mix ' + (st.saved.length + 1);
+    var i = st.saved.findIndex(function (m) { return m.name === name; }), entry = { name: name, mix: Object.assign({}, st.mix) };
+    if (i >= 0) st.saved[i] = entry; else st.saved.unshift(entry);
+    st.saved = st.saved.slice(0, 30); save(); renderMixes(); $('name').value = ''; $('msg').textContent = 'Saved "' + name + '".';
+  };
+  $('name').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('save').click(); });
+
+  // ---------- gentle visual ----------
+  var vizOn = false, wave = null;
+  function loopViz() { if (vizOn) return; vizOn = true; requestAnimationFrame(viz); }
+  function viz() {
+    var c = $('viz'), dpr = window.devicePixelRatio || 1, W = c.clientWidth, H = c.clientHeight;
+    if (c.width !== Math.round(W * dpr)) { c.width = Math.round(W * dpr); c.height = Math.round(H * dpr); }
+    var g = c.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+    if (an) {
+      if (!wave) wave = new Float32Array(an.fftSize);
+      an.getFloatTimeDomainData(wave);
+      var rms = 0; for (var i = 0; i < wave.length; i++) rms += wave[i] * wave[i]; rms = Math.sqrt(rms / wave.length);
+      window.SLEEP_RMS = rms;
+      g.strokeStyle = '#4FD3BD'; g.globalAlpha = 0.85; g.lineWidth = 1.5; g.beginPath();
+      for (i = 0; i < wave.length; i += 4) { var x = i / wave.length * W, y = H / 2 + wave[i] * H * 1.2; if (i) g.lineTo(x, y); else g.moveTo(x, y); }
+      g.stroke(); g.globalAlpha = 1;
+    }
+    if (playing || (an && window.SLEEP_RMS > 0.0005)) requestAnimationFrame(viz); else { vizOn = false; g.strokeStyle = 'rgba(120,132,190,.4)'; g.beginPath(); g.moveTo(0, H / 2); g.lineTo(W, H / 2); g.stroke(); }
+  }
+  syncUI(); renderMixes(); showLeft();
+  (function () { var c = $('viz'), g = c.getContext('2d'); c.width = c.clientWidth; c.height = c.clientHeight; g.strokeStyle = 'rgba(120,132,190,.4)'; g.beginPath(); g.moveTo(0, c.height / 2); g.lineTo(c.width, c.height / 2); g.stroke(); })();
+  document.addEventListener('keydown', function (e) { if (e.code === 'Space' && !/INPUT|TEXTAREA|BUTTON|SELECT/.test(e.target.tagName)) { e.preventDefault(); $('play').click(); } });
+})();
+</script>
+</body>
+</html>

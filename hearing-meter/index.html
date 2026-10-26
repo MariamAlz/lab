@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hearing Safety Meter · Mariam's Lab</title>
+<meta name="description" content="A sound level meter in your browser. See dB(A) now, on average and at peak, how long that level is safe for your hearing, and keep a timestamped log of loud moments you can export as CSV.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/hearing-meter/">
+<meta property="og:title" content="Hearing Safety Meter · Mariam's Lab"><meta property="og:description" content="How loud is it, how long is it safe, and a log of loud moments you can export."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.85rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; cursor: pointer; }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.big { font: inherit; font-weight: 600; font-size: 1.05rem; padding: 12px 30px; border-radius: 999px; border: 0; background: var(--accent); color: var(--bg); cursor: pointer; }
+.big.stop { background: var(--sat-c); }
+.ctl { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; }
+.meter { padding: 18px; border-radius: var(--radius); border: 1px solid var(--line); background: rgba(7,10,24,.82); display: grid; gap: 8px; }
+.meter .now { font-family: var(--font-display); font-weight: 800; font-size: clamp(3.2rem, 15vw, 5rem); line-height: 1; font-variant-numeric: tabular-nums; }
+.meter .now small { font-size: 1.1rem; font-weight: 600; color: var(--muted); margin-inline-start: 6px; }
+.meter .safe { font-size: 1.05rem; font-weight: 600; }
+.lvlbar { height: 12px; border-radius: 99px; background: linear-gradient(90deg, #4fd3bd 0 40%, #c9e264 40% 50%, #ffc857 50% 55%, #ff8a4c 55% 65%, #ff4f6d 65%); position: relative; opacity: .9; }
+.lvlbar i { position: absolute; top: -5px; width: 4px; height: 22px; margin-left: -2px; border-radius: 2px; background: var(--ink); left: 0; transition: left .1s linear; }
+.ticks { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 0.68rem; color: var(--muted); }
+.hgraph { width: 100%; height: 130px; display: block; border-radius: 12px; background: rgba(7,10,24,.6); border: 1px solid var(--line); }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: 0.9rem; }
+.row input[type=range] { width: 100%; grid-column: 1 / -1; }
+.row b { font-family: var(--font-mono); font-weight: 500; }
+.presets { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.presets li { display: grid; grid-template-columns: minmax(0, 1fr) 4.2em 5.6em; gap: 8px; align-items: center; font-size: 0.88rem; padding: 7px 10px; border-radius: 10px; border: 1px solid var(--line); }
+.presets li b { font-family: var(--font-mono); font-weight: 500; text-align: end; }
+.presets li span:last-child { text-align: end; font-size: 0.8rem; color: var(--muted); }
+.presets li.here { border-color: var(--accent); background: var(--accent-soft); }
+.logt { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+.logt th, .logt td { text-align: start; padding: 6px 6px; border-bottom: 1px solid var(--line); }
+.logt th { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 400; }
+.logt td:nth-child(n+2) { font-family: var(--font-mono); }
+.logwrap { max-height: 320px; overflow: auto; }
+.hmnote { padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); font-size: 0.86rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Sound · Health</span>
+    <h1 style="font-size:var(--step-3)">How loud is it, and for how long is it safe?</h1>
+    <p>A sound level meter that uses your phone or laptop microphone. It shows the level in dB(A) right now, on average and at its peak, and how long you could listen at that level before risking your hearing. It can also keep a log of loud moments with times, which you can export, for example to back up a noise complaint.</p>
+  </div>
+  <div class="game">
+    <div class="panel" style="align-content:start">
+      <div class="meter">
+        <div class="now" id="now" aria-live="off">--<small>dB(A)</small></div>
+        <div class="lvlbar" aria-hidden="true"><i id="needle"></i></div>
+        <div class="ticks" aria-hidden="true"><span>30</span><span>50</span><span>70</span><span>90</span><span>110</span><span>130</span></div>
+        <p class="safe" id="safe">Press start to listen.</p>
+      </div>
+      <div class="stats"><div><b id="sAvg">--</b><span>Average (Leq)</span></div><div><b id="sPeak">--</b><span>Loudest</span></div><div><b id="sDose">--</b><span>Daily dose used</span></div></div>
+      <div class="ctl"><button class="big" type="button" id="go">Start</button><button class="sm" type="button" id="resetS">Reset average</button><span class="msg" id="msg" role="status"></span></div>
+      <canvas class="hgraph" id="graph" aria-label="Sound level over the last minute"></canvas>
+      <label class="row"><span>Calibration offset</span><b id="calV">0 dB</b><input type="range" id="cal" min="-30" max="30" step="1" value="0"></label>
+      <p class="msg" style="margin-top:-6px">Phone microphones differ by up to 10 dB or more. If you have a proper sound meter, or a meter app you trust, play steady noise and nudge this until both agree. It's saved on this device.</p>
+      <span class="label">Noise log</span>
+      <label class="row"><span>Log anything louder than</span><b id="thrV">70 dB(A)</b><input type="range" id="thr" min="45" max="100" step="1" value="70"></label>
+      <div class="logwrap"><table class="logt"><thead><tr><th>When</th><th>Length</th><th>Max</th><th>Avg</th></tr></thead><tbody id="logb"></tbody></table></div>
+      <div class="ctl"><button class="sm" type="button" id="csv">Export CSV</button><button class="sm" type="button" id="clr">Clear log</button><label class="msg" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="wake"> Keep screen awake while listening</label></div>
+    </div>
+    <div class="panel" style="align-content:start">
+      <span class="label">How loud are everyday places?</span>
+      <ul class="presets" id="presets"></ul>
+      <p class="fact" style="margin:0"><b>The 3 dB rule.</b> Decibels are logarithmic: every extra 3 dB is twice the sound energy. So the safe time halves with every 3 dB. The US workplace safety body NIOSH sets 85 dB(A) for 8 hours as the limit. At 88 it's 4 hours, at 100 just 15 minutes, and at 110 (a loud concert) under 2 minutes. Damage adds up across the day, which is what the dose tile shows.</p>
+      <p class="fact" style="margin:0"><b>Why "A"?</b> Your ears are less sensitive to deep bass and very high sounds. A-weighting filters the microphone signal the same way, turning down low and very high frequencies, so the number matches what harms hearing. This page builds that filter from the standard's equations and runs it live on your microphone.</p>
+      <p class="hmnote"><b>An estimate, not a certified meter.</b> Phone mics are tuned for speech and may clip above about 100 dB. Use it to compare and to spot patterns. For a formal noise complaint, the times and patterns in your log help, but your building management or municipality may want their own measurement. If your ears ring or sound muffled after noise, give them a rest, and see a doctor if it doesn't clear within a day or two.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var KEY = 'hearingMeter', st = { cal: 0, thr: 70, wake: false, log: [] };
+  try { Object.assign(st, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) {}
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} }
+  // A typical phone mic with processing off reads about -26 dBFS at 94 dB SPL, so dBFS + 120 ≈ dB SPL
+  var BASE = 120;
+  var PRESETS = [['Quiet bedroom at night', 30], ['Library', 40], ['Office or a normal chat', 55], ['Busy restaurant', 70], ['City traffic, inside a taxi with the window down', 80], ['Hair dryer, blender', 88], ['Gym class with music', 95], ['Cinema, loud action scene', 100], ['Headphones at full volume', 103], ['Concert or nightclub', 108], ['Fireworks at close range', 130]];
+  var ac = null, an = null, stream = null, on = false, tickT = 0, buf = null, wakeLock = null;
+  var fast = -Infinity, sumE = 0, sumT = 0, peak = -Infinity, dose = 0, lastT = 0, hist = [], ev = null;
+
+  function niosh(L) { return 8 * 3600 / Math.pow(2, (L - 85) / 3); } // seconds
+  function dur(s) { if (!isFinite(s) || s > 24 * 3600) return 'no limit'; if (s >= 3600) return (s / 3600 >= 10 ? Math.round(s / 3600) : (s / 3600).toFixed(1).replace('.0', '')) + ' h'; if (s >= 60) return Math.round(s / 60) + ' min'; return Math.max(1, Math.round(s)) + ' s'; }
+  function col(L) { return L < 70 ? '#4fd3bd' : L < 80 ? '#c9e264' : L < 85 ? '#ffc857' : L < 95 ? '#ff8a4c' : '#ff4f6d'; }
+  function safeText(L) {
+    if (L < 70) return 'Safe for any length of time.';
+    if (L < 80) return 'Safe all day, but tiring over long periods.';
+    return 'Safe for about ' + dur(niosh(L)) + ' a day at this level.';
+  }
+
+  // ---- A-weighting from IEC 61672 poles, bilinear transform, normalised to 0 dB at 1 kHz ----
+  function aWeight(ctx, input) {
+    var fs = ctx.sampleRate, K = 2 * fs, node = input, P = [[20.598997, 'hp'], [20.598997, 'hp'], [107.65265, 'hp'], [737.86223, 'hp'], [12194.217, 'lp'], [12194.217, 'lp']];
+    if (!ctx.createIIRFilter) {
+      // older browsers: close approximation with biquads
+      var h1 = ctx.createBiquadFilter(); h1.type = 'highpass'; h1.frequency.value = 160; h1.Q.value = 0.55;
+      var h2 = ctx.createBiquadFilter(); h2.type = 'highpass'; h2.frequency.value = 700; h2.Q.value = 0.3;
+      var l1 = ctx.createBiquadFilter(); l1.type = 'lowpass'; l1.frequency.value = 12000; l1.Q.value = 0.5;
+      input.connect(h1); h1.connect(h2); h2.connect(l1); return l1;
+    }
+    var gain = 1, f = new Float32Array([1000]), m = new Float32Array(1), ph = new Float32Array(1);
+    P.forEach(function (p) {
+      // prewarp so the pole lands at the right frequency even near the top of the band
+      var w = K * Math.tan(Math.PI * p[0] / fs), d = K + w, a1 = (w - K) / d;
+      var b = p[1] === 'hp' ? [K / d, -K / d] : [w / d, w / d];
+      var n = ctx.createIIRFilter(b, [1, a1]); node.connect(n); node = n;
+      n.getFrequencyResponse(f, m, ph); gain *= m[0];
+    });
+    var g = ctx.createGain(); g.gain.value = 1 / gain; node.connect(g); return g;
+  }
+
+  function start() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { $('msg').textContent = 'This browser cannot use the microphone.'; return; }
+    var A = window.AudioContext || window.webkitAudioContext;
+    if (!ac) ac = new A();
+    if (ac.state === 'suspended') ac.resume();
+    $('msg').textContent = 'Asking for the microphone…';
+    navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } }).then(function (s) {
+      stream = s;
+      var src = ac.createMediaStreamSource(s), wtd = aWeight(ac, src);
+      an = ac.createAnalyser(); an.fftSize = 4096; an.smoothingTimeConstant = 0; buf = new Float32Array(an.fftSize);
+      wtd.connect(an);
+      on = true; lastT = performance.now(); $('msg').textContent = '';
+      $('go').textContent = 'Stop'; $('go').classList.add('stop');
+      clearInterval(tickT); tickT = setInterval(tick, 50);
+      if (st.wake) wake(true);
+    }).catch(function (e) { $('msg').textContent = e && e.name === 'NotAllowedError' ? 'Microphone access was blocked. Allow it in your browser settings.' : 'Could not open the microphone.'; });
+  }
+  function stop() {
+    on = false; clearInterval(tickT); closeEvent(performance.now());
+    if (stream) stream.getTracks().forEach(function (t) { t.stop(); }); stream = null;
+    $('go').textContent = 'Start'; $('go').classList.remove('stop'); wake(false);
+    $('safe').textContent = 'Paused. Press start to listen again.';
+  }
+  $('go').onclick = function () { if (on) stop(); else start(); };
+  function wake(w) {
+    try {
+      if (w && navigator.wakeLock && !wakeLock) navigator.wakeLock.request('screen').then(function (l) { wakeLock = l; l.addEventListener('release', function () { wakeLock = null; }); }).catch(function () {});
+      if (!w && wakeLock) { wakeLock.release(); wakeLock = null; }
+    } catch (e) {}
+  }
+  document.addEventListener('visibilitychange', function () { if (!document.hidden && on && st.wake) wake(true); });
+
+  function tick() {
+    if (!on) return;
+    an.getFloatTimeDomainData(buf);
+    var s = 0; for (var i = 0; i < buf.length; i++) s += buf[i] * buf[i];
+    var rms = Math.sqrt(s / buf.length), L = 20 * Math.log10(rms + 1e-12) + BASE + st.cal, now = performance.now(), dt = Math.min(1, (now - lastT) / 1000); lastT = now;
+    // "fast" time weighting (125 ms), in the energy domain
+    var e = Math.pow(10, L / 10), fe = isFinite(fast) ? Math.pow(10, fast / 10) : e, k = 1 - Math.exp(-dt / 0.125);
+    fast = 10 * Math.log10(fe + k * (e - fe));
+    sumE += e * dt; sumT += dt;
+    if (fast > peak) peak = fast;
+    if (fast >= 80) dose += dt / niosh(fast);
+    hist.push([now, fast]); while (hist.length && hist[0][0] < now - 60000) hist.shift();
+    logStep(now, fast, dt);
+    show();
+  }
+  function show() {
+    var L = fast, leq = sumT ? 10 * Math.log10(sumE / sumT) : NaN;
+    $('now').innerHTML = (isFinite(L) ? Math.round(L) : '--') + '<small>dB(A)</small>';
+    $('now').style.color = col(L);
+    $('needle').style.left = Math.max(0, Math.min(100, (L - 30) / 100 * 100)) + '%';
+    $('safe').textContent = safeText(L); $('safe').style.color = col(L);
+    $('sAvg').textContent = isFinite(leq) ? Math.round(leq) + ' dB' : '--';
+    $('sPeak').textContent = isFinite(peak) ? Math.round(peak) + ' dB' : '--';
+    $('sDose').textContent = (dose * 100 < 1 && dose > 0 ? '<1' : Math.round(dose * 100)) + '%';
+    [].forEach.call($('presets').children, function (li) { li.classList.toggle('here', Math.abs(+li.dataset.l - L) < 4); });
+    drawGraph();
+    window.HM = { now: L, leq: leq, peak: peak, dose: dose };
+  }
+  $('resetS').onclick = function () { sumE = sumT = 0; peak = -Infinity; dose = 0; hist = []; show(); };
+  function drawGraph() {
+    var c = $('graph'), dpr = window.devicePixelRatio || 1, W = c.clientWidth, H = c.clientHeight; if (!W) return;
+    if (c.width !== Math.round(W * dpr)) { c.width = Math.round(W * dpr); c.height = Math.round(H * dpr); }
+    var g = c.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+    var lo = 30, hi = 120, Y = function (L) { return H - 6 - (Math.max(lo, Math.min(hi, L)) - lo) / (hi - lo) * (H - 12); }, now = performance.now();
+    g.font = '10px "JetBrains Mono", monospace';
+    [40, 60, 85, 100].forEach(function (L) { g.strokeStyle = L === 85 ? 'rgba(255,138,76,.55)' : 'rgba(120,132,190,.2)'; g.setLineDash(L === 85 ? [4, 4] : []); g.beginPath(); g.moveTo(0, Y(L)); g.lineTo(W, Y(L)); g.stroke(); g.fillStyle = '#A7ADCB'; g.fillText(L + (L === 85 ? ' limit for 8 h' : ''), 4, Y(L) - 3); });
+    g.setLineDash([]);
+    var th = st.thr; g.strokeStyle = 'rgba(132,160,255,.6)'; g.beginPath(); g.moveTo(0, Y(th)); g.lineTo(W, Y(th)); g.stroke();
+    if (!hist.length) { g.fillStyle = '#A7ADCB'; g.textAlign = 'center'; g.fillText('The last minute of sound appears here', W / 2, H / 2 + 14); g.textAlign = 'left'; return; }
+    g.lineWidth = 1.6;
+    for (var i = 1; i < hist.length; i++) {
+      var x0 = W - (now - hist[i - 1][0]) / 60000 * W, x1 = W - (now - hist[i][0]) / 60000 * W;
+      g.strokeStyle = col(hist[i][1]); g.beginPath(); g.moveTo(x0, Y(hist[i - 1][1])); g.lineTo(x1, Y(hist[i][1])); g.stroke();
+    }
+  }
+
+  // ---- noise log: an event starts when the level goes over the threshold and ends after 2 s below it ----
+  function logStep(now, L, dt) {
+    if (L >= st.thr) {
+      if (!ev) ev = { start: Date.now(), t0: now, max: L, e: 0, d: 0, below: 0 };
+      ev.max = Math.max(ev.max, L); ev.below = 0;
+    }
+    if (ev) {
+      ev.e += Math.pow(10, L / 10) * dt; ev.d += dt;
+      if (L < st.thr) { ev.below += dt; if (ev.below > 2) closeEvent(now); }
+    }
+  }
+  function closeEvent() {
+    if (!ev) return;
+    var d = ev.d - ev.below;
+    if (d >= 0.5) {
+      st.log.unshift({ t: ev.start, d: Math.round(d * 10) / 10, max: Math.round(ev.max * 10) / 10, avg: Math.round(10 * Math.log10(ev.e / ev.d) * 10) / 10 });
+      st.log = st.log.slice(0, 2000); save(); renderLog();
+    }
+    ev = null;
+  }
+  function stamp(t) { var d = new Date(t); return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ' ' + d.toLocaleTimeString('en-GB'); }
+  function renderLog() {
+    $('logb').innerHTML = st.log.length ? st.log.slice(0, 100).map(function (r) {
+      return '<tr><td>' + stamp(r.t) + '</td><td>' + (r.d < 60 ? r.d.toFixed(1) + ' s' : dur(r.d)) + '</td><td style="color:' + col(r.max) + '">' + Math.round(r.max) + '</td><td>' + Math.round(r.avg) + '</td></tr>';
+    }).join('') : '<tr><td colspan="4" style="font-family:inherit;color:var(--muted)">Loud moments will be listed here while the meter is running.</td></tr>';
+    $('csv').disabled = $('clr').disabled = !st.log.length;
+  }
+  function iso(t) { var d = new Date(t), p = function (n) { return String(n).padStart(2, '0'); }; return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds()); }
+  $('csv').onclick = function () {
+    var rows = [['date_time_local', 'duration_s', 'max_dBA', 'avg_dBA', 'threshold_dBA', 'calibration_offset_dB']];
+    st.log.slice().reverse().forEach(function (r) { rows.push([iso(r.t), r.d, r.max, r.avg, st.thr, st.cal]); });
+    var csv = rows.map(function (r) { return r.join(','); }).join('\r\n') + '\r\n';
+    var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+    a.download = 'noise-log-' + iso(Date.now()).slice(0, 10) + '.csv'; document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  };
+  $('clr').onclick = function () { if (confirm('Clear all ' + st.log.length + ' logged events?')) { st.log = []; save(); renderLog(); } };
+
+  // ---- settings ----
+  function bindRange(id, k, fmt) { $(id).value = st[k]; $(id + 'V').textContent = fmt(st[k]); $(id).oninput = function () { st[k] = +this.value; $(id + 'V').textContent = fmt(st[k]); save(); drawGraph(); }; }
+  bindRange('cal', 'cal', function (v) { return (v > 0 ? '+' : '') + v + ' dB'; });
+  bindRange('thr', 'thr', function (v) { return v + ' dB(A)'; });
+  $('wake').checked = st.wake; $('wake').onchange = function () { st.wake = this.checked; save(); wake(on && st.wake); };
+
+  $('presets').innerHTML = PRESETS.map(function (p) { return '<li data-l="' + p[1] + '"><span>' + p[0] + '</span><b style="color:' + col(p[1]) + '">' + p[1] + ' dB</b><span>' + (p[1] < 80 ? 'no limit' : dur(niosh(p[1]))) + '</span></li>'; }).join('');
+  renderLog(); drawGraph();
+  window.addEventListener('resize', drawGraph);
+})();
+</script>
+</body>
+</html>

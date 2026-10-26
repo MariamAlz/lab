@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lightning Distance · Mariam's Lab</title>
+<meta name="description" content="How far away was that lightning? Tap at the flash and again at the thunder. Uses the speed of sound at your live temperature, tracks whether the storm is coming closer, and explains the 30/30 safety rule.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/lightning/">
+<meta property="og:title" content="Lightning Distance · Mariam's Lab"><meta property="og:description" content="Tap at the flash and the thunder to see how far away the storm is, and whether it's coming closer."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.85rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; cursor: pointer; }
+.tapbig { font: inherit; width: 100%; min-height: 170px; border-radius: var(--radius); border: 2px solid var(--accent); background: var(--accent-soft); color: var(--ink); cursor: pointer; display: grid; place-items: center; align-content: center; gap: 6px; padding: 18px; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+.tapbig b { font-family: var(--font-display); font-weight: 800; font-size: clamp(1.8rem, 8vw, 2.6rem); line-height: 1.05; }
+.tapbig span { color: var(--muted); font-size: 0.9rem; }
+.tapbig.wait { border-color: var(--sat-a); background: color-mix(in srgb, var(--sat-a) 14%, transparent); }
+.tapbig.wait b { font-variant-numeric: tabular-nums; }
+.flash { animation: flashbg .5s ease-out; }
+@keyframes flashbg { from { background: rgba(255,255,255,.75); } }
+.ctl { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; }
+.verdict2 { padding: 16px 18px; border-radius: var(--radius); border: 1px solid var(--line); background: rgba(7,10,24,.82); display: grid; gap: 4px; }
+.verdict2 b { font-family: var(--font-display); font-size: clamp(1.3rem, 4.6vw, 1.8rem); font-weight: 800; line-height: 1.15; }
+.verdict2 p { margin: 0; color: var(--muted); font-size: 0.92rem; }
+.verdict2.danger { border-color: var(--sat-c); background: color-mix(in srgb, var(--sat-c) 12%, rgba(7,10,24,.82)); }
+.verdict2.safe { border-color: var(--sat-b); }
+.strikes { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.strikes li { display: grid; grid-template-columns: 4.2em minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 8px 12px; border: 1px solid var(--line); border-radius: 10px; font-size: 0.88rem; }
+.strikes li span:first-child { font-family: var(--font-mono); color: var(--muted); font-size: 0.8rem; }
+.strikes li b { font-family: var(--font-mono); }
+.strikes .bar { height: 6px; border-radius: 99px; background: var(--sat-a); }
+.trend { width: 100%; height: 140px; display: block; border-radius: 12px; background: rgba(7,10,24,.6); border: 1px solid var(--line); }
+.tempin { width: 4.5em; font: inherit; font-family: var(--font-mono); color: var(--ink); background: rgba(7,10,24,.6); border: 1px solid var(--line); border-radius: 8px; padding: 5px 8px; }
+.tips { margin: 0; padding-inline-start: 18px; display: block; font-size: 0.9rem; }
+.tips li + li { margin-top: 5px; }
+.tips b { color: var(--ink); }
+#sLast, #sNear, #sTrend { font-size: 1.25rem; white-space: nowrap; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Weather · Sound</span>
+    <h1 style="font-size:var(--step-3)">How far was that lightning?</h1>
+    <p>Light reaches you almost instantly, but thunder travels at the speed of sound, about a kilometre every three seconds. Tap when you see the flash and again when you hear the thunder. Log a few strikes and the page tells you whether the storm is coming closer or moving away.</p>
+  </div>
+  <div class="game">
+    <div class="panel" style="align-content:start">
+      <button class="tapbig" type="button" id="tap"><b id="tapB">Tap at the flash</b><span id="tapS">Then tap again when you hear the thunder. Space bar works too.</span></button>
+      <div class="ctl"><button class="sm" type="button" id="cancel" hidden>Cancel this one</button><span class="msg" id="msg" role="status"></span></div>
+      <div class="verdict2" id="verdict"><b>No strikes logged yet.</b><p>When you see lightning, tap the big button.</p></div>
+      <div class="stats"><div><b id="sLast">--</b><span>Last strike</span></div><div><b id="sNear">--</b><span>Closest</span></div><div><b id="sTrend">--</b><span>Trend</span></div></div>
+      <canvas class="trend" id="trend" aria-label="Distance of each strike over time"></canvas>
+      <span class="label">Strikes</span>
+      <ul class="strikes" id="list"></ul>
+      <div class="ctl"><button class="sm" type="button" id="clear">Clear the list</button></div>
+      <div class="ctl" style="margin-top:4px"><span class="label">Air temperature</span><input class="tempin" type="number" id="temp" min="-20" max="55" step="1" value="30" aria-label="Air temperature in °C"><span>°C</span><button class="sm" type="button" id="loc">📍 Use live temperature</button></div>
+      <p class="msg" id="tmsg">Sound travels at <b id="cs">349</b> m/s at this temperature.</p>
+    </div>
+    <div class="panel" style="align-content:start">
+      <span class="label">The 30/30 rule</span>
+      <p class="fact" style="margin:0"><b>30 seconds:</b> if the thunder comes less than 30 seconds after the flash, the storm is within about 10 km. That's close enough to be struck. Go indoors now. <b>30 minutes:</b> wait 30 minutes after the last thunder you hear before going back outside. Lightning often strikes behind the rain, after the sky looks like it's clearing.</p>
+      <span class="label">Storm safety in the UAE</span>
+      <ul class="tips">
+        <li><b>Stay out of wadis and low roads.</b> Rain on the Hajar mountains can send a flash flood down a dry wadi in minutes, even where it isn't raining.</li>
+        <li><b>Get off the beach, out of the water and off open desert,</b> golf courses and rooftops. You don't want to be the tallest thing around.</li>
+        <li><b>A building or a hard-topped car is safe.</b> Close the windows and don't touch metal parts. A tent, majlis shade or bus shelter is not safe.</li>
+        <li><b>Don't shelter under a lone tree or palm,</b> or next to light poles and fences.</li>
+        <li><b>Don't drive through water on the road.</b> 30 cm of moving water can float a car. Turn round if you can't see the road markings.</li>
+        <li><b>Follow the National Center of Meteorology (NCM)</b> for yellow, orange and red alerts, and police alerts on your phone. In an emergency call 999.</li>
+        <li><b>Indoors,</b> unplug sensitive electronics and avoid corded phones and showers while the storm is overhead.</li>
+      </ul>
+      <p class="fact" style="margin:0">Sound is faster in warm air because the air molecules are already moving faster. At 0 °C it travels at 331 m/s, at 40 °C about 355 m/s. On a summer night in the UAE that's a 7% difference from the textbook value, which this page adjusts for. Your reaction time adds some error, so treat each distance as give or take a few hundred metres.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var KEY = 'lightningLog', st = { temp: 30, strikes: [] }; // strikes: {t (flash ms), d (delay s), km, c}
+  try { Object.assign(st, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) {}
+  st.strikes = (st.strikes || []).filter(function (s) { return Date.now() - s.t < 6 * 3600e3; });
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} }
+  var flashAt = 0, timer = 0;
+  function speed(T) { return 331.3 * Math.sqrt(1 + T / 273.15); }
+  function km(x) { return x < 1 ? Math.round(x * 1000) + ' m' : x.toFixed(1) + ' km'; }
+  function hm(t) { return new Date(t).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }); }
+  function showSpeed() { if ($('cs')) $('cs').textContent = Math.round(speed(st.temp)); $('temp').value = Math.round(st.temp * 10) / 10; }
+
+  // ---- tapping ----
+  function tap() {
+    var now = performance.now();
+    if (!flashAt) {
+      flashAt = now; flashWall = Date.now();
+      $('tap').classList.add('wait'); $('tap').classList.remove('flash'); void $('tap').offsetWidth; $('tap').classList.add('flash');
+      $('tapS').textContent = 'Now tap when you hear the thunder.'; $('cancel').hidden = false; $('msg').textContent = '';
+      timer = setInterval(count, 50); count();
+      if (navigator.vibrate) navigator.vibrate(20);
+    } else {
+      var d = (now - flashAt) / 1000;
+      reset();
+      if (d < 0.3) { $('msg').textContent = 'That was too quick to be thunder. Try again.'; return; }
+      var c = speed(st.temp), dist = d * c / 1000;
+      st.strikes.push({ t: flashWall, d: Math.round(d * 100) / 100, km: Math.round(dist * 100) / 100, c: Math.round(c) });
+      save(); render();
+      $('msg').textContent = d.toFixed(1) + ' s between flash and thunder.';
+    }
+  }
+  var flashWall = 0;
+  function count() {
+    var d = (performance.now() - flashAt) / 1000, dist = d * speed(st.temp) / 1000;
+    $('tapB').textContent = d.toFixed(1) + ' s · ' + km(dist);
+    if (d > 120) { reset(); $('msg').textContent = 'No thunder after 2 minutes, so that one was cancelled. Thunder is rarely heard beyond about 15 to 25 km.'; }
+  }
+  function reset() { flashAt = 0; clearInterval(timer); $('tap').classList.remove('wait'); $('tapB').textContent = 'Tap at the flash'; $('tapS').textContent = 'Then tap again when you hear the thunder. Space bar works too.'; $('cancel').hidden = true; }
+  $('tap').onclick = tap;
+  $('cancel').onclick = function () { reset(); $('msg').textContent = 'Cancelled.'; };
+  document.addEventListener('keydown', function (e) { if (e.code === 'Space' && !/INPUT|TEXTAREA|BUTTON|SELECT/.test(e.target.tagName)) { e.preventDefault(); tap(); } });
+  $('clear').onclick = function () { st.strikes = []; save(); render(); $('msg').textContent = ''; };
+
+  // ---- trend: least-squares slope of distance against time over the last 30 minutes ----
+  function trend() {
+    var now = Date.now(), r = st.strikes.filter(function (s) { return now - s.t < 30 * 60e3; });
+    if (r.length < 3) return null;
+    var n = r.length, mx = 0, my = 0; r.forEach(function (s) { mx += s.t / 60e3; my += s.km; }); mx /= n; my /= n;
+    var sxx = 0, sxy = 0, syy = 0; r.forEach(function (s) { var x = s.t / 60e3 - mx, y = s.km - my; sxx += x * x; sxy += x * y; syy += y * y; });
+    if (sxx < 0.05) return null; // all within a few seconds
+    var k = sxy / sxx, rr = syy ? sxy * sxy / (sxx * syy) : 0; // km per minute, fit quality
+    return { k: k, r2: rr, n: n, last: r[n - 1] };
+  }
+  function render() {
+    var s = st.strikes, now = Date.now(), last = s[s.length - 1];
+    $('list').innerHTML = s.length ? s.slice().reverse().slice(0, 30).map(function (x) {
+      return '<li><span>' + hm(x.t) + '</span><span style="display:grid;gap:3px"><span>' + x.d.toFixed(1) + ' s</span><i class="bar" style="width:' + Math.min(100, x.km / 20 * 100) + '%;' + (x.km < 10 ? 'background:var(--sat-c)' : '') + '"></i></span><b>' + km(x.km) + '</b></li>';
+    }).join('') : '<li style="grid-template-columns:1fr"><span style="font-family:inherit">Each strike you time appears here.</span></li>';
+    $('clear').hidden = !s.length;
+    $('sLast').textContent = last ? km(last.km) : '--';
+    var near = s.reduce(function (m, x) { return now - x.t < 30 * 60e3 && (!m || x.km < m.km) ? x : m; }, null);
+    $('sNear').textContent = near ? km(near.km) : '--';
+    var tr = trend(), word = '--';
+    if (tr) word = tr.k < -0.15 ? 'Closer' : tr.k > 0.15 ? 'Away' : 'Steady';
+    else if (s.length) word = 'Need 3';
+    $('sTrend').textContent = word;
+    verdict(tr);
+    drawTrend();
+    window.LIGHTNING = { strikes: s.length, trend: tr && tr.k, word: word };
+  }
+  function verdict(tr) {
+    var s = st.strikes, last = s[s.length - 1], v = $('verdict'), now = Date.now();
+    v.className = 'verdict2';
+    if (!last) { v.innerHTML = '<b>No strikes logged yet.</b><p>When you see lightning, tap the big button.</p>'; return; }
+    var heard = last.t + last.d * 1000, since = (now - heard) / 60e3, clear = heard + 30 * 60e3, extra = '';
+    if (tr && tr.k < -0.15) {
+      var eta = last.km > 10 ? (last.km - 10) / -tr.k : 0;
+      extra = ' It is getting closer by about ' + km(-tr.k) + ' a minute' + (eta > 0 && eta < 120 ? ', and could be within 10 km in about ' + Math.max(1, Math.round(eta)) + ' min.' : '.');
+    } else if (tr && tr.k > 0.15) extra = ' It is moving away, about ' + km(tr.k) + ' a minute.';
+    else if (tr) extra = ' It is staying at about the same distance.';
+    if (since >= 30) { v.classList.add('safe'); v.innerHTML = '<b>No thunder logged for 30 minutes.</b><p>By the 30/30 rule it is reasonable to go back outside, if you have not heard any more thunder.</p>'; return; }
+    if (last.d < 30 || s.some(function (x) { return now - x.t < 30 * 60e3 && x.d < 30; })) {
+      v.classList.add('danger');
+      v.innerHTML = '<b>Within striking distance. Stay indoors.</b><p>Thunder came less than 30 seconds after a flash in the last half hour. Stay inside until ' + hm(clear) + ' at the earliest (30 minutes after the last thunder).' + extra + '</p>';
+    } else {
+      v.innerHTML = '<b>The storm is about ' + km(last.km) + ' away.</b><p>Thunder takes more than 30 seconds to reach you, so it is over 10 km off for now. Keep timing strikes.' + extra + '</p>';
+    }
+  }
+  function drawTrend() {
+    var c = $('trend'), dpr = window.devicePixelRatio || 1, W = c.clientWidth, H = c.clientHeight; if (!W) return;
+    if (c.width !== Math.round(W * dpr)) { c.width = Math.round(W * dpr); c.height = Math.round(H * dpr); }
+    var g = c.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+    var now = Date.now(), r = st.strikes.filter(function (s) { return now - s.t < 60 * 60e3; });
+    var L = 34, R = 10, T = 10, B = 22, maxKm = 5;
+    r.forEach(function (s) { maxKm = Math.max(maxKm, s.km); }); maxKm = Math.ceil(maxKm / 5) * 5;
+    var t0 = r.length ? Math.min(r[0].t, now - 10 * 60e3) : now - 30 * 60e3, span = now - t0 + 60e3;
+    var X = function (t) { return L + (t - t0) / span * (W - L - R); }, Y = function (k) { return T + k / maxKm * (H - T - B); };
+    g.font = '10px "JetBrains Mono", monospace'; g.fillStyle = '#A7ADCB'; g.strokeStyle = 'rgba(120,132,190,.2)';
+    for (var k = 0; k <= maxKm; k += maxKm / 5) { g.beginPath(); g.moveTo(L, Y(k)); g.lineTo(W - R, Y(k)); g.stroke(); g.fillText(k + 'km', 2, Y(k) + 3); }
+    // danger zone (closer than 10 km)
+    g.fillStyle = 'rgba(240,138,179,.10)'; g.fillRect(L, T, W - L - R, Y(Math.min(10, maxKm)) - T);
+    g.fillStyle = '#A7ADCB'; g.textAlign = 'right'; g.fillText('now', W - R, H - 6); g.textAlign = 'left'; g.fillText(hm(t0), L, H - 6);
+    if (!r.length) { g.textAlign = 'center'; g.fillText('Distance of each strike over the last hour (near at top)', (W + L) / 2, H / 2 + 8); g.textAlign = 'left'; return; }
+    var tr = trend();
+    if (tr) {
+      var n = 0, mx = 0, my = 0, rr = st.strikes.filter(function (s) { return now - s.t < 30 * 60e3; });
+      rr.forEach(function (s) { mx += s.t; my += s.km; n++; }); mx /= n; my /= n;
+      var a = rr[0].t, b = now; g.strokeStyle = '#E9B467'; g.setLineDash([4, 4]); g.beginPath();
+      g.moveTo(X(a), Y(Math.max(0, my + tr.k * (a - mx) / 60e3))); g.lineTo(X(b), Y(Math.max(0, my + tr.k * (b - mx) / 60e3))); g.stroke(); g.setLineDash([]);
+    }
+    r.forEach(function (s) { g.fillStyle = s.km < 10 ? '#F08AB3' : '#84A0FF'; g.beginPath(); g.arc(X(s.t), Y(s.km), 4, 0, 7); g.fill(); });
+  }
+
+  // ---- temperature ----
+  $('temp').onchange = function () { var v = +this.value; if (v >= -20 && v <= 55) { st.temp = v; save(); } showSpeed(); $('tmsg').innerHTML = 'Sound travels at <b id="cs">' + Math.round(speed(st.temp)) + '</b> m/s at this temperature.'; };
+  function fetchTemp(lat, lon) {
+    $('tmsg').textContent = 'Getting the temperature…';
+    fetch('https://api.open-meteo.com/v1/forecast?latitude=' + lat.toFixed(3) + '&longitude=' + lon.toFixed(3) + '&current=temperature_2m').then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(function (j) {
+      var T = j && j.current && j.current.temperature_2m;
+      if (typeof T !== 'number') throw 0;
+      st.temp = T; save(); showSpeed();
+      $('tmsg').innerHTML = 'Live temperature where you are: ' + T.toFixed(1) + ' °C, so sound travels at <b id="cs">' + Math.round(speed(T)) + '</b> m/s.';
+    }).catch(function () { $('tmsg').innerHTML = 'Couldn\'t get the live temperature. Using ' + st.temp + ' °C (<b id="cs">' + Math.round(speed(st.temp)) + '</b> m/s). You can type your own.'; });
+  }
+  function locate() {
+    if (!navigator.geolocation) { $('tmsg').textContent = 'Location isn\'t available here. Type the temperature instead.'; return; }
+    $('tmsg').textContent = 'Finding your location…';
+    navigator.geolocation.getCurrentPosition(function (p) { fetchTemp(p.coords.latitude, p.coords.longitude); }, function () { $('tmsg').innerHTML = 'Location was blocked. Using ' + st.temp + ' °C (<b id="cs">' + Math.round(speed(st.temp)) + '</b> m/s). You can type your own.'; }, { maximumAge: 15 * 60e3, timeout: 15000 });
+  }
+  $('loc').onclick = locate;
+  // if location was allowed before, fetch the live temperature straight away
+  try { if (navigator.permissions) navigator.permissions.query({ name: 'geolocation' }).then(function (p) { if (p.state === 'granted') locate(); }).catch(function () {}); } catch (e) {}
+
+  showSpeed(); render();
+  setInterval(render, 30000);
+  window.addEventListener('resize', drawTrend);
+})();
+</script>
+</body>
+</html>

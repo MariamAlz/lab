@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fingertip Pulse · Mariam's Lab</title>
+<meta name="description" content="Measure your heart rate with your phone's camera and torch. Cover the lens with a fingertip and watch your pulse appear as a live waveform. A demo of photoplethysmography, not a medical device.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/heart-rate/">
+<meta property="og:title" content="Fingertip Pulse · Mariam's Lab"><meta property="og:description" content="Your heart rate from the phone camera and a fingertip."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.85rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; cursor: pointer; }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.big { font: inherit; font-weight: 600; font-size: 1.05rem; padding: 12px 30px; border-radius: 999px; border: 0; background: var(--accent); color: var(--bg); cursor: pointer; }
+.big.stop { background: var(--sat-c); }
+.ctl { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.bpm { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 18px; align-items: center; padding: 18px; border: 1px solid var(--line); border-radius: var(--radius); background: rgba(7,10,24,.82); }
+.bpm .num { font-family: var(--font-display); font-weight: 800; font-size: clamp(3rem, 13vw, 4.6rem); line-height: 1; font-variant-numeric: tabular-nums; }
+.bpm .num small { font-size: 1rem; font-weight: 600; color: var(--muted); margin-inline-start: 4px; }
+.heart { width: 54px; height: 54px; color: var(--sat-c); transition: transform .12s ease-out; }
+.heart.beat { transform: scale(1.22); }
+.wave { width: 100%; height: 150px; display: block; border-radius: 12px; background: rgba(7,10,24,.82); border: 1px solid var(--line); }
+.prev { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 2px solid var(--line); background: #000; }
+.qbar { height: 8px; border-radius: 99px; background: var(--line); overflow: hidden; }
+.qbar i { display: block; height: 100%; width: 0; background: var(--sat-b); transition: width .3s, background .3s; }
+.prog { height: 4px; border-radius: 99px; background: var(--line); overflow: hidden; margin-top: 6px; }
+.prog i { display: block; height: 100%; width: 0; background: var(--accent); }
+.tip { font-size: 1rem; font-weight: 600; }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; }
+.hist { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.hist li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 10px; font-size: 0.88rem; }
+.hist b { font-family: var(--font-mono); }
+.hist small { color: var(--muted); }
+.hrnote { padding: 12px 14px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--sat-c) 45%, transparent); background: color-mix(in srgb, var(--sat-c) 8%, transparent); font-size: 0.88rem; }
+ol.hrsteps { margin: 0; padding-inline-start: 20px; font-size: 0.92rem; }
+ol.hrsteps li + li { margin-top: 4px; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Experiment · Signals · Camera</span>
+    <h1 style="font-size:var(--step-3)">Your pulse from a fingertip.</h1>
+    <p>Rest a fingertip over your phone's rear camera and torch. Each heartbeat pushes a little more blood into your finger, which makes it slightly darker red. The camera sees that tiny change about once a second, and this page turns it into a waveform and a heart rate.</p>
+  </div>
+  <div class="game">
+    <div class="panel">
+      <div class="bpm">
+        <svg class="heart" id="heart" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 21s-7.5-4.6-10-9.3C.4 8.6 2.1 4.5 6 4.1c2.2-.2 3.9 1 6 3.2 2.1-2.2 3.8-3.4 6-3.2 3.9.4 5.6 4.5 4 7.6C19.5 16.4 12 21 12 21z"/></svg>
+        <div>
+          <div class="num" id="bpm" aria-live="polite">--<small>BPM</small></div>
+          <div class="msg" id="sub">Press start, then cover the camera.</div>
+          <div class="prog" aria-hidden="true"><i id="prog"></i></div>
+        </div>
+      </div>
+      <canvas class="wave" id="wave" aria-label="Live pulse waveform"></canvas>
+      <div class="ctl">
+        <button class="big" type="button" id="go">Start</button>
+        <button class="sm" type="button" id="torch" aria-pressed="false" hidden>Torch</button>
+        <video class="prev" id="vid" playsinline muted autoplay aria-label="Camera preview"></video>
+      </div>
+      <p class="tip" id="tip" role="status"></p>
+      <div><span class="label">Signal quality</span><div class="qbar" style="margin-top:6px"><i id="qbar"></i></div></div>
+      <div class="stats" id="stats"><div><b id="sq">--</b><span>Quality</span></div><div><b id="ss">0 s</b><span>Clean signal</span></div><div><b id="sb">0</b><span>Beats seen</span></div></div>
+      <p class="hrnote"><b>A demo, not a medical device.</b> The number is an estimate and can be wrong, especially with cold hands, movement or a weak torch. If you feel unwell, chest pain, or a racing or irregular heartbeat, talk to a doctor or call 998.</p>
+    </div>
+    <div class="panel" style="align-content:start">
+      <span class="label">How to get a good reading</span>
+      <ol class="hrsteps">
+        <li>Sit down and rest for a minute first.</li>
+        <li>Rest your fingertip lightly over the camera <i>and</i> the torch. Don't press hard: squeezing pushes the blood out.</li>
+        <li>Keep your hand and phone still, resting on a table if you can.</li>
+        <li>Wait about 20 seconds for a steady result.</li>
+      </ol>
+      <span class="label">Your readings (this device only)</span>
+      <ul class="hist" id="hist"></ul>
+      <button class="sm" type="button" id="clear" style="justify-self:start">Clear readings</button>
+      <p class="fact">This is <b>photoplethysmography</b> (PPG), the same idea as the clip a nurse puts on your finger and the green lights under a smartwatch. Light goes into the skin and some bounces back. Blood absorbs light, so with every beat a little less comes back. The change is under 1% of the brightness, so the page averages every pixel's red value, removes slow drift, and keeps only the rhythms between 40 and 200 beats a minute. It then finds the repeat time of the wave (autocorrelation) and checks it against the gaps between individual peaks.</p>
+      <p class="fact">A typical resting heart rate for adults is 60 to 100 beats a minute. Fit people and athletes are often lower. Heat, caffeine, stress and dehydration all raise it, which is worth knowing in a UAE summer.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var FS = 30, WIN = 20, KEY = 'heartRateLog';
+  var stream = null, track = null, running = false, raf = 0, torchOn = false;
+  var cv = document.createElement('canvas'); cv.width = 40; cv.height = 30;
+  var cx = cv.getContext('2d', { willReadFrequently: true });
+  var samples = []; // {t, r, g, b, sd}
+  var goodSince = 0, lastCalc = 0, lastBeatAt = 0, result = null, beatsSeen = 0, saved = false, lastPeakT = 0;
+  var filt = [], peaks = [];
+  var log = [];
+  try { log = JSON.parse(localStorage.getItem(KEY) || '[]') || []; } catch (e) { log = []; }
+
+  // ---- signal helpers ----
+  function biquad(type, f0, Q) {
+    var w = 2 * Math.PI * f0 / FS, c = Math.cos(w), s = Math.sin(w), al = s / (2 * Q), a0 = 1 + al, b;
+    if (type === 'lp') b = [(1 - c) / 2, 1 - c, (1 - c) / 2]; else b = [(1 + c) / 2, -(1 + c), (1 + c) / 2];
+    return { b0: b[0] / a0, b1: b[1] / a0, b2: b[2] / a0, a1: -2 * c / a0, a2: (1 - al) / a0 };
+  }
+  var HP = biquad('hp', 0.7, 0.707), LP = biquad('lp', 3.5, 0.707);
+  function run(f, x) {
+    var y = new Float64Array(x.length), x1 = x[0], x2 = x[0], y1 = 0, y2 = 0;
+    if (f === LP) { y1 = y2 = x[0]; }
+    for (var i = 0; i < x.length; i++) { var v = f.b0 * x[i] + f.b1 * x1 + f.b2 * x2 - f.a1 * y1 - f.a2 * y2; x2 = x1; x1 = x[i]; y2 = y1; y1 = v; y[i] = v; }
+    return y;
+  }
+  function rev(x) { var y = new Float64Array(x.length); for (var i = 0; i < x.length; i++) y[i] = x[x.length - 1 - i]; return y; }
+  function filtfilt(f, x) { return rev(run(f, rev(run(f, x)))); }
+  // resample the last `sec` seconds onto a uniform FS grid (inverted: more blood = up)
+  function uniform(sec) {
+    var n = samples.length; if (n < 10) return null;
+    var tEnd = samples[n - 1].t, tStart = Math.max(samples[0].t, tEnd - sec * 1000, goodSince);
+    var m = Math.floor((tEnd - tStart) / 1000 * FS); if (m < FS * 3) return null;
+    var out = new Float64Array(m), j = 0;
+    while (j < n - 1 && samples[j + 1].t < tStart) j++;
+    for (var i = 0; i < m; i++) {
+      var t = tStart + i * 1000 / FS;
+      while (j < n - 2 && samples[j + 1].t < t) j++;
+      var a = samples[j], b = samples[j + 1], u = b.t === a.t ? 0 : (t - a.t) / (b.t - a.t);
+      out[i] = -(a.r + (b.r - a.r) * Math.max(0, Math.min(1, u)));
+    }
+    return { x: out, t0: tStart };
+  }
+  function detrend(x) {
+    var n = x.length, sx = 0, sy = 0, sxx = 0, sxy = 0;
+    for (var i = 0; i < n; i++) { sx += i; sy += x[i]; sxx += i * i; sxy += i * x[i]; }
+    var k = (n * sxy - sx * sy) / (n * sxx - sx * sx || 1), c = (sy - k * sx) / n, y = new Float64Array(n);
+    for (i = 0; i < n; i++) y[i] = x[i] - (k * i + c);
+    return y;
+  }
+  function std(x, a, b) { a = a || 0; b = b || x.length; var m = 0, s = 0; for (var i = a; i < b; i++) m += x[i]; m /= (b - a); for (i = a; i < b; i++) s += (x[i] - m) * (x[i] - m); return Math.sqrt(s / (b - a)); }
+  function autocorr(x) {
+    var n = x.length, e = 0; for (var i = 0; i < n; i++) e += x[i] * x[i]; if (!e) return null;
+    var lo = Math.floor(60 * FS / 200), hi = Math.min(Math.ceil(60 * FS / 40), Math.floor(n / 2)), best = -1, bk = 0, r = [];
+    for (var k = lo - 1; k <= hi + 1; k++) { var s = 0; for (i = 0; i + k < n; i++) s += x[i] * x[i + k]; r[k] = s / e * n / (n - k); }
+    for (k = lo; k <= hi; k++) if (r[k] > r[k - 1] && r[k] >= r[k + 1] && r[k] > best) { best = r[k]; bk = k; }
+    if (!bk) return null;
+    // prefer the shortest lag that's nearly as strong (avoids picking 2 beats as 1)
+    for (k = lo; k < bk * 0.7; k++) if (r[k] > r[k - 1] && r[k] >= r[k + 1] && r[k] > best * 0.85 && Math.abs(bk / k - 2) < 0.15) { best = r[k]; bk = k; break; }
+    var y0 = r[bk - 1], y1 = r[bk], y2 = r[bk + 1], d = (y0 - y2) / (2 * (y0 - 2 * y1 + y2) || 1);
+    return { bpm: 60 * FS / (bk + (Math.abs(d) < 1 ? d : 0)), r: best };
+  }
+  function findPeaks(x, bpmHint) {
+    var p = [], sd = std(x), minGap = Math.round(FS * 60 / (bpmHint ? bpmHint / 0.65 : 200));
+    for (var i = 2; i < x.length - 2; i++) {
+      if (x[i] > 0.5 * sd && x[i] >= x[i - 1] && x[i] > x[i + 1] && x[i] >= x[i - 2] && x[i] > x[i + 2]) {
+        if (p.length && i - p[p.length - 1] < minGap) { if (x[i] > x[p[p.length - 1]]) p[p.length - 1] = i; } else p.push(i);
+      }
+    }
+    return p;
+  }
+  function median(a) { var b = a.slice().sort(function (p, q) { return p - q; }); var m = b.length >> 1; return b.length % 2 ? b[m] : (b[m - 1] + b[m]) / 2; }
+
+  // ---- frame loop ----
+  function frame() {
+    if (!running) return;
+    var v = $('vid');
+    if (v.readyState >= 2 && v.videoWidth) {
+      cx.drawImage(v, 0, 0, cv.width, cv.height);
+      var d = cx.getImageData(0, 0, cv.width, cv.height).data, n = d.length / 4, r = 0, g = 0, b = 0, rr = 0;
+      for (var i = 0; i < d.length; i += 4) { r += d[i]; g += d[i + 1]; b += d[i + 2]; rr += d[i] * d[i]; }
+      r /= n; g /= n; b /= n;
+      var sd = Math.sqrt(Math.max(0, rr / n - r * r)), now = performance.now();
+      var last = samples[samples.length - 1];
+      if (!last || now - last.t > 15) samples.push({ t: now, r: r, g: g, b: b, sd: sd });
+      while (samples.length && samples[0].t < now - (WIN + 4) * 1000) samples.shift();
+      if (now - lastCalc > 200) { lastCalc = now; analyse(now); }
+      drawWave(now);
+    }
+    raf = requestAnimationFrame(frame);
+  }
+  function assess(now) {
+    var s = samples[samples.length - 1];
+    var finger = s.r > 35 && s.r > 1.5 * s.g && s.r > 1.4 * s.b && s.sd < 45;
+    if (!finger) return { ok: false, tip: s.r < 25 ? 'Too dark. Cover the camera and torch, with a light behind your finger if the torch is off.' : 'Cover the camera fully with your fingertip.' };
+    if (s.r > 252 && s.g > 200) return { ok: false, tip: 'Too bright. Press a little more gently or tilt your finger.' };
+    // movement: the slow average brightness shouldn't jump within a second
+    var recent = samples.filter(function (x) { return x.t > now - 1000; });
+    if (recent.length > 5) {
+      var mx = -1e9, mn = 1e9; recent.forEach(function (x) { if (x.r > mx) mx = x.r; if (x.r < mn) mn = x.r; });
+      if (mx - mn > Math.max(8, 0.08 * s.r)) return { ok: false, tip: 'Keep still. Rest your hand on a table.', motion: true };
+    }
+    return { ok: true, tip: '' };
+  }
+  function analyse(now) {
+    var a = assess(now);
+    if (!a.ok) {
+      goodSince = 0; filt = []; peaks = []; setQuality(0);
+      $('tip').textContent = a.tip; $('tip').style.color = 'var(--accent)';
+      if (!result) { $('bpm').innerHTML = '--<small>BPM</small>'; }
+      $('sub').textContent = result ? 'Last steady reading. Cover the camera again to measure.' : 'Waiting for a steady fingertip…';
+      $('prog').style.width = '0%'; $('ss').textContent = '0 s';
+      return;
+    }
+    if (!goodSince) { goodSince = now; saved = false; beatsSeen = 0; lastPeakT = 0; }
+    var secs = (now - goodSince) / 1000;
+    $('ss').textContent = Math.floor(secs) + ' s';
+    $('prog').style.width = Math.min(100, secs / WIN * 100) + '%';
+    var u = uniform(WIN);
+    if (!u) { $('tip').textContent = 'Finger found. Hold still…'; $('tip').style.color = 'var(--sat-b)'; $('sub').textContent = 'Settling…'; return; }
+    var x = filtfilt(LP, filtfilt(HP, detrend(u.x)));
+    // drop the edges, where the filters are still settling
+    var skip = Math.min(FS, Math.floor(x.length / 6)), core = x.subarray(skip);
+    filt = { x: x, t0: u.t0 };
+    var ac = autocorr(core);
+    peaks = findPeaks(x, ac && ac.bpm);
+    var ibis = []; for (var i = 1; i < peaks.length; i++) ibis.push((peaks[i] - peaks[i - 1]) / FS);
+    var pb = ibis.length >= 3 ? 60 / median(ibis) : 0;
+    // count new beats for the heart animation
+    if (peaks.length) { var tp = u.t0 + peaks[peaks.length - 1] * 1000 / FS; if (tp > lastPeakT + 250 && tp < now - 150) { if (lastPeakT) { beatsSeen++; pulse(); } lastPeakT = tp; } }
+    $('sb').textContent = beatsSeen;
+    var dc = -u.x[u.x.length - 1], amp = std(core) / Math.max(1, dc);
+    var q = 0;
+    if (ac) {
+      q = Math.max(0, Math.min(1, (ac.r - 0.15) / 0.65));
+      if (pb) { var agree = Math.abs(pb - ac.bpm) / ac.bpm; q *= agree < 0.08 ? 1 : agree < 0.18 ? 0.7 : 0.4; }
+      if (amp < 0.0006) q *= 0.5;
+    }
+    setQuality(q);
+    var tip = '', col = 'var(--sat-b)';
+    if (amp < 0.0006) { tip = 'Weak pulse. Press more gently, or warm your hand and try again.'; col = 'var(--accent)'; }
+    else if (amp > 0.06) { tip = 'Keep still. The signal is jumping around.'; col = 'var(--accent)'; }
+    else if (q < 0.35) { tip = 'Hold still and keep a light touch…'; col = 'var(--accent)'; }
+    else tip = secs < WIN ? 'Good signal. Keep holding…' : 'Steady reading.';
+    $('tip').textContent = tip; $('tip').style.color = col;
+    if (ac && secs >= 5 && q >= 0.25) {
+      var bpm = Math.round(pb && Math.abs(pb - ac.bpm) / ac.bpm < 0.1 ? (ac.bpm * 2 + pb) / 3 : ac.bpm);
+      result = { bpm: bpm, q: q };
+      $('bpm').innerHTML = bpm + '<small>BPM</small>';
+      $('sub').textContent = secs < WIN ? 'Provisional, ' + Math.ceil(WIN - secs) + ' s to go' : 'Measured over ' + WIN + ' s · ' + qWord(q).toLowerCase() + ' confidence';
+      if (secs >= WIN && !saved && q >= 0.45) { saved = true; addLog(bpm, q); }
+    } else { $('sub').textContent = 'Reading the rhythm…'; }
+    window.HR_STATE = { bpm: result && result.bpm, q: q, ac: ac && ac.bpm, pb: pb, secs: secs, amp: amp };
+  }
+  function qWord(q) { return q >= 0.65 ? 'Good' : q >= 0.4 ? 'Fair' : 'Poor'; }
+  function setQuality(q) {
+    $('qbar').style.width = Math.round(q * 100) + '%';
+    $('qbar').style.background = q >= 0.65 ? 'var(--sat-b)' : q >= 0.4 ? 'var(--accent)' : 'var(--sat-c)';
+    $('sq').textContent = q ? qWord(q) : '--';
+  }
+  function pulse() { var h = $('heart'); h.classList.add('beat'); setTimeout(function () { h.classList.remove('beat'); }, 140); }
+
+  function drawWave(now) {
+    var c = $('wave'), dpr = window.devicePixelRatio || 1, W = c.clientWidth, H = c.clientHeight;
+    if (c.width !== Math.round(W * dpr)) { c.width = Math.round(W * dpr); c.height = Math.round(H * dpr); }
+    var g = c.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+    g.strokeStyle = 'rgba(120,132,190,.18)'; g.lineWidth = 1;
+    for (var s = 1; s < 6; s++) { var gx = W * s / 6; g.beginPath(); g.moveTo(gx, 0); g.lineTo(gx, H); g.stroke(); }
+    if (!filt.x || !filt.x.length) {
+      g.fillStyle = '#A7ADCB'; g.font = '13px "Instrument Sans", sans-serif'; g.textAlign = 'center';
+      g.fillText(running ? 'Waiting for a clean signal…' : 'The pulse wave appears here', W / 2, H / 2); return;
+    }
+    var x = filt.x, span = 6, n = Math.min(x.length, span * FS), a = x.length - n, mx = 1e-9;
+    for (var i = a; i < x.length; i++) mx = Math.max(mx, Math.abs(x[i]));
+    var tEnd = filt.t0 + (x.length - 1) * 1000 / FS, lag = Math.max(0, (now - tEnd) / 1000);
+    var X = function (k) { return W - ((x.length - 1 - k) / FS + lag) / span * W; }, Y = function (v) { return H / 2 - v / mx * H * 0.4; };
+    g.strokeStyle = '#F08AB3'; g.lineWidth = 2; g.lineJoin = 'round'; g.beginPath();
+    for (i = a; i < x.length; i++) { if (i === a) g.moveTo(X(i), Y(x[i])); else g.lineTo(X(i), Y(x[i])); }
+    g.stroke();
+    g.fillStyle = '#E9B467';
+    peaks.forEach(function (p) { if (p >= a) { g.beginPath(); g.arc(X(p), Y(x[p]), 3.5, 0, 7); g.fill(); } });
+  }
+
+  // ---- camera ----
+  function start() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { $('tip').textContent = 'This browser cannot use the camera. Try Chrome or Safari on your phone.'; return; }
+    $('tip').textContent = 'Asking for the camera…';
+    navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: { ideal: 'environment' }, width: { ideal: 320 }, height: { ideal: 240 }, frameRate: { ideal: 30 } } }).then(function (s) {
+      stream = s; track = s.getVideoTracks()[0];
+      var v = $('vid'); v.srcObject = s; var p = v.play(); if (p && p.catch) p.catch(function () {});
+      running = true; samples = []; goodSince = 0; result = null; filt = []; peaks = [];
+      $('go').textContent = 'Stop'; $('go').classList.add('stop');
+      setTorch(true);
+      raf = requestAnimationFrame(frame);
+    }).catch(function (e) {
+      $('tip').textContent = e && e.name === 'NotAllowedError' ? 'Camera access was blocked. Allow it in your browser settings and try again.' : 'Could not open the camera.';
+    });
+  }
+  function setTorch(want) {
+    var caps = {}; try { caps = track.getCapabilities ? track.getCapabilities() : {}; } catch (e) {}
+    if (!track || !track.applyConstraints) return;
+    track.applyConstraints({ advanced: [{ torch: want }] }).then(function () {
+      var st = {}; try { st = track.getSettings(); } catch (e) {}
+      torchOn = want && (st.torch === true || caps.torch === true);
+      $('torch').hidden = !(caps.torch || st.torch !== undefined);
+      $('torch').setAttribute('aria-pressed', torchOn);
+      if (want && !torchOn) $('sub').textContent = 'No torch control here. Sit near a bright lamp so light shines through your finger.';
+    }).catch(function () {
+      $('torch').hidden = true;
+      if (want) $('sub').textContent = 'This browser won\'t switch on the torch. Sit near a bright lamp so light shines through your finger.';
+    });
+  }
+  function stop() {
+    running = false; cancelAnimationFrame(raf);
+    if (track) { try { track.applyConstraints({ advanced: [{ torch: false }] }).catch(function () {}); } catch (e) {} }
+    if (stream) stream.getTracks().forEach(function (t) { t.stop(); });
+    stream = track = null; $('vid').srcObject = null;
+    $('go').textContent = 'Start'; $('go').classList.remove('stop'); $('torch').hidden = true;
+    $('tip').textContent = ''; setQuality(0);
+    if (!result) $('sub').textContent = 'Press start, then cover the camera.';
+  }
+  $('go').onclick = function () { if (running) stop(); else start(); };
+  $('torch').onclick = function () { setTorch(!torchOn); };
+  document.addEventListener('visibilitychange', function () { if (document.hidden && running) stop(); });
+
+  // ---- history ----
+  function addLog(bpm, q) { log.unshift({ t: Date.now(), bpm: bpm, q: Math.round(q * 100) }); log = log.slice(0, 20); try { localStorage.setItem(KEY, JSON.stringify(log)); } catch (e) {} showLog(); }
+  function showLog() {
+    $('hist').innerHTML = log.length ? log.slice(0, 8).map(function (e) {
+      var d = new Date(e.t);
+      return '<li><span>' + d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ', ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) + '<br><small>' + qWord(e.q / 100) + ' signal</small></span><b>' + e.bpm + ' BPM</b></li>';
+    }).join('') : '<li><small>No readings yet. Steady 20-second readings are saved here.</small></li>';
+    $('clear').hidden = !log.length;
+  }
+  $('clear').onclick = function () { log = []; try { localStorage.removeItem(KEY); } catch (e) {} showLog(); };
+  showLog(); drawWave(0);
+  window.addEventListener('resize', function () { drawWave(performance.now()); });
+})();
+</script>
+</body>
+</html>
