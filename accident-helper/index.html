@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Accident Helper · Mariam's Lab</title>
+<meta name="description" content="A calm step-by-step helper for a minor car accident in the UAE: safety first, when to call 999, what to photograph, and a details form for both drivers that you can save as an image or text.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/accident-helper/">
+<meta property="og:title" content="Accident Helper · Mariam's Lab"><meta property="og:description" content="What to do after a minor car accident in the UAE, step by step."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; cursor: pointer; }
+.sm[aria-pressed="true"], .sm.pri { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.qs { display: grid; gap: 10px; }
+.q { padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); display: grid; gap: 8px; }
+.q p { font-weight: 600; }
+.q .opts { display: flex; gap: 6px; flex-wrap: wrap; }
+.call { padding: 18px; border-radius: var(--radius); border: 2px solid var(--line); display: grid; gap: 6px; }
+.call b { font-family: var(--font-display); font-size: clamp(1.4rem, 4.5vw, 2rem); font-weight: 800; line-height: 1.1; }
+.call p { color: var(--muted); }
+.call.red { border-color: #ff4f6d; } .call.red b { color: #ff4f6d; }
+.call.ok { border-color: var(--sat-b); } .call.ok b { color: var(--sat-b); }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; counter-reset: s; }
+.steps li { counter-increment: s; display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; font-size: 0.92rem; }
+.steps li::before { content: counter(s); font-family: var(--font-mono); width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: var(--bg); font-size: 0.8rem; }
+.steps small { display: block; color: var(--muted); font-size: 0.82rem; margin-top: 2px; }
+.ticks { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.ticks label { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 8px; align-items: start; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; font-size: 0.9rem; cursor: pointer; }
+.ticks input { width: 18px; height: 18px; margin: 3px 0 0; accent-color: var(--sat-b); }
+.ticks small { display: block; color: var(--muted); font-size: 0.8rem; }
+.ticks input:checked + span { color: var(--muted); text-decoration: line-through; }
+.meter { height: 8px; border-radius: 99px; background: var(--line); overflow: hidden; }
+.meter i { display: block; height: 100%; background: var(--sat-b); width: 0; transition: width .3s; }
+.drivers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 700px) { .drivers { grid-template-columns: 1fr; } }
+fieldset { border: 1px solid var(--line); border-radius: 12px; padding: 12px; margin: 0; display: grid; gap: 8px; min-width: 0; }
+legend { font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent); padding: 0 6px; }
+.fl { display: grid; gap: 3px; font-size: 0.8rem; color: var(--muted); }
+.fl input, .fl textarea, .fl select { font: inherit; font-size: 0.92rem; color: var(--ink); background: rgba(7,10,24,.55); border: 1px solid var(--line); border-radius: 8px; padding: 7px 9px; width: 100%; min-width: 0; }
+.fl textarea { min-height: 70px; resize: vertical; }
+.two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+.three { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .8fr) minmax(0, 1.2fr); gap: 8px; }
+.bar { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; }
+.next { display: grid; gap: 8px; }
+.next div { padding: 10px 12px; border-left: 2px solid var(--sat-b); font-size: 0.9rem; }
+.next b { display: block; }
+@media (max-width: 440px) { #accRow { grid-template-columns: 1fr; } }
+#preview { max-width: 100%; border-radius: 10px; border: 1px solid var(--line); display: none; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Driving · UAE · Offline</span>
+    <h1 style="font-size:var(--step-3)">Car accident helper.</h1>
+    <p>A small bump on the road is stressful, and it is easy to forget a photo or a policy number. Answer five quick questions to see whether to call 999 or use a police app, then tick off the photos and fill in both drivers' details. Everything stays on this phone. You can save the details as an image or text to send to the other driver or your insurer.</p>
+  </div>
+
+  <div class="game" style="margin-top:18px">
+    <div class="panel">
+      <span class="label">1 · Safety first</span>
+      <div class="qs" id="qs"></div>
+      <div class="call" id="call" role="status"><b>Answer the questions above</b><p>If anyone is hurt or you feel unsafe, call 999 now. Don't wait for this page.</p></div>
+
+      <span class="label" style="margin-top:6px">2 · What to do, in order</span>
+      <ol class="steps" id="steps"></ol>
+    </div>
+    <div class="panel">
+      <span class="label">3 · Photo checklist</span>
+      <div class="meter"><i id="meter"></i></div>
+      <p class="msg" id="photoMsg"></p>
+      <ul class="ticks" id="photos"></ul>
+      <button class="sm" type="button" id="resetPhotos" style="justify-self:start">Clear ticks</button>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:28px">
+    <span class="label">4 · Exchange details</span>
+    <p style="color:var(--muted);font-size:0.9rem">Fill in your side, then hand the phone over or read out the other driver's documents. Nothing here is sent anywhere. It is kept on this device until you press Clear.</p>
+    <fieldset>
+      <legend>The accident</legend>
+      <div class="two" id="accRow">
+        <label class="fl">Date and time<input id="when" type="datetime-local"></label>
+        <label class="fl">Emirate<select id="emirate"><option>Abu Dhabi</option><option selected>Dubai</option><option>Sharjah</option><option>Ajman</option><option>Umm Al Quwain</option><option>Ras Al Khaimah</option><option>Fujairah</option></select></label>
+      </div>
+      <label class="fl">Location (road, nearest landmark or exit)<input id="where" placeholder="e.g. Sheikh Zayed Rd, before Exit 41"></label>
+      <div class="bar"><button class="sm" type="button" id="gps">📍 Add GPS coordinates</button><span class="msg" id="gpsMsg"></span></div>
+      <label class="fl">What happened (short, facts only)<textarea id="what" placeholder="e.g. Car B reversed out of a parking bay into the rear left door of car A."></textarea></label>
+    </fieldset>
+    <div class="drivers" id="drivers"></div>
+    <div class="bar">
+      <button class="sm pri" type="button" id="img">Save as image</button>
+      <button class="sm" type="button" id="share">Share</button>
+      <button class="sm" type="button" id="copy">Copy as text</button>
+      <button class="sm" type="button" id="txt">Download .txt</button>
+      <button class="sm" type="button" id="clear">Clear form</button>
+    </div>
+    <p class="msg" id="formMsg" role="status"></p>
+    <img id="preview" alt="Preview of the saved accident details image">
+  </div>
+
+  <div class="game" style="margin-top:28px">
+    <div class="panel">
+      <span class="label">5 · What happens next</span>
+      <div class="next">
+        <div><b>Get the police report</b>Insurers and garages in the UAE generally need a police report before any repair, even for a scratch. Keep the report number. The app usually sends it by SMS or email.</div>
+        <div><b>Tell your insurer quickly</b>Most policies ask you to report within a set number of days. Send the police report, photos, your licence, registration (mulkiya) and the other driver's details.</div>
+        <div><b>If you were not at fault</b>The claim usually goes to the other driver's insurer. They arrange the repair at an approved garage or agency, depending on their policy.</div>
+        <div><b>If you were at fault</b>Your own insurer handles it. With third-party-only cover, your own repair is usually not covered. An at-fault claim can affect your no-claims discount at renewal.</div>
+        <div><b>Repairs without a report are risky</b>Garages are not supposed to fix accident damage without a report, and an unreported dent can cause trouble at the next registration test or sale.</div>
+      </div>
+    </div>
+    <div class="panel">
+      <span class="label">Good to know</span>
+      <p class="fact">Rules and apps differ by emirate and change from time to time. As of 2026, the UAE government portal lists the Abu Dhabi Police, Dubai Police, Rafid (Sharjah), MOI UAE and Saaed apps for reporting minor accidents. Check the official police website or app in your emirate for the current process and any fees.</p>
+      <p class="fact">Why move the car? A stopped car in a live lane causes a large share of secondary crashes. Abu Dhabi Police reminded drivers in 2024 that stopping in the road without need after a minor accident can bring a Dh1,000 fine. If anyone is hurt, the car can't be driven, or you can't agree, stay put with hazards on and call 999.</p>
+      <p class="fact">Your form is saved in this browser's local storage only, so you don't lose it if you close the tab. Press Clear form to remove it. This page is a checklist, not legal advice.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var KEY = 'accidentHelper';
+  var st = { a: {}, p: {}, f: {} };
+  try { var s = JSON.parse(localStorage.getItem(KEY) || 'null'); if (s) { st.a = s.a || {}; st.p = s.p || {}; st.f = s.f || {}; } } catch (e) {}
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  // ---- triage
+  var QS = [
+    ['hurt', 'Is anyone hurt, even a little, or feeling unwell?'],
+    ['danger', 'Is there smoke, a fuel leak, or are you in a dangerous spot (fast lane, bend, tunnel)?'],
+    ['drive', 'Can both cars still be driven safely?', true],
+    ['agree', 'Do both drivers agree on what happened?', true],
+    ['other', 'Is the other driver present and showing their licence and registration?', true]
+  ];
+  function renderQs() {
+    $('qs').innerHTML = QS.map(function (q) {
+      var v = st.a[q[0]];
+      return '<div class="q"><p>' + q[1] + '</p><div class="opts"><button class="sm" type="button" data-q="' + q[0] + '" data-v="1" aria-pressed="' + (v === 1) + '">Yes</button><button class="sm" type="button" data-q="' + q[0] + '" data-v="0" aria-pressed="' + (v === 0) + '">No</button></div></div>';
+    }).join('');
+    verdict();
+  }
+  $('qs').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-q]'); if (!b) return;
+    st.a[b.dataset.q] = +b.dataset.v; save(); renderQs();
+  });
+  function verdict() {
+    var a = st.a, c = $('call');
+    if (a.hurt === 1 || a.danger === 1) {
+      c.className = 'call red';
+      c.innerHTML = '<b>Call 999 now</b><p>' + (a.hurt === 1 ? 'Someone may be injured. Ask for an ambulance too (998 also reaches the ambulance service). Don\'t move an injured person unless there is fire or other danger. ' : '') + (a.danger === 1 ? 'Turn off the engine, put hazards on, and get everyone out on the side away from traffic, behind the barrier if there is one. ' : '') + 'Fill in the form below once you are safe.</p>';
+      return;
+    }
+    var known = ['hurt', 'danger', 'drive', 'agree', 'other'].every(function (k) { return a[k] === 0 || a[k] === 1; });
+    if (!known) { c.className = 'call'; c.innerHTML = '<b>Answer the questions above</b><p>If anyone is hurt or you feel unsafe, call 999 now. Don\'t wait for this page.</p>'; return; }
+    if (a.drive === 0 || a.agree === 0 || a.other === 0) {
+      c.className = 'call red';
+      var why = [];
+      if (a.drive === 0) why.push('a car can\'t be driven');
+      if (a.agree === 0) why.push('you don\'t agree on what happened');
+      if (a.other === 0) why.push('the other driver is gone or won\'t share details');
+      c.innerHTML = '<b>Call 999 for a patrol</b><p>Because ' + why.join(', and ') + ', this usually needs a police officer at the scene. Stay safe with hazards on and a warning triangle behind the car if it is safe to place one. Take photos while you wait.</p>';
+      return;
+    }
+    c.className = 'call ok';
+    c.innerHTML = '<b>Likely a minor accident you can report by app</b><p>Take the photos first, then move both cars to the nearest safe spot (hard shoulder, side street or car park). Report it on your emirate\'s police app, such as Dubai Police, Abu Dhabi Police, MOI UAE or Rafid in Sharjah. If the app won\'t accept it, call 999.</p>';
+  }
+
+  var STEPS = [
+    ['Stop, hazards on, breathe', 'Never drive away. Leaving the scene is a serious offence even for a scratch.'],
+    ['Check people first', 'Yourself, passengers, the other car. Any doubt about injury means 999.'],
+    ['Make the scene safe', 'If the cars can\'t move, wear something visible, stand behind the barrier and put the triangle out if safe.'],
+    ['Photograph before moving', 'Quick wide shots of where the cars ended up, then both plates. Use the checklist on this page.'],
+    ['Move the cars off the road', 'For a minor accident where both cars drive, police ask you to clear the lane to a safe place.'],
+    ['Exchange details', 'Licence, registration (mulkiya), insurer and policy number. Fill in the form below.'],
+    ['Report it', 'Through the police app for your emirate, or 999 if needed. Keep the report number.'],
+    ['Call your insurer', 'Within the time your policy sets. Send the report, photos and the other driver\'s details.']
+  ];
+  $('steps').innerHTML = STEPS.map(function (s) { return '<li><span>' + s[0] + '<small>' + s[1] + '</small></span></li>'; }).join('');
+
+  // ---- photos
+  var PH = [
+    ['wide', 'Wide shot of the whole scene', 'Both cars, their positions and the lane, before anything moves.'],
+    ['pos', 'Each car\'s position from front and behind', 'Shows which lane each was in and the angle of impact.'],
+    ['plateA', 'Your number plate', 'Front or back, readable: emirate, code and number.'],
+    ['plateB', 'The other car\'s number plate', 'Readable, with the emirate visible.'],
+    ['dmgA', 'Damage on your car: close-up and from 2 m', 'The close-up shows detail, the step-back shows where on the car.'],
+    ['dmgB', 'Damage on the other car', 'Including old damage, so it is not added to your claim later.'],
+    ['road', 'Road markings, signs, signals', 'Lane arrows, stop lines, give-way signs or the traffic light.'],
+    ['debris', 'Debris or skid marks on the road', 'Broken plastic or glass shows where the impact happened.'],
+    ['lic', 'Other driver\'s licence (front)', 'Name and licence number. Ask first.'],
+    ['reg', 'Other car\'s registration card (mulkiya)', 'Owner, plate, chassis number and insurer are printed on it.'],
+    ['ins', 'Other driver\'s insurance details', 'Insurer name and policy number, if on a separate card.'],
+    ['eid', 'Your own licence and mulkiya', 'Handy for the app and the insurer.']
+  ];
+  function renderPhotos() {
+    var n = 0;
+    $('photos').innerHTML = PH.map(function (p) { var on = !!st.p[p[0]]; if (on) n++; return '<li><label><input type="checkbox" data-p="' + p[0] + '"' + (on ? ' checked' : '') + '><span>' + p[1] + '<small>' + p[2] + '</small></span></label></li>'; }).join('');
+    $('meter').style.width = (100 * n / PH.length) + '%';
+    $('photoMsg').textContent = n + ' of ' + PH.length + ' done' + (n === PH.length ? '. Nice, that is everything an insurer usually asks for.' : '. Dubai Police asks for at least four photos of the damage.');
+  }
+  $('photos').addEventListener('change', function (e) { var k = e.target.dataset.p; if (!k) return; st.p[k] = e.target.checked; save(); renderPhotos(); });
+  $('resetPhotos').onclick = function () { st.p = {}; save(); renderPhotos(); };
+
+  // ---- form
+  var DF = [
+    ['name', 'Driver name'], ['phone', 'Mobile', 'tel'], ['lic', 'Licence number'], ['licEm', 'Licence issued in'],
+    ['plate', 'Plate'], ['owner', 'Registered owner (if not the driver)'], ['car', 'Make, model, colour'],
+    ['ins', 'Insurer'], ['pol', 'Policy number'], ['dmg', 'Damage on this car']
+  ];
+  var EMS = ['Abu Dhabi', 'Dubai', 'Sharjah', 'Ajman', 'Umm Al Quwain', 'Ras Al Khaimah', 'Fujairah', 'Other'];
+  function opt(v) { return EMS.map(function (e) { return '<option' + (e === v ? ' selected' : '') + '>' + e + '</option>'; }).join(''); }
+  function driverBox(side, title) {
+    var h = '<fieldset><legend>' + title + '</legend>';
+    h += '<div class="two"><label class="fl">Driver name<input data-f="' + side + 'name" autocomplete="off"></label><label class="fl">Mobile<input data-f="' + side + 'phone" type="tel" autocomplete="off"></label></div>';
+    h += '<div class="two"><label class="fl">Licence number<input data-f="' + side + 'lic" autocomplete="off"></label><label class="fl">Licence issued in<select data-f="' + side + 'licEm">' + opt('Dubai') + '</select></label></div>';
+    h += '<div class="three"><label class="fl">Plate emirate<select data-f="' + side + 'pEm">' + opt('Dubai') + '</select></label><label class="fl">Code<input data-f="' + side + 'pCode" placeholder="e.g. K" autocomplete="off"></label><label class="fl">Number<input data-f="' + side + 'pNum" inputmode="numeric" autocomplete="off"></label></div>';
+    h += '<label class="fl">Make, model, colour<input data-f="' + side + 'car" placeholder="e.g. Toyota Corolla, white" autocomplete="off"></label>';
+    h += '<label class="fl">Registered owner (if not the driver)<input data-f="' + side + 'owner" autocomplete="off"></label>';
+    h += '<div class="two"><label class="fl">Insurer<input data-f="' + side + 'ins" autocomplete="off"></label><label class="fl">Policy number<input data-f="' + side + 'pol" autocomplete="off"></label></div>';
+    h += '<label class="fl">Damage on this car<input data-f="' + side + 'dmg" placeholder="e.g. rear bumper, left tail light" autocomplete="off"></label>';
+    return h + '</fieldset>';
+  }
+  $('drivers').innerHTML = driverBox('A', 'Driver A · you') + driverBox('B', 'Driver B · other car');
+  var FIELDS = ['when', 'emirate', 'where', 'what'];
+  FIELDS.forEach(function (id) { $(id).dataset.f = id; });
+  function all() { return document.querySelectorAll('[data-f]'); }
+  function fill() {
+    [].forEach.call(all(), function (el) { var v = st.f[el.dataset.f]; if (v != null) el.value = v; });
+    if (!st.f.when) { var d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); $('when').value = st.f.when = d.toISOString().slice(0, 16); }
+  }
+  document.addEventListener('input', function (e) { var k = e.target.dataset && e.target.dataset.f; if (!k) return; st.f[k] = e.target.value; save(); });
+  document.addEventListener('change', function (e) { var k = e.target.dataset && e.target.dataset.f; if (!k) return; st.f[k] = e.target.value; save(); });
+  $('gps').onclick = function () {
+    if (!navigator.geolocation) { $('gpsMsg').textContent = 'Location is not available in this browser.'; return; }
+    $('gpsMsg').textContent = 'Getting location…';
+    navigator.geolocation.getCurrentPosition(function (p) {
+      var t = p.coords.latitude.toFixed(5) + ', ' + p.coords.longitude.toFixed(5);
+      st.f.gps = t; save(); $('gpsMsg').textContent = 'Added ' + t;
+    }, function () { $('gpsMsg').textContent = 'Location was not shared.'; }, { timeout: 10000, enableHighAccuracy: true });
+  };
+
+  function v(k) { return (st.f[k] || '').trim(); }
+  function plate(s) { var p = [v(s + 'pEm'), v(s + 'pCode'), v(s + 'pNum')]; if (!p[1] && !p[2]) return ''; return (p[0] || 'Dubai') + ' ' + p[1] + ' ' + p[2]; }
+  function sections() {
+    var w = v('when') ? new Date(v('when')) : null;
+    var head = [['When', w && !isNaN(w) ? w.toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' }) : ''], ['Emirate', v('emirate') || 'Dubai'], ['Where', v('where')], ['GPS', st.f.gps || ''], ['What happened', v('what')]];
+    function drv(s) { return [['Name', v(s + 'name')], ['Mobile', v(s + 'phone')], ['Licence', v(s + 'lic') + (v(s + 'lic') ? ' (' + (v(s + 'licEm') || 'Dubai') + ')' : '')], ['Plate', plate(s).trim()], ['Car', v(s + 'car')], ['Owner', v(s + 'owner')], ['Insurer', v(s + 'ins')], ['Policy', v(s + 'pol')], ['Damage', v(s + 'dmg')]]; }
+    return [['Accident', head], ['Driver A', drv('A')], ['Driver B', drv('B')]];
+  }
+  function asText() {
+    var out = ['CAR ACCIDENT DETAILS'];
+    sections().forEach(function (s) { out.push('', s[0].toUpperCase()); s[1].forEach(function (r) { out.push(r[0] + ': ' + (r[1] || '-')); }); });
+    out.push('', 'Photos taken: ' + PH.filter(function (p) { return st.p[p[0]]; }).length + ' of ' + PH.length);
+    return out.join('\n');
+  }
+  function filled() { return ['Aname', 'Bname', 'ApNum', 'BpNum', 'Bins', 'where', 'what'].some(function (k) { return v(k); }); }
+  function wrap(ctx, text, maxW) {
+    var words = String(text).split(/\s+/), lines = [], cur = '';
+    words.forEach(function (w) { var t = cur ? cur + ' ' + w : w; if (ctx.measureText(t).width > maxW && cur) { lines.push(cur); cur = w; } else cur = t; });
+    if (cur) lines.push(cur); return lines.length ? lines : ['-'];
+  }
+  function asCanvas() {
+    var W = 1080, P = 56, c = document.createElement('canvas'), ctx = c.getContext('2d');
+    var secs = sections(), labelW = 230, valW = W - P * 2 - labelW;
+    function layout(draw) {
+      var y = P;
+      if (draw) { ctx.fillStyle = '#E9B467'; ctx.font = '700 46px "Bricolage Grotesque", sans-serif'; ctx.fillText('Car accident details', P, y + 40); }
+      y += 64;
+      if (draw) { ctx.fillStyle = '#A7ADCB'; ctx.font = '400 24px "Instrument Sans", sans-serif'; ctx.fillText('Exchanged between drivers · not a police report', P, y + 20); }
+      y += 50;
+      secs.forEach(function (s) {
+        y += 16;
+        if (draw) { ctx.fillStyle = '#4FD3BD'; ctx.font = '600 26px "JetBrains Mono", monospace'; ctx.fillText(s[0].toUpperCase(), P, y + 24); ctx.fillStyle = 'rgba(120,132,190,.35)'; ctx.fillRect(P, y + 38, W - P * 2, 2); }
+        y += 54;
+        s[1].forEach(function (r) {
+          ctx.font = '500 28px "Instrument Sans", sans-serif';
+          var lines = wrap(ctx, r[1] || '-', valW);
+          if (draw) {
+            ctx.fillStyle = '#A7ADCB'; ctx.font = '400 24px "Instrument Sans", sans-serif'; ctx.fillText(r[0], P, y + 26);
+            ctx.fillStyle = r[1] ? '#EEF0FA' : '#5d6488'; ctx.font = '500 28px "Instrument Sans", sans-serif';
+            lines.forEach(function (l, i) { ctx.fillText(l, P + labelW, y + 28 + i * 38); });
+          }
+          y += lines.length * 38 + 10;
+        });
+      });
+      y += 20;
+      if (draw) { ctx.fillStyle = '#A7ADCB'; ctx.font = '400 22px "Instrument Sans", sans-serif'; ctx.fillText('Made with lab.mariamalzaabi.ae/accident-helper · ' + new Date().toLocaleDateString('en-GB'), P, y + 10); }
+      return y + P;
+    }
+    c.width = W; c.height = 10; ctx = c.getContext('2d');
+    var H = layout(false); c.height = H; ctx = c.getContext('2d');
+    ctx.fillStyle = '#070A18'; ctx.fillRect(0, 0, W, H);
+    layout(true);
+    return c;
+  }
+  function fname(ext) { var d = v('when') ? v('when').slice(0, 10) : new Date().toISOString().slice(0, 10); return 'accident-' + d + '.' + ext; }
+  function download(blob, name) { var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500); }
+  function say(t) { $('formMsg').textContent = t; }
+  function warnEmpty() { if (!filled()) { say('The form is still empty. Add at least the other driver\'s name and plate first.'); return true; } return false; }
+  $('img').onclick = function () {
+    if (warnEmpty()) return;
+    var c = asCanvas();
+    $('preview').src = c.toDataURL('image/png'); $('preview').style.display = 'block';
+    c.toBlob(function (b) { download(b, fname('png')); say('Saved ' + fname('png') + '. On a phone, you can also long-press the preview below to save it to Photos.'); }, 'image/png');
+  };
+  $('share').onclick = function () {
+    if (warnEmpty()) return;
+    var text = asText();
+    if (!navigator.share) { copy(text); return; }
+    asCanvas().toBlob(function (b) {
+      var file = null; try { file = new File([b], fname('png'), { type: 'image/png' }); } catch (e) {}
+      var data = file && navigator.canShare && navigator.canShare({ files: [file] }) ? { files: [file], text: text, title: 'Car accident details' } : { text: text, title: 'Car accident details' };
+      navigator.share(data).then(function () { say('Shared.'); }).catch(function () { say('Sharing was cancelled.'); });
+    }, 'image/png');
+  };
+  function copy(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(function () { say('Copied. Paste it into WhatsApp, SMS or an email.'); }, function () { say('Couldn\'t copy. Try Download .txt instead.'); });
+    else say('Copying isn\'t available here. Try Download .txt instead.');
+  }
+  $('copy').onclick = function () { if (warnEmpty()) return; copy(asText()); };
+  $('txt').onclick = function () { if (warnEmpty()) return; download(new Blob([asText()], { type: 'text/plain' }), fname('txt')); say('Saved ' + fname('txt') + '.'); };
+  $('clear').onclick = function () {
+    if (!confirm('Clear all details on this form?')) return;
+    st.f = {}; save(); [].forEach.call(all(), function (el) { el.value = el.tagName === 'SELECT' ? (el.id === 'emirate' || el.dataset.f.slice(-2) === 'Em' ? 'Dubai' : el.options[0].value) : ''; });
+    fill(); $('preview').style.display = 'none'; $('gpsMsg').textContent = ''; say('Cleared.');
+  };
+  window.__accident = { asText: asText };
+  renderQs(); renderPhotos(); fill();
+})();
+</script>
+</body>
+</html>

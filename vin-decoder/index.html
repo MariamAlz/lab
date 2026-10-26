@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>VIN Decoder · Mariam's Lab</title>
+<meta name="description" content="Check a car's VIN (chassis number) before you buy: validate it, see the maker, country and model year, look up extra details, and learn how to spot US or Japan imports and flood cars in the UAE.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/vin-decoder/">
+<meta property="og:title" content="VIN Decoder · Mariam's Lab"><meta property="og:description" content="What a car's chassis number tells you before you buy it."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; cursor: pointer; }
+.sm[aria-pressed="true"], .sm.pri { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.sm:disabled { opacity: .45; cursor: default; }
+.bar { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+#vin { width: 100%; font-family: var(--font-mono); font-size: clamp(1rem, 4.6vw, 1.5rem); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink); background: rgba(7,10,24,.55); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+#vin:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; }
+.chars { display: grid; grid-template-columns: repeat(17, minmax(0, 1fr)); gap: 3px; }
+.chars div { display: grid; justify-items: center; gap: 2px; padding: 6px 0 4px; border-radius: 6px; background: color-mix(in srgb, var(--c) 18%, transparent); border-bottom: 3px solid var(--c); }
+.chars b { font-family: var(--font-mono); font-size: clamp(0.8rem, 3.4vw, 1.2rem); }
+.chars span { font-family: var(--font-mono); font-size: 0.55rem; color: var(--muted); }
+.legend { display: flex; gap: 10px; flex-wrap: wrap; font-size: 0.75rem; color: var(--muted); }
+.legend span::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-inline-end: 4px; vertical-align: -1px; background: var(--c); }
+dl.kv { margin: 0; display: grid; grid-template-columns: minmax(110px, auto) minmax(0, 1fr); border-top: 1px solid var(--line); }
+dl.kv dt, dl.kv dd { margin: 0; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 0.9rem; }
+dl.kv dt { color: var(--muted); padding-inline-end: 12px; }
+dl.kv dd { font-weight: 500; overflow-wrap: anywhere; }
+dl.kv dd small { display: block; font-weight: 400; color: var(--muted); font-size: 0.8rem; }
+.ok { color: var(--sat-b); } .warn { color: #ffc857; } .bad { color: #ff4f6d; }
+.chk { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.chk li { padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; font-size: 0.9rem; }
+.chk b { display: block; }
+.verdict { padding: 16px; border-radius: var(--radius); border: 2px solid var(--line); display: grid; gap: 4px; }
+.verdict b { font-family: var(--font-display); font-size: clamp(1.3rem, 4.5vw, 1.9rem); font-weight: 800; line-height: 1.1; }
+.verdict p { color: var(--muted); font-size: 0.9rem; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Cars · Used car checks</span>
+    <h1 style="font-size:var(--step-3)">VIN decoder.</h1>
+    <p>Every car since 1981 has a 17-character VIN, also called the chassis number. It's printed on the mulkiya, at the bottom of the windscreen and inside the driver's door. It tells you who made the car, where it was built and its model year, and whether the number has been typed or altered wrongly. Check it before you buy a used car, and compare it with the papers.</p>
+  </div>
+
+  <div class="panel">
+    <label class="label" for="vin">VIN / chassis number</label>
+    <input id="vin" maxlength="24" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. JTMHV05J604123456">
+    <div class="bar"><button class="sm pri" type="button" id="go">Decode</button><button class="sm" type="button" id="online" disabled>Look up more details online</button><span class="msg" id="msg" role="status"></span></div>
+    <div class="bar"><span class="msg" style="min-height:0">Try:</span><button class="sm" type="button" data-v="1HGCM82633A004352">US Honda</button><button class="sm" type="button" data-v="JTMHV05J604123456">Japan Toyota</button><button class="sm" type="button" data-v="WDD2050421F123456">German Mercedes</button><button class="sm" type="button" data-v="5YJ3E1EA2KF317000">US Tesla</button></div>
+  </div>
+
+  <div id="out" hidden style="margin-top:22px">
+    <div class="verdict" id="verdict"></div>
+    <div class="panel" style="margin-top:14px">
+      <div class="chars" id="chars"></div>
+      <div class="legend"><span style="--c:#E9B467">Maker (WMI)</span><span style="--c:#84A0FF">Vehicle details (VDS)</span><span style="--c:#ff8a4c">Check digit</span><span style="--c:#4FD3BD">Year</span><span style="--c:#F08AB3">Plant</span><span style="--c:#A7ADCB">Serial</span></div>
+    </div>
+    <div class="game" style="margin-top:18px">
+      <div class="panel"><span class="label">Decoded on this device</span><dl class="kv" id="kv"></dl></div>
+      <div class="panel"><span class="label">From the NHTSA database</span><div id="nhtsa"><p class="msg">Press "Look up more details online" to ask the US government's free vPIC database for the model, engine and body. Only the VIN is sent. It knows US-market cars best, so GCC-only models may come back with little detail.</p></div></div>
+    </div>
+  </div>
+
+  <div class="game" style="margin-top:28px">
+    <div class="panel">
+      <span class="label">GCC spec or import?</span>
+      <p class="fact">A GCC-spec car was built for this region: a bigger radiator and stronger AC, dust filters, and a warranty and parts with local dealers. Imports from the US, Canada or Japan are often cheaper, but some arrive after an insurance write-off, a flood or a big crash. They can be fine. They just need more checking, and resale is usually lower.</p>
+      <p class="fact">The VIN shows where a car was built, not where it was sold. A Japan-built Land Cruiser starting with J can be GCC spec, and a US-built Tahoe starting with 1 can be too. So use the VIN with other clues: a speedometer in miles first, US-style amber side markers, a US radio band, a dealer service history abroad, or papers saying "imported". Cars made for the Japanese home market often carry a short frame number (like GRS200-1234567) instead of a 17-character VIN.</p>
+    </div>
+    <div class="panel">
+      <span class="label">Before you buy a used car in the UAE</span>
+      <ul class="chk">
+        <li><b>Match the VIN in three places</b>Mulkiya, windscreen plate and door pillar sticker. Scratched or replaced plates are a warning sign.</li>
+        <li><b>Check the official history</b>As of 2026, Dubai RTA, the MOI e-services and Emirates Vehicle Gate offer vehicle and accident history lookups by chassis number. Abu Dhabi uses its own police and TAMM services. Fees and names change, so check the official sites.</li>
+        <li><b>For a US or Canada import</b>Buy a history report (such as Carfax or AutoCheck) using the VIN. Look for salvage, flood, rebuilt or total-loss titles, and odometer jumps.</li>
+        <li><b>Look for flood signs</b>Musty smell, damp or new carpets, rust on seat rails and under the dash, silt in the spare-wheel well, foggy lights, and electrical faults.</li>
+        <li><b>Get an independent inspection</b>Many garages and the RTA-approved test centres offer pre-purchase checks. Ask for paint thickness readings, which show repainted panels.</li>
+        <li><b>Check for loans and fines</b>Make sure any bank mortgage on the car is cleared and fines are paid before transfer.</li>
+      </ul>
+    </div>
+  </div>
+  <p class="fact" style="margin-top:20px">How the check digit works: each of the 17 characters becomes a number (letters have fixed values, so A=1, B=2 … J=1, S=2), each position has a weight (8, 7, 6 … 10 for position 8), and the weighted sum divided by 11 leaves a remainder that should equal character 9 (10 is written X). One mistyped or altered character almost always breaks it. It is required in North America and China. Many European and Japanese makers don't use it, so a mismatch on those cars is normal.</p>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  // WMI table: 3-character codes first, then 2-character fallbacks
+  var W3 = {
+    // Japan
+    JTH: 'Lexus', JTJ: 'Lexus (SUV)', JT6: 'Lexus (SUV)', JT8: 'Lexus', JTD: 'Toyota', JTE: 'Toyota (SUV/MPV)', JTM: 'Toyota (SUV)', JTN: 'Toyota', JTK: 'Toyota', JTL: 'Toyota', JTF: 'Toyota (van)', JT2: 'Toyota', JT3: 'Toyota (SUV)', JT4: 'Toyota (truck)', JTG: 'Toyota (bus/van)', JTB: 'Toyota (bus)',
+    JN1: 'Nissan', JN8: 'Nissan (SUV)', JN6: 'Nissan (truck)', JNK: 'Infiniti', JNR: 'Infiniti (SUV)', JNX: 'Infiniti', JNA: 'Nissan Diesel / UD Trucks',
+    JHM: 'Honda', JHL: 'Honda (SUV)', JHG: 'Honda', JH4: 'Acura', JH2: 'Honda (motorcycle)',
+    JM1: 'Mazda', JM3: 'Mazda (SUV)', JM7: 'Mazda', JMZ: 'Mazda (export)', JA3: 'Mitsubishi', JA4: 'Mitsubishi (SUV)', JA7: 'Mitsubishi (truck)', JMB: 'Mitsubishi (export)', JMY: 'Mitsubishi (export)', JMA: 'Mitsubishi', JL6: 'Mitsubishi Fuso',
+    JF1: 'Subaru', JF2: 'Subaru (SUV)', JS1: 'Suzuki (motorcycle)', JS2: 'Suzuki', JS3: 'Suzuki (SUV)', JSA: 'Suzuki', JAA: 'Isuzu', JAL: 'Isuzu (truck)', JAC: 'Isuzu (SUV)', JDA: 'Daihatsu', JYA: 'Yamaha (motorcycle)', JKA: 'Kawasaki (motorcycle)',
+    // Korea
+    KMH: 'Hyundai', KM8: 'Hyundai (SUV)', KMF: 'Hyundai (commercial)', KMJ: 'Hyundai (bus)', KMT: 'Genesis', KNA: 'Kia', KND: 'Kia (SUV)', KNE: 'Kia (export)', KNC: 'Kia (commercial)', KNM: 'Renault Samsung', KL1: 'GM Korea (Chevrolet)', KLA: 'Daewoo / GM Korea', KL4: 'GM Korea (Buick)', KPT: 'SsangYong / KGM', KPA: 'SsangYong / KGM',
+    // China
+    LFV: 'FAW-Volkswagen', LSV: 'SAIC Volkswagen', LBV: 'BMW Brilliance', LE4: 'Beijing Benz', LVS: 'Changan Ford', LVV: 'Chery', LGW: 'Great Wall / Haval', LGX: 'BYD', LC0: 'BYD', LB3: 'Geely', L6T: 'Geely', LSJ: 'SAIC MG', LSG: 'SAIC-GM', LRW: 'Tesla (Shanghai)', LVG: 'GAC Toyota', LHG: 'GAC Honda', LUC: 'Honda (China)', LS5: 'Changan', LDC: 'Dongfeng Peugeot Citroën', LGB: 'Dongfeng Nissan', LMG: 'GAC Motor', LNB: 'BAIC', LPS: 'Polestar', LYV: 'Volvo (China)', LJ1: 'JAC', LZW: 'SAIC-GM-Wuling', LFP: 'FAW', LJD: 'Dongfeng Yueda Kia', LBE: 'Beijing Hyundai', LTV: 'FAW Toyota', LVH: 'Dongfeng Honda',
+    // India, SE Asia, Turkey, others
+    MA1: 'Mahindra', MAL: 'Hyundai (India)', MAT: 'Tata', MA3: 'Maruti Suzuki', MBH: 'Suzuki (India)', MAJ: 'Ford (India)', MDH: 'Nissan (India)', MAK: 'Honda (India)', MBJ: 'Toyota (India)',
+    MR0: 'Toyota (Thailand)', MR1: 'Toyota (Thailand)', MR2: 'Toyota (Thailand)', MNT: 'Nissan (Thailand)', MMB: 'Mitsubishi (Thailand)', MMT: 'Mitsubishi (Thailand)', MPA: 'Isuzu (Thailand)', MNB: 'Ford (Thailand)', MHF: 'Toyota (Indonesia)', MHR: 'Honda (Indonesia)', MRH: 'Honda (Thailand)', PL1: 'Proton', PM1: 'BMW (Malaysia)', MM8: 'Mazda (Thailand)',
+    NMT: 'Toyota (Turkey)', NM0: 'Ford (Turkey)', NLH: 'Hyundai (Turkey)', NM4: 'Tofaş / Fiat (Turkey)', NMA: 'MAN (Turkey)',
+    // North America
+    '1FA': 'Ford', '1FT': 'Ford (truck)', '1FM': 'Ford (SUV/MPV)', '1FD': 'Ford (commercial)', '1FB': 'Ford (bus/van)', '1FC': 'Ford (chassis)', '1LN': 'Lincoln', '5LM': 'Lincoln (SUV)', '2LM': 'Lincoln (SUV)', '1ZV': 'Ford (AutoAlliance)', '2FA': 'Ford (Canada)', '2FM': 'Ford (Canada)', '2FT': 'Ford (Canada)', '3FA': 'Ford (Mexico)', '3FM': 'Ford (Mexico)', '3FT': 'Ford (Mexico)',
+    '1G1': 'Chevrolet', '1GC': 'Chevrolet (truck)', '1GN': 'Chevrolet (SUV)', '1GB': 'Chevrolet (commercial)', '1GT': 'GMC (truck)', '1GK': 'GMC (SUV)', '1GD': 'GMC (commercial)', '1G6': 'Cadillac', '1GY': 'Cadillac (SUV)', '1G4': 'Buick', '5GA': 'Buick (SUV)', '2G1': 'Chevrolet (Canada)', '2GN': 'Chevrolet (Canada)', '2GT': 'GMC (Canada)', '3GN': 'Chevrolet (Mexico)', '3GC': 'Chevrolet (Mexico)', '3GT': 'GMC (Mexico)', '3GK': 'GMC (Mexico)', '3G1': 'Chevrolet (Mexico)', '1GG': 'Isuzu (GM)',
+    '1C3': 'Chrysler / Dodge', '1C4': 'Chrysler / Dodge / Jeep (SUV)', '1C6': 'Ram', '1C7': 'Ram', '2C3': 'Chrysler / Dodge (Canada)', '2C4': 'Chrysler (Canada)', '3C4': 'Chrysler / Jeep (Mexico)', '3C6': 'Ram (Mexico)', '3C7': 'Ram (Mexico)', '1B3': 'Dodge', '1B7': 'Dodge (truck)', '1D7': 'Dodge (truck)', '2B3': 'Dodge (Canada)', '1J4': 'Jeep', '1J8': 'Jeep', 'ZAC': 'Jeep (Italy)',
+    '1HG': 'Honda (USA)', '5FN': 'Honda (USA, SUV)', '5J6': 'Honda (USA, SUV)', '19X': 'Honda (USA)', '19U': 'Acura (USA)', '5J8': 'Acura (USA)', '2HG': 'Honda (Canada)', '2HK': 'Honda (Canada, SUV)', '2HN': 'Acura (Canada)', '3HG': 'Honda (Mexico)', '1HD': 'Harley-Davidson',
+    '1N4': 'Nissan (USA)', '1N6': 'Nissan (USA, truck)', '5N1': 'Nissan (USA, SUV)', '3N1': 'Nissan (Mexico)', '3N6': 'Nissan (Mexico)', '5N3': 'Infiniti (USA)',
+    '4T1': 'Toyota (USA)', '4T3': 'Toyota (USA, SUV)', '4T4': 'Toyota (USA)', '5TD': 'Toyota (USA, SUV)', '5TF': 'Toyota (USA, truck)', '5TE': 'Toyota (USA, truck)', '5YF': 'Toyota (USA)', '7MU': 'Toyota (USA)', '2T1': 'Toyota (Canada)', '2T2': 'Lexus (Canada)', '2T3': 'Toyota (Canada, SUV)', '5TB': 'Toyota (USA, truck)', '3TM': 'Toyota (Mexico)', '58A': 'Lexus (USA)',
+    '4S3': 'Subaru (USA)', '4S4': 'Subaru (USA, SUV)', '1YV': 'Mazda (USA)', '4F2': 'Mazda (USA)', '3MZ': 'Mazda (Mexico)', '3MV': 'Mazda (Mexico)', '4A3': 'Mitsubishi (USA)', '4A4': 'Mitsubishi (USA)',
+    '5NP': 'Hyundai (USA)', '5NM': 'Hyundai (USA, SUV)', '5NT': 'Hyundai (USA, truck)', '5XY': 'Kia (USA, SUV)', '5XX': 'Kia (USA)', '3KP': 'Kia (Mexico)', 'KNDJ': 'Kia',
+    '4JG': 'Mercedes-Benz (USA, SUV)', '55S': 'Mercedes-Benz (USA)', '5UX': 'BMW (USA, SUV)', '5UJ': 'BMW (USA, SUV)', '5YM': 'BMW M (USA, SUV)', '4US': 'BMW (USA)', '1VW': 'Volkswagen (USA)', '3VW': 'Volkswagen (Mexico)', '3VV': 'Volkswagen (Mexico, SUV)', 'WA1': 'Audi (SUV)',
+    '5YJ': 'Tesla (USA)', '7SA': 'Tesla (USA)', '7G2': 'Tesla (USA, truck)', '7FA': 'Honda (USA)', '7PD': 'Rivian', '50E': 'Lucid', '1GM': 'Pontiac', '2G2': 'Pontiac (Canada)',
+    // Europe
+    WDB: 'Mercedes-Benz', WDD: 'Mercedes-Benz', WDC: 'Mercedes-Benz (SUV)', W1K: 'Mercedes-Benz', W1N: 'Mercedes-Benz (SUV)', W1V: 'Mercedes-Benz (van)', W1W: 'Mercedes-Benz (van)', WMX: 'Mercedes-AMG', WDF: 'Mercedes-Benz (van)', WME: 'smart',
+    WBA: 'BMW', WBS: 'BMW M', WBY: 'BMW i', WBX: 'BMW (SUV)', WB1: 'BMW Motorrad', WMW: 'MINI', WAU: 'Audi', WUA: 'Audi Sport', TRU: 'Audi (Hungary)', WVW: 'Volkswagen', WVG: 'Volkswagen (SUV)', WV1: 'Volkswagen (commercial)', WV2: 'Volkswagen (bus/van)', WP0: 'Porsche', WP1: 'Porsche (SUV)', W0L: 'Opel / Vauxhall', W0V: 'Opel', WF0: 'Ford (Germany)', WMA: 'MAN',
+    VF1: 'Renault', VF3: 'Peugeot', VF7: 'Citroën', VR3: 'Peugeot', VR7: 'Citroën', VR1: 'DS', VSS: 'SEAT', VSK: 'Nissan (Spain)', VS6: 'Ford (Spain)', VNK: 'Toyota (France)', TMB: 'Škoda', TMA: 'Hyundai (Czechia)', U5Y: 'Kia (Slovakia)', UU1: 'Dacia', XTA: 'Lada',
+    SAL: 'Land Rover', SAJ: 'Jaguar', SAD: 'Jaguar (SUV)', SAR: 'Rover', SCA: 'Rolls-Royce', SCB: 'Bentley', SCC: 'Lotus', SCF: 'Aston Martin', SBM: 'McLaren', SHH: 'Honda (UK)', SHS: 'Honda (UK)', SJN: 'Nissan (UK)', SB1: 'Toyota (UK)', SAT: 'Triumph',
+    ZFF: 'Ferrari', ZHW: 'Lamborghini', ZAM: 'Maserati', ZAR: 'Alfa Romeo', ZFA: 'Fiat', ZCF: 'Iveco', ZDM: 'Ducati', ZAP: 'Piaggio', ZBN: 'Benelli',
+    YV1: 'Volvo', YV4: 'Volvo (SUV)', YV2: 'Volvo (truck)', YS3: 'Saab', YS2: 'Scania', YK1: 'Saab (Finland)',
+    // Africa, South America, Oceania
+    AHT: 'Toyota (South Africa)', AAV: 'Volkswagen (South Africa)', ADM: 'GM (South Africa)', AFA: 'Ford (South Africa)', ADD: 'Mercedes-Benz (South Africa)',
+    '9BW': 'Volkswagen (Brazil)', '9BR': 'Toyota (Brazil)', '9BG': 'Chevrolet (Brazil)', '93H': 'Honda (Brazil)', '8AJ': 'Toyota (Argentina)', '8AP': 'Fiat (Argentina)', '8AF': 'Ford (Argentina)',
+    '6T1': 'Toyota (Australia)', '6G1': 'Holden', '6FP': 'Ford (Australia)', '6MM': 'Mitsubishi (Australia)'
+  };
+  var W2 = { JT: 'Toyota', JN: 'Nissan', JH: 'Honda', JM: 'Mazda', JA: 'Isuzu / Mitsubishi', JF: 'Subaru', JS: 'Suzuki', JD: 'Daihatsu', KM: 'Hyundai', KN: 'Kia', KL: 'GM Korea', WD: 'Mercedes-Benz', WB: 'BMW', WA: 'Audi', WV: 'Volkswagen', WP: 'Porsche', VF: 'French maker (Renault, Peugeot or Citroën)', SA: 'British maker (often Land Rover or Jaguar)', ZF: 'Italian maker', YV: 'Volvo', '1G': 'General Motors', '2G': 'General Motors (Canada)', '3G': 'General Motors (Mexico)', '1F': 'Ford', '1C': 'Chrysler group (Stellantis)', '2C': 'Chrysler group (Canada)', '1N': 'Nissan (USA)', '4T': 'Toyota (USA)', '5T': 'Toyota (USA)', '1H': 'Honda (USA)' };
+  // country by first two characters (ISO 3780 ranges, simplified)
+  var SEQ = 'ABCDEFGHJKLMNPRSTUVWXYZ1234567890';
+  function inR(c, a, b) { var i = SEQ.indexOf(c); return i >= SEQ.indexOf(a) && i <= SEQ.indexOf(b); }
+  var CR = [['A', 'A', 'H', 'South Africa'], ['A', 'J', 'N', 'Ivory Coast'], ['B', 'A', 'E', 'Angola'], ['B', 'F', 'K', 'Kenya'], ['B', 'L', 'R', 'Tanzania'], ['C', 'A', 'E', 'Benin'], ['D', 'A', 'E', 'Egypt'], ['D', 'F', 'K', 'Morocco'], ['E', 'A', 'E', 'Ethiopia'], ['F', 'A', 'E', 'Gabon'], ['G', 'A', 'E', 'Ghana'],
+    ['J', 'A', '0', 'Japan'], ['K', 'A', 'E', 'Sri Lanka'], ['K', 'F', 'K', 'Israel'], ['K', 'L', 'R', 'South Korea'], ['K', 'S', '0', 'Kazakhstan'], ['L', 'A', '0', 'China'], ['M', 'A', 'E', 'India'], ['M', 'F', 'K', 'Indonesia'], ['M', 'L', 'R', 'Thailand'], ['M', 'S', 'S', 'Myanmar'], ['N', 'A', 'E', 'Iran'], ['N', 'F', 'K', 'Pakistan'], ['N', 'L', 'R', 'Turkey'], ['P', 'A', 'E', 'Philippines'], ['P', 'F', 'K', 'Singapore'], ['P', 'L', 'R', 'Malaysia'], ['R', 'F', 'K', 'Taiwan'], ['R', 'L', 'R', 'Vietnam'],
+    ['S', 'A', 'M', 'United Kingdom'], ['S', 'N', 'T', 'Germany'], ['S', 'U', 'Z', 'Poland'], ['T', 'A', 'H', 'Switzerland'], ['T', 'J', 'P', 'Czech Republic'], ['T', 'R', 'V', 'Hungary'], ['T', 'W', '1', 'Portugal'], ['U', '5', '7', 'Slovakia'], ['U', 'H', 'M', 'Denmark'], ['U', 'N', 'R', 'Ireland'], ['U', 'U', 'Z', 'Romania'], ['V', 'A', 'E', 'Austria'], ['V', 'F', 'R', 'France'], ['V', 'S', 'W', 'Spain'], ['V', 'X', '2', 'Serbia'], ['W', 'A', '0', 'Germany'], ['X', 'A', 'E', 'Bulgaria'], ['X', 'L', 'R', 'Netherlands'], ['X', 'S', 'W', 'Russia'], ['X', '3', '0', 'Russia'], ['Y', 'A', 'E', 'Belgium'], ['Y', 'F', 'K', 'Finland'], ['Y', 'S', 'W', 'Sweden'], ['Z', 'A', 'R', 'Italy'],
+    ['1', 'A', '0', 'United States'], ['4', 'A', '0', 'United States'], ['5', 'A', '0', 'United States'], ['7', 'F', '0', 'United States'], ['2', 'A', '0', 'Canada'], ['3', 'A', 'W', 'Mexico'], ['6', 'A', 'W', 'Australia'], ['7', 'A', 'E', 'New Zealand'], ['8', 'A', 'E', 'Argentina'], ['8', 'F', 'K', 'Chile'], ['8', 'X', '2', 'Venezuela'], ['9', 'A', 'E', 'Brazil'], ['9', '3', '9', 'Brazil'], ['9', 'F', 'J', 'Colombia']];
+  function region(c) { return /[A-H]/.test(c) ? 'Africa' : /[J-R]/.test(c) ? 'Asia' : /[S-Z]/.test(c) ? 'Europe' : /[1-5]/.test(c) ? 'North America' : /[67]/.test(c) ? 'Oceania' : 'South America'; }
+  function country(v) { for (var i = 0; i < CR.length; i++) if (v[0] === CR[i][0] && inR(v[1], CR[i][1], CR[i][2])) return CR[i][3]; return null; }
+  function maker(v) { return W3[v.slice(0, 3)] || W2[v.slice(0, 2)] || null; }
+  var TR = { A: 1, B: 2, C: 3, D: 4, E: 5, F: 6, G: 7, H: 8, J: 1, K: 2, L: 3, M: 4, N: 5, P: 7, R: 9, S: 2, T: 3, U: 4, V: 5, W: 6, X: 7, Y: 8, Z: 9 };
+  var WT = [8, 7, 6, 5, 4, 3, 2, 10, 0, 9, 8, 7, 6, 5, 4, 3, 2];
+  function check(v) { var s = 0; for (var i = 0; i < 17; i++) { var c = v[i], n = /\d/.test(c) ? +c : TR[c]; s += n * WT[i]; } var r = s % 11; return r === 10 ? 'X' : String(r); }
+  var YC = 'ABCDEFGHJKLMNPRSTVWXY123456789';
+  function years(c) { var i = YC.indexOf(c); if (i < 0) return []; return [1980 + i, 2010 + i]; }
+  var NOW = new Date().getFullYear();
+
+  var last = null;
+  function decode(raw) {
+    var v = raw.toUpperCase().replace(/[\s\-.]/g, '');
+    $('online').disabled = true;
+    if (!v) { $('msg').textContent = ''; $('out').hidden = true; return; }
+    if (/^[A-Z0-9]{2,8}-?\d{5,8}$/.test(raw.toUpperCase().trim()) && v.length < 17 && /-/.test(raw)) {
+      $('msg').textContent = 'This looks like a Japanese frame number, not a 17-character VIN. Cars built for the Japanese home market use these. The part before the dash is the model code.'; $('out').hidden = true; return;
+    }
+    if (/[IOQ]/.test(v)) { $('msg').innerHTML = '<span class="bad">VINs never contain the letters I, O or Q</span>, to avoid confusion with 1 and 0. Check for a typo.'; $('out').hidden = true; return; }
+    if (!/^[A-HJ-NPR-Z0-9]+$/.test(v)) { $('msg').textContent = 'Only letters and numbers, please.'; $('out').hidden = true; return; }
+    if (v.length !== 17) { $('msg').textContent = 'A VIN has 17 characters. This one has ' + v.length + '.' + (v.length < 17 ? ' Cars from before 1981, and some Japanese home-market cars, use shorter numbers.' : ''); $('out').hidden = true; return; }
+    $('msg').textContent = '';
+    last = v; $('online').disabled = false;
+    try { localStorage.setItem('vinLast', v); } catch (e) {}
+    var mk = maker(v), ctry = country(v) || region(v[0]), cd = check(v), cdOk = cd === v[8];
+    var na = /[1-5]/.test(v[0]), cn = v[0] === 'L', mustCheck = na || cn;
+    var ys = years(v[9]), year = null, yearNote = '', soft = false;
+    if (ys.length) {
+      if (na && /\d/.test(v[6])) { year = ys[0]; yearNote = 'Position 7 is a number, so the older cycle applies (North American rule).'; }
+      else if (na && /[A-Z]/.test(v[6])) { year = ys[1]; yearNote = 'Position 7 is a letter, so the 2010+ cycle applies (North American rule).'; }
+      else { year = ys[1] <= NOW + 1 ? ys[1] : ys[0]; soft = true; yearNote = 'Probably ' + year + '. The code repeats every 30 years (' + ys[0] + ' or ' + ys[1] + '), and some European and Japanese makers don\'t put the year here at all, so confirm it on the mulkiya.'; }
+    } else yearNote = 'Not a standard year code. Some non-US makers don\'t encode the year here.';
+    var smallMaker = v[2] === '9';
+    // chars strip
+    var col = function (i) { return i < 3 ? '#E9B467' : i < 8 ? '#84A0FF' : i === 8 ? '#ff8a4c' : i === 9 ? '#4FD3BD' : i === 10 ? '#F08AB3' : '#A7ADCB'; };
+    $('chars').innerHTML = v.split('').map(function (c, i) { return '<div style="--c:' + col(i) + '"><b>' + c + '</b><span>' + (i + 1) + '</span></div>'; }).join('');
+    var cdTxt = cdOk ? '<span class="ok">Valid (' + cd + ')</span><small>The number is internally consistent.</small>' : mustCheck ? '<span class="bad">Doesn\'t match: expected ' + cd + ', found ' + v[8] + '</span><small>For a car built in ' + (cn ? 'China' : 'North America') + ' this should always match. Check for a typo, then treat a mismatch on the papers as a serious warning.</small>' : '<span class="warn">Not used here (calculated ' + cd + ', found ' + v[8] + ')</span><small>Normal for many European and Japanese makers, which don\'t use a check digit.</small>';
+    var rows = [
+      ['Maker', mk ? esc(mk) + '<small>From the first three characters (' + v.slice(0, 3) + ').</small>' : 'Not in the built-in list<small>WMI ' + v.slice(0, 3) + '. Try the online lookup.</small>'],
+      ['Built in', esc(ctry) + '<small>' + region(v[0]) + '. This is where it was made, not where it was first sold.</small>'],
+      ['Model year', year ? (soft ? 'Probably ' : '') + year + '<small>' + yearNote + '</small>' : '<span class="warn">Unknown</span><small>' + yearNote + '</small>'],
+      ['Check digit', cdTxt],
+      ['Plant code', v[10] + '<small>Position 11. Each maker has its own list of factory codes.</small>'],
+      ['Vehicle details', v.slice(3, 8) + '<small>Positions 4 to 8 describe model, body and engine, in the maker\'s own code.</small>'],
+      ['Serial number', (smallMaker ? v.slice(14) + '<small>Small maker: positions 12 to 14 extend the maker code.</small>' : v.slice(11) + '<small>The car\'s production number.</small>')]
+    ];
+    $('kv').innerHTML = rows.map(function (r) { return '<dt>' + r[0] + '</dt><dd>' + r[1] + '</dd>'; }).join('');
+    // verdict
+    var V = $('verdict'), title, body, c;
+    if (mustCheck && !cdOk) { c = '#ff4f6d'; title = 'Check digit fails'; body = 'Either there\'s a typo or the number is not genuine. Re-type it carefully from the mulkiya, then compare with the plates on the car.'; }
+    else if (na) { c = '#ffc857'; title = 'Built in ' + ctry + (mk ? ', ' + mk : ''); body = 'Many cars built in North America are sold new in the GCC too, but this is also where most US and Canada imports come from. Ask whether it is GCC spec, and run a US history report on this VIN.'; }
+    else if (v[0] === 'J') { c = 'var(--sat-b)'; title = 'Built in Japan' + (mk ? ', ' + mk : ''); body = 'Japan builds many GCC-spec cars. A 17-character VIN suggests it was made for export rather than the Japanese home market.'; }
+    else { c = 'var(--sat-b)'; title = 'Built in ' + ctry + (mk ? ', ' + mk : ''); body = 'The number looks well formed. Now match it with the mulkiya and the plates on the car.'; }
+    V.style.borderColor = c; V.innerHTML = '<span class="label">' + (year && !soft ? 'Model year ' + year : 'VIN ' + v) + '</span><b style="color:' + c + '">' + esc(title) + '</b><p>' + body + '</p>';
+    $('nhtsa').innerHTML = '<p class="msg">Press "Look up more details online" to ask the US government\'s free vPIC database for the model, engine and body. Only the VIN is sent. It knows US-market cars best, so GCC-only models may come back with little detail.</p>';
+    $('out').hidden = false;
+  }
+  var FIELDS = [['Make', 'Make'], ['Model', 'Model'], ['ModelYear', 'Model year'], ['Trim', 'Trim'], ['Series', 'Series'], ['BodyClass', 'Body'], ['VehicleType', 'Type'], ['DriveType', 'Drive'], ['EngineCylinders', 'Cylinders'], ['DisplacementL', 'Engine (L)'], ['EngineHP', 'Power (hp)'], ['FuelTypePrimary', 'Fuel'], ['TransmissionStyle', 'Gearbox'], ['Doors', 'Doors'], ['Manufacturer', 'Manufacturer'], ['PlantCity', 'Plant city'], ['PlantCountry', 'Plant country']];
+  function online() {
+    if (!last) return;
+    var v = last;
+    $('nhtsa').innerHTML = '<p class="msg">Asking vPIC…</p>';
+    fetch('https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/' + encodeURIComponent(v) + '?format=json').then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(function (j) {
+      if (v !== last) return;
+      var R = j && j.Results && j.Results[0];
+      if (!R) throw 0;
+      var rows = FIELDS.filter(function (f) { var x = R[f[0]]; return x && x !== '0' && !/^not applicable$/i.test(x); });
+      var err = R.ErrorCode && !/^0\b/.test(R.ErrorCode) ? '<p class="msg">vPIC notes: ' + esc(R.ErrorText || '').slice(0, 220) + '</p>' : '';
+      $('nhtsa').innerHTML = rows.length ? '<dl class="kv">' + rows.map(function (f) { var x = R[f[0]]; if (f[0] === 'DisplacementL') x = (+x).toFixed(1); if (f[0] === 'EngineHP') x = Math.round(+x); return '<dt>' + f[1] + '</dt><dd>' + esc(x) + '</dd>'; }).join('') + '</dl>' + err : '<p class="msg">vPIC has no details for this VIN. That is common for cars made only for the GCC, Europe or Asia.</p>' + err;
+    }).catch(function () { $('nhtsa').innerHTML = '<p class="msg">Couldn\'t reach the vPIC service. Check your connection and try again. Everything above still works offline.</p>'; });
+  }
+  $('go').onclick = function () { decode($('vin').value); };
+  $('online').onclick = online;
+  $('vin').addEventListener('keydown', function (e) { if (e.key === 'Enter') decode($('vin').value); });
+  $('vin').addEventListener('input', function () { var v = $('vin').value.replace(/[\s\-.]/g, ''); if (v.length === 17) decode($('vin').value); });
+  [].forEach.call(document.querySelectorAll('[data-v]'), function (b) { b.onclick = function () { $('vin').value = b.dataset.v; decode(b.dataset.v); }; });
+  try { var l = localStorage.getItem('vinLast'); if (l) { $('vin').value = l; decode(l); } } catch (e) {}
+  window.__vin = { check: check, decode: decode };
+})();
+</script>
+</body>
+</html>

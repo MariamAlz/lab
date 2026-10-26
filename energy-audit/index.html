@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Home Energy Audit · Mariam's Lab</title>
+<meta name="description" content="List your appliances room by room and see where your UAE electricity bill goes: kWh and dirhams per month on DEWA or Abu Dhabi tariffs, and the savings that matter most for your home.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/energy-audit/">
+<meta property="og:title" content="Home Energy Audit · Mariam's Lab"><meta property="og:description" content="Where your electricity bill goes, and what to change first."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.viz { --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; cursor: pointer; }
+.sm[aria-pressed="true"], .sm.pri { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+select.sm { background: var(--bg); }
+.bar { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; }
+#rooms, .room, .item { min-width: 0; }
+#rooms, .room { grid-template-columns: minmax(0, 1fr); }
+.item + .item { border-top: 1px dashed var(--line); padding-top: 8px; }
+.room { border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: grid; gap: 8px; background: var(--surface); }
+.room-h { display: flex; gap: 8px; align-items: center; }
+.room-h input { flex: 1; min-width: 0; font: 600 1rem var(--font-display); color: var(--ink); background: transparent; border: 0; border-bottom: 1px dashed var(--line); padding: 3px 0; }
+.room-h b { font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted); font-weight: 400; white-space: nowrap; }
+.x { font: inherit; font-size: 1rem; line-height: 1; color: var(--muted); background: none; border: 0; cursor: pointer; padding: 4px 6px; border-radius: 6px; }
+.x:hover { color: #ff4f6d; }
+.item { display: grid; grid-template-columns: minmax(0, 2.2fr) 58px 72px 64px 60px 26px; gap: 6px; align-items: end; font-size: 0.85rem; }
+.item label { display: grid; gap: 2px; font-size: 0.68rem; color: var(--muted); min-width: 0; }
+.item input, .item select { font: inherit; font-size: 0.85rem; color: var(--ink); background: rgba(7,10,24,.55); border: 1px solid var(--line); border-radius: 7px; padding: 5px 6px; width: 100%; min-width: 0; }
+.item .kwh { font-family: var(--font-mono); font-size: 0.78rem; text-align: end; padding-bottom: 6px; color: var(--ink); }
+.item .acx { grid-column: 1 / -1; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; font-size: 0.78rem; color: var(--muted); }
+.item .acx select { width: auto; }
+@media (max-width: 520px) { .item { grid-template-columns: repeat(4, minmax(0, 1fr)); } .item label:first-child { grid-column: 1 / 4; } .item .x { grid-column: 4; grid-row: 1; justify-self: end; } .item .kwh { text-align: start; padding: 0; } }
+.addrow { display: flex; gap: 6px; flex-wrap: wrap; }
+.addrow select { font: inherit; font-size: 0.8rem; color: var(--ink); background: var(--bg); border: 1px dashed var(--line); border-radius: 999px; padding: 5px 10px; max-width: 100%; }
+.donut { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 16px; align-items: center; }
+@media (max-width: 480px) { .donut { grid-template-columns: 1fr; justify-items: center; } }
+.donut svg { width: 180px; height: 180px; }
+.donut path { cursor: default; }
+.leg { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 0.86rem; width: 100%; }
+.leg li { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto auto; gap: 8px; align-items: center; }
+.leg i { width: 12px; height: 12px; border-radius: 3px; background: var(--c); }
+.leg b { font-family: var(--font-mono); font-size: 0.78rem; font-weight: 400; color: var(--muted); text-align: end; }
+.leg b + b { color: var(--ink); min-width: 4.5em; }
+.hb { display: grid; gap: 4px; }
+.hb div { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) 5.5em; gap: 8px; align-items: center; font-size: 0.8rem; }
+.hb span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); }
+.hb i { display: block; height: 12px; border-radius: 0 4px 4px 0; background: var(--c); min-width: 2px; }
+.hb b { font-family: var(--font-mono); font-weight: 400; font-size: 0.76rem; text-align: end; }
+.tips { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; counter-reset: t; }
+.tips li { counter-increment: t; display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; gap: 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; font-size: 0.9rem; align-items: start; }
+.tips li::before { content: counter(t); width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: var(--sat-b); color: var(--bg); font: 600 0.78rem var(--font-mono); }
+.tips small { display: block; color: var(--muted); font-size: 0.8rem; }
+.tips b { font-family: var(--font-mono); font-size: 0.85rem; color: var(--sat-b); white-space: nowrap; }
+table.slabs { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+table.slabs td, table.slabs th { padding: 4px 6px; border-bottom: 1px solid var(--line); text-align: start; }
+table.slabs th { font-weight: 400; color: var(--muted); font-size: 0.75rem; }
+table.slabs input { width: 6em; font: inherit; font-family: var(--font-mono); font-size: 0.82rem; color: var(--ink); background: rgba(7,10,24,.55); border: 1px solid var(--line); border-radius: 6px; padding: 3px 6px; }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: 0.88rem; }
+.row input { width: 5em; font: inherit; font-family: var(--font-mono); color: var(--ink); background: rgba(7,10,24,.55); border: 1px solid var(--line); border-radius: 6px; padding: 3px 6px; }
+#tip { position: fixed; pointer-events: none; z-index: 20; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 6px 9px; font-size: 0.8rem; display: none; max-width: 240px; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Home · Energy · UAE</span>
+    <h1 style="font-size:var(--step-3)">Home energy audit.</h1>
+    <p>An electricity bill gives you one number. This splits it up. List what you have in each room and roughly how many hours it runs, and you'll see the kWh and dirhams each one costs a month on your tariff. Then you get the savings ranked by how much they would save in your home. A sample two-bedroom flat is filled in to start.</p>
+  </div>
+
+  <div class="stats viz"><div><b id="sKwh">0</b><span>kWh a month</span></div><div><b id="sAed">0</b><span>AED a month (est.)</span></div><div><b id="sCool">0%</b><span>goes on cooling</span></div></div>
+  <div class="bar" style="margin-top:12px" id="season"><span class="msg" style="min-height:0">Season:</span><button class="sm" type="button" data-s="1">Summer</button><button class="sm" type="button" data-s="0.55">Spring / autumn</button><button class="sm" type="button" data-s="0.2">Winter</button></div>
+
+  <div class="game" style="margin-top:18px">
+    <div class="panel">
+      <span class="label">Your rooms and appliances</span>
+      <div id="rooms" style="display:grid;gap:12px"></div>
+      <div class="bar"><button class="sm" type="button" id="addRoom">+ Add a room</button><button class="sm" type="button" id="reset">Start again with the sample</button><button class="sm" type="button" id="empty">Clear everything</button></div>
+      <p class="msg">Hours are per day. "On %" is the share of that time the appliance actually draws full power: a fridge or AC compressor switches on and off, so it is well under 100%.</p>
+    </div>
+    <div class="panel viz">
+      <span class="label">Where the bill goes</span>
+      <div class="donut"><svg viewBox="0 0 180 180" id="pie" role="img" aria-label="Share of monthly energy by category"></svg><ul class="leg" id="leg"></ul></div>
+      <span class="label" style="margin-top:6px">Biggest users</span>
+      <div class="hb" id="hb"></div>
+      <span class="label" style="margin-top:6px">Top savings for your home</span>
+      <ol class="tips" id="tips"></ol>
+    </div>
+  </div>
+
+  <div class="game" style="margin-top:28px">
+    <div class="panel">
+      <span class="label">Tariff</span>
+      <select class="sm" id="tariff" style="justify-self:start;max-width:100%"></select>
+      <table class="slabs"><thead><tr><th>Up to kWh a month</th><th>Fils per kWh</th></tr></thead><tbody id="slabs"></tbody></table>
+      <div class="row"><label for="fuel">Fuel surcharge (fils per kWh)</label><input id="fuel" inputmode="decimal"></div>
+      <div class="row"><label for="vat">VAT %</label><input id="vat" inputmode="decimal"></div>
+      <p class="msg" id="tnote"></p>
+    </div>
+    <div class="panel">
+      <span class="label">How it is worked out</span>
+      <p class="fact">Each line is watts × number × hours a day × on % × 30.4 days ÷ 1000 = kWh a month. The bill applies each slab in turn, so the last kWh you use costs the most. That is why savings are worked out by re-running your whole bill without them, not by a flat rate.</p>
+      <p class="fact">In UAE homes, cooling is often 60 to 70% of the summer bill. A ton of AC is 12,000 BTU an hour of cooling. An older split unit draws around 1.4 kW per ton when the compressor runs, a newer inverter unit closer to 0.8. If your building has district cooling (Empower, Emicool, Tabreed and others), your AC is billed separately, so remove AC lines here and compare against your electricity bill only.</p>
+      <p class="fact">These are estimates. Real use depends on insulation, sun on your windows, thermostat settings and the age of each machine. Check your actual bill and the DEWA, ADDC, AADC, SEWA or EtihadWE app for your real readings. The municipality housing fee and water are not included.</p>
+    </div>
+  </div>
+</div></main>
+<div id="tip" role="tooltip"></div>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  var CATS = [['cool', 'Cooling', '--s1'], ['water', 'Water heating', '--s2'], ['kitchen', 'Kitchen', '--s3'], ['laundry', 'Laundry', '--s4'], ['light', 'Lighting', '--s5'], ['elec', 'Electronics', '--s7'], ['other', 'Pool and other', '--s6']];
+  var CI = {}; CATS.forEach(function (c, i) { CI[c[0]] = i; });
+  var KW_TON = { old: 1.4, std: 1.15, inv: 0.8 };
+  // key: [label, category, watts, on%, hours, tons (AC only)]
+  var P = {
+    ac1: ['AC split, 1 ton', 'cool', 0, 65, 8, 1], ac15: ['AC split, 1.5 ton', 'cool', 0, 65, 8, 1.5], ac2: ['AC split, 2 ton', 'cool', 0, 65, 10, 2], ac25: ['AC split, 2.5 ton', 'cool', 0, 65, 10, 2.5], ac3: ['AC, 3 ton', 'cool', 0, 65, 10, 3], ac5: ['Central AC, 5 ton', 'cool', 0, 60, 12, 5], acw: ['Window AC, 1.5 ton', 'cool', 0, 70, 8, 1.5],
+    fan: ['Ceiling or stand fan', 'cool', 60, 100, 6],
+    wh50: ['Water heater, 50 L', 'water', 2000, 8, 24], wh80: ['Water heater, 80 L', 'water', 3000, 7, 24], whi: ['Instant water heater', 'water', 5500, 100, 0.4],
+    fridge: ['Fridge-freezer', 'kitchen', 150, 40, 24], fridgeOld: ['Fridge, 10+ years old', 'kitchen', 250, 45, 24], freezer: ['Chest freezer', 'kitchen', 120, 40, 24], oven: ['Electric oven', 'kitchen', 2400, 50, 0.7], hob: ['Electric hob (per ring)', 'kitchen', 1500, 60, 1], micro: ['Microwave', 'kitchen', 1100, 100, 0.25], kettle: ['Kettle', 'kitchen', 2200, 100, 0.2], dish: ['Dishwasher', 'kitchen', 1800, 60, 1], dispenser: ['Water dispenser (hot and cold)', 'kitchen', 100, 50, 24], coffee: ['Coffee machine', 'kitchen', 1200, 40, 0.3],
+    washer: ['Washing machine', 'laundry', 500, 100, 1], dryer: ['Tumble dryer', 'laundry', 2500, 100, 1], iron: ['Iron', 'laundry', 1200, 60, 0.3],
+    led: ['LED bulb', 'light', 9, 100, 6], halogen: ['Halogen spotlight', 'light', 50, 100, 6], cfl: ['Fluorescent / CFL', 'light', 18, 100, 6], outdoor: ['Outdoor or garden light', 'light', 30, 100, 10],
+    tv: ['TV', 'elec', 100, 100, 5], pc: ['Desktop PC', 'elec', 200, 100, 4], gaming: ['Gaming PC or console', 'elec', 300, 100, 3], laptop: ['Laptop', 'elec', 50, 100, 6], router: ['Wi-Fi router', 'elec', 10, 100, 24], standby: ['Standby (TV box, chargers)', 'elec', 15, 100, 24],
+    pool: ['Pool pump', 'other', 1100, 100, 8], vac: ['Vacuum cleaner', 'other', 1400, 100, 0.3], ev: ['EV home charging (7 kW)', 'other', 7000, 100, 1], hair: ['Hair dryer', 'other', 1800, 100, 0.2]
+  };
+  function acW(it) { return Math.round((P[it.p] ? P[it.p][5] : 1.5) * KW_TON[it.ac || 'std'] * 1000); }
+  function mk(p, n, h, ac) { var x = P[p]; var it = { p: p, n: n || 1, h: h != null ? h : x[4], d: x[3], ac: ac }; it.w = x[5] ? 0 : x[2]; if (x[5]) { it.ac = ac || 'std'; it.w = acW(it); } return it; }
+  function sample() {
+    return [
+      { name: 'Living room', items: [mk('ac2', 1, 12, 'std'), mk('tv', 1, 5), mk('led', 8, 6), mk('router'), mk('standby')] },
+      { name: 'Main bedroom', items: [mk('ac15', 1, 9, 'old'), mk('led', 4, 3), mk('halogen', 4, 2)] },
+      { name: 'Second bedroom', items: [mk('ac15', 1, 8, 'inv'), mk('led', 3, 3), mk('laptop', 1, 5)] },
+      { name: 'Kitchen', items: [mk('fridge'), mk('oven', 1, 0.7), mk('micro'), mk('kettle'), mk('dispenser')] },
+      { name: 'Bathrooms and laundry', items: [mk('wh50', 2), mk('washer', 1, 1), mk('dryer', 1, 0.7), mk('iron')] }
+    ];
+  }
+  var TARIFFS = [
+    ['dewa', 'Dubai, DEWA (residential)', [[2000, 23], [4000, 28], [6000, 32], [null, 38]], 6, 5, 'DEWA slab tariff as listed on dewa.gov.ae in October 2026, with a fuel surcharge of 6 fils per kWh for that month and 5% VAT. The surcharge changes monthly.'],
+    ['adApt', 'Abu Dhabi, expat, apartment', [[608, 26.8], [null, 30.5]], 0, 0, 'ADDC 2025 residential rates for expatriates: 26.8 fils per kWh up to 20 kWh a day, 30.5 above. ADDC says these include VAT. Al Ain (AADC) uses the same scheme.'],
+    ['adVilla', 'Abu Dhabi, expat, villa', [[6080, 26.8], [null, 30.5]], 0, 0, 'ADDC 2025 rates for expatriates in villas: 26.8 fils per kWh up to 200 kWh a day, 30.5 above. ADDC says these include VAT.'],
+    ['adNatApt', 'Abu Dhabi, UAE national, apartment', [[912, 6.7], [null, 7.5]], 0, 0, 'ADDC 2025 rates for UAE nationals: 6.7 fils per kWh up to 30 kWh a day, 7.5 above.'],
+    ['adNatVilla', 'Abu Dhabi, UAE national, villa', [[12160, 6.7], [null, 7.5]], 0, 0, 'ADDC 2025 rates for UAE nationals: 6.7 fils per kWh up to 400 kWh a day, 7.5 above.'],
+    ['custom', 'Other emirate or custom', [[null, 30]], 0, 5, 'Type the rates from your SEWA, EtihadWE or other bill. Rates differ for nationals and expatriates and change over time.']
+  ];
+  var st = { rooms: sample(), season: 1, tariff: 'dewa', slabs: null, fuel: null, vat: null };
+  try { var s0 = JSON.parse(localStorage.getItem('energyAudit') || 'null'); if (s0 && s0.rooms) st = s0; } catch (e) {}
+  function save() { try { localStorage.setItem('energyAudit', JSON.stringify(st)); } catch (e) {} }
+  function T() { return TARIFFS.filter(function (t) { return t[0] === st.tariff; })[0] || TARIFFS[0]; }
+  function slabs() { return st.slabs || T()[2]; }
+  function fuel() { return st.fuel != null ? st.fuel : T()[3]; }
+  function vat() { return st.vat != null ? st.vat : T()[4]; }
+  function kwh(it) { var x = P[it.p] || ['', 'other']; var duty = it.d / 100; if (x[1] === 'cool' && x[5]) duty = Math.min(1, duty * st.season); else if (x[1] === 'cool') duty = duty * (st.season < 0.5 ? 0.3 : 1); return it.w * it.n * it.h * duty * 30.4 / 1000; }
+  function bill(k) {
+    var s = slabs(), left = k, prev = 0, fils = 0;
+    for (var i = 0; i < s.length && left > 0; i++) { var cap = s[i][0] == null ? Infinity : s[i][0] - prev; var use = Math.min(left, cap); fils += use * s[i][1]; left -= use; prev = s[i][0] == null ? prev : s[i][0]; }
+    fils += k * fuel();
+    return fils / 100 * (1 + vat() / 100);
+  }
+  function all() { var a = []; st.rooms.forEach(function (r, ri) { r.items.forEach(function (it, ii) { a.push({ r: r, ri: ri, ii: ii, it: it, k: kwh(it) }); }); }); return a; }
+
+  // ---- render rooms
+  var opts = '<option value="">+ Add an appliance…</option>' + CATS.map(function (c) { return '<optgroup label="' + c[1] + '">' + Object.keys(P).filter(function (k) { return P[k][1] === c[0]; }).map(function (k) { return '<option value="' + k + '">' + P[k][0] + '</option>'; }).join('') + '</optgroup>'; }).join('');
+  function itemHTML(it, ri, ii) {
+    var x = P[it.p];
+    var h = '<div class="item" data-r="' + ri + '" data-i="' + ii + '"><label>Appliance<select data-f="p">' + Object.keys(P).map(function (k) { return '<option value="' + k + '"' + (k === it.p ? ' selected' : '') + '>' + P[k][0] + '</option>'; }).join('') + '</select></label>' +
+      '<label>How many<input data-f="n" type="number" min="0" step="1" value="' + it.n + '"></label>' +
+      '<label>Watts<input data-f="w" type="number" min="0" step="10" value="' + it.w + '"' + (x[5] ? ' readonly title="Set by tonnage and type"' : '') + '></label>' +
+      '<label>Hours/day<input data-f="h" type="number" min="0" max="24" step="0.5" value="' + it.h + '"></label>' +
+      '<label>On %<input data-f="d" type="number" min="0" max="100" step="5" value="' + it.d + '"></label>' +
+      '<button class="x" type="button" data-del aria-label="Remove ' + esc(x[0]) + '">×</button>';
+    if (x[5]) h += '<div class="acx">Type <select data-f="ac"><option value="old"' + (it.ac === 'old' ? ' selected' : '') + '>Older, 10+ years</option><option value="std"' + (it.ac === 'std' ? ' selected' : '') + '>Standard</option><option value="inv"' + (it.ac === 'inv' ? ' selected' : '') + '>Inverter</option></select><span class="kwh" data-k></span></div>';
+    else h += '<div class="acx"><span class="kwh" data-k></span></div>';
+    return h + '</div>';
+  }
+  function renderRooms() {
+    $('rooms').innerHTML = st.rooms.map(function (r, ri) {
+      return '<div class="room" data-r="' + ri + '"><div class="room-h"><input value="' + esc(r.name) + '" data-room aria-label="Room name"><b data-rk></b><button class="x" type="button" data-delroom aria-label="Remove room">×</button></div>' + r.items.map(function (it, ii) { return itemHTML(it, ri, ii); }).join('') + '<div class="addrow"><select data-add aria-label="Add an appliance to ' + esc(r.name) + '">' + opts + '</select></div></div>';
+    }).join('') || '<p class="msg">No rooms yet. Add one below.</p>';
+    calc();
+  }
+  $('rooms').addEventListener('change', function (e) {
+    var t = e.target, room = t.closest('.room'); if (!room) return; var ri = +room.dataset.r;
+    if (t.dataset.add != null && t.value) { st.rooms[ri].items.push(mk(t.value)); save(); renderRooms(); return; }
+    if (t.dataset.room != null) { st.rooms[ri].name = t.value; save(); return; }
+    var row = t.closest('.item'); if (!row) return; var it = st.rooms[ri].items[+row.dataset.i], f = t.dataset.f;
+    if (f === 'p') { st.rooms[ri].items[+row.dataset.i] = mk(t.value, it.n); save(); renderRooms(); return; }
+    if (f === 'ac') { it.ac = t.value; it.w = acW(it); save(); renderRooms(); return; }
+  });
+  $('rooms').addEventListener('input', function (e) {
+    var t = e.target, row = t.closest('.item'); if (!row || ['n', 'w', 'h', 'd'].indexOf(t.dataset.f) < 0) return;
+    var it = st.rooms[+row.dataset.r].items[+row.dataset.i], v = parseFloat(t.value);
+    if (isNaN(v) || v < 0) v = 0; if (t.dataset.f === 'h') v = Math.min(24, v); if (t.dataset.f === 'd') v = Math.min(100, v);
+    it[t.dataset.f] = v; save(); calc();
+  });
+  $('rooms').addEventListener('click', function (e) {
+    var t = e.target, room = t.closest('.room'); if (!room) return; var ri = +room.dataset.r;
+    if (t.dataset.delroom != null) { st.rooms.splice(ri, 1); save(); renderRooms(); }
+    else if (t.dataset.del != null) { st.rooms[ri].items.splice(+t.closest('.item').dataset.i, 1); save(); renderRooms(); }
+  });
+  $('addRoom').onclick = function () { st.rooms.push({ name: 'Room ' + (st.rooms.length + 1), items: [] }); save(); renderRooms(); };
+  $('reset').onclick = function () { st.rooms = sample(); save(); renderRooms(); };
+  $('empty').onclick = function () { if (confirm('Remove all rooms?')) { st.rooms = []; save(); renderRooms(); } };
+
+  function fmtK(k) { return k >= 100 ? Math.round(k).toLocaleString('en') : k.toFixed(1); }
+  function aed(x) { return x >= 100 ? Math.round(x).toLocaleString('en') : x.toFixed(x >= 10 ? 0 : 1); }
+  function calc() {
+    var A = all(), total = 0, byCat = CATS.map(function () { return 0; });
+    A.forEach(function (a) { total += a.k; byCat[CI[(P[a.it.p] || [0, 'other'])[1]]] += a.k; });
+    var B = bill(total);
+    // per-line and per-room labels
+    [].forEach.call(document.querySelectorAll('.item'), function (row) { var it = st.rooms[+row.dataset.r].items[+row.dataset.i], k = kwh(it); row.querySelector('[data-k]').textContent = fmtK(k) + ' kWh · ~' + aed(total ? B * k / total : 0) + ' AED / month'; });
+    [].forEach.call(document.querySelectorAll('.room'), function (rm) { var r = st.rooms[+rm.dataset.r], k = 0; r.items.forEach(function (it) { k += kwh(it); }); rm.querySelector('[data-rk]').textContent = fmtK(k) + ' kWh'; });
+    $('sKwh').textContent = fmtK(total); $('sAed').textContent = aed(B); $('sCool').textContent = total ? Math.round(100 * byCat[0] / total) + '%' : '0%';
+    // donut
+    var cx = 90, cy = 90, R = 80, r0 = 50, a0 = -Math.PI / 2, paths = '';
+    var nz = byCat.filter(function (x) { return x > 0; }).length;
+    byCat.forEach(function (v, i) {
+      if (!v || !total) return; var f = v / total, a1 = a0 + f * Math.PI * 2, gap = nz > 1 ? 0.012 : 0;
+      if (f > 0.9999) { paths += '<circle cx="90" cy="90" r="65" fill="none" stroke="var(' + CATS[i][2] + ')" stroke-width="30" data-c="' + i + '"/>'; a0 = a1; return; }
+      var s = a0 + gap, e = a1 - gap, large = e - s > Math.PI ? 1 : 0;
+      var p = function (rr, a) { return (cx + rr * Math.cos(a)).toFixed(2) + ' ' + (cy + rr * Math.sin(a)).toFixed(2); };
+      paths += '<path d="M' + p(R, s) + ' A' + R + ' ' + R + ' 0 ' + large + ' 1 ' + p(R, e) + ' L' + p(r0, e) + ' A' + r0 + ' ' + r0 + ' 0 ' + large + ' 0 ' + p(r0, s) + 'Z" fill="var(' + CATS[i][2] + ')" data-c="' + i + '"/>';
+      a0 = a1;
+    });
+    paths += '<text x="90" y="88" text-anchor="middle" fill="var(--ink)" font-family="var(--font-display)" font-size="22" font-weight="700">' + aed(B) + '</text><text x="90" y="106" text-anchor="middle" fill="var(--muted)" font-size="11">AED / month</text>';
+    $('pie').innerHTML = paths;
+    $('leg').innerHTML = CATS.map(function (c, i) { if (!byCat[i]) return ''; return '<li style="--c:var(' + c[2] + ')"><i></i><span>' + c[1] + '</span><b>' + Math.round(100 * byCat[i] / total) + '%</b><b>' + aed(B * byCat[i] / total) + ' AED</b></li>'; }).join('') || '<li><span class="msg">Add appliances to see the split.</span></li>';
+    // top users
+    var top = A.slice().sort(function (a, b) { return b.k - a.k; }).slice(0, 8), mx = top.length ? top[0].k : 1;
+    $('hb').innerHTML = top.map(function (a) { var c = CATS[CI[P[a.it.p][1]]]; var lab = P[a.it.p][0] + (a.it.n > 1 ? ' ×' + a.it.n : '') + ' · ' + a.r.name; return '<div data-tip="' + esc(lab + ': ' + fmtK(a.k) + ' kWh, about ' + aed(B * a.k / total) + ' AED a month') + '"><span>' + esc(P[a.it.p][0].replace(/,.*$/, '') + ' · ' + a.r.name) + '</span><i style="width:' + (100 * a.k / mx).toFixed(1) + '%;--c:var(' + c[2] + ')"></i><b>' + aed(B * a.k / total) + ' AED</b></div>'; }).join('');
+    tips(A, total, B);
+    renderTariff(total);
+  }
+  function tips(A, total, B) {
+    var T = [];
+    function saving(fn) { var t2 = 0; A.forEach(function (a) { t2 += fn(a); }); return Math.max(0, B - bill(t2)); }
+    var cool = A.filter(function (a) { return P[a.it.p][5]; });
+    if (cool.length) T.push(['Set the AC 2°C warmer', 'Try 24°C instead of 22°C. Each degree saves very roughly 5% of cooling energy.', saving(function (a) { return P[a.it.p][5] ? a.k * 0.9 : a.k; })]);
+    var old = cool.filter(function (a) { return a.it.ac === 'old'; });
+    if (old.length) T.push(['Replace the oldest AC with an inverter unit', old.length + ' older unit' + (old.length > 1 ? 's' : '') + ' on your list. An inverter unit uses about 40% less here. Clean filters monthly in the meantime.', saving(function (a) { return a.it.ac === 'old' ? a.k * KW_TON.inv / KW_TON.old : a.k; })]);
+    if (cool.length) T.push(['Use timers and close curtains', 'Cool rooms only when used, and block afternoon sun on west windows. Assumes 2 fewer AC hours a day per unit.', saving(function (a) { return P[a.it.p][5] && a.it.h > 2 ? a.k * (a.it.h - 2) / a.it.h : a.k; })]);
+    var wh = A.filter(function (a) { return /^wh/.test(a.it.p); });
+    if (wh.length && st.season >= 0.5) T.push(['Switch off the water heater in summer', 'From about May to October the cold tap is already warm in most UAE homes.', saving(function (a) { return /^wh/.test(a.it.p) ? 0 : a.k; })]);
+    else if (wh.length) T.push(['Put the water heater on a timer', 'Heat water for an hour before showers instead of all day.', saving(function (a) { return /^wh/.test(a.it.p) ? a.k * 0.5 : a.k; })]);
+    var hal = A.filter(function (a) { return a.it.p === 'halogen' || a.it.p === 'cfl'; });
+    if (hal.length) T.push(['Swap halogen and CFL bulbs for LED', 'Same light for a fraction of the power, and less heat for the AC to remove.', saving(function (a) { return a.it.p === 'halogen' ? a.k * 0.18 : a.it.p === 'cfl' ? a.k * 0.5 : a.k; })]);
+    var dry = A.filter(function (a) { return a.it.p === 'dryer'; });
+    if (dry.length) T.push(['Dry clothes on a rack half the time', 'Indoors under the AC or on a balcony, clothes dry in a few hours here.', saving(function (a) { return a.it.p === 'dryer' ? a.k * 0.5 : a.k; })]);
+    var pool = A.filter(function (a) { return a.it.p === 'pool' && a.it.h > 6; });
+    if (pool.length) T.push(['Run the pool pump fewer hours', 'Many pools are fine on 6 hours. A variable-speed pump saves even more.', saving(function (a) { return a.it.p === 'pool' && a.it.h > 6 ? a.k * 6 / a.it.h : a.k; })]);
+    var fo = A.filter(function (a) { return a.it.p === 'fridgeOld'; });
+    if (fo.length) T.push(['Replace the old fridge', 'A new efficient fridge uses about half. Check the seal and keep it away from the oven.', saving(function (a) { return a.it.p === 'fridgeOld' ? a.k * 0.5 : a.k; })]);
+    var sb = A.filter(function (a) { return a.it.p === 'standby' || a.it.p === 'dispenser'; });
+    if (sb.length) T.push(['Cut standby and always-on loads', 'Switch off the water dispenser\'s hot tank and TV boxes at night with a timer plug.', saving(function (a) { return a.it.p === 'standby' || a.it.p === 'dispenser' ? a.k * 0.5 : a.k; })]);
+    T.sort(function (a, b) { return b[2] - a[2]; });
+    T = T.filter(function (t) { return t[2] >= 0.5; }).slice(0, 5);
+    $('tips').innerHTML = T.length ? T.map(function (t) { return '<li><span>' + t[0] + '<small>' + t[1] + '</small></span><b>−' + aed(t[2]) + ' AED</b></li>'; }).join('') : '<li style="grid-template-columns:1fr"><span class="msg">Add appliances to get savings ideas.</span></li>';
+  }
+  // ---- tariff
+  $('tariff').innerHTML = TARIFFS.map(function (t) { return '<option value="' + t[0] + '">' + t[1] + '</option>'; }).join('');
+  function renderTariff(total) {
+    $('tariff').value = st.tariff;
+    var s = slabs();
+    if (!document.activeElement || !document.activeElement.closest || !document.activeElement.closest('#slabs')) {
+      $('slabs').innerHTML = s.map(function (r, i) { return '<tr><td>' + (r[0] == null ? 'Everything above' : '<input data-sl="' + i + '" data-c="0" value="' + r[0] + '" inputmode="numeric">') + '</td><td><input data-sl="' + i + '" data-c="1" value="' + r[1] + '" inputmode="decimal"></td></tr>'; }).join('');
+    }
+    if (document.activeElement !== $('fuel')) $('fuel').value = fuel();
+    if (document.activeElement !== $('vat')) $('vat').value = vat();
+    $('tnote').textContent = T()[5] + (st.slabs || st.fuel != null || st.vat != null ? ' You have edited these values.' : '');
+  }
+  $('tariff').onchange = function () { st.tariff = this.value; st.slabs = null; st.fuel = null; st.vat = null; save(); calc(); };
+  $('slabs').addEventListener('input', function (e) {
+    var t = e.target; if (t.dataset.sl == null) return; var v = parseFloat(t.value); if (isNaN(v)) return;
+    st.slabs = slabs().map(function (r) { return r.slice(); }); st.slabs[+t.dataset.sl][+t.dataset.c] = v; save(); calc();
+  });
+  $('fuel').oninput = function () { var v = parseFloat(this.value); st.fuel = isNaN(v) ? 0 : v; save(); calc(); };
+  $('vat').oninput = function () { var v = parseFloat(this.value); st.vat = isNaN(v) ? 0 : v; save(); calc(); };
+  // season
+  function seasonUI() { [].forEach.call(document.querySelectorAll('#season [data-s]'), function (b) { b.setAttribute('aria-pressed', +b.dataset.s === st.season); }); }
+  $('season').onclick = function (e) { var b = e.target.closest('[data-s]'); if (!b) return; st.season = +b.dataset.s; save(); seasonUI(); calc(); };
+  // tooltip
+  var tip = $('tip');
+  function showTip(e, html) { tip.innerHTML = html; tip.style.display = 'block'; var x = Math.min(e.clientX + 12, innerWidth - tip.offsetWidth - 8), y = e.clientY + 14; tip.style.left = x + 'px'; tip.style.top = y + 'px'; }
+  $('pie').addEventListener('mousemove', function (e) { var c = e.target.dataset && e.target.dataset.c; if (c == null) { tip.style.display = 'none'; return; } var A = all(), tot = 0, v = 0; A.forEach(function (a) { tot += a.k; if (CI[P[a.it.p][1]] === +c) v += a.k; }); showTip(e, '<b>' + CATS[c][1] + '</b><br>' + fmtK(v) + ' kWh · ' + Math.round(100 * v / tot) + '%'); });
+  $('pie').addEventListener('mouseleave', function () { tip.style.display = 'none'; });
+  $('hb').addEventListener('mousemove', function (e) { var d = e.target.closest('[data-tip]'); if (!d) { tip.style.display = 'none'; return; } showTip(e, esc(d.dataset.tip)); });
+  $('hb').addEventListener('mouseleave', function () { tip.style.display = 'none'; });
+  seasonUI(); renderRooms();
+  window.__energy = { bill: bill, st: st };
+})();
+</script>
+</body>
+</html>

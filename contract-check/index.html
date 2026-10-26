@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Contract Red Flags · Mariam's Lab</title>
+<meta name="description" content="Paste a tenancy, gym, phone, job or service contract and see the clauses worth a second look: auto-renewal, notice periods, early termination fees, penalties, deposits, non-compete and more. English and Arabic. Runs in your browser.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/contract-check/">
+<meta property="og:title" content="Contract Red Flags · Mariam's Lab"><meta property="og:description" content="Find the clauses worth a second look before you sign."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; cursor: pointer; }
+.sm[aria-pressed="true"], .sm.pri { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.bar { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+#src { width: 100%; min-height: 220px; font: inherit; font-size: 0.92rem; line-height: 1.55; color: var(--ink); background: rgba(7,10,24,.55); border: 1px solid var(--line); border-radius: 12px; padding: 12px; resize: vertical; unicode-bidi: plaintext; }
+#src:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; }
+.doc { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 0.92rem; line-height: 1.75; padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); max-height: 70vh; overflow-y: auto; unicode-bidi: plaintext; }
+.doc mark { color: inherit; border-radius: 4px; padding: 1px 2px; cursor: pointer; background: color-mix(in srgb, var(--c) 26%, transparent); box-shadow: inset 0 -2px 0 var(--c); }
+.doc mark:hover, .doc mark.on { background: color-mix(in srgb, var(--c) 45%, transparent); }
+.doc mark sup { font-family: var(--font-mono); font-size: 0.62rem; color: var(--c); margin-inline-start: 2px; }
+.ar, [lang="ar"] { font-family: 'IBM Plex Sans Arabic', var(--font-body); }
+#src, .doc, .flag q, [data-sample="ar"] { font-family: var(--font-body), 'IBM Plex Sans Arabic', sans-serif; }
+.score { padding: 16px; border-radius: var(--radius); border: 2px solid var(--line); display: grid; gap: 4px; }
+.score b { font-family: var(--font-display); font-size: clamp(1.4rem, 4.5vw, 2rem); font-weight: 800; line-height: 1.1; }
+.score p { color: var(--muted); font-size: 0.9rem; }
+.flags { display: grid; gap: 10px; }
+.flag { border: 1px solid var(--line); border-inline-start: 4px solid var(--c); border-radius: 10px; padding: 12px 14px; display: grid; gap: 6px; font-size: 0.9rem; scroll-margin-top: 90px; }
+.flag.on { outline: 2px solid var(--c); }
+.flag h3 { font-size: 1.05rem; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.flag h3 small { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: .08em; text-transform: uppercase; color: var(--c); }
+.flag q { display: block; color: var(--muted); font-size: 0.84rem; border-inline-start: 2px solid var(--line); padding-inline-start: 8px; quotes: none; cursor: pointer; unicode-bidi: plaintext; }
+.flag ul { margin: 0; padding-inline-start: 18px; }
+.flag .extra { color: var(--accent); }
+.legend { display: flex; gap: 10px; flex-wrap: wrap; font-size: 0.75rem; color: var(--muted); }
+.legend span::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-inline-end: 4px; vertical-align: -1px; background: var(--c); }
+.tips { margin: 0; padding-inline-start: 18px; font-size: 0.9rem; display: grid; gap: 6px; }
+select.sm { appearance: auto; background: var(--bg); }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Contracts · English + Arabic</span>
+    <h1 style="font-size:var(--step-3)">Contract red flags.</h1>
+    <p>Before you sign a lease, gym membership, phone plan or job offer, paste the text here. It marks the clauses people most often regret missing, like auto-renewal, exit fees and deposit deductions, and explains each in plain words with a question to ask. It reads English and simple Arabic. The text never leaves your browser.</p>
+  </div>
+
+  <div class="panel">
+    <div class="bar">
+      <label class="label" for="kind" style="margin-inline-end:4px">Contract type</label>
+      <select class="sm" id="kind"><option value="auto">Detect automatically</option><option value="tenancy">Tenancy / lease</option><option value="employment">Employment / job offer</option><option value="gym">Gym or club membership</option><option value="phone">Phone, internet or TV plan</option><option value="service">Other service</option></select>
+      <span style="flex:1"></span>
+      <button class="sm" type="button" data-sample="gym">Try a gym sample</button>
+      <button class="sm" type="button" data-sample="job">Job offer sample</button>
+      <button class="sm" type="button" data-sample="ar" lang="ar" dir="rtl">عقد إيجار (عربي)</button>
+    </div>
+    <textarea id="src" placeholder="Paste the contract text here. Tip: on a PDF, select all and copy. For a photo, use your phone's 'copy text from image' feature first." spellcheck="false"></textarea>
+    <div class="bar"><button class="sm pri" type="button" id="go">Check it</button><button class="sm" type="button" id="clear">Clear</button><span class="msg" id="msg" role="status"></span></div>
+  </div>
+
+  <div id="out" hidden>
+    <div class="stats" style="margin-top:22px"><div><b id="sScore">0</b><span>attention score / 100</span></div><div><b id="sFlags">0</b><span>clauses flagged</span></div><div><b id="sHigh">0</b><span>worth a hard look</span></div></div>
+    <div class="score" id="verdict" style="margin-top:12px"></div>
+    <div class="game" style="margin-top:22px">
+      <div class="panel">
+        <span class="label">Your contract, marked up</span>
+        <div class="legend"><span style="--c:#ff4f6d">Hard look</span><span style="--c:#ffc857">Check this</span><span style="--c:#84A0FF">Good to know</span></div>
+        <div class="doc" id="doc"></div>
+      </div>
+      <div class="panel">
+        <span class="label">What each flag means</span>
+        <div class="flags" id="flags"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="game" style="margin-top:28px">
+    <div class="panel">
+      <span class="label" id="tipsHead">Before you sign anything</span>
+      <ul class="tips" id="tips"></ul>
+    </div>
+    <div class="panel">
+      <span class="label">How it works</span>
+      <p class="fact">This is pattern matching, not a lawyer. It looks for a couple of hundred phrases in English and Arabic that usually sit inside the clauses below, then marks the whole sentence. It will miss clauses written in unusual words and can flag harmless ones. A clause being flagged doesn't make it unfair. It just means read it slowly.</p>
+      <p class="fact">The score adds up what was found, weighting exit fees, penalties and liability waivers more than ordinary notice terms. Most real contracts score somewhere in the middle. It is a reading aid, not legal advice. For anything large, ask the provider in writing or speak to a lawyer, and check the official rules for your emirate.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var COL = { 3: '#ff4f6d', 2: '#ffc857', 1: '#84A0FF' }, SEV = { 3: 'Hard look', 2: 'Check this', 1: 'Good to know' };
+  var N = '(?:\\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fourteen|fifteen|twenty|thirty|forty[- ]five|sixty|ninety)';
+  // [id, title, severity, englishRegexes, arabicRegexes, meaning, questions]
+  var RULES = [
+    ['autorenew', 'Automatic renewal', 3,
+      ['auto(?:matic(?:ally)?)?[- ]?renew', 'renew(?:s|ed|al)? (?:shall be )?automatic', 'shall (?:be )?(?:deemed (?:to be )?)?(?:automatically )?renewed', 'rolling (?:contract|basis|monthly)', 'evergreen', 'will continue (?:on a )?(?:month[- ]to[- ]month|monthly)', 'unless (?:either party|you|the (?:member|tenant|customer)) (?:gives?|provides?|serves?) (?:written )?notice'],
+      ['تجديد تلقائي', 'يتجدد تلقائي', 'يجدد تلقائي', 'التجديد التلقائي', 'يعتبر (?:العقد )?مجدد', 'يُعتبر (?:العقد )?مُجدد'],
+      'The contract carries on, and you keep paying, unless you cancel in time. People often miss the window and get locked in for another full term.',
+      ['How and by when exactly do I have to cancel to stop it renewing?', 'Will you remind me before it renews?', 'Does the price change on renewal?']],
+    ['notice', 'Notice period', 1,
+      [N + '\\s*(?:\\(\\d+\\)\\s*)?(?:calendar |working |business |clear )?(?:days?|weeks?|months?)[\'’]?s?\\s*(?:prior |advance |written |advanced )*notice', 'notice period', 'prior (?:written )?notice of (?:at least )?' + N, 'notice in writing'],
+      ['إشعار', 'إخطار', 'مهلة', 'فترة الإنذار', 'إنذار'],
+      'How far ahead you or the other side must warn before ending or changing the contract. A long notice period ties you in, and a short one for the other side can leave you exposed.',
+      ['Is the notice period the same for both sides?', 'Does notice have to be in writing, by email, or through an app?', 'When does the notice period start counting?']],
+    ['earlyterm', 'Early termination fee', 3,
+      ['early termination', 'terminat\\w* (?:this \\w+ )?(?:before|prior to) (?:the )?(?:expiry|end|completion)', 'break (?:fee|clause|charge)', 'termination (?:fee|charge|penalty)', 'cancellation (?:fee|charge)', '(?:remaining|outstanding|balance of the) (?:months?|instal?l?ments?|term|period|contract value)', 'exit fee', 'lock[- ]in', 'minimum (?:term|period|commitment)'],
+      ['إنهاء مبكر', 'الإنهاء المبكر', 'فسخ العقد قبل', 'إنهاء العقد قبل', 'رسوم الإنهاء', 'رسوم الإلغاء', 'الأشهر المتبقية', 'المبلغ المتبقي', 'الحد الأدنى للمدة'],
+      'What it costs to leave before the end. This is often the biggest hidden cost: some contracts ask for every remaining month at once.',
+      ['If I leave after month 3, what exactly would I pay, in dirhams?', 'Can I transfer the contract to someone else instead?', 'Is there a fee waiver if I move abroad or lose my job?']],
+    ['penalty', 'Penalties and fines', 3,
+      ['penalt(?:y|ies)', '\\bfines?\\b', '\\bfined\\b', 'liquidated damages', 'late (?:payment )?(?:fees?|charges?|penalt)', 'surcharge', 'interest (?:at|of) (?:the rate of )?\\d', 'administrative (?:fee|charge)', 'returned cheque|bounced cheque'],
+      ['غرامة', 'غرامات', 'جزاء', 'جزاءات', 'التعويض الاتفاقي', 'رسوم تأخير', 'رسوم التأخير', 'غرامة تأخير', 'رسوم إدارية', 'شيك مرتجع'],
+      'Extra money you owe if something goes wrong: paying late, a bounced cheque, damage, or breaking a rule. Check that amounts are fixed and reasonable, not "as determined by us".',
+      ['What is the exact amount or formula for each fee?', 'Is there a grace period before a late fee applies?', 'Is there a cap on total penalties?']],
+    ['deposit', 'Deposits and deductions', 2,
+      ['(?:security|refundable|damage) deposit', '\\bdeposits?\\b', 'deduct\\w*', 'with(?:h)?(?:o|e)ld', 'non-?refundable', 'forfeit\\w*', 'set[- ]off', 'wear and tear'],
+      ['التأمين', 'مبلغ التأمين', 'وديعة', 'خصم', 'يخصم', 'يحق .{0,20}الخصم', 'غير مسترد', 'غير قابل للاسترداد', 'مصادرة', 'الاستهلاك العادي'],
+      'Money held back that you expect to get back. The question is what can be deducted from it, and who decides.',
+      ['What can be deducted, and will I get an itemised list with receipts?', 'How many days after the end will the deposit be returned?', 'Is normal wear and tear excluded from deductions?']],
+    ['price', 'Price or rent increases', 3,
+      ['(?:increase|revise|adjust|raise|change|amend|vary)\\w* (?:the )?(?:monthly |annual )?(?:rent|price|fees?|charges?|tariffs?|rates?|subscription)', '(?:rent|prices?|fees?|charges?|rates?|tariff) (?:may|shall|will|can) (?:be )?(?:increase|revise|adjust|change|vary)', 'escalation', 'annual (?:increase|uplift|adjustment)', 'subject to change', 'prevailing (?:rate|price|tariff)'],
+      ['زيادة الإيجار', 'زيادة القيمة الإيجارية', 'زيادة الأسعار', 'زيادة الرسوم', 'تعديل الأسعار', 'تعديل الرسوم', 'تعديل القيمة', 'قابلة للتغيير'],
+      'Lets the other side charge more later. Look for a cap, how much notice you get, and whether you can leave without a fee if the price goes up.',
+      ['Is there a maximum increase per year?', 'How much notice do I get before a price change?', 'Can I cancel free of charge if the price goes up?']],
+    ['onesided', 'One-sided changes', 3,
+      ['(?:may|reserves? the right to|is entitled to|can) (?:at any time )?(?:unilaterally )?(?:amend|change|modify|vary|update|alter) (?:these|this|the|any of the) (?:terms|agreement|contract|conditions|plan|services?|benefits?|facilities|schedule)', '(?:at|in) (?:its|our|their|the \\w+[\'’]?s?) (?:sole |absolute |own )?discretion', 'from time to time without (?:prior )?notice', 'without (?:prior )?notice to you'],
+      ['يحق للشركة تعديل', 'يحق للمؤجر تعديل', 'يحق لصاحب العمل تعديل', 'حسب تقدير', 'وفقاً لتقدير', 'وفقا لتقدير', 'دون إشعار مسبق', 'بدون إشعار مسبق', 'تقديرها المطلق'],
+      'The other side can change the deal after you sign, and you agreed to it in advance. Ask that changes need your consent or let you exit.',
+      ['If you change the terms, can I leave without a fee?', 'How will I be told about changes?', 'Which parts can you change, exactly?']],
+    ['noncompete', 'Non-compete or non-solicit', 2,
+      ['non[- ]?compet', 'not (?:to )?(?:compete|work for|be employed by|join|engage in)', 'competitor', 'non[- ]?solicit', 'restrictive covenant', 'restraint of trade'],
+      ['عدم المنافسة', 'عدم منافسة', 'منافس', 'المنافسة'],
+      'Limits where you can work or who you can approach after you leave. In UAE employment, these generally need to be limited in time, place and type of work.',
+      ['How long does it last, and in which places and job types?', 'Does it apply if I am let go during probation?', 'Is there compensation while the restriction applies?']],
+    ['probation', 'Probation', 1,
+      ['probation(?:ary)?'],
+      ['فترة التجربة', 'فترة الاختبار', 'تحت التجربة', 'فترة تجربة'],
+      'A trial period when either side can end the job with short notice. Under the UAE federal labour law it can be up to six months.',
+      ['How long is probation, and can it be extended?', 'What notice applies during probation, for each side?', 'Are any benefits paused until probation ends?']],
+    ['unpaid', 'Unpaid leave and salary deductions', 2,
+      ['unpaid leave', 'leave without pay', 'no[- ]pay leave', 'without (?:pay|salary|remuneration)', 'deduct\\w* from (?:your |the employee\'?s? |his |her )?(?:salary|wages?|pay)', 'salary (?:deduction|will be reduced)'],
+      ['إجازة بدون راتب', 'إجازة بدون أجر', 'بدون أجر', 'خصم من الراتب', 'الخصم من الأجر', 'يخصم من راتب'],
+      'When you might not be paid, or when money comes out of your salary. Deductions from pay are tightly limited by UAE labour rules.',
+      ['In what cases can my salary be reduced or deducted?', 'Is unpaid leave my choice, or can you place me on it?', 'Will deductions be shown on my payslip?']],
+    ['law', 'Governing law and courts', 1,
+      ['governing law', 'governed by', 'jurisdiction', 'courts? of', 'laws? of (?:the )?(?:state|emirate|united|england|dubai|abu dhabi)', '\\bDIFC\\b', '\\bADGM\\b', 'rental disputes? (?:centre|center|committee)'],
+      ['القانون الواجب التطبيق', 'الاختصاص', 'محاكم', 'المحاكم', 'تخضع لقوانين', 'يخضع هذا العقد', 'مركز فض المنازعات الإيجارية', 'لجنة فض المنازعات'],
+      'Which country\'s or emirate\'s law applies and where a dispute would be heard. A foreign law or court can make it costly to complain.',
+      ['Is the law of the UAE, or the relevant free zone, the one that applies?', 'Where would a dispute be heard, and in which language?']],
+    ['liability', 'Liability waiver', 3,
+      ['not (?:be )?(?:held )?(?:liable|responsible)', 'no (?:liability|responsibility)', 'liabilit\\w* (?:is |shall be |will be )?(?:limited|excluded|capped)', 'waive\\w*', 'indemnif\\w*', 'hold (?:us |the \\w+ )?harmless', '(?:at|is) (?:your|the (?:member|customer|tenant|user)\'?s?) own risk', 'disclaim\\w*', 'release\\w* (?:us|the company|the club) from'],
+      ['غير مسؤول', 'لا يتحمل', 'لا تتحمل', 'إخلاء المسؤولية', 'إخلاء مسؤولية', 'على مسؤوليت', 'يتنازل', 'تعويض الطرف', 'إبراء'],
+      'You give up the right to claim, or promise to cover the other side\'s costs. In a gym that might mean injuries; in a lease, damage; in a service, data loss.',
+      ['What exactly is excluded, and is there insurance that covers me instead?', 'Does it still apply if the other side was negligent?']],
+    ['cancel', 'Cancellation window and refunds', 2,
+      ['cooling[- ]off', 'within ' + N + ' (?:\\(\\d+\\) )?(?:calendar |working |business )?(?:days?|hours?) (?:of|from|after) (?:signing|purchase|the date|activation|joining)', 'refund\\w*', 'cancel\\w*', 'freeze|suspend (?:your|the) membership'],
+      ['إلغاء', 'الإلغاء', 'استرداد', 'استرجاع', 'تجميد العضوية'],
+      'When and how you can cancel, and whether you get money back. Some contracts allow a short cancellation window right after signing; outside it, refunds can vanish.',
+      ['Is there a cooling-off period, and how many days?', 'What is refunded if I cancel, and how fast?', 'Can I freeze instead of cancel if I travel or get injured?']],
+    ['arbitration', 'Arbitration or private dispute resolution', 2,
+      ['arbitrat\\w*', 'class action', 'mediation', 'dispute resolution', 'final and binding'],
+      ['تحكيم', 'التحكيم', 'وساطة', 'الوساطة', 'نهائي وملزم'],
+      'Disputes go to a private arbitrator instead of a court. It can be faster, but fees can be high for an individual and appeals are very limited.',
+      ['Who pays the arbitration fees?', 'Where is it held, and can small claims still go to court or a consumer body?']],
+    ['passport', 'Holding your passport', 3,
+      ['(?:retain|hold|keep|surrender|deposit)\\w* (?:of )?(?:your |the employee\'?s? |his |her )?(?:original )?passport', 'passport (?:shall|will) be (?:retained|held|kept)'],
+      ['الاحتفاظ بجواز السفر', 'تسليم جواز السفر', 'حجز جواز السفر'],
+      'An employer or landlord keeping your passport. In the UAE, employers are generally not allowed to keep an employee\'s passport against their will.',
+      ['Why do you need the original, and can you take a copy instead?']],
+    ['cheque', 'Security or blank cheques', 3,
+      ['security cheque', 'guarantee cheque', 'blank cheque', 'undated cheque', 'post[- ]dated cheques?'],
+      ['شيك ضمان', 'شيك الضمان', 'شيك على بياض', 'شيكات مؤجلة'],
+      'A cheque held "just in case". A blank or undated security cheque can be filled in and presented later, so ask exactly when it could be cashed and get it back at the end.',
+      ['For what amount, and in what situation, could this cheque be presented?', 'When will it be returned to me, and can I get that in writing?']]
+  ];
+  RULES.forEach(function (r) { r.re = new RegExp('(?:' + r[3].join('|') + ')', 'gi'); r.ar = new RegExp('(?:' + r[4].join('|') + ')', 'g'); });
+
+  var TIPS = {
+    base: ['Get the final version in writing, and keep a copy you can read later.', 'Ask for anything a salesperson promised to be added to the contract.', 'Check the total cost over the full term, not the monthly price.', 'Never sign blank pages, blank cheques, or forms with empty fields.'],
+    tenancy: ['In Dubai, a landlord must give at least 90 days\' written notice before the lease ends to raise the rent, and any increase is limited by the RERA rental index (Dubai rules as of 2026).', 'Register the lease (Ejari in Dubai, Tawtheeq in Abu Dhabi). You need it for utilities, visas and disputes.', 'Ask who pays for maintenance, chiller or cooling fees, and the municipality housing fee.', 'Take dated photos of every room on move-in day, to protect your deposit.', 'Other emirates have their own rules. Check the land or municipality department where the property is.'],
+    employment: ['Under the UAE federal labour law (2021), probation is at most six months and fixed-term contracts became the norm (as of 2026).', 'Check that the offer letter matches the MOHRE contract you sign. The MOHRE one is what counts.', 'Notice for ending an ongoing job is usually between 30 and 90 days. Look for what applies to you.', 'Free zones like DIFC and ADGM have their own employment laws.', 'Your employer should not keep your passport against your will.'],
+    gym: ['Ask what happens if you move away, get injured, or the branch closes.', 'Check whether the freeze option is free, and for how long.', 'Find the exact cancellation method: email, app, or in person with a form.'],
+    phone: ['Check how long the commitment is if the plan includes a handset. The handset balance is often due if you leave early.', 'Ask what happens to the price after any promo months.', 'Check roaming and add-on charges, which often auto-renew too.'],
+    service: ['Ask what counts as the service being done, and what happens if it isn\'t.', 'Check who owns any work, files or data at the end.', 'Pay deposits in a traceable way and get a receipt.']
+  };
+
+  var SAMPLES = {
+    gym: 'MEMBERSHIP AGREEMENT\n\n1. Term. This membership is for a minimum term of 12 months. After the minimum term, the membership will automatically renew for successive 12-month periods unless the Member gives 60 days\' written notice before the renewal date.\n\n2. Fees. The Club reserves the right to change the membership fees at any time at its sole discretion. A joining fee of AED 499 is non-refundable.\n\n3. Early termination. If the Member cancels before the end of the minimum term, the Member shall pay the remaining months of the term in full.\n\n4. Late payment. A late payment fee of AED 150 will apply to any missed payment. Returned cheques incur a penalty of AED 500.\n\n5. Liability. The Member uses the facilities at their own risk. The Club shall not be liable for any injury, loss or damage to personal belongings.\n\n6. Freeze. The Member may freeze the membership once per year for up to 30 days for a fee.\n\n7. This agreement is governed by the laws of the Emirate of Dubai and the federal laws of the UAE.',
+    job: 'OFFER OF EMPLOYMENT\n\nPosition: Marketing Executive. Basic salary AED 9,000 per month plus housing allowance.\n\nProbation: You will be on probation for a period of six (6) months, which may be extended at the Company\'s discretion.\n\nNotice: After probation, either party may terminate this contract by giving sixty (60) days\' written notice.\n\nNon-compete: For a period of three years after leaving, you agree not to work for any competitor in the GCC.\n\nLeave: Any absence beyond your annual leave will be treated as unpaid leave. The Company may deduct from your salary the cost of any training if you resign within two years.\n\nThe Company will retain your original passport for safekeeping during your employment.\n\nAny dispute shall be referred to arbitration in London, and the decision shall be final and binding.',
+    ar: 'عقد إيجار سكني\n\nمدة العقد سنة واحدة، ويتجدد تلقائياً لمدة مماثلة ما لم يقم أحد الطرفين بإخطار الطرف الآخر كتابياً قبل تسعين يوماً من تاريخ الانتهاء.\n\nيدفع المستأجر مبلغ التأمين وقدره 5% من قيمة الإيجار، ويحق للمؤجر الخصم من مبلغ التأمين مقابل أي أضرار.\n\nفي حالة الإنهاء المبكر يلتزم المستأجر بدفع غرامة تعادل إيجار شهرين.\n\nيقدم المستأجر شيك ضمان باسم المؤجر.\n\nيخضع هذا العقد لقوانين إمارة دبي، وتختص لجنة فض المنازعات الإيجارية بالنظر في أي نزاع.'
+  };
+
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  var WORDNUM = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12, fourteen: 14, fifteen: 15, twenty: 20, thirty: 30, sixty: 60, ninety: 90 };
+  function num(s) { s = s.toLowerCase(); return /^\d+$/.test(s) ? +s : WORDNUM[s]; }
+
+  // split into sentence-ish segments, keeping offsets
+  function segments(text) {
+    var out = [], re = /[^.;!?\n؛.]+[.;!?؛.]*|\n+/g, m;
+    while ((m = re.exec(text))) { if (/\S/.test(m[0]) && !/^\n+$/.test(m[0])) { var lead = m[0].match(/^\s*/)[0].length; out.push({ s: m.index + lead, e: m.index + m[0].replace(/\s+$/, '').length, t: m[0].trim() }); } }
+    return out;
+  }
+  function detect(text) {
+    var t = text.toLowerCase(), score = {
+      tenancy: (t.match(/tenan|landlord|lessor|lessee|premises|ejari|tawtheeq|rent\b|مستأجر|المؤجر|إيجار|ايجار/g) || []).length,
+      employment: (t.match(/employ|salary|probation|job title|position|annual leave|gratuity|mohre|موظف|العامل|صاحب العمل|راتب|أجر/g) || []).length,
+      gym: (t.match(/gym|club|membership|member\b|facilities|personal train|عضوية|النادي/g) || []).length,
+      phone: (t.match(/mobile|sim\b|handset|data plan|postpaid|broadband|internet|roaming|الخط|باقة/g) || []).length
+    };
+    var best = 'service', b = 1;
+    Object.keys(score).forEach(function (k) { if (score[k] > b) { b = score[k]; best = k; } });
+    return best;
+  }
+  function analyse(text, kind) {
+    var segs = segments(text), hits = {};
+    segs.forEach(function (sg, si) {
+      RULES.forEach(function (r) {
+        r.re.lastIndex = 0; r.ar.lastIndex = 0;
+        if (r.re.test(sg.t) || r.ar.test(sg.t)) { (hits[r[0]] = hits[r[0]] || []).push(si); }
+      });
+    });
+    // avoid double-counting "cancel" when the sentence is already an early termination clause
+    if (hits.cancel && hits.earlyterm) hits.cancel = hits.cancel.filter(function (i) { return hits.earlyterm.indexOf(i) < 0; });
+    if (hits.cancel && !hits.cancel.length) delete hits.cancel;
+    if (hits.deposit && hits.unpaid) { hits.deposit = hits.deposit.filter(function (i) { return hits.unpaid.indexOf(i) < 0; }); if (!hits.deposit.length) delete hits.deposit; }
+    var extras = {};
+    function txtOf(id) { return (hits[id] || []).map(function (i) { return segs[i].t; }).join(' '); }
+    var p = txtOf('probation'), m;
+    if (p && (m = p.match(new RegExp('(' + N + ')\\s*(?:\\(\\d+\\)\\s*)?months?', 'i'))) && num(m[1]) > 6) extras.probation = 'This mentions ' + m[1] + ' months. The UAE federal labour law caps probation at six months.';
+    if (p && /extend/i.test(p)) extras.probation = (extras.probation ? extras.probation + ' ' : '') + 'It can be extended. Ask for the maximum total length in writing.';
+    var nc = txtOf('noncompete');
+    if (nc && (m = nc.match(new RegExp('(' + N + ')\\s*(?:\\(\\d+\\)\\s*)?years?', 'i'))) && num(m[1]) > 2) extras.noncompete = 'This says ' + m[1] + ' years. Under UAE federal labour law, a non-compete can last at most two years after the job ends.';
+    var et = txtOf('earlyterm');
+    if (et && /remaining|outstanding|balance|المتبقي/i.test(et)) extras.earlyterm = 'This looks like you could owe the rest of the contract in one go. Work out that number before signing.';
+    var dp = txtOf('deposit');
+    if (dp && /non-?refundable|غير مسترد|غير قابل للاسترداد/i.test(dp)) extras.deposit = 'Part of the money is non-refundable. Ask for that amount to be written out separately.';
+    var ar = txtOf('arbitration');
+    if (ar && /london|singapore|paris|new york|geneva|لندن/i.test(ar)) extras.arbitration = 'The venue is outside the UAE. That can make any dispute very expensive for one person.';
+    var ps = txtOf('price');
+    if (ps && /sole|absolute|any time|discretion|تقدير/i.test(ps)) extras.price = 'The increase is at their discretion with no cap mentioned.';
+    var nt = txtOf('notice') + ' ' + txtOf('autorenew'), days = [];
+    var nre = new RegExp('(' + N + ')\\s*(?:\\(\\d+\\)\\s*)?(?:calendar |working |business |clear )?(days?|weeks?|months?)', 'gi');
+    while ((m = nre.exec(nt))) { var n = num(m[1]); if (n) days.push(n * (/week/i.test(m[2]) ? 7 : /month/i.test(m[2]) ? 30 : 1)); }
+    if (days.length && Math.max.apply(null, days) >= 60) extras.notice = 'Longest notice found is about ' + Math.max.apply(null, days) + ' days. Put a reminder in your calendar now.';
+    if (hits.autorenew) extras.autorenew = (extras.autorenew || '') + 'Set a calendar reminder a week before the cancellation deadline.';
+    var sevOf = function (r) { var s = r[2]; if (kind === 'employment' && r[0] === 'probation' && extras.probation) s = 2; if (r[0] === 'noncompete' && extras.noncompete) s = 3; return s; };
+    var found = RULES.filter(function (r) { return hits[r[0]]; }).map(function (r) { return { r: r, sev: sevOf(r), segs: hits[r[0]], extra: extras[r[0]] }; });
+    found.sort(function (a, b) { return b.sev - a.sev; });
+    var pts = 0; found.forEach(function (f) { pts += f.sev === 3 ? 14 : f.sev === 2 ? 7 : 3; pts += Math.min(f.segs.length - 1, 3) * (f.sev === 3 ? 3 : 1); if (f.extra && f.sev >= 2) pts += 4; });
+    return { segs: segs, found: found, score: Math.min(100, pts) };
+  }
+  function render(text) {
+    var kindSel = $('kind').value, kind = kindSel === 'auto' ? detect(text) : kindSel;
+    var a = analyse(text, kind), segSev = {};
+    a.found.forEach(function (f, i) { f.n = i + 1; f.segs.forEach(function (s) { if (!segSev[s] || segSev[s].sev < f.sev) segSev[s] = { sev: f.sev, n: [] }; }); });
+    a.found.forEach(function (f) { f.segs.forEach(function (s) { segSev[s].n.push(f.n); }); });
+    var html = '', pos = 0;
+    a.segs.forEach(function (sg, i) {
+      if (!segSev[i]) return;
+      html += esc(text.slice(pos, sg.s));
+      html += '<mark style="--c:' + COL[segSev[i].sev] + '" data-n="' + segSev[i].n.join(',') + '">' + esc(text.slice(sg.s, sg.e)) + '<sup>' + segSev[i].n.join(',') + '</sup></mark>';
+      pos = sg.e;
+    });
+    html += esc(text.slice(pos));
+    $('doc').innerHTML = html;
+    $('flags').innerHTML = a.found.length ? a.found.map(function (f) {
+      var quote = a.segs[f.segs[0]].t; if (quote.length > 220) quote = quote.slice(0, 217) + '…';
+      return '<div class="flag" id="f' + f.n + '" style="--c:' + COL[f.sev] + '"><h3>' + f.n + '. ' + f.r[1] + ' <small>' + SEV[f.sev] + (f.segs.length > 1 ? ' · ' + f.segs.length + ' places' : '') + '</small></h3><q data-seg="' + f.segs[0] + '">' + esc(quote) + '</q><p>' + f.r[5] + '</p>' + (f.extra ? '<p class="extra">' + esc(f.extra) + '</p>' : '') + '<span class="label">Ask</span><ul>' + f.r[6].map(function (q) { return '<li>' + q + '</li>'; }).join('') + '</ul></div>';
+    }).join('') : '<p class="msg">Nothing from the list was found. That can mean a plain, fair contract, or wording this tool doesn\'t know. Still read it all.</p>';
+    var hi = a.found.filter(function (f) { return f.sev === 3; }).length;
+    $('sScore').textContent = a.score; $('sFlags').textContent = a.found.length; $('sHigh').textContent = hi;
+    var L = a.score >= 55 ? ['Read it slowly before signing', '#ff4f6d', 'Several clauses can cost you money or lock you in. Ask the questions on the right, and get answers in writing.'] : a.score >= 25 ? ['A few things to check', '#ffc857', 'Fairly typical. Check the marked clauses, especially any in red.'] : ['Looks fairly light', 'var(--sat-b)', 'Few of the usual traps showed up. That is a good sign, but this tool only knows common wording.'];
+    $('verdict').style.borderColor = L[1];
+    var names = { tenancy: 'tenancy contract', employment: 'employment contract', gym: 'membership contract', phone: 'phone or internet plan', service: 'service contract' };
+    $('verdict').innerHTML = '<span class="label">Read as ' + (/^[aeiou]/.test(names[kind]) ? 'an ' : 'a ') + names[kind] + (kindSel === 'auto' ? ' (detected)' : '') + '</span><b style="color:' + L[1] + '">' + L[0] + '</b><p>' + L[2] + '</p>';
+    showTips(kind);
+    $('out').hidden = false;
+    $('msg').textContent = a.found.length + ' clause type' + (a.found.length === 1 ? '' : 's') + ' found in ' + a.segs.length + ' sentences.';
+    return a;
+  }
+  function showTips(kind) {
+    var t = (TIPS[kind] || []).concat(TIPS.base);
+    $('tipsHead').textContent = kind === 'service' ? 'Before you sign anything' : 'Before you sign · ' + { tenancy: 'tenancy', employment: 'job offer', gym: 'gym', phone: 'phone plan' }[kind];
+    $('tips').innerHTML = t.map(function (x) { return '<li>' + x + '</li>'; }).join('');
+  }
+  function focusFlag(n) {
+    [].forEach.call(document.querySelectorAll('.flag.on, mark.on'), function (x) { x.classList.remove('on'); });
+    var f = $('f' + n); if (!f) return; f.classList.add('on'); f.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+  $('doc').addEventListener('click', function (e) { var m = e.target.closest('mark'); if (m) { focusFlag(m.dataset.n.split(',')[0]); m.classList.add('on'); } });
+  $('flags').addEventListener('click', function (e) {
+    var q = e.target.closest('q'); if (!q) return;
+    var flag = q.closest('.flag'), n = flag.id.slice(1);
+    var m = [].filter.call(document.querySelectorAll('#doc mark'), function (x) { return x.dataset.n.split(',').indexOf(n) >= 0; })[0];
+    if (m) { m.classList.add('on'); var d = $('doc'); d.scrollTop = m.offsetTop - d.offsetTop - 40; m.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+  });
+  function run() {
+    var t = $('src').value;
+    if (t.trim().length < 40) { $('msg').textContent = 'Paste a bit more text, at least a few sentences.'; return; }
+    try { localStorage.setItem('contractKind', $('kind').value); } catch (e) {}
+    render(t);
+    $('out').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  $('go').onclick = run;
+  $('clear').onclick = function () { $('src').value = ''; $('out').hidden = true; $('msg').textContent = ''; showTips('service'); };
+  $('kind').onchange = function () { if (!$('out').hidden) render($('src').value); };
+  [].forEach.call(document.querySelectorAll('[data-sample]'), function (b) { b.onclick = function () { $('src').value = SAMPLES[b.dataset.sample]; $('kind').value = 'auto'; run(); }; });
+  try { var k = localStorage.getItem('contractKind'); if (k && $('kind').querySelector('[value="' + k + '"]')) $('kind').value = k; } catch (e) {}
+  showTips('service');
+  window.__contract = { analyse: analyse, detect: detect };
+})();
+</script>
+</body>
+</html>

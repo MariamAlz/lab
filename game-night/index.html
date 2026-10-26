@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Game Night · Mariam's Lab</title>
+<meta name="description" content="A board game companion for the table: roll any dice, track whose turn it is, run a turn timer or chess clock, keep a score sheet, and pick who goes first. Works offline.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/game-night/">
+<meta property="og:title" content="Game Night · Mariam's Lab"><meta property="og:description" content="Dice, turns, timers and scores for board game night."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; cursor: pointer; }
+.sm[aria-pressed="true"], .sm.pri { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.big { font: inherit; font-weight: 600; font-size: 1.05rem; padding: 12px 30px; border-radius: 999px; border: 0; background: var(--accent); color: var(--bg); cursor: pointer; }
+.bar { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; }
+.box { border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; background: var(--surface); display: grid; gap: 12px; min-width: 0; }
+.players { display: grid; gap: 6px; }
+.pl { display: grid; grid-template-columns: 34px minmax(0, 1fr) 30px 30px; gap: 6px; align-items: center; }
+.pl input[type=color] { width: 34px; height: 34px; border: 1px solid var(--line); border-radius: 8px; padding: 2px; background: transparent; cursor: pointer; }
+.pl input[type=text] { font: inherit; color: var(--ink); background: rgba(7,10,24,.55); border: 1px solid var(--line); border-radius: 8px; padding: 6px 9px; min-width: 0; width: 100%; }
+.x { font: inherit; font-size: 0.95rem; color: var(--muted); background: none; border: 1px solid transparent; border-radius: 8px; cursor: pointer; padding: 4px; }
+.x:hover { color: var(--ink); border-color: var(--line); }
+.tray { min-height: 120px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: center; padding: 12px; border-radius: 12px; background: rgba(7,10,24,.45); border: 1px dashed var(--line); }
+.die { width: 62px; height: 62px; display: grid; place-items: center; font: 800 1.5rem var(--font-display); color: #14182e; background: #f3efe6; border-radius: 12px; box-shadow: inset 0 -4px 0 rgba(0,0,0,.18), 0 3px 8px rgba(0,0,0,.4); position: relative; }
+.die.d4 { clip-path: polygon(50% 4%, 97% 92%, 3% 92%); border-radius: 0; padding-top: 18px; font-size: 1.25rem; }
+.die.d8, .die.d10 { clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); border-radius: 0; font-size: 1.25rem; }
+.die.d12 { clip-path: polygon(50% 0, 98% 35%, 80% 95%, 20% 95%, 2% 35%); border-radius: 0; padding-top: 6px; }
+.die.d20 { clip-path: polygon(50% 0, 96% 25%, 96% 75%, 50% 100%, 4% 75%, 4% 25%); border-radius: 0; }
+.die.dn { border-radius: 50%; font-size: 1.15rem; }
+.die.max { background: #ffd98a; } .die.min { background: #f6b2c4; }
+.die.roll { animation: tumble .12s linear infinite; }
+@keyframes tumble { 0% { transform: rotate(-12deg) translateY(-3px); } 50% { transform: rotate(10deg) translateY(2px); } 100% { transform: rotate(-12deg) translateY(-3px); } }
+@media (prefers-reduced-motion: reduce) { .die.roll { animation: none; opacity: .6; } }
+.pips { width: 100%; height: 100%; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); padding: 9px; }
+.pips i { width: 11px; height: 11px; border-radius: 50%; background: #14182e; place-self: center; visibility: hidden; }
+.pips i.on { visibility: visible; }
+.total { text-align: center; font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; line-height: 1; }
+.total small { display: block; font: 400 0.85rem var(--font-body); color: var(--muted); margin-top: 4px; }
+.num { width: 4.2em; font: inherit; font-family: var(--font-mono); color: var(--ink); background: rgba(7,10,24,.55); border: 1px solid var(--line); border-radius: 8px; padding: 5px 8px; }
+.hist { font-family: var(--font-mono); font-size: 0.76rem; color: var(--muted); display: grid; gap: 2px; max-height: 120px; overflow-y: auto; }
+.turn { border-radius: var(--radius); padding: 18px; text-align: center; display: grid; gap: 4px; border: 3px solid var(--c, var(--line)); background: color-mix(in srgb, var(--c, transparent) 14%, transparent); cursor: pointer; user-select: none; }
+.turn .who { font-family: var(--font-display); font-weight: 800; font-size: clamp(1.6rem, 6vw, 2.4rem); line-height: 1.1; overflow-wrap: anywhere; }
+.turn .clk { font-family: var(--font-display); font-weight: 800; font-size: clamp(2.6rem, 12vw, 4rem); font-variant-numeric: tabular-nums; line-height: 1; }
+.turn .clk.low { color: #ff4f6d; }
+.turn small { color: var(--muted); }
+.clocks { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 6px; }
+.clocks div { padding: 6px 8px; border-radius: 10px; border: 1px solid var(--line); border-inline-start: 4px solid var(--c); font-size: 0.8rem; display: grid; }
+.clocks div.on { background: color-mix(in srgb, var(--c) 18%, transparent); }
+.clocks b { font-family: var(--font-mono); font-size: 0.95rem; }
+.clocks div.out b { color: #ff4f6d; }
+.sheet-wrap { overflow-x: auto; }
+table.sheet { border-collapse: collapse; font-size: 0.85rem; width: 100%; min-width: max-content; }
+table.sheet th, table.sheet td { border-bottom: 1px solid var(--line); padding: 4px; text-align: center; }
+table.sheet th { font-weight: 600; border-bottom: 3px solid var(--c, var(--line)); white-space: nowrap; max-width: 8em; overflow: hidden; text-overflow: ellipsis; }
+table.sheet td:first-child, table.sheet th:first-child { text-align: start; color: var(--muted); font-family: var(--font-mono); font-size: 0.75rem; }
+table.sheet input { width: 4.2em; font: inherit; font-family: var(--font-mono); text-align: center; color: var(--ink); background: rgba(7,10,24,.4); border: 1px solid var(--line); border-radius: 6px; padding: 4px 2px; }
+table.sheet tfoot td { font-family: var(--font-display); font-weight: 800; font-size: 1.15rem; border-bottom: 0; }
+table.sheet tfoot td.lead { color: var(--accent); }
+.wheel { display: grid; place-items: center; min-height: 120px; }
+.wheel b { font-family: var(--font-display); font-weight: 800; font-size: clamp(1.8rem, 7vw, 2.8rem); padding: 10px 22px; border-radius: 14px; border: 3px solid var(--c, var(--line)); transition: border-color .1s; overflow-wrap: anywhere; text-align: center; }
+.sw { display: flex; gap: 8px; align-items: center; font-size: 0.88rem; cursor: pointer; }
+.sw input { accent-color: var(--accent); width: 18px; height: 18px; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Games · Offline</span>
+    <h1 style="font-size:var(--step-3)">Game night.</h1>
+    <p>One phone in the middle of the table for everything a box usually loses: dice of any kind, whose turn it is, a turn timer or chess clock for slow thinkers, a score sheet that adds itself up, and a fair way to pick who goes first. It keeps working without a connection, and remembers the game if you close it.</p>
+  </div>
+
+  <div class="game">
+    <div class="panel">
+      <div class="box">
+        <span class="label">Dice</span>
+        <div class="bar" id="sides"></div>
+        <div class="bar"><label class="msg" style="min-height:0" for="count">How many</label><input class="num" id="count" type="number" min="1" max="20" value="2"><label class="msg" style="min-height:0" for="mod">Add</label><input class="num" id="mod" type="number" value="0"><label class="msg" style="min-height:0;display:none" for="custom" id="customL">Sides</label><input class="num" id="custom" type="number" min="2" max="1000" value="7" style="display:none"></div>
+        <div class="tray" id="tray" aria-live="polite"></div>
+        <div class="total" id="total">–<small>Tap Roll or shake the phone</small></div>
+        <div class="bar" style="justify-content:center"><button class="big" type="button" id="roll">Roll</button><label class="sw"><input type="checkbox" id="shake"> Shake to roll</label></div>
+        <div class="hist" id="dhist"></div>
+      </div>
+      <div class="box">
+        <span class="label">Score sheet</span>
+        <div class="sheet-wrap"><table class="sheet" id="sheet"></table></div>
+        <div class="bar"><button class="sm" type="button" id="addRound">+ Round</button><button class="sm" type="button" id="low" aria-pressed="false">Lowest score wins</button><button class="sm" type="button" id="clearScores">Clear scores</button></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="box">
+        <span class="label">Players</span>
+        <div class="players" id="players"></div>
+        <div class="bar"><button class="sm" type="button" id="addP">+ Player</button><button class="sm" type="button" id="shuffle">Shuffle seats</button></div>
+      </div>
+      <div class="box">
+        <span class="label">Turns and timer</span>
+        <div class="bar" id="modes"><button class="sm" type="button" data-m="none">No timer</button><button class="sm" type="button" data-m="turn">Turn timer</button><button class="sm" type="button" data-m="chess">Chess clock</button></div>
+        <div class="bar" id="timeSet"><label class="msg" style="min-height:0" for="secs" id="secsL">Seconds per turn</label><input class="num" id="secs" type="number" min="5" max="3600" step="5" value="60"><label class="sw"><input type="checkbox" id="beep" checked> Beep</label></div>
+        <div class="turn" id="turn" role="button" tabindex="0" aria-label="Next turn"><small id="round">Round 1</small><div class="who" id="who">–</div><div class="clk" id="clk"></div><small>Tap here to end the turn</small></div>
+        <div class="clocks" id="clocks"></div>
+        <div class="bar"><button class="sm" type="button" id="prev">← Back</button><button class="sm" type="button" id="pause">Pause</button><button class="sm" type="button" id="resetT">Reset turns</button></div>
+      </div>
+      <div class="box">
+        <span class="label">Who goes first?</span>
+        <div class="wheel"><b id="pick">?</b></div>
+        <div class="bar" style="justify-content:center"><button class="big" type="button" id="pickGo">Pick at random</button></div>
+        <p class="msg" style="text-align:center" id="pickMsg">The chosen player also becomes the first turn above.</p>
+      </div>
+    </div>
+  </div>
+  <div class="game" style="margin-top:24px">
+    <p class="fact">Are the dice fair? Each roll uses your browser's cryptographic random generator (crypto.getRandomValues) with rejection sampling, so every face is exactly equally likely. Plastic dice are rarely that good: cheap ones with drilled pips are slightly lighter on the 6 side, so 6 comes up a little more often.</p>
+    <p class="fact">Chess clock mode gives each player a bank of time that only runs on their turn. It is good for games where one slow thinker holds up everyone else. Turn timer mode gives the same short countdown every turn, which suits party games. Everything is saved on this device only.</p>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  var COLS = ['#e9b467', '#4fd3bd', '#84a0ff', '#f08ab3', '#9be36a', '#ff8a4c', '#c79bff', '#5ad1ff'];
+  var st = {
+    players: [{ n: 'Player 1', c: COLS[0] }, { n: 'Player 2', c: COLS[1] }, { n: 'Player 3', c: COLS[2] }],
+    sides: 6, count: 2, mod: 0, custom: 7, hist: [],
+    mode: 'none', secs: 60, beep: true, cur: 0, round: 1, bank: [], low: false,
+    scores: [[], [], []]
+  };
+  try { var s0 = JSON.parse(localStorage.getItem('gameNight') || 'null'); if (s0 && s0.players) for (var k in s0) st[k] = s0[k]; } catch (e) {}
+  function save() { try { localStorage.setItem('gameNight', JSON.stringify(st)); } catch (e) {} }
+
+  // fair random int in [0, n)
+  function rnd(n) {
+    if (window.crypto && crypto.getRandomValues) {
+      var a = new Uint32Array(1), lim = Math.floor(4294967296 / n) * n;
+      do { crypto.getRandomValues(a); } while (a[0] >= lim);
+      return a[0] % n;
+    }
+    return Math.floor(Math.random() * n);
+  }
+
+  // ---- players
+  function renderPlayers() {
+    $('players').innerHTML = st.players.map(function (p, i) {
+      return '<div class="pl" data-i="' + i + '"><input type="color" value="' + p.c + '" aria-label="Colour for ' + esc(p.n) + '"><input type="text" value="' + esc(p.n) + '" maxlength="24" aria-label="Player name"><button class="x" type="button" data-up aria-label="Move up">↑</button><button class="x" type="button" data-del aria-label="Remove">×</button></div>';
+    }).join('');
+  }
+  $('players').addEventListener('input', function (e) {
+    var row = e.target.closest('.pl'); if (!row) return; var p = st.players[+row.dataset.i];
+    if (e.target.type === 'color') p.c = e.target.value; else p.n = e.target.value || 'Player';
+    save(); renderTurn(); renderSheet(true);
+  });
+  $('players').addEventListener('click', function (e) {
+    var row = e.target.closest('.pl'); if (!row) return; var i = +row.dataset.i;
+    if (e.target.dataset.del != null) {
+      if (st.players.length <= 1) return;
+      st.players.splice(i, 1); st.scores.splice(i, 1); st.bank.splice(i, 1);
+      if (st.cur >= st.players.length) st.cur = 0;
+    } else if (e.target.dataset.up != null && i > 0) {
+      swap(st.players, i, i - 1); swap(st.scores, i, i - 1); swap(st.bank, i, i - 1);
+    } else return;
+    save(); all();
+  });
+  function swap(a, i, j) { var t = a[i]; a[i] = a[j]; a[j] = t; }
+  $('addP').onclick = function () {
+    if (st.players.length >= 12) return;
+    var n = st.players.length; st.players.push({ n: 'Player ' + (n + 1), c: COLS[n % COLS.length] }); st.scores.push([]); st.bank.push(st.secs);
+    save(); all();
+  };
+  $('shuffle').onclick = function () {
+    for (var i = st.players.length - 1; i > 0; i--) { var j = rnd(i + 1); swap(st.players, i, j); swap(st.scores, i, j); swap(st.bank, i, j); }
+    st.cur = 0; save(); all();
+  };
+
+  // ---- dice
+  var SIDES = [4, 6, 8, 10, 12, 20, 100, 'custom'];
+  $('sides').innerHTML = SIDES.map(function (s) { return '<button class="sm" type="button" data-s="' + s + '">' + (s === 'custom' ? 'd?' : 'd' + s) + '</button>'; }).join('');
+  function sidesUI() {
+    [].forEach.call($('sides').children, function (b) { b.setAttribute('aria-pressed', String(b.dataset.s) === String(st.sides)); });
+    var c = st.sides === 'custom'; $('custom').style.display = $('customL').style.display = c ? '' : 'none';
+    $('count').value = st.count; $('mod').value = st.mod; $('custom').value = st.custom;
+  }
+  $('sides').onclick = function (e) { var b = e.target.closest('[data-s]'); if (!b) return; st.sides = b.dataset.s === 'custom' ? 'custom' : +b.dataset.s; save(); sidesUI(); };
+  $('count').oninput = function () { st.count = Math.max(1, Math.min(20, parseInt(this.value, 10) || 1)); save(); };
+  $('mod').oninput = function () { st.mod = parseInt(this.value, 10) || 0; save(); };
+  $('custom').oninput = function () { st.custom = Math.max(2, Math.min(1000, parseInt(this.value, 10) || 2)); save(); };
+  var PIPS = { 1: [4], 2: [2, 6], 3: [2, 4, 6], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
+  function face(v, n) {
+    if (n === 6) { var on = PIPS[v]; var h = '<div class="pips">'; for (var i = 0; i < 9; i++) h += '<i class="' + (on.indexOf(i) >= 0 ? 'on' : '') + '"></i>'; return h + '</div>'; }
+    return v;
+  }
+  function dieCls(n) { return n === 4 ? 'd4' : n === 8 ? 'd8' : n === 10 || n === 100 ? 'd10' : n === 12 ? 'd12' : n === 20 ? 'd20' : n === 6 ? '' : 'dn'; }
+  var rolling = false;
+  function roll() {
+    if (rolling) return; rolling = true;
+    var n = st.sides === 'custom' ? st.custom : st.sides, c = st.count, cls = dieCls(n);
+    var vals = []; for (var i = 0; i < c; i++) vals.push(rnd(n) + 1);
+    var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var t0 = Date.now(), dur = reduce ? 150 : 650;
+    $('tray').innerHTML = vals.map(function () { return '<div class="die roll ' + cls + '"></div>'; }).join('');
+    var dice = $('tray').children;
+    (function spin() {
+      if (Date.now() - t0 < dur) { for (var i = 0; i < dice.length; i++) dice[i].innerHTML = face(rnd(n) + 1, n); setTimeout(spin, 70); return; }
+      for (var j = 0; j < dice.length; j++) { dice[j].className = 'die ' + cls + (n > 2 && vals[j] === n ? ' max' : n > 2 && vals[j] === 1 ? ' min' : ''); dice[j].innerHTML = face(vals[j], n); dice[j].setAttribute('aria-label', vals[j]); }
+      var sum = vals.reduce(function (a, b) { return a + b; }, 0) + st.mod;
+      $('total').innerHTML = sum + '<small>' + c + 'd' + n + (st.mod ? (st.mod > 0 ? ' + ' : ' − ') + Math.abs(st.mod) : '') + (c > 1 ? ' · ' + vals.join(' + ') : '') + '</small>';
+      st.hist.unshift(c + 'd' + n + (st.mod ? (st.mod > 0 ? '+' : '') + st.mod : '') + ' → ' + sum + (c > 1 ? ' (' + vals.join(', ') + ')' : ''));
+      st.hist = st.hist.slice(0, 12); save(); renderHist();
+      if (navigator.vibrate) try { navigator.vibrate(30); } catch (e) {}
+      rolling = false;
+    })();
+  }
+  function renderHist() { $('dhist').innerHTML = st.hist.map(function (h) { return '<span>' + esc(h) + '</span>'; }).join(''); }
+  $('roll').onclick = roll;
+  // shake to roll
+  var lastShake = 0;
+  function onMotion(e) { var a = e.accelerationIncludingGravity || e.acceleration; if (!a) return; var m = Math.sqrt((a.x || 0) * (a.x || 0) + (a.y || 0) * (a.y || 0) + (a.z || 0) * (a.z || 0)); if (m > 24 && Date.now() - lastShake > 1200) { lastShake = Date.now(); roll(); } }
+  $('shake').onchange = function () {
+    var on = this.checked, box = this;
+    if (!on) { window.removeEventListener('devicemotion', onMotion); return; }
+    if (typeof DeviceMotionEvent !== 'undefined' && DeviceMotionEvent.requestPermission) {
+      DeviceMotionEvent.requestPermission().then(function (r) { if (r === 'granted') window.addEventListener('devicemotion', onMotion); else box.checked = false; }, function () { box.checked = false; });
+    } else if ('ondevicemotion' in window) window.addEventListener('devicemotion', onMotion);
+    else { box.checked = false; box.disabled = true; }
+  };
+
+  // ---- turns and timers
+  var running = true, tick = null, turnStart = Date.now(), turnLeft = st.secs, ac = null, beeped = false;
+  function beep(f, d) {
+    if (!st.beep) return;
+    try { ac = ac || new (window.AudioContext || window.webkitAudioContext)(); var o = ac.createOscillator(), g = ac.createGain(); o.frequency.value = f || 880; o.connect(g); g.connect(ac.destination); g.gain.setValueAtTime(0.15, ac.currentTime); g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + (d || 0.25)); o.start(); o.stop(ac.currentTime + (d || 0.25)); } catch (e) {}
+  }
+  function mmss(s) { var neg = s < 0; s = Math.abs(Math.ceil(s)); return (neg ? '−' : '') + Math.floor(s / 60) + ':' + ('0' + s % 60).slice(-2); }
+  function ensureBank() { while (st.bank.length < st.players.length) st.bank.push(st.secs); st.bank.length = st.players.length; }
+  function modeUI() {
+    [].forEach.call($('modes').children, function (b) { b.setAttribute('aria-pressed', b.dataset.m === st.mode); });
+    $('timeSet').style.display = st.mode === 'none' ? 'none' : '';
+    $('secsL').textContent = st.mode === 'chess' ? 'Minutes each' : 'Seconds per turn';
+    $('secs').value = st.mode === 'chess' ? Math.round(st.secs / 60) : st.secs;
+    $('secs').step = st.mode === 'chess' ? 1 : 5; $('secs').min = 1;
+    $('beep').checked = st.beep;
+  }
+  $('modes').onclick = function (e) {
+    var b = e.target.closest('[data-m]'); if (!b) return; st.mode = b.dataset.m;
+    if (st.mode === 'chess' && st.secs < 60) st.secs = 600; if (st.mode === 'turn' && st.secs > 600) st.secs = 60;
+    st.bank = st.players.map(function () { return st.secs; }); turnStart = Date.now(); turnLeft = st.secs; beeped = false;
+    save(); modeUI(); renderTurn();
+  };
+  $('secs').oninput = function () {
+    var v = parseFloat(this.value); if (!(v > 0)) return;
+    st.secs = st.mode === 'chess' ? Math.round(v * 60) : Math.round(v);
+    st.bank = st.players.map(function () { return st.secs; }); turnLeft = st.secs; turnStart = Date.now(); save(); renderTurn();
+  };
+  $('beep').onchange = function () { st.beep = this.checked; save(); };
+  function commitElapsed() { if (st.mode === 'chess' && running) { st.bank[st.cur] -= (Date.now() - turnStart) / 1000; } turnStart = Date.now(); }
+  function nextTurn(dir) {
+    ensureBank(); commitElapsed();
+    var n = st.players.length;
+    if (dir < 0) { if (st.cur === 0 && st.round > 1) st.round--; st.cur = (st.cur - 1 + n) % n; }
+    else { st.cur = (st.cur + 1) % n; if (st.cur === 0) st.round++; }
+    turnLeft = st.secs; beeped = false; turnStart = Date.now();
+    save(); renderTurn();
+  }
+  $('turn').onclick = function () { nextTurn(1); beep(660, 0.08); };
+  $('turn').onkeydown = function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); nextTurn(1); } };
+  $('prev').onclick = function () { nextTurn(-1); };
+  $('pause').onclick = function () {
+    if (running) { if (st.mode === 'turn') turnLeft -= (Date.now() - turnStart) / 1000; commitElapsed(); running = false; this.textContent = 'Resume'; }
+    else { running = true; turnStart = Date.now(); this.textContent = 'Pause'; }
+    save(); renderTurn();
+  };
+  $('resetT').onclick = function () { st.cur = 0; st.round = 1; st.bank = st.players.map(function () { return st.secs; }); turnLeft = st.secs; turnStart = Date.now(); beeped = false; save(); renderTurn(); };
+  function timeNow() {
+    var el = running ? (Date.now() - turnStart) / 1000 : 0;
+    if (st.mode === 'turn') return turnLeft - el;
+    if (st.mode === 'chess') return st.bank[st.cur] - el;
+    return null;
+  }
+  function renderTurn() {
+    ensureBank();
+    if (st.cur >= st.players.length) st.cur = 0;
+    var p = st.players[st.cur];
+    $('turn').style.setProperty('--c', p.c);
+    $('who').textContent = p.n; $('round').textContent = 'Round ' + st.round + (running ? '' : ' · paused');
+    var t = timeNow(), clk = $('clk');
+    clk.textContent = t == null ? '' : mmss(t);
+    clk.className = 'clk' + (t != null && t <= 10 ? ' low' : '');
+    if (t != null && t <= 0 && !beeped && running) { beeped = true; beep(880, 0.5); setTimeout(function () { beep(660, 0.5); }, 550); }
+    if (st.mode === 'chess') {
+      $('clocks').innerHTML = st.players.map(function (q, i) { var b = i === st.cur ? t : st.bank[i]; return '<div class="' + (i === st.cur ? 'on' : '') + (b <= 0 ? ' out' : '') + '" style="--c:' + q.c + '"><span>' + esc(q.n) + '</span><b>' + mmss(b) + '</b></div>'; }).join('');
+    } else $('clocks').innerHTML = '';
+  }
+  tick = setInterval(function () { if (st.mode !== 'none') renderTurn(); }, 250);
+  // ---- score sheet
+  function rounds() { var r = 3; st.scores.forEach(function (s) { r = Math.max(r, s.length); }); return Math.max(r, st.nRounds || 0); }
+  function totals() { return st.players.map(function (p, i) { return (st.scores[i] || []).reduce(function (a, b) { return a + (parseFloat(b) || 0); }, 0); }); }
+  function renderSheet(headOnly) {
+    while (st.scores.length < st.players.length) st.scores.push([]);
+    var R = rounds(), T = totals(), best = st.low ? Math.min.apply(null, T) : Math.max.apply(null, T);
+    var anyScore = st.scores.some(function (s) { return s.some(function (v) { return v !== '' && v != null; }); });
+    if (headOnly && $('sheet').rows.length) {
+      var th = $('sheet').tHead.rows[0].cells; st.players.forEach(function (p, i) { if (th[i + 1]) { th[i + 1].textContent = p.n; th[i + 1].style.setProperty('--c', p.c); } });
+      return;
+    }
+    var h = '<thead><tr><th>Round</th>' + st.players.map(function (p) { return '<th style="--c:' + p.c + '" title="' + esc(p.n) + '">' + esc(p.n) + '</th>'; }).join('') + '</tr></thead><tbody>';
+    for (var r = 0; r < R; r++) h += '<tr><td>' + (r + 1) + '</td>' + st.players.map(function (p, i) { var v = (st.scores[i] || [])[r]; return '<td><input inputmode="numeric" data-p="' + i + '" data-r="' + r + '" value="' + (v == null ? '' : esc(v)) + '" aria-label="' + esc(p.n) + ' round ' + (r + 1) + '"></td>'; }).join('') + '</tr>';
+    h += '</tbody><tfoot><tr><td>Total</td>' + T.map(function (t) { return '<td class="' + (anyScore && t === best ? 'lead' : '') + '">' + (Math.round(t * 100) / 100) + '</td>'; }).join('') + '</tr></tfoot>';
+    $('sheet').innerHTML = h;
+  }
+  $('sheet').addEventListener('input', function (e) {
+    var t = e.target; if (t.dataset.p == null) return;
+    var p = +t.dataset.p, r = +t.dataset.r; st.scores[p][r] = t.value.replace(/[^\d.\-]/g, ''); save();
+    var T = totals(), best = st.low ? Math.min.apply(null, T) : Math.max.apply(null, T), cells = $('sheet').tFoot.rows[0].cells;
+    T.forEach(function (x, i) { cells[i + 1].textContent = Math.round(x * 100) / 100; cells[i + 1].className = x === best ? 'lead' : ''; });
+  });
+  $('addRound').onclick = function () { st.nRounds = rounds() + 1; save(); renderSheet(); var ins = $('sheet').querySelectorAll('tbody tr:last-child input'); if (ins[0]) ins[0].focus(); };
+  $('low').onclick = function () { st.low = !st.low; this.setAttribute('aria-pressed', st.low); save(); renderSheet(); };
+  $('clearScores').onclick = function () { if (!confirm('Clear the score sheet?')) return; st.scores = st.players.map(function () { return []; }); st.nRounds = 0; save(); renderSheet(); };
+
+  // ---- first player
+  $('pickGo').onclick = function () {
+    var n = st.players.length, win = rnd(n), steps = n * 3 + win + (n > 1 ? rnd(n) : 0), i = 0, el = $('pick');
+    var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) steps = 0;
+    var pos = 0; this.disabled = true; var btn = this;
+    (function step() {
+      var p = st.players[pos % n]; el.textContent = p.n; el.style.setProperty('--c', p.c);
+      if (i >= steps && pos % n === win) {
+        btn.disabled = false; st.cur = win; st.round = 1; turnStart = Date.now(); turnLeft = st.secs; beeped = false; save(); renderTurn();
+        $('pickMsg').textContent = p.n + ' goes first.'; beep(990, 0.15); return;
+      }
+      i++; pos++; setTimeout(step, 40 + Math.pow(i / Math.max(1, steps), 3) * 260);
+    })();
+  };
+
+  function all() { renderPlayers(); renderTurn(); renderSheet(); }
+  $('low').setAttribute('aria-pressed', st.low);
+  sidesUI(); modeUI(); renderHist(); all();
+  window.__game = { rnd: rnd, st: st };
+})();
+</script>
+</body>
+</html>

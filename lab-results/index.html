@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Blood Test Explainer · Mariam's Lab</title>
+<meta name="description" content="Paste your blood test results and see each one in plain words: what it measures, how it compares to a typical adult range, the value in both mmol/L and mg/dL, and what to ask your doctor. Runs in your browser.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/lab-results/">
+<meta property="og:title" content="Blood Test Explainer · Mariam's Lab"><meta property="og:description" content="Your blood test results in plain words, in both unit systems."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; cursor: pointer; }
+.sm[aria-pressed="true"], .sm.pri { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+select.sm { background: var(--bg); }
+.bar { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+#src { width: 100%; min-height: 170px; font-family: var(--font-mono); font-size: 0.85rem; line-height: 1.5; color: var(--ink); background: rgba(7,10,24,.55); border: 1px solid var(--line); border-radius: 12px; padding: 12px; resize: vertical; }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; }
+.add { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1.2fr) auto; gap: 6px; align-items: end; }
+@media (max-width: 560px) { .add { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+.fl { display: grid; gap: 3px; font-size: 0.78rem; color: var(--muted); }
+.fl input, .fl select { font: inherit; font-size: 0.9rem; color: var(--ink); background: rgba(7,10,24,.55); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; width: 100%; min-width: 0; }
+.group { margin-top: 18px; display: grid; gap: 10px; }
+.res { border: 1px solid var(--line); border-inline-start: 4px solid var(--c); border-radius: 12px; padding: 12px 14px; display: grid; gap: 8px; background: var(--surface); }
+.res .top { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: start; }
+.res h3 { font-size: 1.05rem; }
+.res h3 small { display: block; font-family: var(--font-body); font-weight: 400; font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
+.res .val { text-align: end; }
+.res .val b { font-family: var(--font-display); font-size: 1.5rem; display: block; line-height: 1.1; color: var(--c); }
+.res .val span { font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); }
+.tag { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: .08em; text-transform: uppercase; color: var(--c); }
+.gauge { position: relative; height: 26px; margin: 2px 0; }
+.gauge .track { position: absolute; left: 0; right: 0; top: 10px; height: 6px; border-radius: 99px; background: color-mix(in srgb, #ff8a4c 35%, transparent); }
+.gauge .ok { position: absolute; top: 10px; height: 6px; background: var(--sat-b); border-radius: 99px; }
+.gauge .dot { position: absolute; top: 4px; width: 18px; height: 18px; margin-left: -9px; border-radius: 50%; background: var(--c); border: 3px solid var(--bg); }
+.gauge .lim { position: absolute; top: 18px; font-family: var(--font-mono); font-size: 0.65rem; color: var(--muted); transform: translateX(-50%); }
+.rng { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; font-size: 0.8rem; color: var(--muted); }
+.rng input { width: 5.2em; font: inherit; font-family: var(--font-mono); font-size: 0.8rem; color: var(--ink); background: rgba(7,10,24,.55); border: 1px solid var(--line); border-radius: 6px; padding: 3px 6px; }
+.res p { font-size: 0.9rem; }
+.res .ask { font-size: 0.86rem; color: var(--muted); }
+.res .x { font: inherit; font-size: 0.75rem; color: var(--muted); background: none; border: 0; cursor: pointer; text-decoration: underline; padding: 0; }
+.note { padding: 12px 14px; border-radius: 12px; border: 1px solid var(--accent); font-size: 0.9rem; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Health · Explainer</span>
+    <h1 style="font-size:var(--step-3)">Blood test explainer.</h1>
+    <p>Lab reports are full of short names and two kinds of units. Paste your results, or type them in, and each test is shown in plain words: what it measures, where your number sits against a typical adult range, and what to ask your doctor. Values are shown in both mmol/L and mg/dL style units. Nothing leaves your browser.</p>
+  </div>
+  <p class="note">This is an explainer, not medical advice. Labs use different methods and ranges, so the range printed on your own report is the one that counts. If the tool spots a range on a line it uses it, and you can edit any range below. A result just outside a range is often not a concern on its own. Talk to your doctor about what your results mean for you.</p>
+
+  <div class="game" style="margin-top:20px">
+    <div class="panel">
+      <span class="label">Paste your results</span>
+      <textarea id="src" spellcheck="false" placeholder="One test per line works best, for example:
+Haemoglobin   13.1  g/dL   13.0 - 17.0
+HbA1c         5.9   %
+LDL Cholesterol  3.6 mmol/L
+Vitamin D (25-OH)  18 ng/mL"></textarea>
+      <div class="bar"><button class="sm pri" type="button" id="go">Explain</button><button class="sm" type="button" id="sample">Try a sample report</button><button class="sm" type="button" id="clear">Clear all</button></div>
+      <p class="msg" id="msg" role="status"></p>
+    </div>
+    <div class="panel">
+      <span class="label">Or add one test</span>
+      <div class="add">
+        <label class="fl">Test<select id="aTest"></select></label>
+        <label class="fl">Result<input id="aVal" inputmode="decimal" placeholder="e.g. 5.4"></label>
+        <label class="fl">Unit<select id="aUnit"></select></label>
+        <button class="sm" type="button" id="aGo">Add</button>
+      </div>
+      <span class="label" style="margin-top:6px">About you</span>
+      <div class="bar" id="sex"><span class="msg" style="min-height:0">Some ranges differ by sex:</span><button class="sm" type="button" data-s="f">Female</button><button class="sm" type="button" data-s="m">Male</button><button class="sm" type="button" data-s="">Not set</button></div>
+      <p class="fact">Why two units? Most of the world, and many UAE labs, report in SI units like mmol/L, which count molecules. US labs use mg/dL, which weigh them. Glucose of 5.5 mmol/L and 99 mg/dL are the same thing. The factor differs for each substance because each molecule has a different weight, which is why a single converter for "mmol to mg" doesn't exist.</p>
+    </div>
+  </div>
+
+  <div id="out" hidden>
+    <div class="stats" style="margin-top:24px"><div><b id="sN">0</b><span>tests read</span></div><div><b id="sOk">0</b><span>inside range</span></div><div><b id="sOut">0</b><span>outside or borderline</span></div></div>
+    <div class="bar" style="margin-top:12px"><span class="msg" style="min-height:0">Show the second unit as:</span><button class="sm" type="button" id="uSI" aria-pressed="true">SI (mmol/L)</button><button class="sm" type="button" id="uConv">Conventional (mg/dL)</button><span style="flex:1"></span><button class="sm" type="button" id="copy">Copy questions for my doctor</button></div>
+    <div id="groups"></div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  // unit helpers: canonical = to(v), v = from(canonical)
+  function L(name, f, si) { return { u: name, to: function (v) { return v * f; }, from: function (c) { return c / f; }, si: !!si }; }
+  var CNT9 = [L('×10⁹/L', 1, true), L('×10³/µL', 1)], CNT12 = [L('×10¹²/L', 1, true), L('×10⁶/µL', 1)];
+  var GROUPS = ['Blood count', 'Sugar', 'Cholesterol and fats', 'Vitamins and iron', 'Thyroid', 'Liver', 'Kidney', 'Inflammation', 'Salts and minerals'];
+  // key, group, name, aliases(regex source), units (first = canonical), range {lo,hi} or {m:[lo,hi], f:[lo,hi]}, what, high, low, ask, bands
+  var T = [
+    ['hb', 0, 'Haemoglobin', 'ha?emoglobin|\\bhgb\\b|\\bhb\\b', [L('g/dL', 1), L('g/L', 0.1, true), L('mmol/L', 1.611, true)], { m: [13.5, 17.5], f: [12.0, 15.5] }, 'The protein in red blood cells that carries oxygen.', 'Can be from dehydration, smoking or living at altitude, and sometimes other conditions.', 'Called anaemia. Common causes include low iron, heavy periods, B12 or folate shortage, or blood loss.', 'If low: could this be iron deficiency, and should we check ferritin?'],
+    ['rbc', 0, 'Red blood cells (RBC)', 'red (?:blood )?cell count|\\brbc\\b|erythrocytes', CNT12, { m: [4.5, 5.9], f: [4.0, 5.2] }, 'How many red blood cells are in a set volume of blood.', 'Can follow dehydration or smoking. Some people with thalassaemia trait have a high count with small cells.', 'Usually seen with anaemia.', 'Do my red cell results fit a pattern, such as iron deficiency or thalassaemia trait?'],
+    ['hct', 0, 'Haematocrit (HCT/PCV)', 'ha?ematocrit|\\bhct\\b|\\bpcv\\b|packed cell volume', [L('%', 1), L('L/L', 100, true)], { m: [41, 53], f: [36, 46] }, 'The share of your blood made up of red cells.', 'Often from dehydration.', 'Goes with anaemia.', 'Is this explained by my haemoglobin result?'],
+    ['mcv', 0, 'Mean cell volume (MCV)', '\\bmcv\\b|mean (?:cell|corpuscular) volume', [L('fL', 1, true)], [80, 100], 'The average size of your red cells.', 'Large cells can come from low B12 or folate, alcohol, thyroid or liver issues.', 'Small cells often mean low iron or thalassaemia trait, which is common in the Gulf.', 'If small: is it iron deficiency or could it be thalassaemia trait?'],
+    ['mch', 0, 'Mean cell haemoglobin (MCH)', '\\bmch\\b(?!c)|mean (?:cell|corpuscular) ha?emoglobin(?! conc)', [L('pg', 1, true)], [27, 33], 'The average amount of haemoglobin in each red cell.', 'Usually rises with large cells (high MCV).', 'Usually falls with small cells, as in iron deficiency.', 'Does this match my MCV?'],
+    ['mchc', 0, 'MCHC', '\\bmchc\\b', [L('g/dL', 1), L('g/L', 0.1, true)], [32, 36], 'How concentrated the haemoglobin is inside red cells.', 'Rarely high; can be a sample issue or a hereditary red cell condition.', 'Seen with iron deficiency.', 'Is this worth repeating?'],
+    ['rdw', 0, 'Red cell distribution width (RDW)', '\\brdw(?:-cv)?\\b', [L('%', 1, true)], [11.5, 14.5], 'How much your red cells vary in size.', 'Mixed sizes often appear early in iron, B12 or folate deficiency.', 'Low RDW is not usually a concern.', 'Could a high RDW point to an early deficiency?'],
+    ['wbc', 0, 'White blood cells (WBC)', 'white (?:blood )?cell count|\\bwbc\\b|\\btlc\\b|leu[ck]ocytes|total leu[ck]ocyte count', CNT9, [4.0, 11.0], 'Your infection-fighting cells.', 'Often from an infection, inflammation, stress, smoking or some medicines like steroids.', 'Can follow a viral infection, some medicines, or be normal for some people, especially of African or Middle Eastern background.', 'Should we repeat it once I am well, and look at the breakdown?'],
+    ['neut', 0, 'Neutrophils', 'neutrophils?(?: count)?|\\bneut\\b|\\banc\\b', CNT9, [2.0, 7.5], 'The white cells that fight bacteria.', 'Often a bacterial infection, stress or steroids.', 'Mildly low is common and harmless in some people (benign ethnic neutropenia), but should be checked.', 'Is my low or high count a concern given how I feel?'],
+    ['lymph', 0, 'Lymphocytes', 'lymphocytes?(?: count)?|\\blymph\\b', CNT9, [1.0, 4.0], 'White cells that fight viruses and make antibodies.', 'Often a recent viral infection.', 'Can follow stress, steroids or an infection.', 'Should this be rechecked?'],
+    ['plt', 0, 'Platelets', 'platelets?(?: count)?|\\bplt\\b|thrombocytes', CNT9, [150, 400], 'Cell fragments that help blood clot.', 'Can follow infection, inflammation or low iron.', 'Can mean easier bruising or bleeding when very low. Mild dips are common after viral infections.', 'Is my count low enough to matter for bleeding or a procedure?'],
+
+    ['hba1c', 1, 'HbA1c', 'hba1c|a1c|glycated ha?emoglobin|glycosylated', [L('%', 1), { u: 'mmol/mol', to: function (v) { return 0.09148 * v + 2.152; }, from: function (c) { return (c - 2.152) / 0.09148; }, si: true }], [4.0, 5.6], 'Your average blood sugar over the last two to three months.', 'Between 5.7% and 6.4% is usually called the prediabetes range. 6.5% or more is in the diabetes range, which a doctor normally confirms with a second test.', 'Rarely a concern. It can read low after blood loss or with some blood conditions.', 'What does this mean for my diabetes risk, and when should I recheck?', [[5.7, 'Normal range'], [6.5, 'Prediabetes range'], [99, 'Diabetes range']]],
+    ['glu', 1, 'Fasting glucose', '(?:fasting )?(?:blood |plasma )?glucose|\\bfbs\\b|\\bfbg\\b|\\bfpg\\b|blood sugar', [L('mg/dL', 1), L('mmol/L', 18.016, true)], [70, 99], 'Sugar in your blood after not eating for 8 hours or more.', '100 to 125 mg/dL (5.6 to 6.9 mmol/L) is usually called the prediabetes range. 126 mg/dL (7.0 mmol/L) or more is in the diabetes range. These cut-offs only apply if you were fasting.', 'Under 70 mg/dL (3.9 mmol/L) is low. It can cause shakiness and sweating, and matters most if you take diabetes medicines.', 'Was I properly fasting, and should we check HbA1c too?', [[100, 'Normal range'], [126, 'Prediabetes range'], [999, 'Diabetes range']]],
+
+    ['chol', 2, 'Total cholesterol', 'total cholesterol|cholesterol,? total|\\bt\\.?\\s?chol\\b|^\\s*cholesterol\\b|serum cholesterol', [L('mg/dL', 1), L('mmol/L', 38.67, true)], [null, 200], 'All the cholesterol in your blood, good and bad together.', 'Raises long-term heart risk, but LDL and HDL tell more. 200 to 239 mg/dL is often called borderline.', 'Rarely a concern.', 'What is my overall heart risk score, not just this number?'],
+    ['ldl', 2, 'LDL cholesterol', '\\bldl\\b|low density', [L('mg/dL', 1), L('mmol/L', 38.67, true)], [null, 100], 'The "bad" cholesterol that can build up in artery walls.', 'Raises heart and stroke risk over years. Targets depend on your other risks: lower is better for people with diabetes or heart disease.', 'Usually fine.', 'What LDL target is right for me, and is diet enough or do I need medicine?', [[100, 'Optimal'], [130, 'Near optimal'], [160, 'Borderline high'], [190, 'High'], [9999, 'Very high']]],
+    ['hdl', 2, 'HDL cholesterol', '\\bhdl\\b|high density', [L('mg/dL', 1), L('mmol/L', 38.67, true)], { m: [40, null], f: [50, null] }, 'The "good" cholesterol that carries cholesterol away to the liver.', 'High HDL is usually seen as protective.', 'Low HDL adds to heart risk. Exercise, quitting smoking and losing weight can raise it.', 'What can I do to raise my HDL?'],
+    ['tg', 2, 'Triglycerides', 'triglycerides?|\\btg\\b|\\btrig\\b', [L('mg/dL', 1), L('mmol/L', 88.57, true)], [null, 150], 'Fat in your blood, mostly from food. Sugar and refined carbs raise it.', 'Often linked to diet, alcohol, weight and blood sugar. Very high levels can inflame the pancreas. It reads high if you weren\'t fasting.', 'Rarely a concern.', 'Was this a fasting sample, and would cutting sugar help?'],
+    ['nonhdl', 2, 'Non-HDL cholesterol', 'non[- ]?hdl', [L('mg/dL', 1), L('mmol/L', 38.67, true)], [null, 130], 'Total cholesterol minus HDL: all the "bad" kinds together.', 'Raises heart risk, like LDL.', 'Usually fine.', 'Is my non-HDL at the target for my risk?'],
+
+    ['vitd', 3, 'Vitamin D (25-OH)', 'vitamin d|vit\\.? ?d|25[- ]?(?:oh|hydroxy)|calcidiol|cholecalciferol', [L('ng/mL', 1), L('nmol/L', 1 / 2.496, true)], [30, 100], 'Your vitamin D store. Your skin makes it in sunlight, and supplements add to it.', 'Very high levels usually come from taking too much in supplements.', 'Very common in the UAE despite the sun, because people stay indoors and covered. Below 20 ng/mL (50 nmol/L) is usually called deficient.', 'Do I need a supplement, at what dose, and when should we recheck?', [[20, 'Deficient'], [30, 'Insufficient'], [100, 'Sufficient'], [999, 'High']]],
+    ['b12', 3, 'Vitamin B12', 'vitamin b ?12|vit\\.? ?b ?12|\\bb12\\b|cobalamin|cyanocobalamin', [L('pg/mL', 1), L('pmol/L', 1.355, true)], [200, 900], 'A vitamin needed for nerves and making red blood cells.', 'Usually from supplements or injections. Rarely a sign of something else.', 'Common with vegetarian or vegan diets, metformin, or stomach acid medicines. It can cause tiredness, tingling and anaemia.', 'If borderline: should we test further, and do I need tablets or injections?'],
+    ['ferritin', 3, 'Ferritin', 'ferritin', [L('ng/mL', 1), L('µg/L', 1, true), L('pmol/L', 0.445, true)], { m: [30, 400], f: [15, 150] }, 'Your stored iron. It is the best single test for iron stores.', 'Can rise with inflammation, infection, liver issues or iron overload, so it is read together with CRP and iron.', 'Means low iron stores, even before anaemia shows. Common with heavy periods, pregnancy, or low-meat diets.', 'Do I need iron, and should we look for why it is low?'],
+    ['iron', 3, 'Serum iron', 'serum iron|^\\s*iron\\b|\\bfe\\b', [L('µg/dL', 1), L('µmol/L', 5.585, true)], [60, 170], 'Iron moving in your blood right now. It changes a lot during the day and after meals.', 'Can follow supplements or a recent iron-rich meal. Persistently high iron needs checking.', 'On its own it\'s a weak sign. Ferritin is more reliable for stores.', 'What do my ferritin and transferrin saturation say?'],
+
+    ['tsh', 4, 'TSH', '\\btsh\\b|thyroid stimulating', [L('mIU/L', 1, true), L('µIU/mL', 1)], [0.4, 4.0], 'A signal from the brain telling the thyroid how hard to work.', 'Usually means the thyroid is underactive, so the brain is shouting louder.', 'Usually means an overactive thyroid, or too much thyroid medicine.', 'Should we check free T4 and thyroid antibodies?'],
+    ['ft4', 4, 'Free T4', 'free t4|\\bft4\\b|free thyroxine|^\\s*t4\\b', [L('ng/dL', 1), L('pmol/L', 1 / 12.87, true)], [0.8, 1.8], 'The main hormone the thyroid makes, in the free form your body can use.', 'Suggests an overactive thyroid or too much medicine.', 'Suggests an underactive thyroid.', 'How do my TSH and T4 fit together?'],
+
+    ['alt', 5, 'ALT', '\\balt\\b|\\bsgpt\\b|alanine', [L('U/L', 1, true)], [7, 56], 'A liver enzyme. It leaks into the blood when liver cells are irritated.', 'Mild rises are common with fatty liver, alcohol, some medicines and supplements, or a recent hard workout.', 'Not a concern.', 'Could this be fatty liver, and do I need an ultrasound or a repeat test?'],
+    ['ast', 5, 'AST', '\\bast\\b|\\bsgot\\b|aspartate', [L('U/L', 1, true)], [8, 40], 'An enzyme found in the liver and muscles.', 'Can rise with liver irritation or after heavy exercise.', 'Not a concern.', 'Is this from the liver or from muscle?'],
+    ['alp', 5, 'Alkaline phosphatase (ALP)', '\\balp\\b|alkaline phosphatase|alk\\.? phos', [L('U/L', 1, true)], [40, 130], 'An enzyme from the liver and bones.', 'Can come from the bile ducts, bone growth or healing, pregnancy, or low vitamin D.', 'Rarely a concern. It can be low with low zinc or magnesium.', 'Is this from liver or bone, and should we check GGT or vitamin D?'],
+    ['bili', 5, 'Bilirubin (total)', '(?:total )?bilirubin|t\\.? ?bil', [L('mg/dL', 1), L('µmol/L', 1 / 17.1, true)], [0.1, 1.2], 'A yellow pigment from the normal breakdown of old red cells, cleared by the liver.', 'A mild rise alone is often Gilbert\'s syndrome, which is harmless and common. Higher levels can cause yellow eyes and need checking.', 'Not a concern.', 'Could this be Gilbert\'s, and should we split it into direct and indirect?'],
+
+    ['creat', 6, 'Creatinine', 'creatinine', [L('mg/dL', 1), L('µmol/L', 1 / 88.4, true)], { m: [0.7, 1.3], f: [0.6, 1.1] }, 'A waste product from muscles, cleared by the kidneys.', 'Can mean the kidneys are filtering less, or be from dehydration, lots of muscle, or creatine supplements.', 'Common with smaller muscle mass. Rarely a concern.', 'What is my eGFR, and should we repeat this when I am well hydrated?'],
+    ['urea', 6, 'Urea', '^\\s*urea\\b|serum urea|blood urea(?! nitrogen)', [L('mmol/L', 1, true), L('mg/dL', 1 / 6.006)], [2.5, 7.8], 'A waste product from protein, cleared by the kidneys.', 'Often from dehydration, a high-protein diet, or reduced kidney function.', 'Can follow a low-protein diet or pregnancy.', 'Is this from hydration, or should we look at kidney function?'],
+    ['bun', 6, 'Blood urea nitrogen (BUN)', '\\bbun\\b|urea nitrogen', [L('mg/dL', 1), L('mmol/L', 2.8, true)], [7, 20], 'The nitrogen part of urea, a waste product cleared by the kidneys. US labs report this instead of urea.', 'Often from dehydration, a high-protein diet, or reduced kidney function.', 'Can follow a low-protein diet.', 'Is this from hydration, or should we look at kidney function?'],
+    ['egfr', 6, 'eGFR', 'e-?gfr|estimated gfr|glomerular filtration', [L('mL/min/1.73m²', 1, true)], [90, null], 'An estimate of how well your kidneys filter, worked out from creatinine, age and sex.', 'Not a concern.', '60 to 89 can be normal with age. Under 60 for three months or more is usually called chronic kidney disease. Muscle mass and hydration affect it.', 'Should we repeat it, and check urine for protein (ACR)?', [[60, 'Reduced'], [90, 'Mildly reduced'], [999, 'Normal']]],
+    ['uric', 6, 'Uric acid', 'uric acid|urate', [L('mg/dL', 1), L('µmol/L', 1 / 59.48, true)], { m: [3.4, 7.0], f: [2.4, 6.0] }, 'A waste product from breaking down purines in food and cells.', 'Can cause gout and kidney stones. Linked to red meat, seafood, sugary drinks, alcohol and dehydration.', 'Rarely a concern.', 'Do I need to change my diet, and is my gout risk high?'],
+
+    ['crp', 7, 'C-reactive protein (CRP)', 'c[- ]?reactive|\\b(?:hs-?)?crp\\b', [L('mg/L', 1, true), L('mg/dL', 10)], [null, 5], 'A protein the liver makes when there is inflammation or infection somewhere in the body.', 'Usually a recent infection or inflammation. It doesn\'t say where. Very high values need prompt attention.', 'Low is good.', 'What could be causing inflammation, and should we recheck in a few weeks?'],
+
+    ['na', 8, 'Sodium', 'sodium|\\bna\\+?\\b', [L('mmol/L', 1, true), L('mEq/L', 1)], [135, 145], 'The main salt in your blood. It controls water balance.', 'Usually from not drinking enough water.', 'Can come from some medicines (like water pills), drinking a lot of water, or other conditions.', 'Could any of my medicines affect sodium?'],
+    ['k', 8, 'Potassium', 'potassium|\\bk\\+?\\b', [L('mmol/L', 1, true), L('mEq/L', 1)], [3.5, 5.1], 'A salt that keeps nerves and the heart working smoothly.', 'Can be a sample issue if the blood sat too long. Real high levels can affect heart rhythm and need prompt review.', 'Can follow vomiting, diarrhoea or water pills. It can cause cramps and weakness.', 'Should this be repeated soon, and could my medicines be the cause?'],
+    ['cl', 8, 'Chloride', 'chloride|\\bcl-?\\b', [L('mmol/L', 1, true), L('mEq/L', 1)], [98, 107], 'A salt that moves with sodium to balance fluids.', 'Usually with dehydration.', 'Can follow vomiting.', 'Is this in line with my sodium?'],
+    ['hco3', 8, 'Bicarbonate', 'bicarbonate|\\bhco3\\b|total co2|\\bco2\\b', [L('mmol/L', 1, true), L('mEq/L', 1)], [22, 29], 'Shows the acid-base balance of your blood.', 'Can follow vomiting or some medicines.', 'Can come with kidney or breathing issues, or diarrhoea.', 'Is this significant with my other results?'],
+    ['ca', 8, 'Calcium', '(?:total |serum )?calcium|\\bca\\b', [L('mg/dL', 1), L('mmol/L', 4.008, true)], [8.6, 10.3], 'Needed for bones, muscles and nerves. Part of it is carried by albumin.', 'Can relate to the parathyroid glands, too much vitamin D, or other conditions, and needs follow-up.', 'Often due to low albumin or low vitamin D.', 'Should calcium be corrected for my albumin?'],
+    ['mg', 8, 'Magnesium', 'magnesium|\\bmg\\b(?!/)', [L('mg/dL', 1), L('mmol/L', 2.431, true)], [1.7, 2.2], 'A mineral for muscles, nerves and heart rhythm.', 'Uncommon, usually with kidney issues or supplements.', 'Can follow stomach acid medicines, diuretics or alcohol. It can cause cramps.', 'Could my medicines be lowering magnesium?']
+  ];
+  var BY = {}; T.forEach(function (t) { BY[t[0]] = t; t.re = new RegExp(t[3], 'i'); });
+  var ORDER = ['nonhdl', 'hdl', 'ldl', 'chol', 'tg', 'mchc', 'mch', 'mcv', 'rdw', 'hba1c', 'hct', 'hb', 'rbc', 'wbc', 'neut', 'lymph', 'plt', 'glu', 'vitd', 'b12', 'ferritin', 'iron', 'tsh', 'ft4', 'alt', 'ast', 'alp', 'bili', 'creat', 'egfr', 'bun', 'urea', 'uric', 'crp', 'na', 'k', 'cl', 'hco3', 'ca', 'mg'];
+
+  var st = { sex: '', rows: [], ranges: {}, conv: false };
+  try { var s0 = JSON.parse(localStorage.getItem('labResults') || 'null'); if (s0) { st.sex = s0.sex || ''; st.conv = !!s0.conv; } } catch (e) {}
+  function save() { try { localStorage.setItem('labResults', JSON.stringify({ sex: st.sex, conv: st.conv })); } catch (e) {} }
+
+  function normU(u) { return String(u).toLowerCase().replace(/[µμ]/g, 'u').replace(/mcg/g, 'ug').replace(/\s+/g, '').replace(/iu\//, 'u/').replace(/¹²/g, '12').replace(/⁹/g, '9').replace(/³/g, '3').replace(/⁶/g, '6').replace(/²/g, '2').replace(/[×x*]/g, '').replace(/\^/g, '').replace(/10e/, '10'); }
+  function findUnit(t, raw) {
+    if (!raw) return null; var n = normU(raw);
+    var map = { '103/ul': '103/ul', 'k/ul': '103/ul', 'thou/ul': '103/ul', '103/mm3': '103/ul', '109/l': '109/l', '1012/l': '1012/l', '106/ul': '106/ul', 'm/ul': '106/ul', 'mil/ul': '106/ul', 'ml/min': 'ml/min/1.73m2', 'ml/min/1.73m2': 'ml/min/1.73m2', 'ml/min/1.73': 'ml/min/1.73m2', 'mu/l': 'mu/l', 'uu/ml': 'uu/ml' };
+    n = map[n] || n;
+    for (var i = 0; i < t[4].length; i++) { var k = normU(t[4][i].u); k = map[k] || k; if (k === n) return t[4][i]; }
+    // U/L variants
+    if (/^(?:iu|u)\/l$/.test(n)) return t[4].filter(function (x) { return x.u === 'U/L'; })[0] || null;
+    if (n === 'ug/l') return t[4].filter(function (x) { return x.u === 'µg/L'; })[0] || null;
+    return null;
+  }
+  function rangeFor(t) {
+    if (st.ranges[t[0]]) return st.ranges[t[0]];
+    var r = t[5];
+    if (Array.isArray(r)) return r;
+    if (st.sex) return r[st.sex];
+    return [r.f[0] == null || r.m[0] == null ? null : Math.min(r.f[0], r.m[0]), r.f[1] == null || r.m[1] == null ? null : Math.max(r.f[1], r.m[1])];
+  }
+  // guess unit from value plausibility when none given
+  function guessUnit(t, v) {
+    var r = Array.isArray(t[5]) ? t[5] : t[5].m, best = t[4][0], bd = Infinity;
+    var mid = r[0] != null && r[1] != null ? (r[0] + r[1]) / 2 : (r[0] != null ? r[0] * 1.3 : r[1] * 0.75);
+    t[4].forEach(function (u) { var c = u.to(v); if (c <= 0) return; var d = Math.abs(Math.log(c / mid)); if (d < bd) { bd = d; best = u; } });
+    return best;
+  }
+  var NUM = '[<>≤≥]?\\s*\\d+(?:[.,]\\d+)?';
+  var UNIT_RE = /^\s*((?:x|×)?\s*10\s*(?:\^|\*|e)?\s*[0-9⁹³¹²⁶]+\s*\/\s*(?:[uµμ]l|l|mm3)|k\/[uµμ]l|thou\/[uµμ]l|mil\/[uµμ]l|m\/[uµμ]l|mmol\/mol|m?mol\/l|[uµμ]mol\/l|nmol\/l|pmol\/l|mg\/dl|g\/dl|g\/l|mg\/l|ng\/ml|pg\/ml|[uµμ]g\/l|[uµμ]g\/dl|mcg\/dl|mcg\/l|m?iu\/l|[uµμ]iu\/ml|mu\/l|u\/l|meq\/l|ml\/min(?:\/1\.73\s?m(?:2|²))?|fl\b|pg\b|l\/l|%)/i;
+  function pnum(s) { s = s.replace(/[<>≤≥\s]/g, ''); if (/,\d{3}$/.test(s)) s = s.replace(',', ''); return parseFloat(s.replace(',', '.')); }
+  function parseLine(line) {
+    var clean = line.replace(/\t/g, '  ');
+    for (var i = 0; i < ORDER.length; i++) {
+      var t = BY[ORDER[i]], m = clean.match(t.re); if (!m) continue;
+      // skip leftovers of the name, like "(25-OH)", "(SGPT)" or ", fasting"
+      var after = clean.slice(m.index + m[0].length);
+      after = after.replace(/^\s*(?:\([^)]*\)|,?\s*(?:total|serum|plasma|fasting|level|count|direct|abs(?:olute)?|calculated|cholesterol|chol|-?c\b|hormone|test|result))*\s*[:=\-]?\s*/i, '');
+      var nm = after.match(new RegExp('^\\s*[^\\d<>≤≥]{0,6}(' + NUM + ')'));
+      if (!nm) continue;
+      var v = pnum(nm[1]), tail = after.slice(nm.index + nm[0].length);
+      var um = tail.match(UNIT_RE), unit = um ? findUnit(t, um[1]) : null, guessed = false;
+      if (um) tail = tail.slice(um.index + um[0].length);
+      if (!unit) { unit = guessUnit(t, v); guessed = true; }
+      var rm = tail.match(new RegExp('(\\d+(?:\\.\\d+)?)\\s*(?:-|–|—|to)\\s*(\\d+(?:\\.\\d+)?)')), lr = null;
+      if (rm) { var a = +rm[1], b = +rm[2]; if (a < b) lr = [unit.to(a), unit.to(b)]; }
+      else { var lt = tail.match(/(?:^|\s)(<|less than|up to|≤)\s*(\d+(?:\.\d+)?)/i), gt = tail.match(/(?:^|\s)(>|more than|over|≥)\s*(\d+(?:\.\d+)?)/i); if (lt) lr = [null, unit.to(+lt[2])]; else if (gt) lr = [unit.to(+gt[2]), null]; }
+      return { key: t[0], v: v, unit: unit.u, guessed: guessed, labRange: lr, src: line.trim() };
+    }
+    return null;
+  }
+  function parse(text) {
+    var rows = [], seen = {}, miss = [];
+    text.split(/\r?\n/).forEach(function (line) {
+      if (!/\d/.test(line)) return;
+      var r = parseLine(line);
+      if (r && !seen[r.key]) { seen[r.key] = 1; rows.push(r); }
+      else if (!r && /[a-z]{3}/i.test(line)) miss.push(line.trim());
+    });
+    return { rows: rows, miss: miss };
+  }
+  function fmt(x) { if (x == null || isNaN(x)) return '–'; var a = Math.abs(x); return a >= 100 ? Math.round(x).toString() : a >= 10 ? x.toFixed(1).replace(/\.0$/, '') : a >= 1 ? x.toFixed(2).replace(/0$/, '').replace(/\.0$/, '') : x.toFixed(2); }
+  function status(t, c, r) {
+    var lo = r[0], hi = r[1];
+    if (lo != null && c < lo) return { s: 'Low', lvl: lo - c > Math.abs(lo) * 0.15 ? 2 : 1 };
+    if (hi != null && c > hi) return { s: 'High', lvl: c - hi > Math.abs(hi) * 0.15 ? 2 : 1 };
+    return { s: 'In range', lvl: 0 };
+  }
+  var COLS = ['var(--sat-b)', '#ffc857', '#ff8a4c'];
+  function altUnit(t, u) {
+    var want = st.conv ? false : true; // show SI as second unless toggled
+    var others = t[4].filter(function (x) { return x.u !== u.u; });
+    if (!others.length) return null;
+    var pick = others.filter(function (x) { return x.si === want; })[0];
+    return pick || others[0];
+  }
+  function card(row) {
+    var t = BY[row.key], u = t[4].filter(function (x) { return x.u === row.unit; })[0], c = u.to(row.v);
+    var r = rangeFor(t), S = status(t, c, r), col = COLS[S.lvl], alt = altUnit(t, u);
+    var band = '';
+    if (t[10]) { for (var i = 0; i < t[10].length; i++) if (c < t[10][i][0]) { band = t[10][i][1]; break; } }
+    var lo = r[0], hi = r[1], gmin, gmax;
+    var span = (hi != null && lo != null) ? hi - lo : (hi != null ? hi : lo);
+    gmin = lo != null ? lo - span * 0.6 : 0; gmax = hi != null ? hi + span * 0.6 : lo * 2.2;
+    if (lo == null && hi == null) { gmin = 0; gmax = Math.max(c * 2, 1); }
+    if (gmin < 0) gmin = 0;
+    var cl = Math.max(gmin, Math.min(gmax, c)), pct = function (x) { return (100 * (x - gmin) / (gmax - gmin)).toFixed(1); };
+    var okL = lo != null ? pct(lo) : 0, okR = hi != null ? pct(hi) : 100;
+    var expl = S.s === 'High' ? t[7] : S.s === 'Low' ? t[8] : 'Inside the range used here.';
+    var dl = function (x) { return x == null ? '' : fmt(u.from(x)); };
+    return '<div class="res" style="--c:' + col + '" data-k="' + t[0] + '"><div class="top"><h3>' + t[2] + '<small>' + t[6] + '</small></h3><div class="val"><b>' + fmt(row.v) + '</b><span>' + u.u + (row.guessed ? ' (unit guessed)' : '') + '</span>' + (alt ? '<span style="display:block">= ' + fmt(alt.from(c)) + ' ' + alt.u + '</span>' : '') + '</div></div>' +
+      '<div class="gauge" aria-hidden="true"><div class="track"></div><div class="ok" style="left:' + okL + '%;right:' + (100 - okR) + '%"></div><div class="dot" style="left:' + pct(cl) + '%"></div>' + (lo != null ? '<span class="lim" style="left:' + okL + '%">' + dl(lo) + '</span>' : '') + (hi != null ? '<span class="lim" style="left:' + okR + '%">' + dl(hi) + '</span>' : '') + '</div>' +
+      '<span class="tag">' + S.s + (band ? ' · ' + band : '') + '</span>' +
+      '<p>' + expl + '</p><p class="ask"><b>Ask:</b> ' + t[9] + '</p>' +
+      '<div class="rng">Range used (' + u.u + '): <input data-r="0" value="' + dl(lo) + '" placeholder="none" aria-label="Range low"> to <input data-r="1" value="' + dl(hi) + '" placeholder="none" aria-label="Range high"> ' + (row.labRange && !st.ranges[t[0] + '_user'] ? '<span>from your report</span>' : st.ranges[t[0] + '_user'] ? '<span>edited</span>' : '<span>typical adult</span>') + ' <button class="x" type="button" data-del="' + t[0] + '">remove</button></div></div>';
+  }
+  function render() {
+    if (!st.rows.length) { $('out').hidden = true; return; }
+    $('out').hidden = false;
+    var ok = 0, out = 0, html = '';
+    GROUPS.forEach(function (g, gi) {
+      var rows = st.rows.filter(function (r) { return BY[r.key][1] === gi; });
+      if (!rows.length) return;
+      html += '<div class="group"><span class="label">' + g + '</span>' + rows.map(card).join('') + '</div>';
+    });
+    $('groups').innerHTML = html;
+    st.rows.forEach(function (r) { var t = BY[r.key], u = t[4].filter(function (x) { return x.u === r.unit; })[0]; if (status(t, u.to(r.v), rangeFor(t)).lvl) out++; else ok++; });
+    $('sN').textContent = st.rows.length; $('sOk').textContent = ok; $('sOut').textContent = out;
+    $('uSI').setAttribute('aria-pressed', !st.conv); $('uConv').setAttribute('aria-pressed', st.conv);
+  }
+  function addRows(rows) {
+    rows.forEach(function (r) {
+      st.rows = st.rows.filter(function (x) { return x.key !== r.key; }); st.rows.push(r);
+      delete st.ranges[r.key]; delete st.ranges[r.key + '_user'];
+      if (r.labRange) st.ranges[r.key] = r.labRange;
+    });
+    st.rows.sort(function (a, b) { return T.indexOf(BY[a.key]) - T.indexOf(BY[b.key]); });
+    render();
+  }
+  $('go').onclick = function () {
+    var p = parse($('src').value);
+    if (!p.rows.length) { $('msg').textContent = 'No tests recognised. Try one test per line with its value, or add them one at a time.'; return; }
+    addRows(p.rows);
+    var g = p.rows.filter(function (r) { return r.guessed; }).length;
+    $('msg').textContent = 'Read ' + p.rows.length + ' test' + (p.rows.length > 1 ? 's' : '') + '.' + (g ? ' ' + g + ' had no unit, so the unit was guessed from the value. Check it.' : '') + (p.miss.length ? ' Skipped ' + p.miss.length + ' line' + (p.miss.length > 1 ? 's' : '') + ' it didn\'t recognise' + (p.miss.length <= 3 ? ': ' + p.miss.map(function (x) { return '"' + x.slice(0, 30) + '"'; }).join(', ') : '') + '.' : '');
+    $('out').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+  $('sample').onclick = function () {
+    $('src').value = 'COMPLETE BLOOD COUNT\nHaemoglobin          11.4   g/dL      12.0 - 15.5   L\nRBC                  4.9    x10^12/L  4.0 - 5.2\nMCV                  72     fL        80 - 100      L\nWBC                  6.2    x10^9/L   4.0 - 11.0\nPlatelets            310    x10^9/L   150 - 400\n\nGlucose, fasting     5.9    mmol/L    3.9 - 5.5     H\nHbA1c                40     mmol/mol\nTotal Cholesterol    5.6    mmol/L    < 5.2\nLDL Cholesterol      3.7    mmol/L\nHDL Cholesterol      1.1    mmol/L    > 1.2\nTriglycerides        1.9    mmol/L\nVitamin D (25-OH)    38     nmol/L    75 - 250\nVitamin B12          290    pg/mL\nFerritin             9      ng/mL\nTSH                  2.1    mIU/L\nALT (SGPT)           48     U/L\nCreatinine           68     umol/L\neGFR                 104    mL/min/1.73m2\nCRP                  2      mg/L\nSodium               139    mmol/L\nPotassium            4.2    mmol/L';
+    st.sex = 'f'; save(); sexUI(); $('go').click();
+  };
+  $('clear').onclick = function () { st.rows = []; st.ranges = {}; $('src').value = ''; $('msg').textContent = ''; render(); };
+  $('groups').addEventListener('click', function (e) { var k = e.target.dataset.del; if (!k) return; st.rows = st.rows.filter(function (r) { return r.key !== k; }); render(); });
+  $('groups').addEventListener('change', function (e) {
+    var inp = e.target; if (inp.dataset.r == null) return;
+    var k = inp.closest('.res').dataset.k, t = BY[k], row = st.rows.filter(function (r) { return r.key === k; })[0], u = t[4].filter(function (x) { return x.u === row.unit; })[0];
+    var r = rangeFor(t).slice(), v = inp.value.trim() === '' ? null : parseFloat(inp.value.replace(',', '.'));
+    r[+inp.dataset.r] = v == null || isNaN(v) ? null : u.to(v);
+    st.ranges[k] = r; st.ranges[k + '_user'] = 1; render();
+  });
+  function sexUI() { [].forEach.call(document.querySelectorAll('#sex [data-s]'), function (b) { b.setAttribute('aria-pressed', b.dataset.s === st.sex); }); }
+  $('sex').addEventListener('click', function (e) { var b = e.target.closest('[data-s]'); if (!b) return; st.sex = b.dataset.s; save(); sexUI(); render(); });
+  $('uSI').onclick = function () { st.conv = false; save(); render(); };
+  $('uConv').onclick = function () { st.conv = true; save(); render(); };
+  $('copy').onclick = function () {
+    var lines = ['Questions about my blood test'];
+    st.rows.forEach(function (r) { var t = BY[r.key], u = t[4].filter(function (x) { return x.u === r.unit; })[0], S = status(t, u.to(r.v), rangeFor(t)); if (S.lvl) lines.push('- ' + t[2] + ' ' + fmt(r.v) + ' ' + u.u + ' (' + S.s.toLowerCase() + '): ' + t[9]); });
+    if (lines.length === 1) lines.push('- Everything was inside the ranges. Is there anything I should keep an eye on?');
+    var txt = lines.join('\n');
+    if (navigator.clipboard) navigator.clipboard.writeText(txt).then(function () { $('copy').textContent = 'Copied'; setTimeout(function () { $('copy').textContent = 'Copy questions for my doctor'; }, 1500); }, function () {});
+  };
+  // manual add
+  $('aTest').innerHTML = GROUPS.map(function (g, gi) { return '<optgroup label="' + g + '">' + T.filter(function (t) { return t[1] === gi; }).map(function (t) { return '<option value="' + t[0] + '">' + t[2] + '</option>'; }).join('') + '</optgroup>'; }).join('');
+  function units() { var t = BY[$('aTest').value]; $('aUnit').innerHTML = t[4].map(function (u) { return '<option>' + u.u + '</option>'; }).join(''); }
+  $('aTest').onchange = units; units();
+  $('aGo').onclick = function () {
+    var v = parseFloat($('aVal').value.replace(',', '.'));
+    if (isNaN(v)) { $('msg').textContent = 'Type a number for the result.'; return; }
+    addRows([{ key: $('aTest').value, v: v, unit: $('aUnit').value, guessed: false, labRange: null }]);
+    $('aVal').value = ''; $('msg').textContent = 'Added ' + BY[$('aTest').value][2] + '.';
+  };
+  sexUI();
+  window.__lab = { parse: parse, BY: BY };
+})();
+</script>
+</body>
+</html>

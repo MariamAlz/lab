@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Interview Practice · Mariam's Lab</title>
+<meta name="description" content="Practise job interview answers out loud. Get a random question read aloud, record your answer, play it back, keep to time, and check it against the STAR method. Recordings stay on your device.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/interview-practice/">
+<meta property="og:title" content="Interview Practice · Mariam's Lab"><meta property="og:description" content="Hear a question, answer out loud, play it back."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; cursor: pointer; }
+.sm[aria-pressed="true"], .sm.pri { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.sm:disabled { opacity: .4; cursor: default; }
+.bar { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.qbox { padding: 22px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); display: grid; gap: 10px; }
+.qbox .qt { font-family: var(--font-display); font-size: clamp(1.35rem, 4.2vw, 2rem); font-weight: 600; line-height: 1.2; }
+.qbox .hint { color: var(--muted); font-size: 0.9rem; }
+.clock { display: grid; justify-items: center; gap: 6px; }
+.dial { position: relative; width: min(220px, 60vw); aspect-ratio: 1; }
+.dial svg { width: 100%; height: 100%; transform: rotate(-90deg); display: block; }
+.dial .t { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--font-display); font-weight: 800; font-size: clamp(2.4rem, 10vw, 3.4rem); font-variant-numeric: tabular-nums; line-height: 1; }
+.rec { width: 74px; height: 74px; border-radius: 50%; border: 3px solid var(--ink); background: #ff4f6d; cursor: pointer; display: grid; place-items: center; color: #fff; font: 600 0.8rem var(--font-body); }
+.rec.on { border-radius: 18px; animation: pulse 1.2s infinite; }
+@keyframes pulse { 50% { box-shadow: 0 0 0 10px rgba(255,79,109,.15); } }
+@media (prefers-reduced-motion: reduce) { .rec.on { animation: none; } }
+.star { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.star label { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 8px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; font-size: 0.9rem; cursor: pointer; }
+.star input { width: 18px; height: 18px; margin: 3px 0 0; accent-color: var(--sat-b); }
+.star small { display: block; color: var(--muted); font-size: 0.8rem; }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; }
+#transcript { font-size: 0.92rem; line-height: 1.6; padding: 12px; border: 1px dashed var(--line); border-radius: 10px; min-height: 60px; max-height: 220px; overflow-y: auto; }
+#transcript mark { background: rgba(255,200,87,.3); color: inherit; border-radius: 3px; padding: 0 2px; }
+audio { width: 100%; }
+.hist { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 0.85rem; }
+.hist li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; }
+.hist small { color: var(--muted); display: block; }
+.hist b { font-family: var(--font-mono); font-size: 0.78rem; text-align: end; }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: 0.9rem; }
+.row input[type=range] { width: 100%; }
+.sw { display: flex; gap: 8px; align-items: center; font-size: 0.88rem; cursor: pointer; }
+.sw input { accent-color: var(--accent); width: 18px; height: 18px; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Careers · Speaking practice</span>
+    <h1 style="font-size:var(--step-3)">Interview practice.</h1>
+    <p>Reading answers in your head is not the same as saying them out loud. Pick a type of interview, hear a question read to you, and answer while the clock runs. Then play yourself back, tick off the STAR steps, and try again. Recordings stay on this device and disappear when you close the page.</p>
+  </div>
+
+  <div class="bar" id="cats" role="group" aria-label="Question type"></div>
+  <div class="game" style="margin-top:16px">
+    <div class="panel">
+      <div class="qbox">
+        <span class="label" id="qcat">Question</span>
+        <div class="qt" id="qt" aria-live="polite">Press New question to start.</div>
+        <p class="hint" id="qhint"></p>
+        <div class="bar"><button class="sm pri" type="button" id="next">New question</button><button class="sm" type="button" id="say">🔊 Read aloud</button><label class="sw"><input type="checkbox" id="autoSay" checked> Read new questions aloud</label></div>
+      </div>
+      <div class="clock">
+        <div class="dial"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="52" fill="none" stroke="var(--line)" stroke-width="8"/><circle id="arc" cx="60" cy="60" r="52" fill="none" stroke="var(--sat-b)" stroke-width="8" stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="326.7"/></svg>
+        <div class="t" id="time">0:00</div></div>
+        <button class="rec" type="button" id="rec" aria-label="Start recording">REC</button>
+        <p class="msg" id="msg" role="status">Tap REC and answer. Tap again to stop.</p>
+      </div>
+      <audio id="play" controls hidden></audio>
+      <div class="row"><label for="target">Target length: <b id="targetV">90 s</b></label><input id="target" type="range" min="30" max="180" step="15" value="90" style="width:min(220px,45vw)"></div>
+    </div>
+    <div class="panel">
+      <span class="label">STAR checklist · tick what you covered</span>
+      <ul class="star" id="star">
+        <li><label><input type="checkbox"><span><b>Situation</b><small>Where and when. One or two sentences of context.</small></span></label></li>
+        <li><label><input type="checkbox"><span><b>Task</b><small>What you were responsible for, or the problem to solve.</small></span></label></li>
+        <li><label><input type="checkbox"><span><b>Action</b><small>What you did, using "I" not "we". This should be the longest part.</small></span></label></li>
+        <li><label><input type="checkbox"><span><b>Result</b><small>What changed, with a number if you can, and what you learned.</small></span></label></li>
+      </ul>
+      <span class="label" style="margin-top:4px">Filler words</span>
+      <label class="sw"><input type="checkbox" id="stt"> Show a live transcript and count filler words</label>
+      <p class="msg" id="sttNote">Uses your browser's built-in speech recognition where it exists (Chrome, Edge, Safari). Some browsers send audio to their own speech service for this, so it is off unless you turn it on.</p>
+      <div id="transcript" hidden></div>
+      <div class="stats"><div><b id="sTime">–</b><span>last answer</span></div><div><b id="sFill">–</b><span>filler words</span></div><div><b id="sWpm">–</b><span>words / minute</span></div></div>
+      <span class="label" style="margin-top:4px">This session</span>
+      <ul class="hist" id="hist"><li><span class="msg" style="min-height:0">Your answers will be listed here, without the audio.</span></li></ul>
+    </div>
+  </div>
+  <div class="game" style="margin-top:24px">
+    <p class="fact">Why STAR? Interviewers who ask "tell me about a time when…" are scoring evidence, not opinions. Situation, Task, Action, Result keeps a story short and puts the weight on what you did. Aim for about 10% situation, 10% task, 60% action and 20% result. Most good answers land between one and two minutes.</p>
+    <p class="fact">Calm speech in an interview is usually around 120 to 160 words per minute. Faster than that often comes from nerves. A few fillers like "um" are normal; it is long strings of "so, basically, like" that distract. A short pause sounds more confident than a filler.</p>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var Q = {
+    general: ['Tell me about yourself.', 'Why do you want this job?', 'Why do you want to leave your current role?', 'What are your greatest strengths?', 'What is a weakness you are working on?', 'Where do you see yourself in five years?', 'Why should we hire you over other candidates?', 'What do you know about our organisation?', 'What motivates you at work?', 'How would your last manager describe you?', 'What are your salary expectations?', 'What kind of work environment helps you do your best?', 'How do you handle pressure and tight deadlines?', 'What is an achievement you are proud of?', 'Do you have any questions for us?'],
+    behavioural: ['Tell me about a time you disagreed with a manager. What did you do?', 'Describe a time you made a mistake at work and how you handled it.', 'Tell me about a time you had to work with a difficult colleague.', 'Give an example of a goal you set and how you achieved it.', 'Describe a time you had to deliver bad news.', 'Tell me about a time you led a team or a project.', 'Describe a situation where you had to learn something new quickly.', 'Tell me about a time you went beyond what was expected.', 'Give an example of a time you had too many priorities. How did you choose?', 'Describe a time you had to persuade someone to see things your way.', 'Tell me about a time you failed. What did you learn?', 'Describe a time you received tough feedback.', 'Tell me about a decision you made with incomplete information.', 'Give an example of when you improved a process.'],
+    graduate: ['Tell me about your degree and why you chose it.', 'What did you learn from your internship or training?', 'Describe a group project that did not go to plan.', 'How have you managed studying alongside other commitments?', 'What skills from university will help you in this role?', 'Tell me about a time you showed initiative outside your studies.', 'Why are you interested in this graduate programme?', 'Which course or project challenged you most, and why?', 'How do you handle feedback on your work?', 'What would you hope to achieve in your first year?', 'Tell me about a time you volunteered or helped your community.'],
+    government: ['Why do you want to work in the public sector?', 'How would you contribute to this entity\'s strategic goals?', 'Tell me about a time you served a customer or the public under pressure.', 'How do you stay neutral and fair when people push for special treatment?', 'Describe a time you worked across different departments to get something done.', 'How do you keep information confidential?', 'Tell me about a time you suggested an innovation or a smarter way of working.', 'How would you explain a new policy to someone who disagrees with it?', 'What does good governance mean to you?', 'How do you balance following procedure with being flexible?', 'Give an example of how you use data to support a decision.', 'Tell me about a time you represented your team in front of senior leaders.'],
+    tech: ['Walk me through a project you are proud of, from idea to launch.', 'Tell me about the hardest bug you have tracked down.', 'How do you decide between building something and using an existing tool?', 'Describe a time you had to explain a technical topic to a non-technical person.', 'How do you keep your skills current?', 'Tell me about a time you disagreed with a technical decision.', 'How do you approach testing your work?', 'Describe a system you designed. What would you change now?', 'Tell me about a time a deadline forced you to cut scope.', 'How do you handle code reviews, giving and receiving?', 'What does good security practice look like in your day-to-day work?', 'Tell me about a time something you built failed in production.']
+  };
+  var HINT = {
+    general: 'Keep it focused on the job. Two or three key points, then stop.',
+    behavioural: 'Use STAR: Situation, Task, Action, Result. Most of the time on Action.',
+    graduate: 'Use examples from study, internships, volunteering or part-time work.',
+    government: 'Show service, integrity and teamwork. Link your example to public benefit.',
+    tech: 'Be concrete: what you built, the trade-offs, and what you would do differently.'
+  };
+  var CATS = [['general', 'General'], ['behavioural', 'Behavioural (STAR)'], ['graduate', 'Graduate'], ['government', 'Government'], ['tech', 'Tech'], ['mix', 'Mixed']];
+  var FILL = ['um', 'umm', 'uh', 'uhh', 'er', 'erm', 'ah', 'like', 'you know', 'basically', 'actually', 'literally', 'i mean', 'kind of', 'sort of', 'you see', 'right', 'so yeah', 'okay so'];
+  var FRE = new RegExp('\\b(' + FILL.slice().sort(function (a, b) { return b.length - a.length; }).join('|') + ')\\b', 'gi');
+  var cat = 'behavioural', cur = null, used = {}, hist = [];
+  try { var c0 = localStorage.getItem('ivCat'); if (c0) cat = c0; var t0 = localStorage.getItem('ivTarget'); if (t0) $('target').value = t0; var a0 = localStorage.getItem('ivAuto'); if (a0 != null) $('autoSay').checked = a0 === '1'; } catch (e) {}
+  $('cats').innerHTML = CATS.map(function (c) { return '<button class="sm" type="button" data-c="' + c[0] + '" aria-pressed="' + (c[0] === cat) + '">' + c[1] + '</button>'; }).join('');
+  $('cats').onclick = function (e) {
+    var b = e.target.closest('[data-c]'); if (!b) return; cat = b.dataset.c;
+    [].forEach.call($('cats').children, function (x) { x.setAttribute('aria-pressed', x === b); });
+    try { localStorage.setItem('ivCat', cat); } catch (e2) {}
+    next();
+  };
+  function next() {
+    var c = cat === 'mix' ? Object.keys(Q)[Math.floor(Math.random() * 5)] : cat, list = Q[c];
+    used[c] = used[c] || [];
+    if (used[c].length >= list.length) used[c] = [];
+    var pool = list.filter(function (q) { return used[c].indexOf(q) < 0 && q !== (cur && cur.q); });
+    var q = pool[Math.floor(Math.random() * pool.length)] || list[0];
+    used[c].push(q); cur = { q: q, c: c };
+    $('qt').textContent = q; $('qcat').textContent = CATS.filter(function (x) { return x[0] === c; })[0][1];
+    $('qhint').textContent = HINT[c];
+    [].forEach.call(document.querySelectorAll('#star input'), function (i) { i.checked = false; });
+    if ($('autoSay').checked) say();
+  }
+  function say() {
+    if (!cur || !('speechSynthesis' in window)) return;
+    try {
+      speechSynthesis.cancel();
+      var u = new SpeechSynthesisUtterance(cur.q); u.rate = 0.95; u.lang = 'en-GB';
+      var v = speechSynthesis.getVoices().filter(function (x) { return /^en[-_](GB|US|AU|IE)/i.test(x.lang); });
+      if (v.length) u.voice = v[0];
+      speechSynthesis.speak(u);
+    } catch (e) {}
+  }
+  $('next').onclick = next; $('say').onclick = say;
+  $('autoSay').onchange = function () { try { localStorage.setItem('ivAuto', this.checked ? '1' : '0'); } catch (e) {} };
+  function target() { return +$('target').value; }
+  $('target').oninput = function () { $('targetV').textContent = target() + ' s'; try { localStorage.setItem('ivTarget', target()); } catch (e) {} draw(0); };
+  $('targetV').textContent = target() + ' s';
+
+  // recording
+  var rec = null, chunks = [], stream = null, t0 = 0, tick = null, url = null, sr = null, finalText = '', interim = '';
+  function mmss(s) { s = Math.max(0, Math.round(s)); return Math.floor(s / 60) + ':' + ('0' + s % 60).slice(-2); }
+  function draw(sec) {
+    var T = target(), f = Math.min(1, sec / T);
+    $('arc').style.strokeDashoffset = (326.7 * (1 - f)).toFixed(1);
+    $('arc').style.stroke = sec > T * 1.25 ? '#ff4f6d' : sec > T ? '#ffc857' : 'var(--sat-b)';
+    $('time').textContent = mmss(sec);
+  }
+  function start() {
+    if (!cur) next();
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || typeof MediaRecorder === 'undefined') { $('msg').textContent = 'Recording isn\'t supported in this browser. You can still use the timer: tap REC to time yourself.'; timerOnly(); return; }
+    $('msg').textContent = 'Asking for the microphone…';
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(function (s) {
+      stream = s; chunks = [];
+      var r;
+      try { r = rec = new MediaRecorder(s); } catch (e) { $('msg').textContent = 'Couldn\'t start the recorder.'; s.getTracks().forEach(function (t) { t.stop(); }); return; }
+      rec.ondataavailable = function (e) { if (e.data && e.data.size) chunks.push(e.data); };
+      rec.onstop = function () {
+        var blob = new Blob(chunks, { type: r.mimeType || 'audio/webm' });
+        if (url) URL.revokeObjectURL(url);
+        url = URL.createObjectURL(blob); $('play').src = url; $('play').hidden = false;
+        s.getTracks().forEach(function (t) { t.stop(); });
+        if (!/Play it back/.test($('msg').textContent)) $('msg').textContent += ' Play it back below.';
+      };
+      rec.start(); begin();
+      $('msg').textContent = 'Recording. Answer now, then tap stop.';
+    }, function () { $('msg').textContent = 'Microphone access was blocked, so only the timer will run.'; timerOnly(); });
+  }
+  var timerMode = false;
+  function timerOnly() { timerMode = true; begin(); }
+  function begin() {
+    try { speechSynthesis.cancel(); } catch (e) {}
+    t0 = Date.now(); $('rec').classList.add('on'); $('rec').textContent = 'STOP'; $('rec').setAttribute('aria-label', 'Stop recording');
+    tick = setInterval(function () { draw((Date.now() - t0) / 1000); }, 200);
+    if ($('stt').checked) startSTT();
+  }
+  function stop() {
+    clearInterval(tick); tick = null;
+    var sec = (Date.now() - t0) / 1000; draw(sec);
+    $('rec').classList.remove('on'); $('rec').textContent = 'REC'; $('rec').setAttribute('aria-label', 'Start recording');
+    if (rec && rec.state !== 'inactive') rec.stop();
+    rec = null; timerMode = false;
+    stopSTT();
+    var T = target(), verdict = sec < T * 0.5 ? 'A bit short. Add a specific example or a result.' : sec > T * 1.25 ? 'Running long. Try cutting the situation part down.' : 'Good length.';
+    $('msg').textContent = mmss(sec) + ' against a ' + T + ' s target. ' + verdict;
+    $('sTime').textContent = mmss(sec);
+    var words = (finalText + ' ' + interim).trim().split(/\s+/).filter(Boolean).length, fills = countFill(finalText + ' ' + interim);
+    if ($('stt').checked && words) { $('sFill').textContent = fills; $('sWpm').textContent = Math.round(words / (sec / 60)); }
+    else { $('sFill').textContent = '–'; $('sWpm').textContent = '–'; }
+    hist.unshift({ q: cur ? cur.q : '', s: sec, f: $('stt').checked && words ? fills : null, star: [].filter.call(document.querySelectorAll('#star input'), function (i) { return i.checked; }).length });
+    renderHist();
+  }
+  $('rec').onclick = function () { if (tick) stop(); else start(); };
+  // STAR boxes update the latest history entry when ticked after recording
+  $('star').onchange = function () { if (hist[0] && !tick) { hist[0].star = [].filter.call(document.querySelectorAll('#star input'), function (i) { return i.checked; }).length; renderHist(); } };
+  function renderHist() {
+    $('hist').innerHTML = hist.slice(0, 12).map(function (h) { return '<li><span>' + h.q.replace(/</g, '&lt;') + '<small>STAR ' + h.star + '/4' + (h.f != null ? ' · ' + h.f + ' fillers' : '') + '</small></span><b>' + mmss(h.s) + '</b></li>'; }).join('');
+  }
+  // speech to text
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { $('stt').disabled = true; $('sttNote').textContent = 'Live transcripts aren\'t available in this browser. Recording and playback still work.'; }
+  $('stt').onchange = function () { $('transcript').hidden = !this.checked; if (this.checked) $('transcript').innerHTML = '<span class="msg">The transcript appears here while you record.</span>'; };
+  function countFill(t) { var m = t.match(FRE); return m ? m.length : 0; }
+  function showT() {
+    var esc = function (s) { return s.replace(/[&<>]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]; }); };
+    var h = esc(finalText + ' ' + interim).replace(FRE, '<mark>$1</mark>');
+    $('transcript').innerHTML = h.trim() ? h : '<span class="msg">Listening…</span>';
+    $('transcript').scrollTop = 1e6;
+    $('sFill').textContent = countFill(finalText + ' ' + interim);
+  }
+  function startSTT() {
+    if (!SR) return; finalText = ''; interim = '';
+    try {
+      sr = new SR(); sr.lang = 'en-US'; sr.continuous = true; sr.interimResults = true;
+      sr.onresult = function (e) { interim = ''; for (var i = e.resultIndex; i < e.results.length; i++) { if (e.results[i].isFinal) finalText += ' ' + e.results[i][0].transcript; else interim += e.results[i][0].transcript; } showT(); };
+      sr.onend = function () { if (tick && sr) { try { sr.start(); } catch (e) {} } };
+      sr.onerror = function (e) { if (e.error === 'not-allowed' || e.error === 'service-not-allowed') { $('sttNote').textContent = 'Speech recognition was blocked. Recording still works.'; sr = null; } };
+      sr.start(); showT();
+    } catch (e) { sr = null; }
+  }
+  function stopSTT() { if (sr) { var s = sr; sr = null; try { s.stop(); } catch (e) {} } }
+  draw(0);
+  if ('speechSynthesis' in window) { try { speechSynthesis.getVoices(); } catch (e) {} }
+  // first question shown without speaking (browsers block audio before a tap)
+  var auto = $('autoSay').checked; $('autoSay').checked = false; next(); $('autoSay').checked = auto;
+  window.__iv = { countFill: countFill };
+})();
+</script>
+</body>
+</html>

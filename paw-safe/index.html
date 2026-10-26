@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Paw-Safe Walks · Mariam's Lab</title>
+<meta name="description" content="Is the pavement too hot for your dog's paws? An estimate of asphalt temperature from live sun, air and wind for your spot in the UAE, with the safe walking hours for the next day.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/paw-safe/">
+<meta property="og:title" content="Paw-Safe Walks · Mariam's Lab"><meta property="og:description" content="How hot is the pavement right now, and when is it safe to walk the dog?"><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.where { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.verdict { margin-top: 16px; padding: 20px; border-radius: var(--radius); border: 2px solid var(--line); background: var(--surface); display: grid; gap: 6px; }
+.verdict b { font-family: var(--font-display); font-size: clamp(1.5rem, 4.5vw, 2.4rem); font-weight: 800; line-height: 1.1; }
+.verdict p { margin: 0; color: var(--muted); }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 12px; }
+.tile { padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.tile span { font-size: 0.78rem; color: var(--muted); display: block; }
+.tile b { font-family: var(--font-display); font-size: 1.6rem; display: block; }
+.tile small { font-size: 0.78rem; color: var(--muted); }
+.tile.hot b { color: var(--c); }
+.strip { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(32px, 1fr); gap: 2px; overflow-x: auto; padding-bottom: 6px; }
+.strip div { height: 64px; border-radius: 5px; position: relative; display: flex; align-items: flex-end; justify-content: center; font-family: var(--font-mono); font-size: 0.62rem; color: rgba(0,0,0,.78); padding-bottom: 3px; }
+.strip div.now { outline: 2px solid var(--ink); outline-offset: 1px; }
+.strip div i { position: absolute; top: 5px; left: 0; right: 0; text-align: center; font-style: normal; font-weight: 600; font-size: 0.66rem; }
+.strip div.nt { background-image: linear-gradient(to bottom, rgba(7,10,24,.18), rgba(7,10,24,.18)); }
+.legend { display: flex; gap: 10px; flex-wrap: wrap; font-size: 0.75rem; color: var(--muted); margin-top: 6px; }
+.legend span::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-inline-end: 4px; vertical-align: -1px; background: var(--c); }
+.wins { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.wins li { padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; font-size: 0.92rem; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; }
+.wins small { display: block; color: var(--muted); font-size: 0.8rem; }
+.wins b { font-family: var(--font-mono); font-size: 0.85rem; text-align: end; }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin-top: 8px; }
+.signs { margin: 0; padding-inline-start: 18px; font-size: 0.9rem; display: grid; gap: 4px; }
+.hand { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px; align-items: center; padding: 14px; border: 1px solid var(--line); border-radius: 12px; }
+.hand .cnt { width: 76px; height: 76px; border-radius: 50%; border: 3px solid var(--accent); display: grid; place-items: center; font: 800 2rem var(--font-display); cursor: pointer; background: transparent; color: var(--ink); }
+.hand p { font-size: 0.9rem; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Pets · Weather · UAE · Live</span>
+    <h1 style="font-size:var(--step-3)">Paw-safe walks.</h1>
+    <p>Dogs walk barefoot. On a sunny UAE afternoon the road can be 25 to 30°C hotter than the air, hot enough to burn paw pads in under a minute. This estimates the surface temperature from live sun, air and wind for your area, and shows which hours in the next day are safe for a walk.</p>
+  </div>
+  <div class="where" id="where"><button class="sm" type="button" id="me">📍 Use my location</button></div>
+  <div class="where" id="surf" style="margin-top:8px"><span class="msg" style="margin:0">Surface:</span></div>
+  <p class="msg" id="msg" role="status"></p>
+  <div class="verdict" id="verdict"><b>Loading…</b></div>
+  <div class="tiles" id="tiles"></div>
+  <div class="game" style="margin-top:18px">
+    <div class="panel" style="display:grid;gap:10px;min-width:0">
+      <span class="label">Next 24 hours · estimated surface °C</span>
+      <div class="strip" id="strip"></div>
+      <div class="legend"><span style="--c:#4fd3bd">Safe</span><span style="--c:#c9e264">OK, keep it short</span><span style="--c:#ffc857">Caution</span><span style="--c:#ff8a4c">Too hot</span><span style="--c:#ff4f6d">Danger</span><span style="--c:transparent">Colour also counts air heat</span></div>
+      <span class="label" style="margin-top:8px">Best times to walk</span>
+      <ul class="wins" id="wins"></ul>
+      <div class="hand">
+        <button class="cnt" type="button" id="hand" aria-label="Start the 7-second hand test">7</button>
+        <p><b>The 7-second test.</b> Put the back of your hand flat on the ground in the sun. If you can't hold it there for 7 seconds, it's too hot for paws. Tap the circle to count.</p>
+      </div>
+    </div>
+    <div class="panel" style="display:grid;gap:12px">
+      <span class="label">Heat-stroke signs in dogs</span>
+      <ul class="signs">
+        <li>Heavy panting that doesn't settle in the shade</li>
+        <li>Thick drool, very red or pale gums, bright red tongue</li>
+        <li>Weakness, stumbling, lying down and refusing to move</li>
+        <li>Vomiting or diarrhoea</li>
+        <li>Confusion, collapse or seizures</li>
+      </ul>
+      <p class="fact" style="margin:0"><b>If you see these:</b> move the dog into shade or air conditioning, pour cool (not ice-cold) water over the body, especially belly and paws, put a fan on them, offer small sips of water, and call a vet straight away. Heat stroke can be fatal even after the dog seems to recover. Flat-faced breeds, puppies, old, overweight and dark-coated dogs are most at risk.</p>
+      <p class="fact" style="margin:0"><b>How the estimate works.</b> The surface is treated as a slab in balance: sunlight it absorbs (95% for asphalt) goes back out as heat into the air (faster in wind), heat radiated to the sky (less under cloud), and a share into the ground. That gives a steady-state temperature for each hour, which is then smoothed with a 3-hour lag because roads warm up and cool down slowly. On a 25°C sunny day it gives about 52°C for asphalt, close to the figure vets often quote from measurements.</p>
+      <p class="fact" style="margin:0">It is an estimate. Shade, building reflections, colour and fresh tarmac change things a lot, and air heat matters too: even on grass, a long walk in 35°C air can cause heat stroke. Weather from Open-Meteo forecasts. Always do the hand test.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var PLACES = [['Dubai', 25.2048, 55.2708], ['Abu Dhabi', 24.4539, 54.3773], ['Sharjah', 25.3463, 55.4209], ['Al Ain', 24.2075, 55.7447], ['Ajman', 25.4052, 55.5136], ['Ras Al Khaimah', 25.7895, 55.9432], ['Fujairah', 25.1288, 56.3265]];
+  // absorptance, share of absorbed heat going into the ground, extra notes
+  var SURF = { asphalt: ['Asphalt road', 0.95, 0.15], concrete: ['Concrete or pavers', 0.7, 0.2], sand: ['Sand', 0.7, 0.1], turf: ['Artificial turf', 0.9, 0.05], grass: ['Grass', 0, 0] };
+  var COL = ['#4fd3bd', '#c9e264', '#ffc857', '#ff8a4c', '#ff4f6d'];
+  var WORD = ['Safe for paws', 'OK, keep it short', 'Caution', 'Too hot for paws', 'Danger: stay in'];
+  var surf = 'asphalt', place = 0, data = null, placeName = 'Dubai';
+  try { var s = localStorage.getItem('pawSurf'); if (s && SURF[s]) surf = s; var p = localStorage.getItem('pawPlace'); if (p != null && PLACES[+p]) place = +p; } catch (e) {}
+
+  var SIG = 5.670e-8, EPS = 0.95;
+  // steady-state surface temperature (°C) from air T (°C), shortwave S (W/m²), wind v (m/s), cloud fraction c (0..1)
+  function steady(T, S, v, c, kind) {
+    var sp = SURF[kind];
+    if (kind === 'grass') return T + Math.min(6, S * 0.006); // evaporation keeps living grass near air temperature
+    var Ta = T + 273.15, Tsky = Ta - 20 * (1 - 0.85 * c), h = 5.7 + 3.8 * Math.max(0, v);
+    var gain = sp[1] * S * (1 - sp[2]);
+    var Ts = Ta + 10;
+    for (var i = 0; i < 30; i++) {
+      var f = gain - h * (Ts - Ta) - EPS * SIG * (Math.pow(Ts, 4) - Math.pow(Tsky, 4));
+      var df = -h - 4 * EPS * SIG * Math.pow(Ts, 3);
+      var step = f / df; Ts -= step; if (Math.abs(step) < 0.01) break;
+    }
+    return Ts - 273.15;
+  }
+  function series(H, kind) {
+    var tau = 3, a = Math.exp(-1 / tau), out = [], prev = null;
+    for (var i = 0; i < H.time.length; i++) {
+      var ss = steady(H.temperature_2m[i], H.shortwave_radiation[i] || 0, H.wind_speed_10m[i] || 0, (H.cloud_cover[i] || 0) / 100, kind);
+      // ground stores heat: at night the surface stays a few degrees above air
+      if (kind !== 'grass' && (H.shortwave_radiation[i] || 0) < 5 && prev != null) ss = Math.max(ss, H.temperature_2m[i] + 0.25 * (prev - H.temperature_2m[i]));
+      var v = prev == null ? ss : ss + (prev - ss) * a;
+      if (kind === 'grass') v = ss;
+      out.push(v); prev = v;
+    }
+    return out;
+  }
+  function surfLvl(ts) { return ts < 40 ? 0 : ts < 46 ? 1 : ts < 52 ? 2 : ts < 60 ? 3 : 4; }
+  function airLvl(feel) { return feel < 27 ? 0 : feel < 32 ? 1 : feel < 36 ? 2 : feel < 41 ? 3 : 4; }
+  function level(r) { return Math.max(surfLvl(r.ts), airLvl(r.feel)); }
+  function hh(t) { return t.slice(11, 13); }
+  function fmtH(t) { var h = +hh(t); return (h % 12 || 12) + (h < 12 ? 'am' : 'pm'); }
+
+  function load(lat, lon, name) {
+    placeName = name;
+    $('msg').textContent = 'Fetching the weather for ' + name + '…';
+    var u = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon + '&hourly=temperature_2m,apparent_temperature,relative_humidity_2m,shortwave_radiation,cloud_cover,wind_speed_10m,uv_index,is_day&wind_speed_unit=ms&timezone=auto&past_days=1&forecast_days=2';
+    fetch(u).then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(function (j) {
+      data = j; $('msg').textContent = name + ' · ' + SURF[surf][0].toLowerCase(); render();
+    }).catch(function () { $('msg').textContent = 'Couldn\'t reach the weather service. Check your connection and try again, and use the 7-second test.'; $('verdict').innerHTML = '<b>No data</b><p>Without live data, use the hand test below.</p>'; });
+  }
+  function render() {
+    if (!data) return;
+    var H = data.hourly, ts = series(H, surf), rows = [];
+    var nowLocal = new Date(Date.now() + data.utc_offset_seconds * 1000).toISOString().slice(0, 13);
+    H.time.forEach(function (t, i) { rows.push({ t: t, T: H.temperature_2m[i], feel: H.apparent_temperature[i], rh: H.relative_humidity_2m[i], S: H.shortwave_radiation[i] || 0, cloud: H.cloud_cover[i], wind: H.wind_speed_10m[i], uv: H.uv_index[i], day: H.is_day[i], ts: ts[i] }); });
+    var k = rows.findIndex(function (x) { return x.t.slice(0, 13) === nowLocal; }); if (k < 0) k = 24;
+    var R = rows.slice(k, k + 24), n = R[0], L = level(n), sL = surfLvl(n.ts), aL = airLvl(n.feel);
+    var why = sL >= aL ? 'The ' + SURF[surf][0].toLowerCase() + ' is about ' + Math.round(n.ts) + '°C.' : 'The surface is fine, but the air feels like ' + Math.round(n.feel) + '°C, which is ' + (aL >= 3 ? 'hard on dogs' : 'warm for a dog in a fur coat') + '.';
+    var adv = ['Good time for a normal walk.', 'Fine for a walk. Bring water and use shade.', 'Keep it to a quick toilet break, on grass or in shade if you can.', 'Paws can burn. Stay off roads and pavements, or wait until later.', 'Too hot for any walk outside. Use indoor play and wait for the evening.'][L];
+    $('verdict').style.borderColor = COL[L];
+    $('verdict').innerHTML = '<span class="label">Right now</span><b style="color:' + COL[L] + '">' + WORD[L] + '</b><p>' + why + ' ' + adv + '</p>';
+    var t = [['Est. ' + SURF[surf][0].toLowerCase(), Math.round(n.ts) + '°C', surf === 'grass' ? 'near air temperature' : Math.round(n.ts - n.T) + '° above air', COL[surfLvl(n.ts)]], ['Air', Math.round(n.T) + '°C', 'feels like ' + Math.round(n.feel) + '°C'], ['Sun', Math.round(n.S) + ' W/m²', n.S < 5 ? 'none' : n.S < 300 ? 'weak' : n.S < 650 ? 'moderate' : 'strong'], ['UV index', n.uv == null ? '–' : Math.round(n.uv), n.day ? '' : 'night'], ['Wind', (n.wind * 3.6).toFixed(0) + ' km/h', 'wind cools the surface'], ['Cloud', Math.round(n.cloud) + '%', n.cloud > 60 ? 'cuts the sun' : '']];
+    $('tiles').innerHTML = t.map(function (x) { return '<div class="tile' + (x[3] ? ' hot' : '') + '"' + (x[3] ? ' style="--c:' + x[3] + '"' : '') + '><span>' + x[0] + '</span><b>' + x[1] + '</b><small>' + x[2] + '</small></div>'; }).join('');
+    $('strip').innerHTML = R.map(function (h, i) { var l = level(h); return '<div class="' + (i === 0 ? 'now ' : '') + (h.day ? '' : 'nt') + '" style="background:' + COL[l] + '" title="' + fmtH(h.t) + ': surface about ' + Math.round(h.ts) + '°C, air ' + Math.round(h.T) + '°C (feels ' + Math.round(h.feel) + '°C). ' + WORD[l] + '"><i>' + Math.round(h.ts) + '°</i>' + (i === 0 ? 'now' : hh(h.t)) + '</div>'; }).join('');
+    // walk windows: runs of level <= 1 within the next 24 h
+    var wins = [], cur = null;
+    R.forEach(function (h, i) { var ok = level(h) <= 1; if (ok && !cur) cur = { a: i, b: i }; else if (ok) cur.b = i; if ((!ok || i === R.length - 1) && cur) { wins.push(cur); cur = null; } });
+    wins.forEach(function (w) { w.min = Math.min.apply(null, R.slice(w.a, w.b + 1).map(function (h) { return h.ts; })); w.len = w.b - w.a + 1; });
+    var good = wins.slice().sort(function (x, y) { return y.len - x.len; }).slice(0, 3).sort(function (x, y) { return x.a - y.a; });
+    $('wins').innerHTML = good.length ? good.map(function (w) {
+      var end = R[w.b].t, endH = (+hh(end) + 1) % 24, endTxt = (endH % 12 || 12) + (endH < 12 ? 'am' : 'pm');
+      return '<li><span>' + (w.a === 0 ? 'Now' : fmtH(R[w.a].t)) + ' to ' + endTxt + '<small>' + w.len + ' hour' + (w.len > 1 ? 's' : '') + ', surface down to ' + Math.round(w.min) + '°C</small></span><b style="color:' + COL[Math.max.apply(null, R.slice(w.a, w.b + 1).map(level))] + '">' + WORD[Math.max.apply(null, R.slice(w.a, w.b + 1).map(level))] + '</b></li>';
+    }).join('') : '<li><span>No comfortable window in the next 24 hours<small>Keep walks to short toilet breaks on grass or in shade, early morning or late at night.</small></span><b></b></li>';
+  }
+  // places
+  PLACES.forEach(function (p, i) {
+    var b = document.createElement('button'); b.className = 'sm'; b.type = 'button'; b.textContent = p[0]; b.setAttribute('aria-pressed', 'false');
+    b.onclick = function () { pick(b); load(p[1], p[2], p[0]); try { localStorage.setItem('pawPlace', i); } catch (e) {} };
+    $('where').appendChild(b);
+  });
+  function pick(b) { [].forEach.call(document.querySelectorAll('#where .sm'), function (x) { x.setAttribute('aria-pressed', x === b); }); }
+  $('me').onclick = function () {
+    if (!navigator.geolocation) { $('msg').textContent = 'Your browser can\'t share a location.'; return; }
+    $('msg').textContent = 'Asking for your location…';
+    navigator.geolocation.getCurrentPosition(function (p) { pick($('me')); load(p.coords.latitude.toFixed(3), p.coords.longitude.toFixed(3), 'Your location'); }, function () { $('msg').textContent = 'Location was not shared. Pick a city instead.'; }, { maximumAge: 6e5, timeout: 10000 });
+  };
+  // surfaces
+  Object.keys(SURF).forEach(function (k) {
+    var b = document.createElement('button'); b.className = 'sm'; b.type = 'button'; b.textContent = SURF[k][0]; b.dataset.k = k; b.setAttribute('aria-pressed', k === surf);
+    b.onclick = function () { surf = k; [].forEach.call(document.querySelectorAll('#surf .sm'), function (x) { x.setAttribute('aria-pressed', x === b); }); try { localStorage.setItem('pawSurf', k); } catch (e) {} if (data) { $('msg').textContent = placeName + ' · ' + SURF[surf][0].toLowerCase(); render(); } };
+    $('surf').appendChild(b);
+  });
+  // 7-second test
+  var ht = null;
+  $('hand').onclick = function () {
+    var b = this; if (ht) { clearInterval(ht); ht = null; b.textContent = '7'; return; }
+    var n = 7; b.textContent = n;
+    ht = setInterval(function () { n--; if (n <= 0) { clearInterval(ht); ht = null; b.textContent = '✓'; setTimeout(function () { if (!ht) b.textContent = '7'; }, 2500); } else b.textContent = n; }, 1000);
+  };
+  window.__paw = { steady: steady };
+  document.querySelectorAll('#where .sm')[place + 1].click();
+})();
+</script>
+</body>
+</html>
