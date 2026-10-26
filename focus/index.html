@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Focus Timer · Mariam's Lab</title>
+<meta name="description" content="A Pomodoro focus timer with rain, sea, desert wind and soft noise generated live in your browser, no audio files.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/focus/">
+<meta property="og:title" content="Focus Timer · Mariam's Lab"><meta property="og:description" content="Pomodoro timer with rain, sea and desert wind made live in the browser."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.modes, .snd { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+.sm { font: inherit; font-size: 0.85rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; cursor: pointer; }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.dial { position: relative; width: min(340px, 78vw); aspect-ratio: 1; margin: 18px auto; }
+.dial svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.dial .t { position: absolute; inset: 0; display: grid; place-items: center; align-content: center; gap: 4px; text-align: center; }
+.dial .t b { font-family: var(--font-display); font-weight: 800; font-size: clamp(3rem, 14vw, 4.6rem); font-variant-numeric: tabular-nums; line-height: 1; }
+.dial .t span { color: var(--muted); font-size: 0.9rem; }
+.go { display: flex; gap: 10px; justify-content: center; }
+.big { font: inherit; font-weight: 600; font-size: 1.05rem; padding: 12px 34px; border-radius: 999px; border: 0; background: var(--accent); color: var(--bg); cursor: pointer; }
+.task { display: block; width: min(420px, 100%); margin: 14px auto 0; font: inherit; text-align: center; color: var(--ink); background: transparent; border: 0; border-bottom: 1px solid var(--line); padding: 8px; }
+.task:focus { outline: none; border-color: var(--accent); }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: 0.9rem; }
+.row input[type=range] { width: 100%; }
+.row input[type=number] { width: 4.5em; font: inherit; font-family: var(--font-mono); color: var(--ink); background: rgba(7,10,24,.6); border: 1px solid var(--line); border-radius: 8px; padding: 5px 8px; }
+.dots { display: flex; gap: 6px; justify-content: center; margin-top: 10px; min-height: 12px; }
+.dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--line); }
+.dots i.on { background: var(--accent); }
+.week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; align-items: end; height: 90px; }
+.week div { display: grid; gap: 4px; justify-items: center; align-content: end; height: 100%; font-size: 0.7rem; color: var(--muted); font-family: var(--font-mono); }
+.week div i { width: 100%; max-width: 28px; border-radius: 4px 4px 0 0; background: var(--sat-b); min-height: 2px; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Focus · Sound</span>
+    <h1 style="font-size:var(--step-3)">Focus timer.</h1>
+    <p>Work in short, focused blocks with breaks in between (the Pomodoro method). The background sounds aren't recordings: rain, sea, desert wind and soft noise are generated live by your browser, so they never loop or repeat.</p>
+  </div>
+  <div class="modes" role="group" aria-label="Mode"><button class="sm" type="button" data-m="focus" aria-pressed="true">Focus</button><button class="sm" type="button" data-m="short" aria-pressed="false">Short break</button><button class="sm" type="button" data-m="long" aria-pressed="false">Long break</button></div>
+  <div class="dial"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="4"/><circle id="arc" cx="50" cy="50" r="45" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" stroke-dasharray="282.74" stroke-dashoffset="0"/></svg><div class="t"><b id="time" aria-live="off">25:00</b><span id="sub">Ready to focus</span></div></div>
+  <div class="go"><button class="big" type="button" id="toggle">Start</button><button class="sm" type="button" id="reset">Reset</button><button class="sm" type="button" id="skip">Skip</button></div>
+  <input class="task" id="task" placeholder="What are you working on?" aria-label="Task" maxlength="80">
+  <div class="dots" id="dots" aria-label="Focus sessions before a long break"></div>
+  <div class="game" style="margin-top:26px">
+    <div class="panel" style="display:grid;gap:12px">
+      <span class="label">Background sound</span>
+      <div class="snd" role="group" aria-label="Sound" style="justify-content:start"><button class="sm" type="button" data-s="off" aria-pressed="true">Silence</button><button class="sm" type="button" data-s="rain" aria-pressed="false">Rain</button><button class="sm" type="button" data-s="sea" aria-pressed="false">Sea</button><button class="sm" type="button" data-s="wind" aria-pressed="false">Desert wind</button><button class="sm" type="button" data-s="brown" aria-pressed="false">Soft noise</button></div>
+      <label class="row"><span>Volume</span><span></span></label>
+      <input type="range" id="vol" min="0" max="1" step="0.01" value="0.5" aria-label="Volume">
+      <label class="row"><span>Play sound during breaks too</span><input type="checkbox" id="brk"></label>
+      <label class="row"><span>Chime when a block ends</span><input type="checkbox" id="chime" checked></label>
+      <span class="label" style="margin-top:6px">Lengths (minutes)</span>
+      <label class="row"><span>Focus</span><input type="number" id="lf" min="1" max="120" value="25"></label>
+      <label class="row"><span>Short break</span><input type="number" id="ls" min="1" max="60" value="5"></label>
+      <label class="row"><span>Long break</span><input type="number" id="ll" min="1" max="90" value="15"></label>
+      <label class="row"><span>Long break after every</span><input type="number" id="ln" min="2" max="8" value="4"></label>
+      <label class="row"><span>Start the next block automatically</span><input type="checkbox" id="auto"></label>
+    </div>
+    <div class="panel" style="display:grid;gap:12px;align-content:start">
+      <span class="label">Your week</span>
+      <div class="week" id="week"></div>
+      <div class="stats" id="stats"></div>
+      <p class="fact" style="margin:0">Press the space bar to start or pause. The tab title shows the time left, and your browser can notify you when a block ends if you allow it. Everything is kept on this device only.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var KEY = 'focusTimer', st = { lf: 25, ls: 5, ll: 15, ln: 4, auto: false, brk: false, chime: true, vol: 0.5, snd: 'off', task: '', log: {} };
+  try { Object.assign(st, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) {}
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} }
+  var mode = 'focus', total = st.lf * 60, left = total, endAt = 0, running = false, timer = 0, done = 0;
+  var LABEL = { focus: 'Focus', short: 'Short break', long: 'Long break' };
+  function mins(m) { return { focus: st.lf, short: st.ls, long: st.ll }[m]; }
+  function fmt(s) { s = Math.max(0, Math.ceil(s)); return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); }
+  function draw() {
+    $('time').textContent = fmt(left);
+    $('arc').style.strokeDashoffset = 282.74 * (1 - left / total);
+    $('arc').style.stroke = mode === 'focus' ? 'var(--accent)' : 'var(--sat-b)';
+    $('sub').textContent = running ? (mode === 'focus' ? (st.task || 'Focusing') : LABEL[mode]) : (left < total ? 'Paused' : mode === 'focus' ? 'Ready to focus' : 'Time for a break');
+    document.title = running ? fmt(left) + ' · ' + LABEL[mode] : 'Focus Timer · Mariam\'s Lab';
+    $('toggle').textContent = running ? 'Pause' : left < total ? 'Resume' : 'Start';
+    $('dots').innerHTML = Array.from({ length: st.ln }, function (_, i) { return '<i class="' + (i < done % st.ln || (done && done % st.ln === 0 && mode === 'long') ? 'on' : '') + '"></i>'; }).join('');
+  }
+  function setMode(m, keepRun) {
+    mode = m; total = left = mins(m) * 60; [].forEach.call(document.querySelectorAll('[data-m]'), function (b) { b.setAttribute('aria-pressed', b.dataset.m === m); });
+    if (!keepRun) { running = false; clearInterval(timer); }
+    sound(); draw();
+  }
+  function tick() { left = (endAt - Date.now()) / 1000; if (left <= 0) { left = 0; finish(); } draw(); }
+  function hm(m) { return m >= 60 ? (m / 60).toFixed(1) + ' h' : m + ' min'; }
+  function start() { if (!running) { ensureAudio(); running = true; endAt = Date.now() + left * 1000; clearInterval(timer); timer = setInterval(tick, 250); sound(); draw(); } }
+  function pause() { running = false; clearInterval(timer); sound(); draw(); }
+  function finish() {
+    clearInterval(timer); running = false; var counted = false;
+    if (mode === 'focus') { var used = (total - Math.max(0, left)) / 60; counted = used >= mins('focus') / 2; if (counted) done++; var d = new Date().toISOString().slice(0, 10); if (used >= 0.5) { st.log[d] = (st.log[d] || 0) + Math.round(used); save(); week(); } }
+    if (st.chime && left <= 0) bell();
+    var next = mode === 'focus' ? (counted && done % st.ln === 0 ? 'long' : 'short') : 'focus';
+    try { if (document.hidden && window.Notification && Notification.permission === 'granted') new Notification(mode === 'focus' ? 'Focus block done. Take a break.' : 'Break over. Back to it.'); } catch (e) {}
+    setMode(next); if (st.auto) start();
+  }
+  $('toggle').onclick = function () { if (running) pause(); else { start(); try { if (window.Notification && Notification.permission === 'default') Notification.requestPermission(); } catch (e) {} } };
+  $('reset').onclick = function () { setMode(mode); };
+  $('skip').onclick = function () { finish(); };
+  [].forEach.call(document.querySelectorAll('[data-m]'), function (b) { b.onclick = function () { setMode(b.dataset.m); }; });
+  document.addEventListener('keydown', function (e) { if (e.code === 'Space' && !/INPUT|TEXTAREA|BUTTON/.test(e.target.tagName)) { e.preventDefault(); $('toggle').click(); } });
+  // settings
+  ['lf', 'ls', 'll', 'ln'].forEach(function (k) { $(k).value = st[k]; $(k).onchange = function () { var v = Math.round(+this.value); if (!(v >= +this.min)) v = +this.min; if (v > +this.max) v = +this.max; this.value = v; st[k] = v; save(); if (!running && left === total) setMode(mode); else draw(); }; });
+  ['auto', 'brk', 'chime'].forEach(function (k) { $(k).checked = st[k]; $(k).onchange = function () { st[k] = this.checked; save(); sound(); }; });
+  $('task').value = st.task; $('task').oninput = function () { st.task = this.value; save(); draw(); };
+  $('vol').value = st.vol; $('vol').oninput = function () { st.vol = +this.value; save(); if (master) master.gain.setTargetAtTime(st.vol * 0.6, ac.currentTime, 0.05); };
+  // sound engine: everything is synthesised from noise
+  var ac = null, master = null, cur = null;
+  function ensureAudio() { if (!ac) { var A = window.AudioContext || window.webkitAudioContext; if (!A) return; ac = new A(); master = ac.createGain(); master.gain.value = st.vol * 0.6; master.connect(ac.destination); } if (ac.state === 'suspended') ac.resume(); }
+  function noiseBuf(kind) {
+    var n = ac.sampleRate * 4, b = ac.createBuffer(2, n, ac.sampleRate);
+    for (var c = 0; c < 2; c++) { var d = b.getChannelData(c), last = 0; for (var i = 0; i < n; i++) { var w = Math.random() * 2 - 1; if (kind === 'brown') { last = (last + 0.02 * w) / 1.02; d[i] = last * 3.5; } else d[i] = w; } }
+    return b;
+  }
+  function src(kind) { var s = ac.createBufferSource(); s.buffer = noiseBuf(kind); s.loop = true; s.loopStart = Math.random(); s.start(0, Math.random() * 3); return s; }
+  function lfo(rate, depth, target, base) { var o = ac.createOscillator(), g = ac.createGain(); o.frequency.value = rate; g.gain.value = depth; o.connect(g); g.connect(target); o.start(); target.value = base; return o; }
+  function build(kind) {
+    var out = ac.createGain(), nodes = [], extra = null; out.gain.value = 0; out.connect(master);
+    if (kind === 'rain') {
+      var s = src('white'), hp = ac.createBiquadFilter(), lp = ac.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 400; lp.type = 'lowpass'; lp.frequency.value = 6000;
+      var g = ac.createGain(); g.gain.value = 0.35; s.connect(hp); hp.connect(lp); lp.connect(g); g.connect(out); nodes.push(s);
+      var s2 = src('brown'), g2 = ac.createGain(); g2.gain.value = 0.5; s2.connect(g2); g2.connect(out); nodes.push(s2);
+      // individual drops: short filtered clicks at random times
+      extra = setInterval(function () {
+        for (var k = 0; k < 6; k++) {
+          var t = ac.currentTime + Math.random() * 0.2, o = ac.createOscillator(), e = ac.createGain(), p = ac.createStereoPanner ? ac.createStereoPanner() : null;
+          o.type = 'sine'; o.frequency.setValueAtTime(1800 + Math.random() * 2600, t); o.frequency.exponentialRampToValueAtTime(400, t + 0.03);
+          e.gain.setValueAtTime(0.0001, t); e.gain.exponentialRampToValueAtTime(0.03 + Math.random() * 0.05, t + 0.002); e.gain.exponentialRampToValueAtTime(0.0001, t + 0.04);
+          o.connect(e); if (p) { p.pan.value = Math.random() * 2 - 1; e.connect(p); p.connect(out); } else e.connect(out); o.start(t); o.stop(t + 0.05);
+        }
+      }, 200);
+    } else if (kind === 'sea') {
+      var s3 = src('brown'), lp3 = ac.createBiquadFilter(), g3 = ac.createGain(); lp3.type = 'lowpass'; lp3.Q.value = 0.7;
+      s3.connect(lp3); lp3.connect(g3); g3.connect(out);
+      nodes.push(s3, lfo(0.085, 650, lp3.frequency, 900), lfo(0.085, 0.45, g3.gain, 0.6));
+      var s4 = src('white'), bp = ac.createBiquadFilter(), g4 = ac.createGain(); bp.type = 'bandpass'; bp.frequency.value = 3000; bp.Q.value = 0.5; s4.connect(bp); bp.connect(g4); g4.connect(out);
+      nodes.push(s4, lfo(0.085, 0.05, g4.gain, 0.05));
+    } else if (kind === 'wind') {
+      var s5 = src('white'), bp5 = ac.createBiquadFilter(), g5 = ac.createGain(); bp5.type = 'bandpass'; bp5.Q.value = 6;
+      s5.connect(bp5); bp5.connect(g5); g5.connect(out);
+      nodes.push(s5, lfo(0.06, 260, bp5.frequency, 520), lfo(0.11, 0.25, g5.gain, 0.55));
+      var s6 = src('brown'), g6 = ac.createGain(); s6.connect(g6); g6.connect(out); nodes.push(s6, lfo(0.04, 0.25, g6.gain, 0.4));
+      var s7 = src('white'), hp7 = ac.createBiquadFilter(), g7 = ac.createGain(); hp7.type = 'highpass'; hp7.frequency.value = 5000; s7.connect(hp7); hp7.connect(g7); g7.connect(out); nodes.push(s7, lfo(0.17, 0.02, g7.gain, 0.025));
+    } else {
+      var s8 = src('brown'), g8 = ac.createGain(); g8.gain.value = 0.9; s8.connect(g8); g8.connect(out); nodes.push(s8);
+    }
+    out.gain.setTargetAtTime(1, ac.currentTime, 0.6);
+    return { out: out, nodes: nodes, extra: extra, kind: kind };
+  }
+  function drop(c) { if (!c) return; clearInterval(c.extra); c.out.gain.setTargetAtTime(0, ac.currentTime, 0.4); setTimeout(function () { c.nodes.forEach(function (n) { try { n.stop(); } catch (e) {} }); c.out.disconnect(); }, 2500); }
+  function sound() {
+    var want = st.snd !== 'off' && running && (mode === 'focus' || st.brk) ? st.snd : 'off';
+    if (cur && cur.kind === want) return;
+    if (!ac) { if (want === 'off') return; ensureAudio(); if (!ac) return; }
+    drop(cur); cur = want === 'off' ? null : build(want);
+  }
+  function bell() {
+    ensureAudio(); if (!ac) return;
+    [523.25, 659.25, 783.99].forEach(function (f, i) {
+      var t = ac.currentTime + i * 0.18, o = ac.createOscillator(), o2 = ac.createOscillator(), g = ac.createGain();
+      o.frequency.value = f; o2.frequency.value = f * 2.76; o.connect(g); o2.connect(g); g.connect(ac.destination);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.18, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + 2.2);
+      o.start(t); o2.start(t); o.stop(t + 2.3); o2.stop(t + 2.3);
+    });
+  }
+  [].forEach.call(document.querySelectorAll('[data-s]'), function (b) {
+    b.setAttribute('aria-pressed', b.dataset.s === st.snd);
+    b.onclick = function () { st.snd = b.dataset.s; save(); [].forEach.call(document.querySelectorAll('[data-s]'), function (x) { x.setAttribute('aria-pressed', x === b); }); ensureAudio(); if (!running && st.snd !== 'off') { drop(cur); cur = build(st.snd); setTimeout(function () { if (!running) { drop(cur); cur = null; } }, 4000); } else sound(); };
+  });
+  function week() {
+    var days = [], max = 1, tot = 0, today = new Date();
+    for (var i = 6; i >= 0; i--) { var d = new Date(today - i * 864e5), k = d.toISOString().slice(0, 10), v = st.log[k] || 0; days.push([d.toLocaleDateString('en-GB', { weekday: 'short' }), v]); max = Math.max(max, v); tot += v; }
+    $('week').innerHTML = days.map(function (d) { return '<div title="' + d[1] + ' min"><i style="height:' + (d[1] / max * 70) + 'px"></i>' + d[0].slice(0, 2) + '</div>'; }).join('');
+    var t = st.log[today.toISOString().slice(0, 10)] || 0;
+    $('stats').innerHTML = '<div><b>' + hm(t) + '</b><span>Today</span></div><div><b>' + hm(tot) + '</b><span>Last 7 days</span></div><div><b>' + Object.keys(st.log).filter(function (k) { return st.log[k]; }).length + '</b><span>Days focused</span></div>';
+  }
+  setMode('focus'); week();
+})();
+</script>
+</body>
+</html>
