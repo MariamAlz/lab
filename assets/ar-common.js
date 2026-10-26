@@ -476,3 +476,10 @@ LabAr.add({
  "24 made-up UAE emails, texts, WhatsApp chats, login pages and QR codes. Tap the giveaways and see which tricks fool you most.": "24 رسالة إماراتية مختلقة بين بريد ورسائل نصية وواتساب وصفحات دخول ورموز QR. اضغط على العلامات واعرف أي الحيل تخدعك أكثر.",
  "Play →": "العب ←"
 });
+/* index cards for newer tools */
+LabAr.add({
+ "Tool · Sea · Live": "أداة · البحر · مباشر",
+ "Coral heat stress, live": "الإجهاد الحراري للمرجان مباشرة",
+ "Satellite bleaching alerts and Degree Heating Weeks for UAE reefs, from Dibba to Sir Bu Nair.": "إنذارات ابيضاض المرجان من الأقمار الاصطناعية وأسابيع التسخين لشعاب الإمارات، من دبا إلى صير بونعير.",
+ "Check reefs →": "افحص الشعاب ←"
+});

@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Coral Heat Stress, Live · Mariam's Lab</title>
+<meta name="description" content="Live coral bleaching heat stress for UAE reefs from NOAA Coral Reef Watch satellites: sea temperature, HotSpots, Degree Heating Weeks and alert levels for Dibba, Fujairah, Khor Fakkan, Abu Dhabi, Dubai and Sir Bu Nair.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/coral-heat/">
+<meta property="og:title" content="Coral Heat Stress, Live · Mariam's Lab"><meta property="og:description" content="Satellite bleaching alerts for the UAE's coral reefs, updated daily."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.msg { font-size: 0.88rem; color: var(--muted); min-height: 1.2em; margin: 0; }
+.err { padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(255,122,143,.6); background: rgba(255,122,143,.08); font-size: 0.9rem; }
+.err[hidden] { display: none; }
+.err a { color: var(--accent); }
+.spots { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; margin-top: 14px; }
+.spot { font: inherit; color: var(--ink); text-align: start; background: rgba(7,10,24,.7); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; cursor: pointer; display: grid; gap: 4px; }
+.spot[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(255,200,87,.18); }
+.spot b { font-size: 0.92rem; }
+.spot small { font-size: 0.74rem; color: var(--muted); }
+.spot .v { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.spot .v span { font-family: var(--font-mono); font-size: 0.82rem; direction: ltr; unicode-bidi: isolate; }
+.tile b { direction: ltr; unicode-bidi: isolate; }
+html.ar .tile b { text-align: right; }
+.pill { display: inline-block; border-radius: 999px; padding: 2px 9px; font-size: 0.72rem; font-weight: 600; color: #0b1020; background: var(--c); width: max-content; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 8px; }
+.tile { padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); display: grid; gap: 2px; }
+.tile span { font-size: 0.74rem; color: var(--muted); }
+.tile b { font-family: var(--font-display); font-size: 1.35rem; }
+.tile small { font-size: 0.72rem; color: var(--muted); }
+.big { font-family: var(--font-display); font-size: clamp(1.4rem, 4vw, 2rem); font-weight: 800; line-height: 1.1; }
+canvas.ch { width: 100%; display: block; border-radius: 12px; background: rgba(7,10,24,.55); border: 1px solid var(--line); }
+.leg { display: flex; gap: 10px; flex-wrap: wrap; font-size: 0.74rem; color: var(--muted); }
+.leg span::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-inline-end: 4px; vertical-align: -1px; background: var(--c); }
+.levels { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; font-size: 0.84rem; }
+.levels li { display: grid; grid-template-columns: 7.5em minmax(0, 1fr); gap: 8px; align-items: baseline; }
+.levels li.on { outline: 1px solid var(--accent); border-radius: 8px; padding: 3px; }
+.tips { margin: 0; padding-inline-start: 18px; display: grid; gap: 6px; font-size: 0.9rem; }
+.src { font-size: 0.8rem; color: var(--muted); }
+.src a { color: var(--muted); }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Sea · Coral reefs · Live</span>
+    <h1 style="font-size:var(--step-3)">Coral heat stress, live.</h1>
+    <p>Corals bleach when the sea stays too warm for too long. NOAA's Coral Reef Watch satellites measure that heat every day, worldwide, at 5 km resolution. Here are the readings for the UAE's main reef and dive spots, from the Gulf to the east coast, with the last 90 days for each.</p>
+  </div>
+  <p class="msg" id="status" role="status">Loading the latest satellite data…</p>
+  <p class="err" id="err" hidden></p>
+  <div class="spots" id="spots"></div>
+
+  <div class="game" style="margin-top:18px">
+    <div class="panel" style="gap:12px">
+      <div><span class="label" id="selName">–</span><div class="big" id="selAlert">–</div><p class="msg" id="selSay"></p></div>
+      <div class="tiles">
+        <div class="tile"><span>Sea surface temp</span><b id="vSst">–</b></div>
+        <div class="tile"><span>Above normal</span><b id="vAnom">–</b><small>vs this date's average</small></div>
+        <div class="tile"><span>HotSpot</span><b id="vHot">–</b><small>above the warmest-month mean</small></div>
+        <div class="tile"><span>Degree Heating Weeks</span><b id="vDhw">–</b><small>heat built up over 12 weeks</small></div>
+      </div>
+      <span class="label">Last 90 days</span>
+      <canvas class="ch" id="chart" aria-label="Sea temperature and Degree Heating Weeks over the last 90 days"></canvas>
+      <div class="leg"><span style="--c:#ff7a8f">Degree Heating Weeks</span><span style="--c:#7fb4ff">Sea temperature</span><span style="--c:rgba(255,200,87,.6)">Bleaching likely (4 DHW)</span><span style="--c:rgba(255,79,109,.6)">Severe bleaching and deaths likely (8 DHW)</span></div>
+      <p class="msg" id="selDate"></p>
+    </div>
+    <div class="panel" style="gap:12px">
+      <span class="label">Alert levels</span>
+      <ul class="levels" id="levels"></ul>
+      <p class="fact" style="margin:0">A <b>HotSpot</b> is how far the sea is above the warmest monthly average for that exact spot. <b>Degree Heating Weeks</b> add up HotSpots of 1°C or more over the past 12 weeks. So 4 DHW could mean 4 weeks at 1°C too hot, or 2 weeks at 2°C. Because each spot is compared with its own normal summer, the alerts already allow for local corals being used to the heat.</p>
+    </div>
+  </div>
+
+  <div class="game" style="margin-top:22px">
+    <div class="panel" style="gap:10px">
+      <span class="label">Why corals bleach</span>
+      <p class="fact" style="margin:0">Reef corals live with tiny algae inside their tissue. The algae feed the coral through photosynthesis and give it its colour. When the water stays too hot, the partnership breaks down and the coral expels the algae, leaving its white skeleton showing through clear tissue. A bleached coral is not dead yet. If the heat eases within a few weeks it can take the algae back and recover. If not, it starves.</p>
+      <p class="fact" style="margin:0">The southern Gulf has some of the most heat-tolerant reef corals on Earth. They live through summers where the sea passes 34°C, temperatures that would kill most corals elsewhere. Scientists study them for clues to how reefs might cope with a warming ocean. But they are already near their limit: major bleaching events in 1996, 1998 and 2017 killed much of the coral off Abu Dhabi and Dubai. The east coast, on the Gulf of Oman, is a little cooler and sees cold upwellings.</p>
+    </div>
+    <div class="panel" style="gap:10px">
+      <span class="label">What divers and snorkellers can do</span>
+      <ul class="tips">
+        <li>Don't touch, stand on or kick coral. Practise your buoyancy before reef dives, and keep fins high.</li>
+        <li>During an alert, stressed corals are fragile. Dive gently and keep groups small.</li>
+        <li>Use mineral sunscreen or a rash vest rather than lots of chemical sunscreen.</li>
+        <li>Report bleaching you see, with a photo, depth and location, to citizen science projects such as CoralWatch or to the local environment authority.</li>
+        <li>Choose operators who use mooring buoys instead of dropping anchors on the reef.</li>
+      </ul>
+      <p class="src">Data: NOAA Coral Reef Watch, daily global 5 km satellite products, version 3.1, read through the NOAA CoastWatch ERDDAP server (with PacIOOS as a backup). Values are for the 5 km sea pixel nearest each spot, so they describe the open water around the reef, not a single coral head. Satellite data is usually one to two days behind. More at <a href="https://coralreefwatch.noaa.gov/product/5km/" rel="noopener" target="_blank">coralreefwatch.noaa.gov ↗</a>.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var SPOTS = [
+    { id: 'dibba', name: 'Dibba Rock', area: 'Dibba, east coast', lat: 25.62, lon: 56.40 },
+    { id: 'aqah', name: 'Al Aqah and Snoopy Island', area: 'Fujairah, east coast', lat: 25.50, lon: 56.40 },
+    { id: 'khorfakkan', name: 'Khor Fakkan', area: 'Sharjah, east coast', lat: 25.35, lon: 56.40 },
+    { id: 'sirbunair', name: 'Sir Bu Nair', area: 'Island, Sharjah', lat: 25.20, lon: 54.20 },
+    { id: 'jebelali', name: 'Jebel Ali reefs', area: 'Dubai offshore', lat: 25.05, lon: 54.95 },
+    { id: 'ghanada', name: 'Ras Ghanada', area: 'Abu Dhabi, Gulf coast', lat: 24.85, lon: 54.70 },
+    { id: 'saadiyat', name: 'Saadiyat reef', area: 'Abu Dhabi, Gulf coast', lat: 24.57, lon: 54.43 }
+  ];
+  // Bleaching Alert Area, CRW version 3.1
+  var LEVELS = [
+    { n: 'No stress', c: '#c8f0ff', d: 'Normal temperatures.' },
+    { n: 'Watch', c: '#fff066', d: 'Warmer than the warmest-month mean, but no heat building up yet.' },
+    { n: 'Warning', c: '#ffaa0a', d: 'Heat stress is starting to build up.' },
+    { n: 'Alert Level 1', c: '#ff4d4d', d: '4 DHW or more. Significant bleaching likely.' },
+    { n: 'Alert Level 2', c: '#c0262d', d: '8 DHW or more. Severe bleaching and some coral deaths likely.' },
+    { n: 'Alert Level 3', c: '#a33fbf', d: '12 DHW or more. Multi-species deaths likely.' },
+    { n: 'Alert Level 4', c: '#7d2fa0', d: '16 DHW or more. Severe deaths likely, more than half the corals.' },
+    { n: 'Alert Level 5', c: '#5b1f80', d: '20 DHW or more. Near-complete coral deaths likely.' }
+  ];
+  function levelFrom(baa, dhw, hot) {
+    if (baa != null && baa >= 0 && baa <= 7) return Math.round(baa);
+    if (dhw == null) return null;
+    if (dhw >= 20) return 7; if (dhw >= 16) return 6; if (dhw >= 12) return 5; if (dhw >= 8) return 4; if (dhw >= 4) return 3;
+    if (hot >= 1 && dhw > 0) return 2; if (hot > 0) return 1; return 0;
+  }
+  var VARS = ['CRW_SST', 'CRW_SSTANOMALY', 'CRW_HOTSPOT', 'CRW_DHW', 'CRW_BAA'];
+  var HOSTS = [
+    { base: 'https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.json', latDesc: true },
+    { base: 'https://pae-paha.pacioos.hawaii.edu/erddap/griddap/dhw_5km.json', latDesc: true },
+    { base: 'https://pae-paha.pacioos.hawaii.edu/erddap/griddap/dhw_5km.json', latDesc: false }
+  ];
+  function q(time, lat0, lat1, lon0, lon1, desc) {
+    var la = desc ? '[(' + lat1 + '):1:(' + lat0 + ')]' : '[(' + lat0 + '):1:(' + lat1 + ')]', lo = '[(' + lon0 + '):1:(' + lon1 + ')]';
+    return VARS.map(function (v) { return v + time + la + lo; }).join(',');
+  }
+  function fetchT(url, ms) {
+    var ctl = window.AbortController ? new AbortController() : null, t = setTimeout(function () { if (ctl) ctl.abort(); }, ms);
+    return fetch(url, ctl ? { signal: ctl.signal } : {}).then(function (r) { clearTimeout(t); if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }, function (e) { clearTimeout(t); throw e; });
+  }
+  // try each server in turn; returns rows as objects
+  var good = 0;
+  function erddap(time, lat0, lat1, lon0, lon1) {
+    var order = HOSTS.map(function (h, i) { return i; }); order.unshift(order.splice(good, 1)[0]);
+    var i = 0;
+    function next(lastErr) {
+      if (i >= order.length) return Promise.reject(lastErr || new Error('no server'));
+      var k = order[i++], h = HOSTS[k], url = h.base + '?' + encodeURIComponent(q(time, lat0.toFixed(3), lat1.toFixed(3), lon0.toFixed(3), lon1.toFixed(3), h.latDesc));
+      return fetchT(url, 20000).then(function (j) { good = k; return parse(j); }).catch(next);
+    }
+    return next();
+  }
+  function parse(j) {
+    var t = j.table, cn = t.columnNames;
+    return t.rows.map(function (r) { var o = {}; cn.forEach(function (c, i) { o[c] = r[i]; }); return o; });
+  }
+  // the sea pixel nearest each spot that has data (land pixels come back empty)
+  function nearestRow(rows, s, maxD) {
+    var best = null, bd = 1e9;
+    rows.forEach(function (r) { if (r.CRW_DHW == null && r.CRW_SST == null) return; var d = Math.hypot(r.latitude - s.lat, (r.longitude - s.lon) * Math.cos(s.lat * Math.PI / 180)); if (d < bd && d <= maxD) { bd = d; best = r; } });
+    return best;
+  }
+  function f1(v, u) { return v == null || isNaN(v) ? '–' : (Math.round(v * 10) / 10).toFixed(1) + (u || ''); }
+  function sgn(v, u) { return v == null || isNaN(v) ? '–' : (v > 0 ? '+' : '') + (Math.round(v * 10) / 10).toFixed(1) + (u || ''); }
+  var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  function dstr(iso) { var d = new Date(iso); return d.getUTCDate() + ' ' + MON[d.getUTCMonth()] + ' ' + d.getUTCFullYear(); }
+
+  var latest = {}, sel = SPOTS[1], series = {};
+  function renderSpots() {
+    $('spots').innerHTML = SPOTS.map(function (s) {
+      var r = latest[s.id], lv = r ? levelFrom(r.CRW_BAA, r.CRW_DHW, r.CRW_HOTSPOT) : null;
+      return '<button type="button" class="spot" data-s="' + s.id + '" aria-pressed="' + (s === sel) + '"><b>' + s.name + '</b><small>' + s.area + '</small>' +
+        (r ? '<span class="pill" style="--c:' + LEVELS[lv].c + '">' + LEVELS[lv].n + '</span><span class="v"><span>' + f1(r.CRW_DHW) + ' DHW</span><span>' + f1(r.CRW_SST, '°C') + '</span></span>' : '<small>' + (loadedLatest ? 'No data' : '…') + '</small>') + '</button>';
+    }).join('');
+  }
+  var loadedLatest = false;
+  function renderLevels(on) { $('levels').innerHTML = LEVELS.map(function (l, i) { return '<li class="' + (i === on ? 'on' : '') + '"><span class="pill" style="--c:' + l.c + '">' + l.n + '</span><span>' + l.d + '</span></li>'; }).join(''); }
+  var SAY = ['The sea is within its normal range for this spot.', 'Warmer than usual. Worth keeping an eye on.', 'Heat stress is building. Bleaching may start soon.', 'Bleaching is likely on this reef. Dive gently and report what you see.', 'Severe bleaching is likely, and some corals may die.', 'Heat stress is extreme. Many corals may die.', 'Heat stress is extreme. Many corals may die.', 'Heat stress is extreme. Many corals may die.'];
+  function renderSel() {
+    var r = latest[sel.id];
+    $('selName').textContent = sel.name;
+    var lv = r ? levelFrom(r.CRW_BAA, r.CRW_DHW, r.CRW_HOTSPOT) : null;
+    $('selAlert').textContent = lv == null ? '–' : LEVELS[lv].n; $('selAlert').style.color = lv == null ? '' : LEVELS[lv].c;
+    $('selSay').textContent = lv == null ? '' : (lv === 0 && r.CRW_DHW >= 1 ? 'The sea has cooled below the stress level, but ' + f1(r.CRW_DHW) + ' DHW of recent heat is still counted. Corals may still be bleached or recovering.' : SAY[lv]);
+    $('vSst').textContent = r ? f1(r.CRW_SST, '°C') : '–'; $('vAnom').textContent = r ? sgn(r.CRW_SSTANOMALY, '°C') : '–'; $('vHot').textContent = r ? f1(r.CRW_HOTSPOT, '°C') : '–'; $('vDhw').textContent = r ? f1(r.CRW_DHW) : '–';
+    $('selDate').textContent = r ? 'Satellite data for ' + dstr(r.time) + ', 5 km pixel at ' + r.latitude.toFixed(3) + '°N ' + r.longitude.toFixed(3) + '°E.' : '';
+    renderLevels(lv);
+    chart();
+  }
+  function cv(id, h) {
+    var c = $(id), d = window.devicePixelRatio || 1, w = Math.max(240, c.clientWidth);
+    c.width = Math.round(w * d); c.height = Math.round(h * d); c.style.height = h + 'px';
+    var x = c.getContext('2d'); x.setTransform(d, 0, 0, d, 0, 0); x.clearRect(0, 0, w, h); x.font = '11px JetBrains Mono, monospace'; return { x: x, w: w, h: h };
+  }
+  function chart() {
+    var c = cv('chart', 220), x = c.x, L = 36, Rr = 40, T = 12, B = 24, W = c.w - L - Rr, H = c.h - T - B, S = series[sel.id];
+    x.fillStyle = '#8b93ad'; x.textAlign = 'center';
+    if (!S) { x.font = '13px "IBM Plex Sans Arabic", "Instrument Sans", sans-serif'; x.fillText(S === null ? 'No 90-day data' : 'Loading…', c.w / 2, c.h / 2); return; }
+    var n = S.length, dmax = Math.max(10, Math.ceil(Math.max.apply(null, S.map(function (r) { return r.CRW_DHW || 0; })) / 2) * 2 + 2);
+    var ss = S.map(function (r) { return r.CRW_SST; }).filter(function (v) { return v != null; }), smin = Math.floor(Math.min.apply(null, ss) - 0.5), smax = Math.ceil(Math.max.apply(null, ss) + 0.5);
+    var X = function (i) { return L + W * i / Math.max(1, n - 1); }, YD = function (v) { return T + H * (1 - v / dmax); }, YS = function (v) { return T + H * (1 - (v - smin) / (smax - smin)); };
+    x.strokeStyle = 'rgba(255,255,255,.08)'; x.textAlign = 'right';
+    for (var v = 0; v <= dmax; v += dmax > 12 ? 4 : 2) { var y = YD(v); x.beginPath(); x.moveTo(L, y); x.lineTo(L + W, y); x.stroke(); x.fillStyle = '#ff7a8f'; x.fillText(String(v), L - 4, y + 4); }
+    x.textAlign = 'left'; x.fillStyle = '#7fb4ff';
+    for (var s = smin; s <= smax; s += (smax - smin > 6 ? 2 : 1)) x.fillText(s + '°', L + W + 4, YS(s) + 4);
+    [[4, 'rgba(255,200,87,.6)'], [8, 'rgba(255,79,109,.6)']].forEach(function (t) { if (t[0] > dmax) return; x.setLineDash([5, 4]); x.strokeStyle = t[1]; x.beginPath(); x.moveTo(L, YD(t[0])); x.lineTo(L + W, YD(t[0])); x.stroke(); x.setLineDash([]); });
+    // DHW as a filled area
+    x.fillStyle = 'rgba(255,122,143,.28)'; x.strokeStyle = '#ff7a8f'; x.lineWidth = 2; x.beginPath(); x.moveTo(X(0), YD(0));
+    S.forEach(function (r, i) { x.lineTo(X(i), YD(r.CRW_DHW || 0)); }); x.lineTo(X(n - 1), YD(0)); x.closePath(); x.fill();
+    x.beginPath(); S.forEach(function (r, i) { if (i) x.lineTo(X(i), YD(r.CRW_DHW || 0)); else x.moveTo(X(i), YD(r.CRW_DHW || 0)); }); x.stroke();
+    x.strokeStyle = '#7fb4ff'; x.beginPath(); var st = false; S.forEach(function (r, i) { if (r.CRW_SST == null) { st = false; return; } if (st) x.lineTo(X(i), YS(r.CRW_SST)); else { x.moveTo(X(i), YS(r.CRW_SST)); st = true; } }); x.stroke(); x.lineWidth = 1;
+    x.fillStyle = '#8b93ad'; x.textAlign = 'center'; x.font = '11px "Instrument Sans", "IBM Plex Sans Arabic", sans-serif';
+    [0, Math.floor((n - 1) / 2), n - 1].forEach(function (i) { var d = new Date(S[i].time); x.fillText(d.getUTCDate() + ' ' + MON[d.getUTCMonth()], Math.min(c.w - 30, Math.max(L + 20, X(i))), c.h - 6); });
+  }
+  function showErr() {
+    $('err').hidden = false;
+    $('err').innerHTML = 'Couldn\'t reach NOAA Coral Reef Watch right now. Their servers may be busy or down for maintenance. Try again later, or see the latest maps on the <a href="https://coralreefwatch.noaa.gov/product/5km/" target="_blank" rel="noopener">Coral Reef Watch website ↗</a>.';
+  }
+  function loadLatest() {
+    var la0 = 24.40, la1 = 25.75, lo0 = 54.10, lo1 = 56.50;
+    return erddap('[(last)]', la0, la1, lo0, lo1).then(function (rows) {
+      loadedLatest = true;
+      SPOTS.forEach(function (s) { var r = nearestRow(rows, s, 0.16); if (r) latest[s.id] = r; });
+      var any = Object.keys(latest)[0];
+      $('status').textContent = any ? 'Latest satellite day: ' + dstr(latest[any].time) + '. Tap a spot for its last 90 days.' : 'No data came back for these spots.';
+      renderSpots(); renderSel();
+    });
+  }
+  function loadSeries(s) {
+    if (series[s.id] !== undefined) { chart(); return Promise.resolve(); }
+    var start = new Date(Date.now() - 92 * 864e5).toISOString().slice(0, 10) + 'T12:00:00Z', r0 = latest[s.id];
+    var la = r0 ? r0.latitude : s.lat, lo = r0 ? r0.longitude : s.lon;
+    return erddap('[(' + start + '):1:(last)]', la - 0.001, la + 0.001, lo - 0.001, lo + 0.001).then(function (rows) {
+      var byT = {}; rows.forEach(function (r) { var o = { time: r.time, latitude: r.latitude, longitude: r.longitude }; VARS.forEach(function (v) { o[v] = r[v]; }); if (!byT[r.time] || (byT[r.time].CRW_DHW == null && r.CRW_DHW != null)) byT[r.time] = o; });
+      var arr = Object.keys(byT).sort().map(function (k) { return byT[k]; }).filter(function (o) { return o.CRW_DHW != null || o.CRW_SST != null; });
+      series[s.id] = arr.length ? arr : null; if (sel === s) chart();
+    }).catch(function () { series[s.id] = null; if (sel === s) chart(); });
+  }
+  $('spots').addEventListener('click', function (e) { var b = e.target.closest('[data-s]'); if (!b) return; sel = SPOTS.filter(function (s) { return s.id === b.dataset.s; })[0]; renderSpots(); renderSel(); loadSeries(sel); });
+  var rt; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(chart, 150); });
+  window.CoralHeat = { levelFrom: levelFrom, nearestRow: nearestRow, q: q };
+  function start() {
+    renderSpots(); renderSel();
+    loadLatest().then(function () { return loadSeries(sel); }).catch(function () { $('status').textContent = ''; loadedLatest = true; renderSpots(); showErr(); series[sel.id] = null; chart(); });
+  }
+  if (document.readyState === 'complete') start(); else window.addEventListener('load', start);
+})();
+</script>
+</body>
+</html>
