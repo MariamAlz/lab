@@ -121,3 +121,10 @@ LabAr.add({
  "Draw a shadow on a photo to find the sun's height and direction, then see which times or places fit the claim.": "ارسم ظلًا على صورة لتعرف ارتفاع الشمس واتجاهها، ثم الأوقات أو الأماكن التي تناسب الادعاء.",
  "Check a photo →": "افحص صورة ←"
 });
+/* index cards for newer tools */
+LabAr.add({
+ "Tool · Security": "أداة · أمان",
+ "Wi-Fi guest card": "بطاقة Wi-Fi للضيوف",
+ "Print a scan-to-join Wi-Fi card in English and Arabic, with a guest password generator. Your password never leaves the page.": "اطبع بطاقة برمز QR للاتصال بالشبكة بالعربية والإنجليزية، مع مولّد كلمة مرور للضيوف. كلمة مرورك لا تغادر الصفحة.",
+ "Make a card →": "اصنع بطاقة ←"
+});
