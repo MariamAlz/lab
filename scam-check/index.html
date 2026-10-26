@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Is This Message a Scam? · Mariam's Lab</title>
+<meta name="description" content="Paste a suspicious SMS, WhatsApp or email, in English or Arabic, and see the warning signs highlighted: fake links, urgency, requests for codes or fees, and the scam patterns common in the UAE. Nothing leaves your device.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/scam-check/">
+<meta property="og:title" content="Is This Message a Scam? · Mariam's Lab"><meta property="og:description" content="Paste a suspicious message and see the warning signs. Nothing leaves your device."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.85rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 7px 14px; cursor: pointer; }
+.sm.pri { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 600; }
+.sc-in { font: inherit; font-family: 'Instrument Sans', 'IBM Plex Sans Arabic', sans-serif; color: var(--ink); background: rgba(7,10,24,.7); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; width: 100%; min-height: 150px; resize: vertical; line-height: 1.55; }
+.sc-tries { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 0.78rem; color: var(--muted); margin-top: 10px; }
+.sc-tries .sm { font-size: 0.78rem; padding: 4px 10px; }
+.sc-tries .sm[lang="ar"] { font-family: 'IBM Plex Sans Arabic', sans-serif; }
+.sc-btns { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
+.sc-out { margin-top: 20px; display: grid; gap: 14px; }
+.sc-box { padding: 18px; border-radius: var(--radius); border: 1px solid var(--line); background: rgba(7,10,24,.82); display: grid; gap: 12px; min-width: 0; }
+.sc-big { font-family: var(--font-display); font-size: clamp(1.5rem, 4.5vw, 2.3rem); font-weight: 800; line-height: 1.1; }
+.sc-meter { height: 10px; border-radius: 99px; background: linear-gradient(90deg, var(--sat-b), var(--accent) 50%, var(--sat-c)); position: relative; }
+.sc-meter i { position: absolute; top: -4px; width: 4px; height: 18px; border-radius: 2px; background: var(--ink); transform: translateX(-2px); }
+html.ar .sc-meter { transform: scaleX(-1); }
+.sc-text { white-space: pre-wrap; word-break: break-word; line-height: 1.9; font-size: 1rem; padding: 14px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); unicode-bidi: plaintext; font-family: 'Instrument Sans', 'IBM Plex Sans Arabic', sans-serif; }
+.sc-text mark { color: var(--ink); border-radius: 4px; padding: 1px 2px; background: color-mix(in srgb, var(--c) 34%, transparent); box-shadow: inset 0 -2px 0 var(--c); }
+.sc-text mark sup { font-size: 0.62rem; font-family: var(--font-mono); color: var(--c); margin-inline-start: 2px; }
+.sc-find { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.sc-find li { display: grid; grid-template-columns: 1.7em minmax(0, 1fr); gap: 8px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; font-size: 0.92rem; }
+.sc-find li > b:first-child { font-family: var(--font-mono); font-size: 0.78rem; width: 1.6em; height: 1.6em; border-radius: 50%; display: grid; place-items: center; background: color-mix(in srgb, var(--c) 30%, transparent); color: var(--ink); }
+.sc-find small { display: block; color: var(--muted); font-size: 0.84rem; }
+.sc-find q { font-style: normal; font-family: 'Instrument Sans', 'IBM Plex Sans Arabic', sans-serif; color: var(--ink); }
+.sc-link { display: grid; gap: 6px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); }
+.sc-url { font-family: var(--font-mono); font-size: 0.8rem; word-break: break-all; direction: ltr; text-align: left; }
+.sc-url mark { background: var(--accent); color: var(--bg); border-radius: 3px; padding: 0 2px; }
+.sc-flags { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 0.86rem; }
+.sc-flags li { display: grid; grid-template-columns: 1.2em minmax(0, 1fr); gap: 6px; }
+.sc-flags small { display: block; color: var(--muted); font-size: 0.8rem; }
+.sc-todo { margin: 0; padding-inline-start: 1.2em; display: grid; gap: 8px; font-size: 0.92rem; }
+.sc-lib { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.sc-lib details { border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; background: var(--surface); }
+.sc-lib summary { cursor: pointer; font-weight: 600; }
+.sc-lib p { font-size: 0.88rem; color: var(--muted); margin-top: 8px; }
+.sc-lib p b { color: var(--ink); font-weight: 600; }
+.sc-ok { color: var(--sat-b); } .sc-bad { color: var(--sat-c); } .sc-meh { color: var(--accent); } .sc-na { color: var(--muted); }
+.sc-muted { color: var(--muted); font-size: 0.86rem; }
+[hidden] { display: none !important; }
+@media (max-width: 760px) { .sc-lib { grid-template-columns: minmax(0, 1fr); } }
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Security · UAE</span>
+    <h1 style="font-size:var(--step-3)">Is this message a scam?</h1>
+    <p>Got a text about a fine, a parcel, a prize or a blocked account? Paste it here, in English or Arabic. The page highlights the tricks scammers use, checks every link against the real UAE government and service domains, and tells you what to do next. Your message stays on your device.</p>
+  </div>
+
+  <textarea class="sc-in" id="msg" dir="auto" placeholder="Paste the SMS, WhatsApp message or email here…" aria-label="Message to check"></textarea>
+  <div class="sc-tries"><span>Try an example:</span>
+    <button class="sm" type="button" data-ex="0">Traffic fine SMS</button>
+    <button class="sm" type="button" data-ex="1" lang="ar">رسوم طرد بريدي</button>
+    <button class="sm" type="button" data-ex="2">"Hi Mum" WhatsApp</button>
+    <button class="sm" type="button" data-ex="6" lang="ar">رمز التحقق من "البنك"</button>
+    <button class="sm" type="button" data-ex="7">Part-time job</button>
+    <button class="sm" type="button" data-ex="3">Real bank OTP</button>
+    <button class="sm" type="button" data-ex="4" lang="ar">توصيل طلب حقيقي</button>
+    <button class="sm" type="button" data-ex="5">Emirates ID reminder</button>
+  </div>
+  <div class="sc-btns"><button class="sm pri" type="button" id="go">Check the message</button><button class="sm" type="button" id="clear">Clear</button><span class="sc-muted">Checked on this device. Nothing is sent anywhere.</span></div>
+
+  <div class="sc-out" id="out" hidden>
+    <div class="sc-box" id="verdict"></div>
+    <div class="game">
+      <div class="panel" style="display:grid;gap:14px">
+        <div class="sc-box"><span class="label">Your message, with the warning signs marked</span><div class="sc-text" id="marked" dir="auto" data-noar></div></div>
+        <div class="sc-box" id="linksBox" hidden><span class="label">Links in the message</span><div id="links" style="display:grid;gap:10px"></div></div>
+      </div>
+      <div class="panel" style="display:grid;gap:14px">
+        <div class="sc-box"><span class="label">What we found</span><ul class="sc-find" id="finds"></ul></div>
+        <div class="sc-box"><span class="label">What to do now</span><ol class="sc-todo" id="todo"></ol></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec-head" style="margin-top:34px"><span class="label">Library</span><h2 style="font-size:var(--step-2)">Known scam types in the UAE</h2></div>
+  <div class="sc-lib" id="lib">
+    <details><summary>Fake traffic fines, Salik and parking</summary><p>A text says you have an unpaid fine or toll and must pay within hours to avoid black points. The link goes to a copy of a government payment page. <b>Real fines</b> are checked in the official apps and websites of RTA, the police or your emirate's transport authority. Type the address yourself.</p></details>
+    <details><summary>Parcel held for a small customs fee</summary><p>"Your parcel is on hold, pay AED 9.75." The small amount makes you relax, but the page steals your card details and then the OTP. <b>Couriers</b> show real fees in their own app, and you can check the tracking number on their official site.</p></details>
+    <details><summary>Your bank account or card is blocked</summary><p>A message or call claims your account is suspended and asks you to "verify" or "update" details through a link, or to read out a code. <b>Banks never ask</b> for your PIN, CVV, password or OTP. Call the number on the back of your card.</p></details>
+    <details><summary>Fake police, prosecution or "money laundering" calls</summary><p>Someone in a uniform on a video call says your Emirates ID is linked to a crime and asks you to transfer money to "clear your name", and to tell no one. <b>Police don't</b> handle cases over WhatsApp or ask for money transfers. Hang up and call the police yourself.</p></details>
+    <details><summary>"Hi Mum, this is my new number"</summary><p>A message from an unknown number pretends to be your son, daughter or relative with a broken phone, then asks for urgent money. <b>Call the old number</b> or ask something only they would know before sending anything.</p></details>
+    <details><summary>Part-time jobs and "task" scams</summary><p>Earn AED 500 a day by liking videos or rating hotels. You get paid small amounts at first, then must "top up" to unlock bigger tasks and lose it all. <b>Real employers</b> never ask you to pay to work.</p></details>
+    <details><summary>Investment and crypto groups</summary><p>WhatsApp or Telegram groups show screenshots of huge profits and a "mentor" offers guaranteed returns. Withdrawals then need "taxes" or "fees". <b>Guaranteed</b> high returns don't exist. Check that a firm is licensed by the UAE financial regulators.</p></details>
+    <details><summary>Prizes, raffles and loyalty points</summary><p>You won a car, cash or points that "expire today". To claim it you pay a fee or enter card details. <b>If you didn't enter</b>, you didn't win.</p></details>
+    <details><summary>WhatsApp account takeover</summary><p>A friend's account (already stolen) asks you to forward a 6-digit code "sent by mistake". That code is your WhatsApp registration code, and it hands them your account. <b>Never share</b> it. Turn on two-step verification in WhatsApp settings.</p></details>
+    <details><summary>Rental and holiday home deposits</summary><p>A great flat at a low price, but the "landlord" is abroad and wants a deposit before a viewing. <b>Only pay</b> after viewing, through a registered agent, with a contract registered in your emirate's tenancy system.</p></details>
+    <details><summary>Marketplace "buyer" sends a payment link</summary><p>You sell something online and the buyer sends a link "to receive the money". It asks for your card details. <b>You never need</b> to enter card details to receive money.</p></details>
+    <details><summary>Fake visa, Emirates ID and job-permit services</summary><p>Sites that look official charge extra or steal data when you renew a visa or ID. <b>Use</b> the official ICP and government apps, or registered typing centres.</p></details>
+  </div>
+  <p class="fact" style="margin-top:22px"><b>How it works.</b> The page runs about 25 rules on your text, in English and Arabic, looking for the building blocks almost every scam uses: a reason to panic, a deadline, a request for money or codes, and a link or number to act on. Links are taken apart to find the real domain, then compared with genuine UAE domains and common look-alike tricks. A clean result doesn't prove a message is safe. New scams change their wording all the time. If in doubt, contact the company or person through a number or app you already trust.</p>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  // ---- normalising keeps the same length, so match positions map back to the original text
+  function normAr(s) { return s.replace(/[أإآٱ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي').replace(/[٠-٩]/g, function (d) { return String(d.charCodeAt(0) - 0x660); }).replace(/[۰-۹]/g, function (d) { return String(d.charCodeAt(0) - 0x6F0); }); }
+  function norm(s) { return normAr(s.toLowerCase().replace(/[‘’]/g, "'")); }
+  function R(src) { return new RegExp(normAr(src), 'gi'); }
+
+  // ---- link checks (shared with the link inspector)
+  var BRANDS = ['emiratesnbd', 'adcb', 'bankfab', 'fab', 'mashreq', 'dib', 'adib', 'rakbank', 'cbd', 'etisalat', 'eand', 'du', 'dewa', 'addc', 'rta', 'mohre', 'icp', 'uaepass', 'emirates', 'flydubai', 'etihad', 'airarabia', 'aramex', 'emiratespost', 'noon', 'amazon', 'paypal', 'apple', 'icloud', 'google', 'gmail', 'microsoft', 'outlook', 'office', 'whatsapp', 'instagram', 'facebook', 'netflix', 'dhl', 'fedex', 'careem', 'talabat', 'binance', 'coinbase', 'salik', 'tabby', 'tamara', 'dubaipolice', 'adpolice', 'moi', 'parkin', 'mawaqif', 'tamm', 'smartdubai'];
+  var SECOND = /^(co|com|net|org|gov|ac|edu|sch|mil|nhs|ltd|plc)$/;
+  var RISKY_TLD = /\.(zip|mov|top|xyz|click|link|work|loan|win|gq|ml|cf|tk|ga|rest|cam|icu|buzz|sbs|cfd|monster|lol|online|site|shop|vip|live|info|support|services|cc|pw|club)$/;
+  var SHORT = /^(bit\.ly|tinyurl\.com|t\.co|goo\.gl|ow\.ly|is\.gd|cutt\.ly|rb\.gy|shorturl\.at|s\.id|t\.ly|rebrand\.ly|tiny\.cc|shorturl\.gg|v\.gd|bit\.do|qrco\.de)$/;
+  // genuine UAE government and major service domains (registrable part)
+  var OFFICIAL = ['u.ae', 'government.ae', 'uae.gov.ae', 'rta.ae', 'dubaipolice.gov.ae', 'adpolice.gov.ae', 'shjpolice.gov.ae', 'moi.gov.ae', 'emiratespost.ae', 'epg.gov.ae', 'salik.ae', 'salik.gov.ae', 'icp.gov.ae', 'gdrfad.gov.ae', 'dewa.gov.ae', 'addc.ae', 'aadc.ae', 'sewa.gov.ae', 'etihadwe.ae', 'mohre.gov.ae', 'mohap.gov.ae', 'dha.gov.ae', 'doh.gov.ae', 'tax.gov.ae', 'mof.gov.ae', 'centralbank.ae', 'tdra.gov.ae', 'ecrime.ae', 'uaepass.ae', 'tamm.abudhabi', 'abudhabi.ae', 'dubai.ae', 'dubai.gov.ae', 'sharjah.ae', 'parkin.ae', 'mawaqif.ae', 'itc.gov.ae', 'dubaicustoms.gov.ae', 'adcustoms.gov.ae', 'moei.gov.ae', 'dm.gov.ae', 'dld.gov.ae', 'ejari.ae', 'ded.ae', 'economy.ae', 'mohesr.gov.ae', 'moe.gov.ae', 'adjd.gov.ae', 'dc.gov.ae', 'pp.gov.ae', 'etisalat.ae', 'eand.com', 'eand.ae', 'du.ae', 'virginmobile.ae', 'aramex.com', 'emirates.com', 'etihad.com', 'flydubai.com', 'airarabia.com', 'emiratesnbd.com', 'adcb.com', 'bankfab.com', 'mashreq.com', 'mashreqbank.com', 'dib.ae', 'adib.ae', 'rakbank.ae', 'cbd.ae', 'enbd.com', 'liv.me', 'wio.io', 'nol.ae', 'smartdubai.ae', 'adnoc.ae', 'enoc.com'];
+  function lev(a, b) { var d = []; for (var i = 0; i <= a.length; i++) { d[i] = [i]; } for (var j = 1; j <= b.length; j++) d[0][j] = j; for (i = 1; i <= a.length; i++) for (j = 1; j <= b.length; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); return d[a.length][b.length]; }
+  function unpuny(host) {
+    return host.split('.').map(function (l) {
+      if (l.indexOf('xn--') !== 0) return l;
+      try {
+        var input = l.slice(4), out = [], n = 128, i = 0, bias = 72, b = input.lastIndexOf('-');
+        if (b > 0) for (var k = 0; k < b; k++) out.push(input.charCodeAt(k));
+        for (var idx = b > 0 ? b + 1 : 0; idx < input.length;) {
+          var oldi = i, w = 1;
+          for (var kk = 36; ; kk += 36) { var c = input.charCodeAt(idx++), digit = c - 48 < 10 ? c - 22 : c - 65 < 26 ? c - 65 : c - 97 < 26 ? c - 97 : 36; i += digit * w; var t = kk <= bias ? 1 : kk >= bias + 26 ? 26 : kk - bias; if (digit < t) break; w *= 36 - t; }
+          var len = out.length + 1, delta = i - oldi; delta = oldi === 0 ? Math.floor(delta / 700) : delta >> 1; delta += Math.floor(delta / len);
+          for (var kb = 0; delta > 455; kb += 36) delta = Math.floor(delta / 35); bias = kb + Math.floor(36 * delta / (delta + 38));
+          n += Math.floor(i / len); i %= len; out.splice(i++, 0, n);
+        }
+        return String.fromCodePoint.apply(null, out);
+      } catch (e) { return l; }
+    }).join('.');
+  }
+  function registrable(host) { var p = host.split('.'); if (p.length <= 2) return host; return (SECOND.test(p[p.length - 2]) ? p.slice(-3) : p.slice(-2)).join('.'); }
+  function parse(q) {
+    q = q.trim(); var url;
+    try { url = new URL(/^[a-z]+:\/\//i.test(q) ? q : 'https://' + q); } catch (e) { return null; }
+    var host = url.hostname.replace(/\.$/, '').toLowerCase();
+    if (!/\./.test(host)) return null;
+    return { raw: q, url: url, host: host, reg: registrable(host), hasPath: /^[a-z]+:\/\//i.test(q) };
+  }
+  function linkChecks(p) {
+    var f = [], score = 0, u = p.url, host = p.host, shown = unpuny(host), reg = p.reg, regName = reg.split('.')[0];
+    if (shown !== host) { score += 3; f.push(['bad', 'Hidden international letters', 'It displays as "' + shown + '" but is really ' + host + '. Letters from other alphabets can look identical to Latin ones.']); }
+    if (/^\d+\.\d+\.\d+\.\d+$/.test(host) || host.indexOf(':') >= 0) { score += 3; f.push(['bad', 'A bare IP address', 'Real companies use names, not numbers.']); }
+    if (SHORT.test(host)) { score += 2; f.push(['meh', 'A link shortener', 'It hides where you will really end up. Real banks and government bodies don\'t use them in texts.']); }
+    var sub = host.slice(0, host.length - reg.length).replace(/\.$/, ''), seen = {};
+    BRANDS.forEach(function (b) {
+      if (regName === b || BRANDS.indexOf(regName) >= 0 || seen[b]) return;
+      if (sub && sub.split(/[.-]/).indexOf(b) >= 0) { seen[b] = 1; score += 3; f.push(['bad', 'Brand name in the wrong place', '"' + b + '" appears before the real domain, which is ' + reg + '. The part just before the ending is what counts.']); }
+      else if (regName.length >= 4 && b.length >= 4 && regName !== b && (regName.indexOf(b) >= 0 || lev(regName.replace(/0/g, 'o').replace(/1/g, 'l'), b) <= 1 || lev(regName, b) <= 2 && b.length >= 7)) { seen[b] = 1; score += 3; f.push(['bad', 'Looks like ' + b, reg + ' is not ' + b + '\'s domain, but it is close enough to fool a quick glance.']); }
+    });
+    var shownName = unpuny(reg).split('.')[0];
+    BRANDS.forEach(function (b) { if (!seen[b] && regName !== b && shownName.split('-').indexOf(b) >= 0 && regName.indexOf('-') >= 0) { seen[b] = 1; score += 3; f.push(['bad', 'Borrows the name ' + (b.length <= 4 ? b.toUpperCase() : b), reg + ' is not run by them. Anyone can buy a name with a company\'s name in it.']); } });
+    if (RISKY_TLD.test(host)) { score += 1; f.push(['meh', 'A cheap, often-abused ending', '.' + host.split('.').pop() + ' domains cost very little and are common in scam texts.']); }
+    if ((shownName.match(/-/g) || []).length >= 2) { score += 1; f.push(['meh', 'Lots of hyphens', 'Names like "pay-fine-now-online" are a scam favourite.']); }
+    if (p.hasPath && u.protocol === 'http:') { score += 1; f.push(['meh', 'Not encrypted', 'The link starts with http://, so anything you type could be read on the way.']); }
+    if (u.username || u.password) { score += 3; f.push(['bad', 'An @ sign in the address', 'Everything before @ is ignored; you would really go to ' + host + '.']); }
+    return { flags: f, score: score };
+  }
+
+  // ---- rules: [id, category, weight, English pattern, Arabic pattern, title, why]
+  var CAT_COL = { urgent: '#E9B467', threat: '#F08AB3', money: '#ff8a4c', code: '#ff4f6d', bait: '#c9a0ff', imp: '#84A0FF', contact: '#4FD3BD', good: '#4FD3BD', link: '#E9B467' };
+  var RULES = [
+    ['urgent', 'urgent', 2, "\\b(urgent(ly)?|immediately|right away|within \\d+\\s?(hours?|hrs?|minutes?|mins?|days?)|in the next \\d+ (hours?|minutes?)|today only|last (chance|warning|reminder|notice)|final (notice|warning|reminder)|act now|expires? (today|soon|tonight)|asap|as soon as possible|before midnight)\\b",
+      "(عاجل|فورا|حالا|خلال \\d+ ?(ساعه|ساعات|دقيقه|دقائق|يوم|ايام)|اخر فرصه|اخر تنبيه|انذار نهائي|تنبيه نهائي|في اقرب وقت|اليوم فقط|قبل منتصف الليل)",
+      'Rushes you', 'A deadline of hours or minutes is meant to stop you thinking or checking. Real organisations give you time.'],
+    ['threat', 'threat', 2, "\\b(suspend(ed|ion)?|block(ed)?|deactivat(e|ed|ion)|frozen|freez(e|ing)|terminat(e|ed|ion)|legal action|arrest(ed)?|warrant|court case|prosecution|black points|penalt(y|ies)|will be (cancel+ed|closed|disabled|removed|returned|destroyed)|(locked|restricted|limited) account|account (has been |is |was )?(locked|restricted|limited|on hold)|money laundering|confiscat(e|ed))\\b",
+      "(ايقاف|حظر|تجميد|تعليق|سيتم (الغاء|اغلاق|ايقاف|حظر|تعليق|ارجاع|اتلاف)|اجراء قانوني|اجراءات قانونيه|القبض|مذكره (توقيف|اعتقال)|غسيل اموال|غسل الاموال|نقاط سوداء|مصادره)",
+      'Threatens you', 'Blocked accounts, arrests and black points are used to scare you into acting fast.'],
+    ['code', 'code', 4, "\\b(send|share|give|tell|forward|reply with|provide|read (out|me)|confirm|enter|type|need)\\b[^.!?\\n]{0,40}?\\b(otp|one[- ]time (password|code|pin)|verification code|security code|activation code|\\d[- ]digit code|pin|cvv|cvc|password|the code)\\b|\\b(code|otp|pin)\\b[^.!?\\n]{0,30}?\\b(send|share|forward|give) (it|them)( back)? to (me|us)\\b",
+      "(ارسل|ارسلي|ارسله|ارسليه|زودنا|زودني|شارك|اعطني|عطني|ابعث|ابعثه|اكتب|ادخل|اخبرني|قول لي|حول لي)[^.!؟\\n]{0,40}?(رمز|الرمز|الكود|كود|كلمه المرور|كلمه السر|الرقم السري|رقم التحقق|otp)|(رمز|الرمز|كود|الكود)[^.!؟\\n]{0,30}?(ارسله|ارسليه|ابعثه|ابعثيه|شاركه|حوله|اعطني اياه)",
+      'Asks for a code, PIN or password', 'Nobody genuine ever needs your OTP, PIN, CVV or password. Whoever gets that code can take over your account or approve a payment.', /(never|n't|not|no one|nobody|لا|ابدا|لن)\W{0,3}(\w+\W+){0,2}$/i],
+    ['card', 'code', 3, "\\b(card number|card details|full card|expiry date|cvv|cvc|card pin|atm pin|bank details|login details|emirates id (number|copy))\\b",
+      "(رقم البطاقه|بيانات البطاقه|تفاصيل البطاقه|تاريخ انتهاء البطاقه|رمز البطاقه|بيانات الدخول|صوره الهويه|رقم الهويه)",
+      'Asks for card or ID details', 'Card numbers, expiry dates, CVVs and ID copies are what the scam is really after.', /(never|n't|not|لا|لن)\W{0,3}(\w+\W+){0,3}$/i],
+    ['warn', 'good', -3, "\\b(never share|do not share|don't share|not share (it|this|the code)|never ask|will never (ask|call|request)|won't ask|not ask you for)\\b",
+      "(لا تشارك|لا تفصح|لن نطلب|لن يطلب|لا تعط|لا تعطي|لا تشاركه)",
+      'Warns you not to share codes', 'Genuine banks and apps add this line. It is a good sign, though scammers copy it too.'],
+    ['gift', 'money', 4, "\\b(gift ?cards?|itunes cards?|google play cards?|steam cards?|apple cards?|voucher codes?|bitcoin|btc|usdt|crypto(currency)?|binance|wallet address|western union|moneygram|transfer (the |this )?(money|amount|funds)|send (me |us )?(the )?money|send (me|us) (aed|dhs|\\d)|pay (me|us|you) back|lend me)\\b",
+      "(بطاقات? (هدايا|هديه|ايتونز|جوجل بلاي)|بيتكوين|عملات? رقميه|محفظه رقميه|يو اس دي تي|حول(ي)? (المبلغ|لي|الفلوس)|تحويل (المبلغ|مبلغ)|ارسل (المبلغ|الفلوس)|سلفني|دين علي)",
+      'Asks for money in a hard-to-trace way', 'Gift cards, crypto and direct transfers can\'t be reversed. That is why scammers ask for them.'],
+    ['fee', 'money', 2, "\\b(customs (fee|duty|charges?)|redelivery fee|re-delivery|delivery (fee|charge)|clearance fee|shipping fee|handling fee|registration fee|processing fee|activation fee|release fee|unpaid (fee|toll|balance|duty)|small fee)\\b",
+      "(رسوم (جمركيه|الجمارك|التوصيل|الشحن|التسجيل|التفعيل|اعاده التوصيل|المعالجه|التخليص)|رسوم غير مدفوعه|مبلغ بسيط)",
+      'Asks for a fee', 'Couriers, employers and prize-givers don\'t collect fees through a link in a text.'],
+    ['prize', 'bait', 3, "\\b(you('ve| have)? (won|been selected)|congratulations?|winner|lucky (draw|winner|number)|cash prize|claim (your|the) (prize|reward|gift)|points? (will )?expire|free (iphone|gift|prize|car))\\b",
+      "(مبروك|ربحت|فزت|الفائز|جائزه|السحب|مكافاه|هديه مجانيه|تم اختيارك|نقاطك ستنتهي)",
+      'Too good to be true', 'If you didn\'t enter a draw, you didn\'t win it. Prizes are bait for a fee or your card details.'],
+    ['job', 'bait', 2, "\\b(part[- ]time (job|work|position)|work from home|daily (income|salary|pay|earnings?)|earn (aed|dhs|\\$)?\\s?\\d+|per day|job offer|hiring now|recruit(er|ment) (agency|team)|commission per task|like (videos|reviews|posts)|simple tasks?|online tasks?)\\b",
+      "(وظيفه|عمل من المنزل|دوام جزئي|دخل يومي|راتب يومي|اربح \\d+|مهام بسيطه|توظيف فوري|عموله)",
+      'A job that sounds too easy', 'High pay for liking posts or rating hotels is the "task scam". You end up paying to unlock your "earnings".'],
+    ['invest', 'bait', 3, "\\b(guaranteed (returns?|profits?|income)|double your (money|investment)|\\d+ ?% (profit|returns?|daily|weekly|monthly)|risk[- ]free|trading (signals|group|platform)|forex|investment (opportunity|plan)|passive income|vip group)\\b",
+      "(ارباح مضمونه|عائد مضمون|ضاعف (اموالك|استثمارك|فلوسك)|بدون مخاطره|ربح يومي|فرصه استثماريه|توصيات تداول)",
+      'Promises easy profit', 'Guaranteed or very high returns are the mark of an investment scam.'],
+    ['newnum', 'contact', 4, "\\b(this is my new number|my new number|new number|changed my number|lost my phone|broke my phone|dropped my phone|phone (is )?(broken|dead|died)|phone fell|save (this|my) (new )?number|delete (the|my) old number|mic (is )?broken)\\b",
+      "(رقمي الجديد|هذا رقمي|غيرت رقمي|تلفوني (خرب|انكسر|ضاع|طاح)|جوالي (خرب|ضاع|انكسر|طاح)|احفظ (هالرقم|هذا الرقم|رقمي)|امسح(ي)? الرقم القديم)",
+      '"New number" story', 'The classic "Hi Mum" scam. A stranger pretends to be family on a new phone, then asks for money.'],
+    ['family', 'contact', 1, "\\b(hi|hey|hello) (mum|mom|mama|mummy|dad|daddy|papa)\\b", "(^|\\s)(يما|يمه|ماما|يبه|يبا|بابا)(\\s|،|,|$)",
+      'Calls you Mum or Dad', 'Fine from a saved contact. From an unknown number it is the start of the "Hi Mum" scam.'],
+    ['secret', 'contact', 2, "\\b(don't tell|do not tell|keep (this|it) (confidential|secret|between us)|strictly confidential|don't call|do not call|can't (talk|call)|cannot (talk|call)|i'm in a meeting|text only|don't contact the bank)\\b",
+      "(لا تخبر|لا تقول لاحد|لا تقولين لاحد|سري للغايه|بيننا|لا تتصل|ما اقدر اتكلم|ما اقدر ارد)",
+      'Keeps you from checking', 'Secrecy and "don\'t call" stop you from asking someone who would spot the scam.'],
+    ['greet', 'imp', 1, "\\b(dear (customer|user|client|valued customer|member|sir|madam|account holder|cardholder|subscriber)|dear sir\\/madam)\\b",
+      "(عزيزي العميل|عميلنا العزيز|عزيزي المتعامل|عزيزي المستخدم|عزيزي المشترك|عزيزتي العميله)",
+      'Generic greeting', 'Your bank knows your name. Bulk scams can\'t.'],
+    ['click', 'link', 1, "\\b(click (here|the link|below|on the link)|tap (here|the link|below)|open the link|visit the link|follow the link|update (your )?(details|information|account|card)|verify (your )?(account|identity|details|card))\\b",
+      "(اضغط (على الرابط|هنا)|انقر|افتح الرابط|عبر الرابط|من خلال الرابط|حدث بياناتك|تحديث (بياناتك|البيانات)|تاكيد (بياناتك|هويتك))",
+      'Pushes you to a link', 'Scams always end in a link or a phone number. Go to the app or website yourself instead.'],
+    ['remote', 'code', 4, "\\b(anydesk|teamviewer|quick ?support|rustdesk|ultraviewer|screen ?shar(e|ing)|remote access)\\b", "(مشاركه الشاشه|التحكم عن بعد)",
+      'Wants control of your device', 'Screen-sharing apps let the scammer watch you type codes and passwords, or move money themselves.'],
+    ['video', 'contact', 1, "\\b(video call)\\b", "(مكالمه فيديو|اتصال فيديو)",
+      'Video call', 'Fake police and officials use video calls with uniforms and badges to look real.']
+  ];
+  // what the message claims to be: [id, English pattern, Arabic pattern, label]
+  var IMP = [
+    ['police', "\\b(police|ministry of interior|interpol|public prosecution|prosecutor|cid)\\b", "(شرطه|الشرطه|وزاره الداخليه|النيابه|الانتربول)", 'the police'],
+    ['gov', "\\b(rta|salik|traffic fines?|fines?|parking|emirates id|visa|residency|icp|uae pass|dewa|mohre|labour card|tax refund|black points)\\b", "(هيئه الطرق|سالك|مخالف(ه|ات)|الهويه|الاقامه|التاشيره|الرخصه|المواقف)", 'a government service'],
+    ['bank', "\\b(bank|banking|debit card|credit card|atm card|your card|your account)\\b", "(البنك|بنك|حسابك|بطاقتك|المصرف|حسابك البنكي)", 'your bank'],
+    ['delivery', "\\b(parcel|package|shipment|courier|delivery|emirates post|aramex|tracking number|customs)\\b", "(طرد|طردك|شحنه|شحنتك|البريد|بريد الامارات|التوصيل|المندوب|الجمارك)", 'a delivery company'],
+    ['telecom', "\\b(etisalat|e&|virgin mobile|your (mobile|telecom) (operator|provider)|sim card|recharge)\\b", "(اتصالات|الشريحه|رصيدك|شحن الرصيد)", 'your telecom provider']
+  ];
+  RULES.forEach(function (r) { r.reEn = new RegExp(r[3], 'gi'); r.reAr = R(r[4]); });
+  IMP.forEach(function (r) { r.reEn = new RegExp(r[1], 'i'); r.reAr = R(r[2]); });
+
+  var URL_RE = /((?:https?:\/\/|www\.)[^\s<>"'،]+|(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+(?:com|net|org|info|biz|ae|top|xyz|click|link|online|site|shop|store|live|vip|cc|me|co|io|ly|gd|app|icu|buzz|sbs|cfd|rest|work|loan|win|tk|ml|ga|cf|gq|cam|monster|lol|club|pw|support|services|help|asia|tv|uk|in|pk|ph|us|ru|cn|abudhabi)(?::\d+)?(?:\/[^\s<>"'،]*)?)/gi;
+  var PHONE_RE = /(?:\+|\b00)\s?(\d{1,3})[\s-]?\(?\d{1,4}\)?(?:[\s-]?\d){5,}/g;
+  var AMT_RE = /(?:\b(?:aed|dhs?|dirhams?)\s?(\d+(?:[.,]\d+)?)|(\d+(?:[.,]\d+)?)\s?(?:aed|dhs?\b|dirhams?|درهم|د\.ا))/gi;
+
+  function analyse(text) {
+    var n = norm(text), marks = [], finds = [], score = 0, cats = {}, imp = [];
+    function mark(a, b, num, col) { marks.push([a, b, num, col]); }
+    // rules
+    RULES.forEach(function (r) {
+      var hits = [];
+      [r.reEn, r.reAr].forEach(function (re) {
+        re.lastIndex = 0; var m;
+        while ((m = re.exec(n))) {
+          if (!m[0].length) { re.lastIndex++; continue; }
+          var a = m.index, b = a + m[0].length;
+          if (r[7] && r[7].test(n.slice(Math.max(0, a - 30), a))) continue;
+          var lead = m[0].match(/^[\s،,]+/); if (lead) a += lead[0].length; var tail = m[0].match(/[\s،,]+$/); if (tail) b -= tail[0].length;
+          hits.push([a, b]);
+        }
+      });
+      if (!hits.length) return;
+      finds.push({ id: r[0], cat: r[1], w: r[2], title: r[5], why: r[6], hits: hits });
+    });
+    var has = function (id) { return finds.some(function (f) { return f.id === id; }); };
+    // small amounts next to a fee word
+    var am, small = null; AMT_RE.lastIndex = 0;
+    while ((am = AMT_RE.exec(n))) { var v = parseFloat((am[1] || am[2]).replace(',', '.')); var ctx = n.slice(Math.max(0, am.index - 70), am.index + am[0].length + 40); if (v > 0 && v <= 50 && /(fee|customs|duty|redeliver|delivery|shipping|handling|clearance|unpaid|toll|رسوم|جمرك|توصيل|شحن|غير مدفوع)/.test(ctx)) { small = [am.index, am.index + am[0].length, v]; break; } }
+    if (small) finds.push({ id: 'small', cat: 'money', w: 3, title: 'A small "fee"', why: 'A tiny amount like AED ' + small[2] + ' makes you relax. The real goal is your card details and then your OTP.', hits: [[small[0], small[1]]] });
+    if (has('job') && (has('fee') || has('gift') || small)) finds.push({ id: 'jobfee', cat: 'money', w: 3, title: 'A job that asks you to pay', why: 'Genuine employers in the UAE can\'t charge you recruitment or registration fees.', hits: [] });
+    // international numbers
+    var pm; PHONE_RE.lastIndex = 0; var phones = [];
+    while ((pm = PHONE_RE.exec(text))) { var digits = pm[0].replace(/\D/g, '').replace(/^00/, ''); phones.push({ a: pm.index, b: pm.index + pm[0].length, uae: /^971/.test(digits), cc: digits.slice(0, /^(1|7)/.test(digits) ? 1 : /^(2[0-9]|3[0-9]|4[0-9]|5[1-8]|6[0-6]|8[1-6]|9[0-58])/.test(digits) ? 2 : 3) }); }
+    var foreign = phones.filter(function (p) { return !p.uae; });
+    if (foreign.length) finds.push({ id: 'intl', cat: 'contact', w: 2, title: 'A number from outside the UAE', why: 'The message uses a number starting +' + foreign.map(function (p) { return p.cc; }).filter(function (v, i, a) { return a.indexOf(v) === i; }).join(', +') + '. UAE banks, police and couriers contact you from UAE numbers or official sender names.', hits: foreign.map(function (p) { return [p.a, p.b]; }) });
+    // what is it pretending to be
+    IMP.forEach(function (r) { if (r.reEn.test(n) || r.reAr.test(n)) imp.push(r); });
+    // links
+    var links = [], um; URL_RE.lastIndex = 0;
+    while ((um = URL_RE.exec(text))) {
+      var raw = um[0].replace(/[.,;:!?)\]}'"،؛؟]+$/, ''), a0 = um.index;
+      if (a0 > 0 && /[@\w]/.test(text[a0 - 1])) continue;
+      var p = parse(raw); if (!p) continue;
+      var lc = linkChecks(p), official = OFFICIAL.indexOf(p.reg) >= 0;
+      if (official && !lc.score) lc.flags.unshift(['ok', 'A genuine UAE domain', p.reg + ' is on our list of real government and service domains. Still, it is safest to open the official app yourself.']);
+      else if (imp.length && !official) { lc.score += 2; lc.flags.unshift(['bad', 'Claims to be ' + imp[0][3] + ', but the link goes elsewhere', p.reg + ' is not an official domain for ' + imp[0][3] + '.']); }
+      if (!lc.flags.length) lc.flags.push(['na', 'Nothing odd in the address', 'The real site is ' + p.reg + '. Make sure that is who you expect.']);
+      links.push({ raw: raw, p: p, lc: lc, official: official, a: a0, b: a0 + raw.length });
+    }
+    var linkScore = links.reduce(function (s, l) { return Math.max(s, Math.min(l.lc.score, 6)); }, 0);
+    if (links.length && linkScore >= 2) finds.push({ id: 'badlink', cat: 'link', w: linkScore, title: 'A suspicious link', why: 'See the link details below. The highlighted part of the address is who really runs the site.', hits: links.filter(function (l) { return l.lc.score >= 2; }).map(function (l) { return [l.a, l.b]; }) });
+    else if (links.length && links.every(function (l) { return l.official; })) finds.push({ id: 'goodlink', cat: 'good', w: -1, title: 'Links go to official domains', why: 'Every link points at a genuine UAE government or service domain.', hits: links.map(function (l) { return [l.a, l.b]; }) });
+    // combos
+    if (imp.length && (has('code') || has('card')) ) finds.push({ id: 'impcode', cat: 'code', w: 2, title: 'Pretends to be ' + imp[0][3] + ' and asks for details', why: 'Real organisations already have your details and never ask for codes by message.', hits: [] });
+    if (imp.some(function (r) { return r[0] === 'police'; }) && (has('gift') || has('fee') || has('secret') || has('video'))) finds.push({ id: 'police', cat: 'threat', w: 3, title: 'The "police" want money or secrecy', why: 'Police in the UAE don\'t take payments or open cases over WhatsApp, and never tell you to keep it secret.', hits: [] });
+
+    finds.forEach(function (f) { score += f.w; cats[f.cat] = 1; });
+    finds.sort(function (a, b) { return b.w - a.w; });
+    finds.forEach(function (f, i) { f.num = i + 1; f.hits.forEach(function (h) { mark(h[0], h[1], f.num, CAT_COL[f.cat]); }); });
+    return { score: score, finds: finds, links: links, imp: imp, marks: marks, phones: phones, text: text, wordy: n.replace(/\s+/g, ' ').trim().length };
+  }
+
+  function highlight(text, marks) {
+    marks = marks.slice().sort(function (a, b) { return a[0] - b[0] || b[1] - a[1]; });
+    var out = '', pos = 0;
+    marks.forEach(function (m) { if (m[0] < pos) return; out += esc(text.slice(pos, m[0])) + '<mark dir="auto" style="--c:' + m[3] + '">' + esc(text.slice(m[0], m[1])) + '<sup>' + m[2] + '</sup></mark>'; pos = m[1]; });
+    return out + esc(text.slice(pos));
+  }
+  var ic = { ok: '✓', bad: '✕', meh: '!', na: '·' };
+  function verdictOf(s) {
+    return s >= 7 ? ['bad', 'Very likely a scam', 'Several classic scam tricks together. Don\'t reply, click or pay.', 92] :
+      s >= 4 ? ['bad', 'Suspicious', 'This has the shape of a scam. Check with the sender another way before doing anything.', 70] :
+      s >= 2 ? ['meh', 'A few warning signs', 'Not clear-cut. Be careful, and verify through an official app or number.', 45] :
+      ['ok', 'No common scam signs found', 'Nothing matched the usual scam patterns. That isn\'t proof it is safe, so stay alert if it asks you to act.', 12];
+  }
+  function todo(r) {
+    var t = [], imp = r.imp.map(function (x) { return x[0]; }), has = function (id) { return r.finds.some(function (f) { return f.id === id; }); };
+    var risky = r.score >= 2;
+    if (risky) t.push('Don\'t tap the links or call the numbers in the message. Don\'t reply, even to say no.');
+    if (has('code') || has('card') || has('remote')) t.push('Never share an OTP, PIN, CVV or password, and never install a screen-sharing app for someone who contacted you. If you already did, call your bank right away to block the card and change your passwords.');
+    if (imp.indexOf('bank') >= 0) t.push('Call your bank on the number printed on the back of your card, or open the bank\'s own app. Never use a number from the message.');
+    if (imp.indexOf('gov') >= 0) t.push('Check fines, tolls, visas and ID status yourself in the official government app or website. Type the address or open the app. Don\'t follow the link.');
+    if (imp.indexOf('police') >= 0) t.push('Hang up on anyone claiming to be police who asks for money, transfers or secrecy. Call the police yourself on their official number.');
+    if (imp.indexOf('delivery') >= 0) t.push('Check the tracking number in the courier\'s official app or site. Couriers don\'t collect customs fees through links in texts.');
+    if (has('newnum') || has('family')) t.push('Call your relative on the number you already have saved, or ask a question only they would know.');
+    if (has('job') || has('invest') || has('prize')) t.push('Don\'t pay anything to receive a job, a prize or "profits". Real ones don\'t cost money.');
+    if (risky) t.push('Report it: use the police e-crime reporting service in your emirate (online or in the police app), report the chat as spam in WhatsApp or your messages app, then block the sender.');
+    if (risky) t.push('If you already paid or shared details, contact your bank immediately and file a police report. Speed matters for getting money back.');
+    if (!risky) t.push('If the message asks you to log in, pay or share anything, open the official app or website yourself instead of using a link.');
+    if (!risky) t.push('When unsure, call the company or person on a number you already trust.');
+    return t;
+  }
+  function render(r) {
+    $('out').hidden = false;
+    var v = verdictOf(r.score), col = { ok: 'var(--sat-b)', meh: 'var(--accent)', bad: 'var(--sat-c)' }[v[0]];
+    var pct = Math.max(4, Math.min(96, v[3] + (r.score - 3) * 2));
+    $('verdict').style.borderColor = col;
+    $('verdict').innerHTML = '<span class="label">Verdict</span><div class="sc-big" style="color:' + col + '">' + v[1] + '</div><p class="sc-muted" style="margin:0">' + v[2] + '</p><div class="sc-meter"><i style="left:' + pct + '%"></i></div>' +
+      (r.imp.length ? '<p class="sc-muted" style="margin:0"><span>It presents itself as ' + r.imp[0][3] + '.</span></p>' : '');
+    $('marked').innerHTML = highlight(r.text, r.marks);
+    $('finds').innerHTML = r.finds.length ? r.finds.map(function (f) {
+      var q = f.hits.slice(0, 3).map(function (h) { return '<q dir="auto" data-noar>“' + esc(r.text.slice(h[0], h[1]).slice(0, 60)) + '”</q>'; }).join(' ');
+      return '<li style="--c:' + CAT_COL[f.cat] + '"><b>' + f.num + '</b><span><span>' + esc(f.title) + '</span>' + (f.w < 0 ? ' <span class="sc-ok">(good sign)</span>' : '') + '<small><span>' + esc(f.why) + '</span>' + (q ? ' ' + q : '') + '</small></span></li>';
+    }).join('') : '<li style="--c:var(--sat-b)"><b>✓</b><span>No scam patterns matched<small>The text has none of the phrases, links or numbers this page looks for.</small></span></li>';
+    $('linksBox').hidden = !r.links.length;
+    $('links').innerHTML = r.links.map(function (l) {
+      var shown = esc(l.raw).replace(esc(l.p.reg), '<mark>' + esc(l.p.reg) + '</mark>');
+      return '<div class="sc-link"><div class="sc-url" data-noar>' + shown + '</div><ul class="sc-flags">' + l.lc.flags.map(function (x) { return '<li><span class="sc-' + x[0] + '">' + ic[x[0]] + '</span><span>' + esc(x[1]) + '<small>' + esc(x[2]) + '</small></span></li>'; }).join('') + '</ul>' +
+        '<a class="sc-muted" href="../inspect/?q=' + encodeURIComponent(l.raw) + '">Look up this domain in depth →</a></div>';
+    }).join('');
+    $('todo').innerHTML = todo(r).map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('');
+  }
+
+  var EX = [
+    'RTA: Your vehicle has an unpaid traffic fine of AED 400. Pay within 24 hours to avoid black points and a suspended licence: https://rta-ae.fines-pay.top/pay',
+    'بريد الإمارات: طردك محجوز بسبب عدم دفع رسوم جمركية 12.50 درهم. ادفع خلال 24 ساعة وإلا سيتم إرجاع الشحنة: http://emiratespost-ae.delivery-track.info',
+    'Hi mum, it\'s me. I dropped my phone and this is my new number +44 7700 900123. Can you send me AED 2,300 for rent today? I\'ll pay you back tomorrow. Don\'t call, the mic is broken.',
+    'Your OTP for the purchase of AED 245.00 at ShopMall is 482913. It is valid for 5 minutes. Never share this code with anyone, including bank staff.',
+    'عميلنا العزيز، طلبك رقم 45821 في الطريق إليك اليوم. سيتصل بك المندوب قبل الوصول. يمكنك متابعة الطلب من تطبيق المتجر.',
+    'Reminder: your Emirates ID expires on 12 March. You can renew it in the official ICP app or at https://smartservices.icp.gov.ae',
+    'عزيزي العميل، تم إيقاف بطاقتك مؤقتاً. وصلك رمز من 6 أرقام، أرسله لي الآن لتحديث بياناتك وإلا سيتم إلغاء حسابك. موظف خدمة العملاء - البنك',
+    'Hello! I am Sara from a recruitment agency. Part-time job, work from home, earn AED 800 per day by liking videos. Pay a registration fee of AED 150 to start. Reply on WhatsApp +62 812 5555 0199'
+  ];
+  function go() { var t = $('msg').value; if (!t.trim()) { $('out').hidden = true; return; } render(analyse(t)); }
+  $('go').onclick = function () { go(); if (innerWidth < 860) $('out').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+  $('clear').onclick = function () { $('msg').value = ''; $('out').hidden = true; };
+  [].forEach.call(document.querySelectorAll('[data-ex]'), function (b) { b.onclick = function () { $('msg').value = EX[+b.getAttribute('data-ex')]; go(); }; });
+  window.__scam = { analyse: analyse, verdictOf: verdictOf, EX: EX };
+})();
+</script>
+</body>
+</html>

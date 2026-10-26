@@ -371,3 +371,10 @@ LabAr.add({
  "Play maqsum, baladi, saidi, sama'i thaqil, khaleeji and more on a synthesised darbuka and riq.": "اعزف المقسوم والبلدي والصعيدي والسماعي الثقيل والخليجي وغيرها على دربكة ورق مُركّبين رقميًا.",
  "Play →": "اعزف ←"
 });
+/* index cards for newer tools */
+LabAr.add({
+ "Tool · Security · UAE": "أداة · أمن · الإمارات",
+ "Is this message a scam?": "هل هذه الرسالة احتيال؟",
+ "Paste an SMS, WhatsApp or email in English or Arabic to see the scam tricks highlighted, every link checked against real UAE domains, and what to do next.": "الصق رسالة نصية أو واتساب أو بريدًا بالعربية أو الإنجليزية لترى حيل الاحتيال مميّزة، مع فحص كل رابط مقابل النطاقات الإماراتية الحقيقية، وماذا تفعل بعدها.",
+ "Check a message →": "افحص رسالة ←"
+});
