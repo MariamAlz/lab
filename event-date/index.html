@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Best Date for an Event · Mariam's Lab</title>
+<meta name="description" content="Find the best dates for a wedding, party or outdoor gathering in the UAE. Scores every day for Ramadan, Eid, public holidays, summer heat, school breaks, weekends and full moon nights, then exports your picks to a calendar.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/event-date/">
+<meta property="og:title" content="Best Date for an Event · Mariam's Lab"><meta property="og:description" content="Every day scored for Ramadan, Eid, holidays, heat, school breaks and the full moon."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.pills { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 0; }
+.f { display: grid; gap: 5px; min-width: 0; }
+.f > span { font-size: 0.84rem; color: var(--muted); }
+.f select, .f input { font: inherit; color: var(--ink); background: rgba(7, 10, 24, 0.6); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; min-width: 0; width: 100%; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.days button { font: inherit; font-size: 0.8rem; padding: 7px 0; border: 1px solid var(--line); border-radius: 8px; background: transparent; color: var(--ink); cursor: pointer; }
+.days button[aria-pressed="true"] { background: var(--sat-b); color: #04201b; border-color: var(--sat-b); font-weight: 600; }
+.top { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.top li { display: grid; grid-template-columns: 3.2em minmax(0, 1fr) auto; gap: 10px; align-items: start; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); cursor: pointer; }
+.top li.sel { border-color: var(--accent); }
+.top .sc { font-family: var(--font-display); font-weight: 800; font-size: 1.4rem; text-align: center; line-height: 1.1; }
+.top b { font-weight: 600; display: block; }
+.top small { color: var(--muted); font-size: 0.8rem; display: block; }
+.top .hj { font-family: 'IBM Plex Sans Arabic', var(--font-body); }
+.why { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+.why span { font-size: 0.72rem; padding: 2px 7px; border-radius: 8px; border: 1px solid var(--line); }
+.why span.p { border-color: color-mix(in srgb, var(--sat-b) 60%, transparent); color: var(--sat-b); }
+.why span.n { border-color: color-mix(in srgb, var(--sat-c) 60%, transparent); color: var(--sat-c); }
+.star { border: 0; background: none; color: var(--muted); font-size: 1.15rem; cursor: pointer; padding: 0 2px; }
+.star[aria-pressed="true"] { color: var(--accent); }
+.months { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); gap: 14px 16px; }
+.mon h3 { font-size: 0.86rem; margin: 0 0 4px; font-family: var(--font-display); font-weight: 600; display: flex; justify-content: space-between; }
+.mon h3 small { font-family: var(--font-mono); font-weight: 400; color: var(--muted); font-size: 0.7rem; }
+.grid7 { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; }
+.grid7 i { font-style: normal; font-family: var(--font-mono); font-size: 0.6rem; color: var(--muted); text-align: center; }
+.grid7 button { font: inherit; font-family: var(--font-mono); font-size: 0.66rem; aspect-ratio: 1; border: 0; border-radius: 4px; padding: 0; cursor: pointer; color: rgba(0,0,0,.75); position: relative; }
+.grid7 button.past { opacity: .18; cursor: default; }
+.grid7 button.sel { outline: 2px solid var(--ink); outline-offset: 1px; }
+.grid7 button.fm::after { content: ''; position: absolute; top: 2px; right: 2px; width: 4px; height: 4px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.3); }
+.grid7 button.st { box-shadow: inset 0 0 0 2px var(--accent); }
+.scale { display: flex; align-items: center; gap: 8px; font-size: 0.74rem; color: var(--muted); }
+.scale i { display: block; width: 140px; height: 10px; border-radius: 99px; background: linear-gradient(90deg, #ff4f6d, #ff8a4c, #ffc857, #c9e264, #4fd3bd); }
+.detail { border: 1px solid var(--accent); border-radius: var(--radius); padding: 14px; display: grid; gap: 6px; }
+.detail ul { margin: 0; padding-inline-start: 1.1em; font-size: 0.88rem; }
+.detail .pos { color: var(--sat-b); } .detail .neg { color: var(--sat-c); }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Calendar · UAE</span>
+    <h1 style="font-size:var(--step-3)">Best date for an event.</h1>
+    <p>Picking a wedding or party date here means juggling Ramadan, Eid, public holidays, the summer heat and when families travel for school breaks. This scores every day in the years you choose, explains each score, and shows the whole calendar at a glance. Star the dates you like and add them to your calendar.</p>
+  </div>
+  <div class="game">
+    <div class="panel">
+      <div class="two">
+        <label class="f"><span>Event</span><select id="type"><option value="wedding">Wedding</option><option value="party">Party or dinner (indoors)</option><option value="outdoor">Outdoor gathering</option></select></label>
+        <label class="f"><span>City (for heat)</span><select id="city"><option value="dxb">Dubai</option><option value="auh">Abu Dhabi</option></select></label>
+      </div>
+      <div class="two">
+        <label class="f"><span>From year</span><select id="y0"></select></label>
+        <label class="f"><span>To year</span><select id="y1"></select></label>
+      </div>
+      <div class="f"><span>Days that work (tap to change)</span><div class="days" id="days"></div></div>
+      <div class="two">
+        <label class="f"><span>Ramadan</span><select id="ram"><option value="avoid">Avoid</option><option value="ok">Fine (e.g. an iftar)</option></select></label>
+        <label class="f"><span>Eid days</span><select id="eid"><option value="avoid">Avoid</option><option value="any">No preference</option><option value="prefer">Prefer</option></select></label>
+      </div>
+      <div class="two">
+        <label class="f"><span>Other public holidays</span><select id="hol"><option value="any">No preference</option><option value="avoid">Avoid</option><option value="prefer">Prefer</option></select></label>
+        <label class="f"><span>School breaks</span><select id="school"><option value="any">Ignore</option><option value="avoid">Avoid (families travel)</option><option value="prefer">Prefer (kids are free)</option></select></label>
+      </div>
+      <label class="f"><span>Full moon nights</span><select id="moon"><option value="bonus">Small bonus</option><option value="any">Don't care</option></select></label>
+      <p class="fact" style="margin:0" id="sumTxt"></p>
+    </div>
+    <div class="panel">
+      <div class="pills" style="justify-content:space-between"><span class="label">Top dates · best per week</span><button class="sm" type="button" id="ics">Add starred to calendar (.ics)</button></div>
+      <ol class="top" id="top"></ol>
+      <p class="msg" id="msg" role="status"></p>
+    </div>
+  </div>
+  <div class="panel" style="margin-top:28px">
+    <div class="pills" style="justify-content:space-between"><span class="label">Every day, scored</span><span class="scale">poor <i></i> great · <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:6px;height:6px;border-radius:50%;background:#fff;display:inline-block"></span> full moon</span></span></div>
+    <div class="detail" id="detail" hidden></div>
+    <div class="months" id="months"></div>
+    <p class="fact" style="margin:0">Islamic dates come from the Umm al-Qura calendar built into your browser. The UAE confirms Ramadan, Eid and other Hijri holidays by moon sighting, so the real day can be one day off. Check the official announcement before booking. Heat uses 1991–2020 monthly averages for Dubai and Abu Dhabi airports (evening temperature taken halfway between the daily high and low). School breaks follow the Ministry of Education calendar announced for 2026–2029, and a typical pattern for other years.</p>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  // climatology: mean daily max / min °C, 1991–2020 (Dubai Met Office; NOAA for Abu Dhabi)
+  var CLIM = {
+    dxb: { max: [24.0, 25.0, 30.0, 34.0, 37.5, 39.9, 41.7, 42.1, 39.5, 36.5, 31.0, 26.0], min: [14.3, 15.5, 18.3, 21.7, 25.1, 26.9, 30.0, 30.4, 27.7, 24.1, 20.1, 16.3], rh: [65, 64, 61, 54, 50, 55, 55, 53, 59, 60, 61, 65] },
+    auh: { max: [24.5, 26.5, 29.7, 35.0, 39.6, 41.4, 42.5, 43.4, 40.9, 36.6, 31.0, 26.5], min: [13.8, 15.9, 17.5, 21.1, 24.6, 26.9, 29.7, 30.2, 27.4, 23.7, 19.6, 15.7], rh: [68, 66, 61, 53, 50, 54, 55, 54, 60, 62, 65, 69] }
+  };
+  // MOE school breaks [start, end] inclusive
+  var SCHOOL = [['2026-07-03', '2026-08-30'], ['2026-12-14', '2027-01-03'], ['2027-04-05', '2027-04-11'], ['2027-07-03', '2027-08-29'], ['2027-12-13', '2028-01-02'], ['2028-03-27', '2028-04-02'], ['2028-07-01', '2028-08-27'], ['2028-12-11', '2029-01-01'], ['2029-03-26', '2029-04-01'], ['2029-06-30', '2029-08-26']];
+  var DOW = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  var HM = ['Muharram', 'Safar', 'Rabi al-Awwal', 'Rabi al-Thani', 'Jumada al-Ula', 'Jumada al-Akhirah', 'Rajab', 'Sha\'ban', 'Ramadan', 'Shawwal', 'Dhu al-Qadah', 'Dhu al-Hijjah'];
+  var thisYear = new Date().getFullYear();
+  var S = { type: 'wedding', city: 'dxb', y0: thisYear + 1, y1: thisYear + 1, days: [0, 0, 0, 1, 1, 1, 0], ram: 'avoid', eid: 'avoid', hol: 'any', school: 'any', moon: 'bonus', stars: [] };
+  try { var sv = JSON.parse(localStorage.getItem('eventDate') || 'null'); if (sv) for (var k in sv) if (k in S) S[k] = sv[k]; } catch (e) {}
+  function save() { try { localStorage.setItem('eventDate', JSON.stringify(S)); } catch (e) {} }
+
+  var hf = null; try { hf = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura-nu-latn', { day: 'numeric', month: 'numeric', year: 'numeric', timeZone: 'UTC' }); } catch (e) {}
+  function hijri(d) { if (!hf) return null; var o = {}; hf.formatToParts(d).forEach(function (p) { o[p.type] = p.value; }); return { d: +o.day, m: +o.month, y: parseInt(o.year, 10) }; }
+  function iso(d) { return d.toISOString().slice(0, 10); }
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  // moon illumination at 20:00 UAE (16:00 UTC)
+  function moonIllum(d) { var jd = d.getTime() / 864e5 + 2440587.5 + 16 / 24, age = ((jd - 2451550.1) / 29.530588853) % 1; if (age < 0) age += 1; return { f: (1 - Math.cos(2 * Math.PI * age)) / 2, age: age }; }
+  function climAt(d, city) {
+    // interpolate between mid-month values
+    var c = CLIM[city], m = d.getUTCMonth(), day = d.getUTCDate(), dim = new Date(Date.UTC(d.getUTCFullYear(), m + 1, 0)).getUTCDate(), t = (day - 0.5) / dim - 0.5;
+    var m2 = t < 0 ? (m + 11) % 12 : (m + 1) % 12, w = Math.abs(t);
+    function lerp(a) { return a[m] * (1 - w) + a[m2] * w; }
+    return { max: lerp(c.max), min: lerp(c.min), rh: lerp(c.rh) };
+  }
+  function inSchool(s) { for (var i = 0; i < SCHOOL.length; i++) if (s >= SCHOOL[i][0] && s <= SCHOOL[i][1]) return true; var y = +s.slice(0, 4); if (y >= 2026 && y <= 2029) return false; var md = s.slice(5); return md >= '07-01' && md <= '08-28' || md >= '12-13' || md <= '01-02' || md >= '03-28' && md <= '04-04'; }
+  var HEATW = { wedding: 0.5, party: 0.3, outdoor: 1 };
+  var TNAME = { wedding: 'wedding', party: 'party', outdoor: 'outdoor gathering' };
+
+  function scoreDay(d) {
+    var r = [], s = 55, dow = (d.getUTCDay() + 6) % 7, h = hijri(d), sIso = iso(d), md = sIso.slice(5);
+    function add(v, txt) { s += v; r.push([v, txt]); }
+    if (S.days[dow]) add(15, DOW[dow] + ' works for you'); else add(-25, DOW[dow] + ' isn\'t one of your days');
+    if (dow === 5) add(5, 'Saturday: guests are off the next day');
+    if (dow === 4) add(3, 'Friday evening: start of the weekend');
+    var eid = false, hol = null;
+    if (h) {
+      if (h.m === 9) { if (S.ram === 'avoid') add(-70, 'Ramadan ' + h.d); else add(0, 'Ramadan ' + h.d); }
+      if ((h.m === 10 && h.d <= 3) || (h.m === 12 && h.d >= 10 && h.d <= 12)) { eid = true; hol = h.m === 10 ? 'Eid al-Fitr' : 'Eid al-Adha'; }
+      else if (h.m === 12 && h.d === 9) hol = 'Arafat Day';
+      else if (h.m === 1 && h.d === 1) hol = 'Hijri New Year';
+      else if (h.m === 3 && h.d === 12) hol = 'Prophet\'s Birthday';
+      if (h.m === 12 && h.d >= 6 && h.d <= 9 && S.eid === 'avoid' && !hol) add(-8, 'Hajj season, close to Eid al-Adha');
+    }
+    if (md === '01-01') hol = 'New Year\'s Day';
+    if (md === '12-01') hol = 'Commemoration Day';
+    if (md === '12-02' || md === '12-03') hol = 'National Day';
+    if (eid) { if (S.eid === 'avoid') add(-35, hol + ' (estimated)'); else if (S.eid === 'prefer') add(15, hol + ' (estimated)'); else add(0, hol + ' (estimated)'); }
+    else if (hol) { if (S.hol === 'avoid') add(-15, hol + ', public holiday'); else if (S.hol === 'prefer') add(10, hol + ', public holiday'); else add(0, hol + ', public holiday'); }
+    var c = climAt(d, S.city), eve = (c.max + c.min) / 2, w = HEATW[S.type];
+    if (eve > 25) add(-Math.round(w * (eve - 25) * 5), 'Evenings around ' + Math.round(eve) + '°C, highs ' + Math.round(c.max) + '°C');
+    else if (eve >= 18) add(Math.round(w * 12), 'Pleasant evenings around ' + Math.round(eve) + '°C');
+    else add(Math.round(w * 6), 'Cool evenings around ' + Math.round(eve) + '°C');
+    if (S.school !== 'any' && inSchool(sIso)) { if (S.school === 'avoid') add(-15, 'School break, many families travel'); else add(10, 'School break, kids are free'); }
+    var mi = moonIllum(d);
+    if (S.moon === 'bonus' && mi.f > 0.96) add(S.type === 'outdoor' ? 8 : 4, 'Full moon night');
+    return { d: d, s: Math.max(0, Math.min(100, Math.round(s))), r: r, h: h, fm: mi.f > 0.96, iso: sIso };
+  }
+  var DAYS = [];
+  function compute() {
+    var today = new Date(); today = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
+    DAYS = [];
+    for (var d = new Date(Date.UTC(S.y0, 0, 1)); d.getUTCFullYear() <= S.y1; d = new Date(d.getTime() + 864e5)) {
+      var x = scoreDay(d); x.past = d < today; DAYS.push(x);
+    }
+    render();
+  }
+  function color(s) {
+    var stops = [[0, [255, 79, 109]], [30, [255, 138, 76]], [50, [255, 200, 87]], [70, [201, 226, 100]], [90, [79, 211, 189]]];
+    for (var i = 1; i < stops.length; i++) if (s <= stops[i][0]) { var a = stops[i - 1], b = stops[i], t = (s - a[0]) / (b[0] - a[0]); return 'rgb(' + a[1].map(function (v, j) { return Math.round(v + (b[1][j] - v) * t); }).join(',') + ')'; }
+    return 'rgb(79,211,189)';
+  }
+  function niceDate(d) { return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }); }
+  function hjTxt(h) { return h ? h.d + ' ' + HM[h.m - 1] + ' ' + h.y : ''; }
+  function chips(x) { return x.r.filter(function (p) { return p[0] !== 0 || /Eid|holiday|Ramadan/.test(p[1]); }).sort(function (a, b) { return Math.abs(b[0]) - Math.abs(a[0]); }).slice(0, 4).map(function (p) { return '<span class="' + (p[0] > 0 ? 'p' : p[0] < 0 ? 'n' : '') + '">' + p[1] + '</span>'; }).join(''); }
+  var sel = null;
+  function render() {
+    // best per ISO-ish week (Mon start)
+    var weeks = {};
+    DAYS.forEach(function (x) { if (x.past) return; var k = Math.floor((x.d.getTime() / 864e5 + 3) / 7); if (!weeks[k] || x.s > weeks[k].s) weeks[k] = x; });
+    var best = Object.keys(weeks).map(function (k) { return weeks[k]; }).sort(function (a, b) { return b.s - a.s || a.d - b.d; }).slice(0, 12);
+    $('top').innerHTML = best.length ? best.map(function (x) {
+      var st = S.stars.indexOf(x.iso) >= 0;
+      return '<li data-iso="' + x.iso + '" class="' + (sel === x.iso ? 'sel' : '') + '"><span class="sc" style="color:' + color(x.s) + '">' + x.s + '</span><div style="min-width:0"><b>' + niceDate(x.d) + '</b><small class="hj">' + hjTxt(x.h) + '</small><div class="why">' + chips(x) + '</div></div><button class="star" type="button" data-star="' + x.iso + '" aria-pressed="' + st + '" aria-label="Star ' + niceDate(x.d) + '">' + (st ? '★' : '☆') + '</button></li>';
+    }).join('') : '<li>No future dates in this range.</li>';
+    // heatmap
+    var h = '', months = {};
+    DAYS.forEach(function (x) { var k = x.iso.slice(0, 7); (months[k] = months[k] || []).push(x); });
+    Object.keys(months).forEach(function (k) {
+      var arr = months[k], first = (arr[0].d.getUTCDay() + 6) % 7, avg = 0, cnt = 0;
+      arr.forEach(function (x) { if (S.days[(x.d.getUTCDay() + 6) % 7]) { avg += x.s; cnt++; } });
+      h += '<div class="mon"><h3>' + arr[0].d.toLocaleDateString('en-GB', { month: 'long', year: 'numeric', timeZone: 'UTC' }) + '<small>' + (cnt ? 'avg ' + Math.round(avg / cnt) : '') + '</small></h3><div class="grid7">' + DOW.map(function (d) { return '<i>' + d[0] + '</i>'; }).join('');
+      for (var i = 0; i < first; i++) h += '<span></span>';
+      arr.forEach(function (x) { h += '<button type="button" data-iso="' + x.iso + '" class="' + (x.past ? 'past ' : '') + (x.fm ? 'fm ' : '') + (sel === x.iso ? 'sel ' : '') + (S.stars.indexOf(x.iso) >= 0 ? 'st' : '') + '" style="background:' + color(x.s) + '" title="' + niceDate(x.d) + ': ' + x.s + '"' + (x.past ? ' disabled' : '') + '>' + x.d.getUTCDate() + '</button>'; });
+      h += '</div></div>';
+    });
+    $('months').innerHTML = h;
+    var good = DAYS.filter(function (x) { return !x.past && x.s >= 75; }).length, avail = DAYS.filter(function (x) { return !x.past; }).length;
+    $('sumTxt').textContent = good + ' of ' + avail + ' remaining days score 75 or more for a ' + TNAME[S.type] + '. ' + (S.type === 'outdoor' ? 'Outdoors, heat counts double, so November to March dominates.' : S.type === 'wedding' ? 'Weddings are mostly indoors, but guests still arrive, park and take photos outside, so heat counts for half.' : 'Indoor parties feel the heat least.');
+    $('msg').textContent = S.stars.length ? S.stars.length + ' starred.' : 'Tap ☆ to keep a date, or tap any day in the calendar below for its full breakdown.';
+    if (sel) showDetail(sel);
+  }
+  function find(iso) { for (var i = 0; i < DAYS.length; i++) if (DAYS[i].iso === iso) return DAYS[i]; return null; }
+  function showDetail(iso) {
+    var x = find(iso); if (!x) { $('detail').hidden = true; return; }
+    var st = S.stars.indexOf(iso) >= 0;
+    $('detail').innerHTML = '<div class="pills" style="justify-content:space-between"><b>' + niceDate(x.d) + ' · <span style="color:' + color(x.s) + '">' + x.s + '/100</span></b><button class="star" type="button" data-star="' + iso + '" aria-pressed="' + st + '">' + (st ? '★ starred' : '☆ star') + '</button></div><small class="msg">' + hjTxt(x.h) + ' (Umm al-Qura)</small><ul>' + x.r.map(function (p) { return '<li class="' + (p[0] > 0 ? 'pos' : p[0] < 0 ? 'neg' : '') + '">' + (p[0] > 0 ? '+' : '') + (p[0] || '±0') + ' · ' + p[1] + '</li>'; }).join('') + '</ul>';
+    $('detail').hidden = false;
+  }
+  document.addEventListener('click', function (e) {
+    var s = e.target.closest('[data-star]');
+    if (s) { var iso = s.dataset.star, i = S.stars.indexOf(iso); if (i >= 0) S.stars.splice(i, 1); else S.stars.push(iso); S.stars.sort(); save(); render(); return; }
+    var c = e.target.closest('#months [data-iso], #top [data-iso]');
+    if (c && !c.disabled) { sel = c.dataset.iso; render(); if (c.closest('#top')) $('detail').scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+  });
+
+  // controls
+  for (var y = thisYear; y <= thisYear + 5; y++) { $('y0').innerHTML += '<option>' + y + '</option>'; $('y1').innerHTML += '<option>' + y + '</option>'; }
+  if (S.y0 < thisYear) S.y0 = thisYear; if (S.y1 < S.y0) S.y1 = S.y0;
+  ['type', 'city', 'y0', 'y1', 'ram', 'eid', 'hol', 'school', 'moon'].forEach(function (id) {
+    $(id).value = S[id];
+    $(id).onchange = function () {
+      S[id] = /^y/.test(id) ? +this.value : this.value;
+      if (id === 'y0' && S.y1 < S.y0) { S.y1 = S.y0; $('y1').value = S.y1; }
+      if (id === 'y1' && S.y1 < S.y0) { S.y0 = S.y1; $('y0').value = S.y0; }
+      if (S.y1 - S.y0 > 2) { S.y1 = S.y0 + 2; $('y1').value = S.y1; $('msg').textContent = 'Up to three years at a time.'; }
+      save(); compute();
+    };
+  });
+  function renderDays() { $('days').innerHTML = DOW.map(function (d, i) { return '<button type="button" data-d="' + i + '" aria-pressed="' + !!S.days[i] + '">' + d + '</button>'; }).join(''); }
+  $('days').onclick = function (e) { var b = e.target.closest('[data-d]'); if (!b) return; var i = +b.dataset.d; S.days[i] = S.days[i] ? 0 : 1; save(); renderDays(); compute(); };
+  renderDays();
+
+  // .ics export
+  $('ics').onclick = function () {
+    if (!S.stars.length) { $('msg').textContent = 'Star some dates first.'; return; }
+    var stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+Z$/, 'Z');
+    var lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Mariam\'s Lab//Best event date//EN', 'CALSCALE:GREGORIAN'];
+    S.stars.forEach(function (ds) {
+      var d = new Date(ds + 'T00:00:00Z'), x = scoreDay(d), n = new Date(d.getTime() + 864e5);
+      lines.push('BEGIN:VEVENT', 'UID:' + ds + '-' + S.type + '@lab.mariamalzaabi.ae', 'DTSTAMP:' + stamp, 'DTSTART;VALUE=DATE:' + ds.replace(/-/g, ''), 'DTEND;VALUE=DATE:' + iso(n).replace(/-/g, ''), 'SUMMARY:Possible ' + TNAME[S.type] + ' date (score ' + x.s + ')', 'DESCRIPTION:' + x.r.map(function (p) { return (p[0] > 0 ? '+' : '') + p[0] + ' ' + p[1]; }).join('\\n').replace(/[,;]/g, function (c) { return '\\' + c; }), 'TRANSP:TRANSPARENT', 'END:VEVENT');
+    });
+    lines.push('END:VCALENDAR');
+    var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([lines.join('\r\n') + '\r\n'], { type: 'text/calendar' })); a.download = 'event-date-options.ics'; document.body.appendChild(a); a.click(); a.remove();
+  };
+  compute();
+})();
+</script>
+</body>
+</html>

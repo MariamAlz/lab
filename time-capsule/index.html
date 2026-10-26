@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Letter to the Future · Mariam's Lab</title>
+<meta name="description" content="Write a letter that nobody can open until a date you choose. It is time-locked with drand, a public randomness network, so no one holds a key, not even this site.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/time-capsule/">
+<meta property="og:title" content="Letter to the Future · Mariam's Lab"><meta property="og:description" content="A time-locked letter that nobody can open before the date, not even this site."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; text-decoration: none; display: inline-block; }
+.sm[aria-pressed="true"], .sm.pri { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.sm:disabled { opacity: .5; cursor: default; }
+.pills { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 0; }
+.f { display: grid; gap: 5px; min-width: 0; }
+.f > span { font-size: 0.84rem; color: var(--muted); }
+.f input, .f textarea { font: inherit; color: var(--ink); background: rgba(7, 10, 24, 0.6); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; min-width: 0; width: 100%; }
+.f textarea { min-height: 12em; resize: vertical; line-height: 1.5; unicode-bidi: plaintext; }
+.f input[type=datetime-local] { font-family: var(--font-mono); }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.thumb { max-width: 160px; max-height: 120px; border-radius: 8px; border: 1px solid var(--line); display: block; }
+.out { border: 1px solid var(--sat-b); border-radius: var(--radius); padding: 16px; display: grid; gap: 10px; background: color-mix(in srgb, var(--sat-b) 7%, transparent); }
+.linkbox { font-family: var(--font-mono); font-size: 0.72rem; word-break: break-all; max-height: 7.5em; overflow: auto; padding: 8px; border-radius: 8px; background: rgba(7,10,24,.6); border: 1px solid var(--line); color: var(--muted); user-select: all; }
+.open { border: 2px solid var(--accent); border-radius: var(--radius); padding: 22px; margin-bottom: 26px; display: grid; gap: 12px; background: var(--surface); }
+.cd { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; max-width: 520px; }
+.cd div { text-align: center; padding: 12px 4px; border: 1px solid var(--line); border-radius: 12px; background: rgba(7,10,24,.5); }
+.cd b { display: block; font-family: var(--font-display); font-weight: 800; font-size: clamp(1.6rem, 6vw, 2.6rem); font-variant-numeric: tabular-nums; line-height: 1; }
+.cd span { font-size: 0.74rem; color: var(--muted); }
+.letter { background: #fbf6ea; color: #2a2112; border-radius: 10px; padding: 22px; font-size: 1.02rem; line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; unicode-bidi: plaintext; box-shadow: 0 10px 40px rgba(0,0,0,.25); }
+.letter img { max-width: 100%; border-radius: 6px; display: block; margin-top: 14px; }
+.letter .meta { font-family: var(--font-mono); font-size: 0.72rem; color: #7a6a4a; margin-bottom: 10px; white-space: normal; }
+.howlock { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; counter-reset: s; }
+.howlock li { counter-increment: s; display: grid; grid-template-columns: 1.8em minmax(0, 1fr); gap: 8px; font-size: 0.9rem; color: var(--muted); }
+.howlock li::before { content: counter(s); font-family: var(--font-mono); color: var(--accent); }
+.howlock b { color: var(--ink); font-weight: 600; }
+.drop { border: 1px dashed var(--line); border-radius: 12px; padding: 14px; font-size: 0.86rem; color: var(--muted); text-align: center; }
+.drop.over { border-color: var(--sat-b); color: var(--ink); }
+.warn { padding: 10px 12px; border-radius: 10px; border: 1px solid color-mix(in srgb, var(--sat-c) 55%, var(--line)); font-size: 0.86rem; }
+[dir=rtl], .ar { font-family: 'IBM Plex Sans Arabic', var(--font-body); }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <section class="open" id="open" hidden aria-live="polite"></section>
+  <div class="sec-head">
+    <span class="label">Tool · Cryptography · Time · Live</span>
+    <h1 style="font-size:var(--step-3)">Letter to the future.</h1>
+    <p>Write a letter to your child for their 18th birthday, to yourself in five years, or to a friend for next Eid. It gets locked so that nobody can read it before the date you pick. Not you, not the person you send it to, and not this website. The letter travels inside the link itself.</p>
+  </div>
+  <div class="game">
+    <div class="panel">
+      <form id="form" class="panel" style="gap:12px">
+        <div class="two">
+          <label class="f"><span>To (optional)</span><input id="to" maxlength="60" placeholder="Sara"></label>
+          <label class="f"><span>From (optional)</span><input id="from" maxlength="60" placeholder="Mum"></label>
+        </div>
+        <label class="f"><span>Your letter</span><textarea id="msgIn" maxlength="20000" required placeholder="By the time you read this…"></textarea></label>
+        <div class="pills"><label class="sm" style="cursor:pointer">Add a small photo<input type="file" id="img" accept="image/*" hidden></label><button class="sm" type="button" id="noimg" hidden>Remove photo</button><span class="msg" id="imgMsg"></span></div>
+        <img class="thumb" id="thumb" alt="" hidden>
+        <label class="f"><span>Opens on (your local time)</span><input id="when" type="datetime-local" required></label>
+        <div class="pills" id="quick"></div>
+        <button class="sm pri" type="submit" id="seal" style="justify-self:start;padding:8px 18px">Seal the letter</button>
+        <p class="msg" id="status" role="status"></p>
+      </form>
+      <div class="out" id="out" hidden></div>
+      <div class="drop" id="drop">Have a time capsule file (.txt)? Drop it here or <label style="color:var(--sat-b);cursor:pointer;text-decoration:underline">choose it<input type="file" id="file" accept=".txt,text/plain" hidden></label>.</div>
+    </div>
+    <div class="panel">
+      <span class="label">How the lock works</span>
+      <ol class="howlock">
+        <li><span><b>A public clock that signs.</b> drand is run by a group of independent organisations, the League of Entropy, including Cloudflare, Protocol Labs and several universities. Together they publish a new signed random number every 3 seconds, numbered in order. Round 1 was in August 2023, so every future date has a known round number.</span></li>
+        <li><span><b>Locked to a signature that doesn't exist yet.</b> Your letter is encrypted in your browser so that the only thing that can unlock it is the network's signature for the round at your chosen date. That signature is made at that moment, by most members working together. Before then nobody has it, so nobody can open the letter.</span></li>
+        <li><span><b>No key to lose or leak.</b> There is no password and no copy on a server. The scrambled letter sits inside the link after the # sign, which browsers never send to websites. When the date arrives, the page fetches that round's public signature and uses it to unlock the letter.</span></li>
+      </ol>
+      <p class="fact" style="margin:0">Honest limits: if the drand network shuts down before your date, the letter can never be opened. If most of its members secretly worked together, they could open it early. Keep the link or file somewhere safe, because it is the only copy. The lock uses the open <a href="https://github.com/drand/tlock-js" style="color:var(--sat-b)">tlock</a> format with the drand "quicknet" chain, so other tlock tools can open it too.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var LIB = 'https://cdn.jsdelivr.net/npm/tlock-js@0.9.0/+esm';
+  // drand quicknet mainnet
+  var CHAIN = { hash: '52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971', genesis: 1692803367, period: 3 };
+  var LINK_MAX = 6000, LINK_HARD = 30000;
+  var T = null, libErr = null;
+  var libP = import(LIB).then(function (m) { T = m.mainnetClient ? m : (m.default && m.default.mainnetClient ? m.default : null); if (!T) throw new Error('unexpected module shape'); return T; }).catch(function (e) { libErr = e; throw e; });
+  libP.catch(function () {});
+
+  function roundAt(ms) { return Math.max(1, Math.ceil((ms / 1000 - CHAIN.genesis) / CHAIN.period) + 1); }
+  function timeOf(round) { return (CHAIN.genesis + (round - 1) * CHAIN.period) * 1000; }
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function localInput(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+  function niceDate(ms) { return new Date(ms).toLocaleString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }); }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function base() { var o = location.origin; return /^https?:/.test(o) && !/localhost|127\.0\.0\.1/.test(o) ? o + location.pathname : 'https://lab.mariamalzaabi.ae/time-capsule/'; }
+
+  // armor <-> compact link form
+  function armorToBody(a) { var m = a.match(/-----BEGIN AGE ENCRYPTED FILE-----([\s\S]*?)-----END AGE ENCRYPTED FILE-----/); return m ? m[1].replace(/\s+/g, '') : null; }
+  function bodyToArmor(b64) { var lines = []; for (var i = 0; i < b64.length; i += 64) lines.push(b64.slice(i, i + 64)); return '-----BEGIN AGE ENCRYPTED FILE-----\n' + lines.join('\n') + '\n-----END AGE ENCRYPTED FILE-----\n'; }
+  function toUrl64(s) { return s.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
+  function fromUrl64(s) { s = s.replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; return s; }
+  // read the round from the age header (input in url-safe base64) ("-> tlock <round> <chainhash>")
+  function roundFromBody(u64) { var b64 = fromUrl64(u64); try { var head = atob(b64.slice(0, 200).replace(/=+$/, '').slice(0, 196)); var m = head.match(/-> tlock (\d+) ([0-9a-f]{64})/); return m ? { round: +m[1], chain: m[2] } : null; } catch (e) { return null; } }
+
+  // ---------- compose
+  var when = $('when');
+  var now = new Date(); now.setSeconds(0, 0);
+  var def = new Date(now); def.setFullYear(def.getFullYear() + 1);
+  when.value = localInput(def); when.min = localInput(new Date(Date.now() + 60000));
+  var Q = [['In 2 minutes (try it)', function (d) { d.setMinutes(d.getMinutes() + 2); }], ['1 month', function (d) { d.setMonth(d.getMonth() + 1); }], ['1 year', function (d) { d.setFullYear(d.getFullYear() + 1); }], ['5 years', function (d) { d.setFullYear(d.getFullYear() + 5); }], ['10 years', function (d) { d.setFullYear(d.getFullYear() + 10); }], ['18 years', function (d) { d.setFullYear(d.getFullYear() + 18); }]];
+  $('quick').innerHTML = Q.map(function (q, i) { return '<button class="sm" type="button" data-q="' + i + '">' + q[0] + '</button>'; }).join('');
+  $('quick').onclick = function (e) { var b = e.target.closest('[data-q]'); if (!b) return; var d = new Date(); d.setSeconds(0, 0); Q[+b.dataset.q][1](d); if (+b.dataset.q > 0) d.setMinutes(0); when.value = localInput(d); };
+
+  var imgData = null;
+  $('img').onchange = function () {
+    var f = this.files[0]; this.value = ''; if (!f) return;
+    var url = URL.createObjectURL(f), im = new Image();
+    im.onload = function () {
+      var max = 360, s = Math.min(1, max / Math.max(im.width, im.height)), c = document.createElement('canvas');
+      c.width = Math.round(im.width * s); c.height = Math.round(im.height * s);
+      var g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(im, 0, 0, c.width, c.height);
+      imgData = c.toDataURL('image/jpeg', 0.6); URL.revokeObjectURL(url);
+      $('thumb').src = imgData; $('thumb').hidden = false; $('noimg').hidden = false;
+      $('imgMsg').textContent = 'Shrunk to ' + c.width + '×' + c.height + ', about ' + Math.round(imgData.length * 0.75 / 1024) + ' KB. With a photo you\'ll usually get a file rather than a link.';
+    };
+    im.onerror = function () { $('imgMsg').textContent = 'That image couldn\'t be read.'; };
+    im.src = url;
+  };
+  $('noimg').onclick = function () { imgData = null; $('thumb').hidden = true; this.hidden = true; $('imgMsg').textContent = ''; };
+
+  $('form').onsubmit = function (e) {
+    e.preventDefault();
+    var at = new Date(when.value).getTime();
+    if (!(at > Date.now() + 30000)) { $('status').textContent = 'Pick a time at least a minute from now.'; return; }
+    var text = $('msgIn').value; if (!text.trim()) return;
+    var payload = JSON.stringify({ v: 1, m: text, to: $('to').value.trim(), from: $('from').value.trim(), img: imgData, made: new Date().toISOString(), opens: new Date(at).toISOString() });
+    var round = roundAt(at);
+    $('seal').disabled = true; $('status').textContent = 'Loading the lock and the network\'s public key…';
+    libP.then(function () {
+      $('status').textContent = 'Sealing…';
+      return T.timelockEncrypt(round, T.Buffer.from(payload, 'utf8'), T.mainnetClient());
+    }).then(function (armor) {
+      $('status').textContent = '';
+      showOut(armor, round);
+    }).catch(function (err) {
+      if (libErr) fallback(payload, at);
+      else $('status').textContent = 'Sealing failed: ' + (err && err.message ? err.message : 'network error') + '. Check your connection and try again.';
+    }).then(function () { $('seal').disabled = false; });
+  };
+
+  function fileText(armor, round) {
+    return 'Time capsule letter, made at lab.mariamalzaabi.ae/time-capsule/\nOpens: ' + new Date(timeOf(round)).toUTCString() + ' (drand quicknet round ' + round + ')\nTo read it after that date, open the page above and drop this file on it.\nAny tlock tool that supports drand quicknet can also open it.\n\n' + armor;
+  }
+  function download(name, text, type) {
+    var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type: type || 'text/plain' })); a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 3000);
+  }
+  function showOut(armor, round) {
+    var body = armorToBody(armor), link = base() + '#tl=' + toUrl64(body), opens = niceDate(timeOf(round)), o = $('out');
+    var h = '<span class="label">Sealed until ' + esc(opens) + '</span>';
+    if (link.length <= LINK_HARD) {
+      h += '<div class="linkbox" id="lnk">' + esc(link) + '</div><div class="pills"><button class="sm pri" type="button" id="cp">Copy link</button>' + (link.length <= LINK_MAX ? '<a class="sm" target="_blank" rel="noopener" href="https://wa.me/?text=' + encodeURIComponent('A letter for you, sealed until ' + opens + ': ' + link) + '">Send on WhatsApp</a>' : '') + '<button class="sm" type="button" id="dl">Download .txt</button><a class="sm" href="' + esc(link) + '" target="_blank" rel="noopener">Test the link</a></div>';
+      h += '<p class="msg">' + (link.length > LINK_MAX ? 'This link is ' + link.length.toLocaleString() + ' characters long, too long for some chat apps. The .txt file is safer to keep and send.' : 'The link is ' + link.length.toLocaleString() + ' characters. It is the letter, so anyone with it can open it after the date.') + '</p>';
+    } else {
+      h += '<p>Your letter is too big for a link, so it comes as a small text file. Keep it safe or send it as an attachment.</p><div class="pills"><button class="sm pri" type="button" id="dl">Download .txt</button></div>';
+    }
+    h += '<p class="msg">Nothing was saved anywhere. If you lose this link or file, the letter is gone.</p>';
+    o.innerHTML = h; o.hidden = false; o.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    if ($('cp')) $('cp').onclick = function () { var b = this; navigator.clipboard.writeText(link).then(function () { b.textContent = 'Copied'; }, function () { b.textContent = 'Select the link and copy it'; }); };
+    $('dl').onclick = function () { download('time-capsule-' + new Date(timeOf(round)).toISOString().slice(0, 10) + '.txt', fileText(armor, round)); };
+  }
+  function fallback(payload, at) {
+    var o = $('out'), d = JSON.parse(payload);
+    o.innerHTML = '<p class="warn" style="margin:0">The time-lock library couldn\'t load (it comes from cdn.jsdelivr.net), so this letter can\'t be locked right now. Try again on another connection or browser. You can still keep an <b>unlocked</b> copy and a calendar reminder for the date, but anyone holding the file can read it.</p><div class="pills"><button class="sm" type="button" id="plain">Save unlocked letter (.txt)</button><button class="sm" type="button" id="ics">Calendar reminder (.ics)</button></div>';
+    o.hidden = false; $('status').textContent = '';
+    $('plain').onclick = function () { download('letter-not-locked.txt', 'NOT TIME-LOCKED. Meant to be opened on ' + niceDate(at) + '.\n\nTo: ' + d.to + '\nFrom: ' + d.from + '\n\n' + d.m); };
+    $('ics').onclick = function () {
+      var dt = new Date(at).toISOString().replace(/[-:]/g, '').replace(/\.\d+Z$/, 'Z');
+      download('open-the-letter.ics', 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Mariam\'s Lab//Time capsule//EN\r\nBEGIN:VEVENT\r\nUID:' + Date.now() + '@lab.mariamalzaabi.ae\r\nDTSTAMP:' + new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+Z$/, 'Z') + '\r\nDTSTART:' + dt + '\r\nSUMMARY:Open the letter' + (d.to ? ' for ' + d.to.replace(/[,;\\]/g, ' ') : '') + '\r\nEND:VEVENT\r\nEND:VCALENDAR\r\n', 'text/calendar');
+    };
+  }
+
+  // ---------- open
+  var tick = null;
+  function openCapsule(body, source) {
+    var info = roundFromBody(body), el = $('open');
+    clearInterval(tick);
+    if (!info) { el.innerHTML = '<span class="label">Time capsule</span><p>This doesn\'t look like a complete time capsule. The link may have been cut off when it was copied.</p>'; el.hidden = false; return; }
+    if (info.chain !== CHAIN.hash) { el.innerHTML = '<span class="label">Time capsule</span><p>This capsule is locked to a different drand network (' + info.chain.slice(0, 12) + '…), which this page doesn\'t support.</p>'; el.hidden = false; return; }
+    var at = timeOf(info.round);
+    el.hidden = false;
+    function draw() {
+      var left = at - Date.now();
+      if (left > 0) {
+        var s = Math.floor(left / 1000), d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60);
+        el.innerHTML = '<span class="label">A sealed letter</span><h2 style="margin:0;font-size:clamp(1.3rem,4vw,1.9rem)">Opens ' + esc(niceDate(at)) + '</h2><div class="cd"><div><b>' + d.toLocaleString() + '</b><span>days</span></div><div><b>' + pad(h) + '</b><span>hours</span></div><div><b>' + pad(m) + '</b><span>minutes</span></div><div><b>' + pad(s % 60) + '</b><span>seconds</span></div></div><p class="msg">Nobody can read it yet, including this page. Keep this ' + (source === 'file' ? 'file' : 'link') + ' and come back on the day. This page will open it by itself if you leave it open.</p>';
+      } else { clearInterval(tick); decrypt(body, info.round, 0); }
+    }
+    draw(); tick = setInterval(draw, 1000);
+    el.scrollIntoView({ block: 'start' });
+  }
+  function decrypt(body, round, tries) {
+    var el = $('open');
+    el.innerHTML = '<span class="label">Opening</span><p>The date has passed. Fetching the drand signature for round ' + round.toLocaleString() + ' and unlocking…</p>';
+    libP.then(function () { return T.timelockDecrypt(bodyToArmor(fromUrl64(body)), T.mainnetClient()); }).then(function (buf) {
+      var txt = new TextDecoder().decode(buf), d;
+      try { d = JSON.parse(txt); } catch (e) { d = { m: txt }; }
+      var h = '<span class="label">Unlocked by drand round ' + round.toLocaleString() + '</span><div class="letter">' + '<div class="meta">' + (d.to ? 'To ' + esc(d.to) + ' · ' : '') + (d.from ? 'From ' + esc(d.from) + ' · ' : '') + (d.made ? 'Written ' + esc(new Date(d.made).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })) : '') + '</div>' + esc(d.m || '') + (d.img && /^data:image\/(jpeg|png|webp);base64,/.test(d.img) ? '<img alt="Photo sealed with the letter" src="' + d.img + '">' : '') + '</div>';
+      el.innerHTML = h;
+    }).catch(function (err) {
+      var msg = err && err.message || '';
+      if (libErr) { el.innerHTML = '<span class="label">Can\'t open yet</span><p>The unlocking code couldn\'t load from cdn.jsdelivr.net. Check your connection and reload.</p>'; return; }
+      if (tries < 8 && /early|fetch|network|404|round/i.test(msg)) { el.innerHTML = '<span class="label">Opening</span><p>Waiting for the network to publish round ' + round.toLocaleString() + '…</p>'; setTimeout(function () { decrypt(body, round, tries + 1); }, 4000); return; }
+      el.innerHTML = '<span class="label">Couldn\'t open</span><p>' + (/fetch|network/i.test(msg) ? 'Couldn\'t reach the drand network. Check your connection and reload.' : 'The letter couldn\'t be unlocked. The link may be damaged or incomplete.') + '</p><p class="msg">' + esc(msg) + '</p>';
+    });
+  }
+  function fromHash() {
+    var m = location.hash.match(/[#&]tl=([A-Za-z0-9_-]+)/);
+    if (m) openCapsule(m[1], 'link');
+  }
+  window.addEventListener('hashchange', fromHash);
+  fromHash();
+
+  function readFile(f) {
+    f.text().then(function (t) {
+      var b = armorToBody(t);
+      if (!b) { $('status').textContent = 'That file doesn\'t contain a time capsule.'; return; }
+      openCapsule(toUrl64(b), 'file');
+    });
+  }
+  $('file').onchange = function () { if (this.files[0]) readFile(this.files[0]); this.value = ''; };
+  var drop = $('drop');
+  drop.ondragover = function (e) { e.preventDefault(); drop.classList.add('over'); };
+  drop.ondragleave = function () { drop.classList.remove('over'); };
+  drop.ondrop = function (e) { e.preventDefault(); drop.classList.remove('over'); if (e.dataTransfer.files[0]) readFile(e.dataTransfer.files[0]); };
+})();
+</script>
+</body>
+</html>

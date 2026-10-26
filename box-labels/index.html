@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Moving Box Labels · Mariam's Lab</title>
+<meta name="description" content="Make printable A4 moving box labels with big numbers, room names, fragile flags and a QR code that shows the box contents when scanned. Search to find which box has the kettle.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/box-labels/">
+<meta property="og:title" content="Moving Box Labels · Mariam's Lab"><meta property="og:description" content="Printable box labels with a QR code that lists what's inside."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;600&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<style>
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; text-decoration: none; display: inline-block; }
+.sm[aria-pressed="true"], .sm.pri { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.pills { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 0; }
+.f { display: grid; gap: 5px; min-width: 0; }
+.f > span { font-size: 0.84rem; color: var(--muted); }
+.f input, .f select, .f textarea, .srch { font: inherit; color: var(--ink); background: rgba(7, 10, 24, 0.6); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; min-width: 0; width: 100%; }
+.f textarea { min-height: 8em; resize: vertical; }
+.two { display: grid; grid-template-columns: 6.5em minmax(0, 1fr); gap: 10px; }
+.chk { display: inline-flex; gap: 6px; align-items: center; font-size: 0.88rem; cursor: pointer; }
+.chk input { accent-color: var(--accent); width: 16px; height: 16px; margin: 0; }
+.blist { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.blist li { display: grid; grid-template-columns: 3.2em minmax(0, 1fr) auto; gap: 10px; align-items: center; border: 1px solid var(--line); border-left: 5px solid var(--rc, var(--line)); border-radius: 10px; padding: 8px 10px; background: var(--surface); }
+.blist .no { font-family: var(--font-display); font-weight: 800; font-size: 1.5rem; text-align: center; }
+.blist b { font-weight: 600; font-size: 0.92rem; }
+.blist small { display: block; color: var(--muted); font-size: 0.78rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.blist .fl { font-family: var(--font-mono); font-size: 0.66rem; color: var(--sat-c); display: block; }
+.blist .act { display: flex; gap: 4px; }
+.blist .act button { font: inherit; font-size: 0.78rem; border: 1px solid var(--line); background: none; color: var(--muted); border-radius: 6px; padding: 3px 7px; cursor: pointer; }
+.blist .act button:hover { color: var(--ink); border-color: var(--accent); }
+.blist li.hit { border-color: var(--sat-b); }
+.found { display: grid; gap: 6px; }
+.found .r { padding: 10px 12px; border: 1px solid var(--sat-b); border-radius: 10px; background: color-mix(in srgb, var(--sat-b) 10%, transparent); font-size: 0.92rem; }
+.found .r b { font-family: var(--font-display); font-size: 1.15rem; }
+.found mark { background: color-mix(in srgb, var(--accent) 45%, transparent); color: inherit; border-radius: 3px; padding: 0 2px; }
+.scan { border: 2px solid var(--sat-b); border-radius: var(--radius); padding: 20px; margin-bottom: 24px; display: grid; gap: 10px; background: var(--surface); }
+.scan .big { font-family: var(--font-display); font-weight: 800; font-size: clamp(3rem, 14vw, 5.5rem); line-height: .9; }
+.scan h2 { margin: 0; font-size: 1.6rem; }
+.scan ul { margin: 0; padding-inline-start: 1.2em; font-size: 1.05rem; display: grid; gap: 3px; }
+.tags2 { display: flex; gap: 6px; flex-wrap: wrap; }
+.tags2 span { font-family: var(--font-mono); font-size: 0.74rem; font-weight: 500; padding: 3px 8px; border-radius: 6px; background: var(--sat-c); color: #1a0710; }
+/* labels: screen preview */
+.sheets { display: grid; gap: 14px; }
+.sheet { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 12px; }
+.lbl { background: #fff; color: #111; border-radius: 8px; padding: 14px; display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto 1fr; gap: 6px 12px; border-top: 10px solid var(--rc, #222); font-family: var(--font-body); min-height: 220px; position: relative; overflow: hidden; }
+.lbl .n { font-family: var(--font-display); font-weight: 800; font-size: 4.2rem; line-height: .85; letter-spacing: -0.03em; }
+.lbl .rm { font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; line-height: 1.1; grid-column: 1; }
+.lbl .rm [dir=rtl] { font-family: 'IBM Plex Sans Arabic', sans-serif; }
+.lbl .fx { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
+.lbl .fx span { border: 2px solid #111; font-weight: 800; font-size: 0.72rem; letter-spacing: .05em; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; }
+.lbl .fx span.k { background: #111; color: #fff; }
+.lbl .qr { grid-column: 2; grid-row: 1 / span 3; display: grid; justify-items: center; align-content: start; gap: 3px; width: 112px; }
+.lbl .qr svg, .lbl .qr img { width: 112px; height: 112px; display: block; }
+.lbl .qr small { font-size: 0.62rem; color: #444; text-align: center; line-height: 1.2; }
+.lbl ul { grid-column: 1; margin: 0; padding-inline-start: 1.1em; font-size: 0.8rem; line-height: 1.3; columns: 1; }
+.lbl .who { position: absolute; bottom: 6px; inset-inline-end: 12px; font-size: 0.62rem; color: #666; }
+.lbl .side { font-size: 0.7rem; color: #555; }
+@media (max-width: 520px) { .lbl .qr, .lbl .qr svg, .lbl .qr img { width: 92px; } .lbl .qr svg, .lbl .qr img { height: 92px; } .lbl .n { font-size: 3.4rem; } }
+[hidden] { display: none !important; }
+@page { size: A4; margin: 8mm; }
+@media print {
+  html, body { background: #fff !important; }
+  body::before, .labbar, .labfoot, .noprint { display: none !important; }
+  .labmain, .labmain .wrap { padding: 0 !important; margin: 0 !important; max-width: none !important; width: auto !important; }
+  .sheets { display: block; }
+  .panel { margin: 0 !important; gap: 0 !important; }
+  .sheet { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(var(--rows, 2), minmax(0, 1fr)); gap: 4mm; height: 279mm; overflow: hidden; page-break-after: always; break-after: page; }
+  .sheet.one { grid-template-columns: 1fr; }
+  .sheet:last-child { page-break-after: auto; break-after: auto; }
+  .lbl { border: 0.4mm dashed #999; border-top: 6mm solid var(--rc, #222); border-radius: 0; min-height: 0; padding: 5mm; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .lbl .n { font-size: var(--nsz, 80pt); }
+  .lbl .rm { font-size: var(--rsz, 20pt); }
+  .lbl .qr { width: var(--qsz, 40mm); }
+  .lbl .qr svg, .lbl .qr img { width: var(--qsz, 40mm); height: var(--qsz, 40mm); }
+  .lbl ul { font-size: var(--lsz, 10pt); }
+  .lbl .fx span { font-size: 10pt; }
+}
+</style>
+</head>
+<body>
+<header class="labbar noprint"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <section class="scan noprint" id="scan" hidden aria-live="polite"></section>
+  <div class="sec-head noprint">
+    <span class="label">Tool · Home · Moving</span>
+    <h1 style="font-size:var(--step-3)">Moving box labels.</h1>
+    <p>Number your boxes, say which room they go to and what's inside, then print big A4 labels. Each label has a QR code. Scan it with any phone camera and it shows the box's contents, even if you never open this site again. Later, search "kettle" to find which box it's in.</p>
+  </div>
+  <div class="game noprint">
+    <div class="panel">
+      <form id="form" class="panel" style="gap:12px">
+        <span class="label" id="formTitle">New box</span>
+        <div class="two">
+          <label class="f"><span>Box no.</span><input id="bNo" type="number" min="1" max="9999" required></label>
+          <label class="f"><span>Room it goes to</span><input id="bRoom" list="rooms" maxlength="40" placeholder="Kitchen" required></label>
+        </div>
+        <datalist id="rooms"></datalist>
+        <label class="f"><span>What's inside, one thing per line</span><textarea id="bItems" maxlength="1500" placeholder="Kettle&#10;Mugs (6)&#10;Tea and coffee&#10;Dallah"></textarea></label>
+        <div class="pills">
+          <label class="chk"><input type="checkbox" id="fF">Fragile</label>
+          <label class="chk"><input type="checkbox" id="fU">This way up</label>
+          <label class="chk"><input type="checkbox" id="fH">Heavy</label>
+          <label class="chk"><input type="checkbox" id="fO">Open first</label>
+        </div>
+        <label class="f"><span>Name on labels (optional)</span><input id="bOwner" maxlength="30" placeholder="Al Mansoori family, Villa 12"></label>
+        <div class="pills"><button class="sm pri" type="submit" id="saveBtn">Add box</button><button class="sm" type="button" id="cancel" hidden>Cancel edit</button></div>
+        <p class="msg" id="fMsg" role="status"></p>
+      </form>
+    </div>
+    <div class="panel">
+      <span class="label">Find something</span>
+      <input class="srch" id="q" type="search" placeholder="Which box has the kettle?" aria-label="Search boxes">
+      <div class="found" id="found"></div>
+      <div class="stats"><div><b id="sBoxes">0</b><span>boxes</span></div><div><b id="sItems">0</b><span>things listed</span></div><div><b id="sFrag">0</b><span>fragile</span></div></div>
+    </div>
+  </div>
+  <div class="panel noprint" style="margin-top:24px">
+    <div class="pills" style="justify-content:space-between"><span class="label">Your boxes</span>
+      <div class="pills"><button class="sm" type="button" id="exp">Export JSON</button><label class="sm" style="cursor:pointer">Import JSON<input type="file" id="imp" accept=".json,application/json" hidden></label><button class="sm" type="button" id="wipe">Delete all</button></div></div>
+    <ul class="blist" id="blist"></ul>
+  </div>
+  <div class="panel" style="margin-top:28px">
+    <div class="pills noprint" style="justify-content:space-between">
+      <span class="label">Labels · A4</span>
+      <div class="pills">
+        <label class="chk">Per page <select id="per" style="font:inherit;color:var(--ink);background:rgba(7,10,24,.6);border:1px solid var(--line);border-radius:8px;padding:4px 6px"><option value="2">2 (large)</option><option value="4" selected>4</option><option value="6">6</option></select></label>
+        <label class="chk"><input type="checkbox" id="twice">Two labels per box</label>
+        <button class="sm pri" type="button" id="print">Print labels</button>
+      </div>
+    </div>
+    <p class="msg noprint" id="pMsg"></p>
+    <div class="sheets" id="sheets"></div>
+    <p class="fact noprint" style="margin:0">The QR code doesn't point to a database. The box number, room and contents are packed into the link itself, after the # sign. Browsers never send that part to a server, so this page just reads it and shows the list. That's why a scan works offline once the page has loaded, and why nothing about your stuff is stored anywhere except this browser.</p>
+  </div>
+</div></main>
+<footer class="labfoot noprint"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var ROOMS = ['Living room', 'Majlis', 'Kitchen', 'Dining room', 'Master bedroom', 'Bedroom 2', 'Bedroom 3', 'Kids\' room', 'Study', 'Bathroom', 'Maid\'s room', 'Laundry', 'Storage', 'Garage', 'Balcony', 'Garden'];
+  var PAL = ['#E07A5F', '#3D8BD9', '#2BA88F', '#E9B467', '#9B6FD1', '#D9508A', '#6B8E23', '#E58E26', '#1E7F9C', '#B5523B', '#5C6BC0', '#8D6E63'];
+  var FL = { f: 'Fragile', u: '↑ This way up', h: 'Heavy', o: 'Open first' };
+  $('rooms').innerHTML = ROOMS.map(function (r) { return '<option value="' + r + '">'; }).join('');
+  var S = { boxes: [], owner: '', per: 4, twice: false };
+  try { var sv = JSON.parse(localStorage.getItem('boxLabels') || 'null'); if (sv && sv.boxes) S = Object.assign(S, sv); } catch (e) {}
+  function save() { try { localStorage.setItem('boxLabels', JSON.stringify(S)); } catch (e) {} }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function hasAr(s) { return /[؀-ۿ]/.test(s); }
+  function txt(s) { return hasAr(s) ? '<span dir="rtl" lang="ar">' + esc(s) + '</span>' : esc(s); }
+  function roomColor(room) {
+    var rs = []; S.boxes.forEach(function (b) { var k = b.room.trim().toLowerCase(); if (rs.indexOf(k) < 0) rs.push(k); });
+    var i = rs.indexOf(room.trim().toLowerCase()); return PAL[(i < 0 ? rs.length : i) % PAL.length];
+  }
+
+  // ---- compact encoding: lines "1\nno\nroom\nflags\nowner\nitem…" → UTF-8 → base64url
+  function b64e(str) { var bytes = new TextEncoder().encode(str), bin = ''; for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]); return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
+  function b64d(s) { s = s.replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; var bin = atob(s), a = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i); return new TextDecoder().decode(a); }
+  function clean(s) { return String(s).replace(/[\r\n]+/g, ' ').trim(); }
+  function encode(b, items) { return b64e(['1', b.no, clean(b.room), b.flags || '', clean(b.owner || '')].concat((items || b.items).map(clean)).join('\n')); }
+  function decode(s) { var p = b64d(s).split('\n'); if (p[0] !== '1') throw 0; return { no: +p[1], room: p[2], flags: p[3], owner: p[4], items: p.slice(5).filter(Boolean) }; }
+  function base() { var h = location.origin; return (/^https?:/.test(h) && h.indexOf('localhost') < 0 && h.indexOf('127.0.0.1') < 0 ? h + location.pathname : 'https://lab.mariamalzaabi.ae/box-labels/'); }
+  function linkFor(b, items) { return base() + '#b=' + encode(b, items); }
+  // returns {svg, shown} with as many items as fit in a scannable code
+  function qrFor(b) {
+    if (typeof qrcode !== 'function') return null;
+    qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8'];
+    var items = b.items.slice();
+    for (;;) {
+      var url = linkFor(b, items);
+      if (url.length <= 620) {
+        try { var q = qrcode(0, url.length < 400 ? 'M' : 'L'); q.addData(url, 'Byte'); q.make(); return { svg: q.createSvgTag({ cellSize: 2, margin: 2, scalable: true }), all: items.length === b.items.length, url: url }; } catch (e) {}
+      }
+      if (!items.length) return null;
+      items.pop(); if (items.length && items[items.length - 1] !== '…') { items.pop(); items.push('…'); }
+    }
+  }
+
+  // ---- scanned link view
+  function showScan() {
+    var m = location.hash.match(/[#&]b=([A-Za-z0-9_-]+)/), el = $('scan');
+    if (!m) { el.hidden = true; return; }
+    try {
+      var b = decode(m[1]), mine = S.boxes.some(function (x) { return x.no === b.no && x.room === b.room; });
+      el.innerHTML = '<span class="label">Scanned box</span><div class="big">' + b.no + '</div><h2>' + txt(b.room) + '</h2>' +
+        (b.flags ? '<div class="tags2">' + b.flags.split('').map(function (f) { return FL[f] ? '<span>' + FL[f] + '</span>' : ''; }).join('') + '</div>' : '') +
+        (b.items.length ? '<ul>' + b.items.map(function (i) { return '<li>' + txt(i) + '</li>'; }).join('') + '</ul>' : '<p class="msg">No contents were listed for this box.</p>') +
+        (b.owner ? '<p class="msg">' + txt(b.owner) + '</p>' : '') +
+        '<div class="pills">' + (mine ? '<span class="msg">This box is already in your list on this device.</span>' : '<button class="sm" type="button" id="adopt">Add to my boxes on this device</button>') + '<a class="sm" href="./">Make your own labels</a></div>';
+      el.hidden = false;
+      if ($('adopt')) $('adopt').onclick = function () { S.boxes.push({ id: uid(), no: b.no, room: b.room, items: b.items, flags: b.flags, owner: b.owner }); save(); renderAll(); showScan(); };
+    } catch (e) { el.innerHTML = '<span class="label">Scanned box</span><p>This link looks damaged, so the contents can\'t be read. Try scanning again in better light.</p>'; el.hidden = false; }
+  }
+  window.addEventListener('hashchange', showScan);
+  function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+
+  // ---- form
+  var editing = null;
+  function nextNo() { return S.boxes.reduce(function (m, b) { return Math.max(m, b.no); }, 0) + 1; }
+  function resetForm() {
+    editing = null; $('form').reset(); $('bNo').value = nextNo(); $('bOwner').value = S.owner || '';
+    $('formTitle').textContent = 'New box'; $('saveBtn').textContent = 'Add box'; $('cancel').hidden = true;
+  }
+  $('form').onsubmit = function (e) {
+    e.preventDefault();
+    var b = { no: Math.round(+$('bNo').value), room: $('bRoom').value.trim(), items: $('bItems').value.split('\n').map(function (s) { return s.trim(); }).filter(Boolean), flags: (($('fF').checked ? 'f' : '') + ($('fU').checked ? 'u' : '') + ($('fH').checked ? 'h' : '') + ($('fO').checked ? 'o' : '')), owner: $('bOwner').value.trim() };
+    if (!b.no || !b.room) return;
+    var dup = S.boxes.some(function (x) { return x.no === b.no && x.id !== editing; });
+    S.owner = b.owner;
+    if (editing) { var x = S.boxes.filter(function (y) { return y.id === editing; })[0]; b.id = editing; S.boxes[S.boxes.indexOf(x)] = b; }
+    else { b.id = uid(); S.boxes.push(b); }
+    S.boxes.sort(function (a, c) { return a.no - c.no; });
+    save(); var no = b.no; resetForm(); renderAll();
+    $('fMsg').textContent = 'Box ' + no + ' saved.' + (dup ? ' Note: another box already has number ' + no + '.' : '');
+  };
+  $('cancel').onclick = function () { resetForm(); $('fMsg').textContent = ''; };
+  function edit(id) {
+    var b = S.boxes.filter(function (x) { return x.id === id; })[0]; if (!b) return;
+    editing = id; $('bNo').value = b.no; $('bRoom').value = b.room; $('bItems').value = b.items.join('\n'); $('bOwner').value = b.owner || '';
+    $('fF').checked = b.flags.indexOf('f') >= 0; $('fU').checked = b.flags.indexOf('u') >= 0; $('fH').checked = b.flags.indexOf('h') >= 0; $('fO').checked = b.flags.indexOf('o') >= 0;
+    $('formTitle').textContent = 'Editing box ' + b.no; $('saveBtn').textContent = 'Save changes'; $('cancel').hidden = false;
+    $('form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // ---- list
+  function renderList() {
+    $('blist').innerHTML = S.boxes.length ? S.boxes.map(function (b) {
+      return '<li style="--rc:' + roomColor(b.room) + '" data-id="' + b.id + '"><span class="no">' + b.no + '</span><div style="min-width:0"><b>' + txt(b.room) + '</b>' + (b.flags ? '<span class="fl">' + b.flags.split('').map(function (f) { return FL[f]; }).join(' · ').toUpperCase() + '</span>' : '') + '<small>' + (b.items.length ? b.items.map(esc).join(', ') : 'No contents listed') + '</small></div><span class="act"><button type="button" data-e="' + b.id + '">Edit</button><button type="button" data-d="' + b.id + '" aria-label="Delete box ' + b.no + '">✕</button></span></li>';
+    }).join('') : '<li style="grid-template-columns:1fr"><small>No boxes yet. Add your first one above.</small></li>';
+    var items = 0, frag = 0; S.boxes.forEach(function (b) { items += b.items.length; if (b.flags.indexOf('f') >= 0) frag++; });
+    $('sBoxes').textContent = S.boxes.length; $('sItems').textContent = items; $('sFrag').textContent = frag;
+  }
+  $('blist').onclick = function (e) {
+    var t = e.target.closest('button'); if (!t) return;
+    if (t.dataset.e) edit(t.dataset.e);
+    if (t.dataset.d) { var b = S.boxes.filter(function (x) { return x.id === t.dataset.d; })[0]; if (b && confirm('Delete box ' + b.no + '?')) { S.boxes = S.boxes.filter(function (x) { return x !== b; }); save(); renderAll(); } }
+  };
+
+  // ---- search
+  var STOP = { which: 1, what: 1, where: 1, box: 1, boxes: 1, has: 1, have: 1, is: 1, are: 1, the: 1, a: 1, an: 1, my: 1, our: 1, in: 1, did: 1, i: 1, put: 1, pack: 1, packed: 1, of: 1, with: 1, it: 1, 'in?': 1 };
+  function search() {
+    var q = $('q').value.toLowerCase().replace(/[?!.,]/g, ' ').trim();
+    var words = q.split(/\s+/).filter(function (w) { return w && !STOP[w]; });
+    if (!words.length) { $('found').innerHTML = q ? '<p class="msg">Type the thing you\'re looking for, like "kettle" or "passports".</p>' : ''; return; }
+    function stem(w) { return w.replace(/(es|s)$/, ''); }
+    var res = [];
+    S.boxes.forEach(function (b) {
+      var hits = b.items.filter(function (it) { var l = it.toLowerCase(); return words.every(function (w) { return l.indexOf(stem(w)) >= 0; }); });
+      var roomHit = words.every(function (w) { return b.room.toLowerCase().indexOf(stem(w)) >= 0; });
+      if (hits.length || roomHit) res.push({ b: b, hits: hits, room: roomHit });
+    });
+    function mark(s) { var h = esc(s); words.forEach(function (w) { var st = stem(w).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); if (st) h = h.replace(new RegExp('(' + st + ')', 'ig'), '<mark>$1</mark>'); }); return h; }
+    $('found').innerHTML = res.length ? res.slice(0, 12).map(function (r) {
+      return '<div class="r"><b>Box ' + r.b.no + '</b> · ' + txt(r.b.room) + (r.hits.length ? '<br>' + r.hits.map(mark).join(', ') : '<br><span class="msg">All boxes for this room</span>') + '</div>';
+    }).join('') : '<p class="msg">Nothing matches "' + esc(words.join(' ')) + '". It may be listed under another word.</p>';
+  }
+  $('q').oninput = search;
+
+  // ---- labels
+  var SIZES = { 2: { rows: 2, cols: 1, n: '120pt', r: '28pt', q: '60mm', l: '13pt', max: 18 }, 4: { rows: 2, cols: 2, n: '80pt', r: '18pt', q: '42mm', l: '9.5pt', max: 12 }, 6: { rows: 3, cols: 2, n: '60pt', r: '15pt', q: '34mm', l: '8pt', max: 7 } };
+  function label(b) {
+    var q = qrFor(b), z = SIZES[S.per], shown = b.items.slice(0, z.max);
+    var more = b.items.length - shown.length;
+    return '<div class="lbl" style="--rc:' + roomColor(b.room) + '"><div><div class="n">' + b.no + '</div></div>' +
+      '<div class="rm">' + txt(b.room) + (b.flags ? '<div class="fx">' + b.flags.split('').map(function (f) { return '<span' + (f === 'f' || f === 'u' ? ' class="k"' : '') + '>' + FL[f] + '</span>'; }).join('') + '</div>' : '') + '</div>' +
+      '<div class="qr">' + (q ? q.svg + '<small>Scan for ' + (q.all ? 'full list' : 'list (shortened)') + '</small>' : '<small>QR unavailable</small>') + '</div>' +
+      (shown.length ? '<ul>' + shown.map(function (i) { return '<li>' + txt(i) + '</li>'; }).join('') + (more > 0 ? '<li class="side">+ ' + more + ' more (scan)</li>' : '') + '</ul>' : '<ul></ul>') +
+      (b.owner ? '<span class="who">' + txt(b.owner) + '</span>' : '') + '</div>';
+  }
+  function renderLabels() {
+    var z = SIZES[S.per], list = [];
+    S.boxes.forEach(function (b) { list.push(b); if (S.twice) list.push(b); });
+    var per = +S.per, h = '';
+    for (var i = 0; i < list.length; i += per) {
+      h += '<div class="sheet' + (z.cols === 1 ? ' one' : '') + '" style="--rows:' + z.rows + ';--nsz:' + z.n + ';--rsz:' + z.r + ';--qsz:' + z.q + ';--lsz:' + z.l + '">' + list.slice(i, i + per).map(label).join('') + '</div>';
+    }
+    $('sheets').innerHTML = h || '<p class="msg">Labels appear here once you add boxes.</p>';
+    var pages = Math.ceil(list.length / per);
+    $('pMsg').textContent = typeof qrcode !== 'function' ? 'The QR code library didn\'t load, so labels will print without codes. Check your connection and reload.' : list.length ? list.length + ' labels on ' + pages + ' A4 page' + (pages === 1 ? '' : 's') + '. In the print dialog, turn off headers and footers and use 100% scale.' : '';
+  }
+  $('per').value = S.per; $('twice').checked = S.twice;
+  $('per').onchange = function () { S.per = +this.value; save(); renderLabels(); };
+  $('twice').onchange = function () { S.twice = this.checked; save(); renderLabels(); };
+  $('print').onclick = function () { if (!S.boxes.length) { $('pMsg').textContent = 'Add a box first.'; return; } window.print(); };
+
+  // ---- import / export
+  $('exp').onclick = function () {
+    var blob = new Blob([JSON.stringify({ app: 'box-labels', v: 1, boxes: S.boxes }, null, 1)], { type: 'application/json' });
+    var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'moving-boxes.json'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+  };
+  $('imp').onchange = function () {
+    var f = this.files[0]; if (!f) return;
+    f.text().then(function (t) {
+      var d = JSON.parse(t), arr = Array.isArray(d) ? d : d.boxes;
+      if (!Array.isArray(arr)) throw 0;
+      var add = arr.filter(function (b) { return b && b.no && b.room; }).map(function (b) { return { id: uid(), no: Math.round(+b.no), room: String(b.room).slice(0, 40), items: (Array.isArray(b.items) ? b.items : []).map(String), flags: String(b.flags || '').replace(/[^fuho]/g, ''), owner: String(b.owner || '').slice(0, 30) }; });
+      var replace = S.boxes.length && confirm('Replace your current ' + S.boxes.length + ' boxes with the ' + add.length + ' in the file? Cancel adds them instead.');
+      S.boxes = (replace ? [] : S.boxes).concat(add).sort(function (a, b) { return a.no - b.no; });
+      save(); renderAll(); $('fMsg').textContent = 'Imported ' + add.length + ' boxes.';
+    }).catch(function () { $('fMsg').textContent = 'That file isn\'t a box list exported from here.'; });
+    this.value = '';
+  };
+  $('wipe').onclick = function () { if (S.boxes.length && confirm('Delete all ' + S.boxes.length + ' boxes from this device?')) { S.boxes = []; save(); resetForm(); renderAll(); } };
+
+  function renderAll() { renderList(); renderLabels(); search(); }
+  resetForm(); renderAll(); showScan();
+})();
+</script>
+</body>
+</html>

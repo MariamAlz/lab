@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Water in the Heat · Mariam's Lab</title>
+<meta name="description" content="How much water to drink today in UAE heat. Uses your weight, activity, work and today's temperature and humidity, shows the reasoning, logs your glasses and spreads intake between iftar and suhoor in Ramadan.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/water-intake/">
+<meta property="og:title" content="Water in the Heat · Mariam's Lab"><meta property="og:description" content="A daily water target for UAE heat, with the reasoning shown, a glass log and a Ramadan mode."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.pills { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 0; }
+.f { display: grid; gap: 5px; min-width: 0; }
+.f > span { font-size: 0.84rem; color: var(--muted); }
+.f input, .f select { font: inherit; color: var(--ink); background: rgba(7, 10, 24, 0.6); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; min-width: 0; width: 100%; }
+.f input[type=number], .f input[type=time] { font-family: var(--font-mono); }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.chk { display: flex; gap: 8px; align-items: center; font-size: 0.9rem; cursor: pointer; }
+.chk input { accent-color: var(--accent); width: 17px; height: 17px; margin: 0; flex: none; }
+.box { border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; background: rgba(7,10,24,.5); display: grid; gap: 12px; }
+.ringwrap { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 18px; align-items: center; }
+.ring { position: relative; width: 170px; height: 170px; }
+.ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.ring .c { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; }
+.ring .c b { font-family: var(--font-display); font-size: 2rem; font-weight: 800; line-height: 1; }
+.ring .c span { font-size: 0.78rem; color: var(--muted); }
+.big { font-family: var(--font-display); font-weight: 800; font-size: clamp(2.4rem, 7vw, 3.4rem); color: var(--sat-b); line-height: 1; }
+.glasses { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; }
+.gl { font: inherit; color: var(--ink); border: 1px solid var(--line); background: var(--surface); border-radius: 12px; padding: 10px 6px; cursor: pointer; display: grid; justify-items: center; gap: 4px; font-size: 0.8rem; }
+.gl:hover { border-color: var(--sat-b); }
+.gl svg { width: 26px; height: 32px; }
+.why { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.why li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; font-size: 0.88rem; padding: 7px 0; border-bottom: 1px solid var(--line); }
+.why li small { display: block; color: var(--muted); font-size: 0.78rem; }
+.why li b { font-family: var(--font-mono); font-size: 0.86rem; white-space: nowrap; }
+.why li.tot { border-bottom: 0; font-weight: 600; }
+.why li.tot b { color: var(--sat-b); font-size: 1rem; }
+.logl { display: flex; flex-wrap: wrap; gap: 4px; font-family: var(--font-mono); font-size: 0.74rem; color: var(--muted); }
+.logl span { border: 1px solid var(--line); border-radius: 6px; padding: 2px 6px; }
+.sched { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.sched li { display: grid; grid-template-columns: 4.2em minmax(0, 1fr) auto; gap: 10px; font-size: 0.88rem; padding: 6px 8px; border-radius: 8px; }
+.sched li:nth-child(odd) { background: var(--surface); }
+.sched li .t { font-family: var(--font-mono); color: var(--accent); }
+.sched li b { font-family: var(--font-mono); font-size: 0.84rem; }
+.sched li.past { opacity: .5; }
+.pee { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 4px; }
+.pee div { height: 46px; border-radius: 8px; display: grid; place-content: center; font-family: var(--font-mono); font-size: 0.74rem; color: #2a2205; }
+.peek { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; font-size: 0.78rem; color: var(--muted); margin-top: 4px; }
+.warn { padding: 10px 12px; border-radius: 10px; border: 1px solid color-mix(in srgb, var(--accent) 50%, var(--line)); font-size: 0.86rem; }
+.ar { font-family: 'IBM Plex Sans Arabic', sans-serif; }
+@media (max-width: 520px) { .ringwrap { grid-template-columns: 1fr; justify-items: center; text-align: center; } .ring { width: 150px; height: 150px; } }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Health · Weather · Live</span>
+    <h1 style="font-size:var(--step-3)">Water in the heat.</h1>
+    <p>"Eight glasses a day" ignores the weather. This works out a daily water target from your weight, exercise, where you work and today's heat and humidity where you are, and shows every step of the sum. Tap a glass each time you drink. In Ramadan it spreads your water between iftar and suhoor.</p>
+  </div>
+  <div class="game">
+    <div class="panel">
+      <div class="box">
+        <span class="label">Today</span>
+        <div class="ringwrap">
+          <div class="ring"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="52" fill="none" stroke="var(--line)" stroke-width="12"/><circle id="arc" cx="60" cy="60" r="52" fill="none" stroke="var(--sat-b)" stroke-width="12" stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="326.7" style="transition:stroke-dashoffset .4s"/></svg>
+            <div class="c"><b id="drank">0</b><span id="ofT">of 0 L</span></div></div>
+          <div style="display:grid;gap:8px">
+            <div><span class="label">Your target today</span><div class="big" id="target">–</div></div>
+            <p class="msg" id="pace" style="margin:0"></p>
+          </div>
+        </div>
+        <div class="glasses" id="glasses"></div>
+        <div class="pills"><button class="sm" type="button" id="undo">Undo last</button><span class="logl" id="logl"></span></div>
+      </div>
+      <div class="box" id="ramBox">
+        <label class="chk"><input type="checkbox" id="ram"><span>Ramadan mode <span class="msg" id="ramState" style="display:inline"></span></span></label>
+        <div id="ramBody" hidden style="display:grid;gap:10px">
+          <div class="two">
+            <label class="f"><span>Iftar (Maghrib)</span><input id="iftar" type="time"></label>
+            <label class="f"><span>Suhoor ends (Fajr)</span><input id="suhoor" type="time"></label>
+          </div>
+          <p class="msg" id="ramTimes"></p>
+          <ul class="sched" id="sched"></ul>
+          <p class="fact" style="margin:0">Your body can only take in roughly 0.8 to 1 litre an hour, and drinking a lot at once mostly sends it straight to the bladder. Steady glasses through the evening work better than a big bottle at suhoor. Watery food counts too: soup, laban, watermelon and cucumber.</p>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <span class="label">About you</span>
+      <div class="two">
+        <label class="f"><span>Weight (kg)</span><input id="kg" type="number" min="30" max="200" value="70"></label>
+        <label class="f"><span>Exercise today (min)</span><input id="ex" type="number" min="0" max="600" value="30"></label>
+      </div>
+      <div class="two">
+        <label class="f"><span>Most of my day is</span><select id="work"><option value="in">Indoors with AC</option><option value="mix">Some time outside</option><option value="out">Working outdoors</option></select></label>
+        <label class="f" id="outHf"><span>Hours outdoors</span><input id="outH" type="number" min="0" max="14" step="0.5" value="1"></label>
+      </div>
+      <label class="f"><span>Pregnancy or breastfeeding</span><select id="preg"><option value="">Neither</option><option value="p">Pregnant</option><option value="b">Breastfeeding</option></select></label>
+      <label class="chk"><input type="checkbox" id="exOut">I exercise outdoors</label>
+      <span class="label" style="margin-top:6px">Today's weather</span>
+      <div class="pills" id="where"><button class="sm" type="button" id="me">📍 My location</button></div>
+      <div class="two">
+        <label class="f"><span>Max temperature (°C)</span><input id="tmax" type="number" min="0" max="55" step="0.1"></label>
+        <label class="f"><span>Humidity then (%)</span><input id="rh" type="number" min="1" max="100"></label>
+      </div>
+      <p class="msg" id="wMsg" role="status"></p>
+      <span class="label" style="margin-top:6px">How the target is worked out</span>
+      <ul class="why" id="why"></ul>
+      <p class="warn" style="margin:0">An estimate, not medical advice. If you have kidney or heart conditions, take water tablets, or have been told to limit fluids, follow your doctor's advice instead. Dizziness, confusion or no sweating in the heat is an emergency: get cool and call 998.</p>
+    </div>
+  </div>
+  <div class="game" style="margin-top:24px">
+    <div class="panel">
+      <span class="label">Urine colour check</span>
+      <div class="pee" id="pee"></div>
+      <div class="peek"><span>1–3: well hydrated</span><span>4–5: drink a glass soon</span><span>6–8: drink now</span></div>
+      <p class="fact" style="margin:0">Colour is a quick, free hydration check that sports doctors use. Pale straw is the goal. Vitamin B supplements can turn urine bright yellow whatever you drink, and some foods and medicines change it too. Dark brown or red urine that doesn't clear with water needs a doctor.</p>
+    </div>
+    <div class="panel">
+      <span class="label">Why the weather matters</span>
+      <p class="fact" style="margin:0">Indoors in air conditioning you lose about the same water as anywhere else. The heat counts when you are out in it. Sweat rates in the Gulf summer can reach a litre an hour during physical work, so outdoor hours change the target far more than the thermometer alone. Humidity matters because sweat that can't evaporate doesn't cool you, so you keep sweating. That's why the sum uses the heat index (temperature plus humidity), not just the temperature.</p>
+      <p class="fact" style="margin:0">The starting point is about 30 ml per kilo of body weight from drinks, close to the European Food Safety Authority's adequate intake once food water is taken out. Pregnancy adds about 300 ml and breastfeeding about 700 ml. Exercise adds about 12 ml a minute, more in the heat. Outdoor work follows the usual occupational advice of about a cup every 15 to 20 minutes in high heat, capped well below the 1.4 litres an hour where drinking too much becomes a risk. Weather is from Open-Meteo.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var PLACES = [['Abu Dhabi', 24.4539, 54.3773], ['Dubai', 25.2048, 55.2708], ['Sharjah', 25.3463, 55.4209], ['Al Ain', 24.2075, 55.7447], ['Ras Al Khaimah', 25.7895, 55.9432], ['Fujairah', 25.1288, 56.3265]];
+  var S = { kg: 70, ex: 30, work: 'in', outH: 1, preg: '', exOut: false, place: 1, glass: 250, log: {}, ram: null, iftar: '', suhoor: '', lat: 25.2048, lon: 55.2708, tz: 4 };
+  try { var sv = JSON.parse(localStorage.getItem('waterIntake') || 'null'); if (sv) for (var k in sv) S[k] = sv[k]; } catch (e) {}
+  function save() { try { localStorage.setItem('waterIntake', JSON.stringify(S)); } catch (e) {} }
+  var W = { tmax: null, rh: null };
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function todayKey(d) { d = d || new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  // prune old log days
+  (function () { var keep = {}, ks = Object.keys(S.log).sort().slice(-14); ks.forEach(function (k) { keep[k] = S.log[k]; }); S.log = keep; })();
+
+  // ---- heat index (NOAA Rothfusz, °C in/out)
+  function heatIndex(tc, rh) {
+    var T = tc * 9 / 5 + 32, hi = 0.5 * (T + 61 + (T - 68) * 1.2 + rh * 0.094);
+    if ((hi + T) / 2 >= 80) {
+      hi = -42.379 + 2.04901523 * T + 10.14333127 * rh - 0.22475541 * T * rh - 0.00683783 * T * T - 0.05481717 * rh * rh + 0.00122874 * T * T * rh + 0.00085282 * T * rh * rh - 0.00000199 * T * T * rh * rh;
+      if (rh < 13 && T >= 80 && T <= 112) hi -= ((13 - rh) / 4) * Math.sqrt((17 - Math.abs(T - 95)) / 17);
+      else if (rh > 85 && T >= 80 && T <= 87) hi += ((rh - 85) / 10) * ((87 - T) / 5);
+    }
+    return (hi - 32) * 5 / 9;
+  }
+
+  // ---- the sum
+  function calc() {
+    var kg = Math.min(200, Math.max(30, +S.kg || 70)), rows = [], tot = 0;
+    var base = Math.round(kg * 30 / 50) * 50; rows.push(['Starting point', '30 ml × ' + kg + ' kg, from drinks', base]); tot += base;
+    var hi = W.tmax != null && W.rh != null ? heatIndex(W.tmax, W.rh) : null, hiTxt = hi == null ? 'no weather yet' : 'heat index ' + Math.round(hi) + '°C (' + Math.round(W.tmax) + '°C, ' + Math.round(W.rh) + '%)';
+    // outdoor exposure during the day
+    var outH = S.work === 'in' ? 0.5 : (+S.outH || 0), heatAdd = 0;
+    if (hi != null) {
+      var perH = hi < 27 ? 0 : hi < 32 ? 150 : hi < 41 ? 300 : hi < 54 ? 450 : 600; // light activity outdoors
+      if (S.work === 'out') perH = hi < 27 ? 250 : hi < 32 ? 400 : hi < 41 ? 600 : 750; // physical work, up to ~1 cup per 20 min in high heat
+      heatAdd = Math.round(perH * outH / 50) * 50;
+      rows.push([S.work === 'out' ? 'Outdoor work' : S.work === 'mix' ? 'Time outside' : 'Getting about (car park, school run)', hiTxt + ', ' + outH + ' h × ' + perH + ' ml/h', heatAdd]); tot += heatAdd;
+    } else rows.push(['Heat', 'Pick a city or type today\'s max temperature and humidity', 0]);
+    var ex = Math.max(0, +S.ex || 0), exRate = 12;
+    if (S.exOut && hi != null && hi >= 32) exRate = hi >= 41 ? 20 : 16;
+    var exAdd = Math.round(ex * exRate / 50) * 50;
+    if (ex) { rows.push(['Exercise', ex + ' min × ' + exRate + ' ml' + (exRate > 12 ? ' (outdoors in heat)' : ''), exAdd]); tot += exAdd; }
+    if (S.preg === 'p') { rows.push(['Pregnancy', 'EFSA adds about 300 ml', 300]); tot += 300; }
+    if (S.preg === 'b') { rows.push(['Breastfeeding', 'EFSA adds about 600–700 ml', 700]); tot += 700; }
+    tot = Math.round(tot / 50) * 50;
+    if (tot > 6000) rows.push(['Note', 'This is a lot. Spread it across the shift, eat salty food or drink laban too, and stay under about 1.4 L an hour', 0]);
+    return { rows: rows, tot: tot, hi: hi, outH: outH };
+  }
+
+  function L(ml) { return (+(ml / 1000).toFixed(2)) + ' L'; }
+  var R = null;
+  function render() {
+    R = calc();
+    $('why').innerHTML = R.rows.map(function (r) { return '<li><span>' + r[0] + '<small>' + r[1] + '</small></span><b>' + (r[2] ? '+' + r[2] + ' ml' : '–') + '</b></li>'; }).join('') + '<li class="tot"><span>Daily target from drinks</span><b>' + L(R.tot) + '</b></li>';
+    $('target').textContent = L(R.tot);
+    var glasses = Math.ceil(R.tot / 250);
+    $('target').title = 'About ' + glasses + ' glasses of 250 ml';
+    renderLog(); renderRam();
+  }
+  function today() { return S.log[todayKey()] || []; }
+  function renderLog() {
+    var lg = today(), sum = lg.reduce(function (a, x) { return a + x[1]; }, 0), f = R.tot ? Math.min(1, sum / R.tot) : 0;
+    $('arc').style.strokeDashoffset = (326.7 * (1 - f)).toFixed(1);
+    $('arc').style.stroke = f >= 1 ? 'var(--accent)' : 'var(--sat-b)';
+    $('drank').textContent = sum >= 1000 ? L(sum) : sum + ' ml';
+    $('ofT').textContent = 'of ' + L(R.tot) + ' · ' + Math.round(f * 100) + '%';
+    $('logl').innerHTML = lg.slice(-10).map(function (x) { return '<span>' + x[0] + ' · ' + x[1] + '</span>'; }).join('');
+    // pace: awake 07:00–23:00 normally; Ramadan handled in its own box
+    var now = new Date(), h = now.getHours() + now.getMinutes() / 60, msg;
+    if (sum >= R.tot) msg = 'Target reached. Keep sipping if you\'re thirsty or outside.';
+    else if (ramOn()) msg = 'Ramadan mode: see the plan below for when to drink.';
+    else {
+      var exp = Math.max(0, Math.min(1, (h - 7) / 15)) * R.tot;
+      msg = h < 7 ? 'Start with a glass when you wake up.' : sum >= exp - 150 ? 'You\'re on track for this time of day.' : 'About ' + Math.round((exp - sum) / 50) * 50 + ' ml behind for this time of day. A glass now would help.';
+    }
+    $('pace').textContent = msg + ' ' + Math.max(0, Math.ceil((R.tot - sum) / 250)) + ' glasses to go.';
+  }
+  var GL = [[150, 'Small cup'], [250, 'Glass'], [330, 'Can'], [500, 'Bottle'], [750, 'Big bottle']];
+  function glassSvg(ml) {
+    var y0 = 30 - Math.round(6 + ml / 750 * 22), k = 2.5 / 28, xl = function (y) { return (3 + (y - 2) * k).toFixed(2); }, xr = function (y) { return (23 - (y - 2) * k).toFixed(2); };
+    return '<svg viewBox="0 0 26 32" aria-hidden="true"><path d="M' + xl(y0) + ' ' + y0 + 'L' + xr(y0) + ' ' + y0 + 'L' + xr(30) + ' 30L' + xl(30) + ' 30Z" fill="var(--sat-b)" opacity=".7"/><path d="M3 2h20l-2.5 28h-15z" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
+  }
+  $('glasses').innerHTML = GL.map(function (g) { return '<button class="gl" type="button" data-ml="' + g[0] + '">' + glassSvg(g[0]) + g[1] + '<span class="msg" style="min-height:0;font-size:.72rem">' + g[0] + ' ml</span></button>'; }).join('');
+  $('glasses').onclick = function (e) {
+    var b = e.target.closest('[data-ml]'); if (!b) return;
+    var k = todayKey(), d = new Date(); (S.log[k] = S.log[k] || []).push([pad(d.getHours()) + ':' + pad(d.getMinutes()), +b.dataset.ml]); save(); renderLog(); renderRam();
+  };
+  $('undo').onclick = function () { var lg = S.log[todayKey()]; if (lg && lg.length) { lg.pop(); save(); renderLog(); renderRam(); } };
+
+  // ---- Ramadan
+  var hijriM = function (d) { try { return +new Intl.DateTimeFormat('en-u-ca-islamic-umalqura-nu-latn', { month: 'numeric' }).formatToParts(d).filter(function (p) { return p.type === 'month'; })[0].value; } catch (e) { return 0; } };
+  var hijriD = function (d) { try { return +new Intl.DateTimeFormat('en-u-ca-islamic-umalqura-nu-latn', { day: 'numeric' }).formatToParts(d).filter(function (p) { return p.type === 'day'; })[0].value; } catch (e) { return 0; } };
+  var isRamadan = hijriM(new Date()) === 9;
+  function ramOn() { return S.ram == null ? isRamadan : S.ram; }
+  // sun time (local hours) when the sun reaches altitude alt (deg); rising or setting
+  function sunAt(date, lat, lon, tz, alt, rising) {
+    var start = new Date(date.getFullYear(), 0, 0), N = Math.floor((date - start) / 864e5), g = 2 * Math.PI / 365 * (N - 1);
+    var eq = 229.18 * (0.000075 + 0.001868 * Math.cos(g) - 0.032077 * Math.sin(g) - 0.014615 * Math.cos(2 * g) - 0.040849 * Math.sin(2 * g));
+    var dec = 0.006918 - 0.399912 * Math.cos(g) + 0.070257 * Math.sin(g) - 0.006758 * Math.cos(2 * g) + 0.000907 * Math.sin(2 * g) - 0.002697 * Math.cos(3 * g) + 0.00148 * Math.sin(3 * g);
+    var r = Math.PI / 180, la = lat * r, cosH = (Math.sin(alt * r) - Math.sin(la) * Math.sin(dec)) / (Math.cos(la) * Math.cos(dec));
+    if (cosH < -1 || cosH > 1) return null;
+    var H = Math.acos(cosH) / r, noon = 720 - 4 * lon - eq, utcMin = noon + (rising ? -4 * H : 4 * H);
+    return ((utcMin / 60 + tz) % 24 + 24) % 24;
+  }
+  function hm(h) { var m = Math.round(h * 60) % 1440; return pad(Math.floor(m / 60)) + ':' + pad(m % 60); }
+  function toH(s) { var p = (s || '').split(':'); return p.length === 2 ? +p[0] + p[1] / 60 : null; }
+  function fmt12(h) { var m = Math.round(h * 60) % 1440, H = Math.floor(m / 60); return (H % 12 || 12) + ':' + pad(m % 60) + (H < 12 ? ' am' : ' pm'); }
+  function renderRam() {
+    var on = ramOn(); $('ram').checked = on; $('ramBody').hidden = !on;
+    $('ramState').textContent = isRamadan ? '· it\'s Ramadan, day ' + hijriD(new Date()) + ' (Umm al-Qura calendar)' : '· turns on by itself during Ramadan';
+    if (!on) return;
+    var d = new Date(), mag = sunAt(d, S.lat, S.lon, S.tz, -0.833, false), fajr = sunAt(new Date(d.getTime() + 864e5), S.lat, S.lon, S.tz, -18.2, true);
+    var ifH = toH(S.iftar) != null ? toH(S.iftar) : mag != null ? mag + 3 / 60 : 18.2, suH = toH(S.suhoor) != null ? toH(S.suhoor) : fajr != null ? fajr : 5;
+    if (!S.iftar) $('iftar').value = hm(ifH); if (!S.suhoor) $('suhoor').value = hm(suH);
+    $('ramTimes').textContent = (S.iftar || S.suhoor ? 'Using your times. ' : '') + 'Worked out for your spot: Maghrib about ' + fmt12(mag + 3 / 60) + ', Fajr about ' + fmt12(fajr) + ' (sun 18.2° below the horizon, as the UAE uses). Check your local mosque timetable, it can differ by a few minutes.';
+    var end = suH < ifH ? suH + 24 : suH, win = end - ifH, tot = R.tot;
+    // pattern: iftar 2 glasses-ish, then even sips, bigger at suhoor; leave the last 15 min before Fajr
+    var slots = [], n = Math.max(4, Math.min(10, Math.round(win))), shares = [];
+    for (var i = 0; i < n; i++) shares.push(i === 0 || i === n - 1 ? 1.5 : 1);
+    var sumS = shares.reduce(function (a, b) { return a + b; }, 0), lastAt = end - 0.5;
+    for (i = 0; i < n; i++) {
+      var t = i === 0 ? ifH : i === n - 1 ? lastAt : ifH + (lastAt - ifH) * i / (n - 1);
+      var ml = Math.min(800, Math.round(tot * shares[i] / sumS / 50) * 50);
+      slots.push([t, ml, i === 0 ? 'Iftar: water and dates, before the meal' : i === n - 1 ? 'Suhoor: with food, not all at once' : i === 1 ? 'After the meal' : t % 24 >= 23 || t % 24 < 2 ? 'Before sleep / Taraweeh break' : 'Steady glass']);
+    }
+    var nowH = d.getHours() + d.getMinutes() / 60; if (nowH < ifH - 6) nowH += 24;
+    $('sched').innerHTML = slots.map(function (s) { return '<li class="' + (s[0] < nowH - 0.25 && nowH >= ifH ? 'past' : '') + '"><span class="t">' + hm(s[0]) + '</span><span>' + s[2] + '</span><b>' + s[1] + ' ml</b></li>'; }).join('') + '<li><span class="t"></span><span>' + win.toFixed(1) + ' h window · ' + L(tot) + ' total</span><b></b></li>';
+    var planned = slots.reduce(function (a, s) { return a + s[1]; }, 0);
+    if (planned < tot - 100) $('sched').innerHTML += '<li class="warn" style="display:block">Your target is more than you can comfortably drink in the hours between iftar and suhoor (' + L(planned) + ' planned). If you work outdoors while fasting, plan cooler shifts with your employer and ask a doctor whether fasting is safe for you.</li>';
+  }
+  $('ram').onchange = function () { S.ram = this.checked === isRamadan ? null : this.checked; save(); render(); };
+  $('iftar').onchange = function () { S.iftar = this.value; save(); renderRam(); };
+  $('suhoor').onchange = function () { S.suhoor = this.value; save(); renderRam(); };
+
+  // ---- urine chart (Armstrong-style scale)
+  var PEE = ['#fdfbe4', '#f8f3b8', '#f4ec8f', '#efe066', '#e6cf43', '#d9b52e', '#c39a22', '#a37a1a'];
+  $('pee').innerHTML = PEE.map(function (c, i) { return '<div style="background:' + c + '" title="' + (i < 3 ? 'Well hydrated' : i < 5 ? 'Drink a glass soon' : 'Drink now') + '">' + (i + 1) + '</div>'; }).join('');
+
+  // ---- inputs
+  ['kg', 'ex', 'outH'].forEach(function (id) { $(id).value = S[id]; $(id).oninput = function () { S[id] = +this.value; save(); render(); }; });
+  $('work').value = S.work; $('preg').value = S.preg; $('exOut').checked = S.exOut;
+  function workUI() { $('outHf').style.opacity = S.work === 'in' ? 0.45 : 1; $('outH').disabled = S.work === 'in'; }
+  $('work').onchange = function () { S.work = this.value; if (S.work === 'out' && S.outH < 4) { S.outH = 8; $('outH').value = 8; } save(); workUI(); render(); };
+  $('preg').onchange = function () { S.preg = this.value; save(); render(); };
+  $('exOut').onchange = function () { S.exOut = this.checked; save(); render(); };
+  $('tmax').oninput = $('rh').oninput = function () { var t = parseFloat($('tmax').value), h = parseFloat($('rh').value); if (!isNaN(t) && !isNaN(h)) { W.tmax = t; W.rh = h; $('wMsg').textContent = 'Using the numbers you typed.'; render(); } };
+  workUI();
+
+  // ---- weather
+  function load(lat, lon, name) {
+    S.lat = +lat; S.lon = +lon; save();
+    $('wMsg').textContent = 'Fetching today\'s weather for ' + name + '…';
+    fetch('https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon + '&hourly=temperature_2m,relative_humidity_2m&daily=temperature_2m_max&timezone=auto&forecast_days=1')
+      .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+      .then(function (j) {
+        var H = j.hourly, best = -1, bi = 0;
+        for (var i = 0; i < H.time.length; i++) { var hi = heatIndex(H.temperature_2m[i], H.relative_humidity_2m[i]); if (hi > best) { best = hi; bi = i; } }
+        var ti = H.temperature_2m.indexOf(Math.max.apply(null, H.temperature_2m));
+        W.tmax = j.daily && j.daily.temperature_2m_max ? j.daily.temperature_2m_max[0] : H.temperature_2m[ti];
+        W.rh = H.relative_humidity_2m[ti];
+        if (best > heatIndex(W.tmax, W.rh) + 0.5) { W.tmax = H.temperature_2m[bi]; W.rh = H.relative_humidity_2m[bi]; }
+        S.tz = (j.utc_offset_seconds || 14400) / 3600; save();
+        $('tmax').value = W.tmax.toFixed(1); $('rh').value = Math.round(W.rh);
+        $('wMsg').textContent = name + ': the most stressful hour today is around ' + H.time[bi].slice(11, 16) + ' (heat index ' + Math.round(best) + '°C). Edit the numbers if you like.';
+        render();
+      })
+      .catch(function () { $('wMsg').textContent = 'Couldn\'t reach the weather service. Type today\'s max temperature and humidity instead.'; render(); });
+  }
+  PLACES.forEach(function (p, i) {
+    var b = document.createElement('button'); b.className = 'sm'; b.type = 'button'; b.textContent = p[0]; b.setAttribute('aria-pressed', 'false');
+    b.onclick = function () { pick(b); S.place = i; load(p[1], p[2], p[0]); };
+    $('where').appendChild(b);
+  });
+  function pick(b) { [].forEach.call(document.querySelectorAll('#where .sm'), function (x) { x.setAttribute('aria-pressed', x === b); }); }
+  $('me').onclick = function () {
+    if (!navigator.geolocation) { $('wMsg').textContent = 'Your browser can\'t share a location.'; return; }
+    $('wMsg').textContent = 'Asking for your location…';
+    navigator.geolocation.getCurrentPosition(function (p) { pick($('me')); S.place = -1; load(p.coords.latitude.toFixed(3), p.coords.longitude.toFixed(3), 'Your location'); }, function () { $('wMsg').textContent = 'Location was not shared. Pick a city instead.'; }, { maximumAge: 6e5, timeout: 10000 });
+  };
+  render();
+  var pi = S.place >= 0 && PLACES[S.place] ? S.place : 1;
+  document.querySelectorAll('#where .sm')[pi + 1].click();
+  // refresh pacing every few minutes; roll over at midnight
+  setInterval(function () { renderLog(); }, 120000);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Your Shower's Journey · Mariam's Lab</title>
+<meta name="description" content="Follow your household's daily water from the Gulf through a desalination plant to your tap and back out as treated water for irrigation, with the seawater, energy, CO2 and brine behind each litre.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/shower-journey/">
+<meta property="og:title" content="Your Shower's Journey · Mariam's Lab"><meta property="og:description" content="The seawater, energy, CO2 and brine behind your daily water in the UAE."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 0; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.rows { display: grid; gap: 10px; }
+.rw { display: grid; grid-template-columns: minmax(0, 1fr) 5.2em; gap: 4px 10px; align-items: center; }
+.rw > span { font-size: 0.88rem; }
+.rw > span small { display: block; color: var(--muted); font-size: 0.76rem; }
+.rw input[type=number] { font: inherit; font-family: var(--font-mono); font-size: 0.9rem; color: var(--ink); background: rgba(7, 10, 24, 0.6); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; width: 100%; min-width: 0; text-align: end; }
+.rw input[type=range] { grid-column: 1 / -1; accent-color: var(--sat-b); width: 100%; }
+.grp { border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; display: grid; gap: 10px; background: rgba(7,10,24,.45); }
+.grp legend { font-family: var(--font-display); font-weight: 600; padding: 0 6px; }
+.big { font-family: var(--font-display); font-weight: 800; font-size: clamp(2.4rem, 8vw, 3.8rem); line-height: 1; color: var(--sat-b); }
+.split { display: flex; height: 14px; border-radius: 99px; overflow: hidden; background: var(--line); }
+.split i { display: block; height: 100%; }
+.key { display: flex; gap: 10px; flex-wrap: wrap; font-size: 0.76rem; color: var(--muted); }
+.key span::before { content: ''; display: inline-block; width: 9px; height: 9px; border-radius: 3px; margin-inline-end: 5px; background: var(--c); }
+.journey { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; position: relative; }
+.journey li { display: grid; grid-template-columns: 74px minmax(0, 1fr); gap: 14px; position: relative; padding-bottom: 22px; }
+.journey li::before { content: ''; position: absolute; left: 36px; top: 70px; bottom: 0; width: 2px; background: linear-gradient(var(--c, var(--sat-b)), var(--line)); }
+.journey li:last-child::before { display: none; }
+.journey .ic { width: 74px; height: 70px; border-radius: 16px; border: 1px solid var(--line); background: var(--surface); display: grid; place-items: center; }
+.journey .ic svg { width: 52px; height: 46px; }
+.journey h3 { margin: 4px 0 2px; font-size: 1.05rem; }
+.journey p { margin: 0; color: var(--muted); font-size: 0.88rem; }
+.journey .num { font-family: var(--font-mono); color: var(--ink); font-size: 0.84rem; display: flex; flex-wrap: wrap; gap: 4px 10px; margin: 4px 0; }
+.journey .num b { color: var(--c, var(--sat-b)); font-weight: 500; }
+.src { font-size: 0.78rem; color: var(--muted); margin: 0; padding-inline-start: 1.1em; display: grid; gap: 4px; }
+.src a { color: var(--sat-b); }
+@media (max-width: 520px) { .journey li { grid-template-columns: 56px minmax(0, 1fr); gap: 10px; } .journey .ic { width: 56px; height: 54px; border-radius: 12px; } .journey .ic svg { width: 40px; height: 36px; } .journey li::before { left: 27px; top: 54px; } }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Explainer · Water · Energy · UAE</span>
+    <h1 style="font-size:var(--step-3)">Your shower's journey.</h1>
+    <p>Almost every drop from a UAE tap started as Gulf seawater. Tell it how your household uses water and it follows that water from the sea, through a desalination plant, into your shower and back out as treated water for the city's trees. Along the way it adds up the seawater, energy, CO₂ and salty brine behind it.</p>
+  </div>
+  <div class="game">
+    <div class="panel">
+      <fieldset class="grp"><legend>Your household, per day</legend><div class="rows" id="use"></div></fieldset>
+      <fieldset class="grp"><legend>Assumptions you can change</legend><div class="rows" id="asm"></div><button class="sm" type="button" id="reset" style="justify-self:start">Reset to defaults</button></fieldset>
+    </div>
+    <div class="panel">
+      <span class="label">Your water, per day</span>
+      <div><div class="big" id="litres">0 L</div><p class="msg" id="perPerson"></p></div>
+      <div class="split" id="split"></div><div class="key" id="key"></div>
+      <div class="stats"><div><b id="sSea">0</b><span>litres of seawater pumped in</span></div><div><b id="sKwh">0</b><span>kWh of energy</span></div><div><b id="sCo2">0</b><span>kg of CO₂</span></div></div>
+      <div class="stats"><div><b id="sBrine">0</b><span>litres of brine back to the Gulf</span></div><div><b id="sTse">0</b><span>litres reused for irrigation</span></div><div><b id="sYear">0</b><span>tonnes of CO₂ a year</span></div></div>
+      <p class="fact" style="margin:0" id="compare"></p>
+    </div>
+  </div>
+  <div class="panel" style="margin-top:28px">
+    <span class="label">The journey of today's water</span>
+    <ol class="journey" id="journey"></ol>
+  </div>
+  <div class="panel" style="margin-top:10px">
+    <span class="label">Where the numbers come from</span>
+    <p class="fact" style="margin:0">All figures are rough averages, meant for a sense of scale. Real plants vary with season, salinity and age, and your own supply may blend water from several plants. The Gulf is saltier and warmer than most seas, which pushes energy use up and recovery down compared with plants elsewhere.</p>
+    <ul class="src">
+      <li>Recovery ratios (reverse osmosis 0.42, multi-stage flash 0.22) and the UAE's share of world brine (about 20%): Jones et al., <a href="https://backup1.idadesal.org/wp-content/uploads/2019/04/The-state-of-desalination-2019.pdf">The state of desalination and brine production</a>, Science of the Total Environment, 2019.</li>
+      <li>Thermal (MSF) plants use about 2.5–3.5 kWh of electricity plus around 80 kWh of heat per m³; reverse osmosis 3.5–5 kWh: <a href="https://www.irena.org/-/media/Files/IRENA/Agency/Publication/2012/IRENA-ETSAP-Tech-Brief-I12-Water-Desalination.pdf">IRENA–ETSAP Water Desalination brief</a>. Masdar's UAE pilots reached under 3.6 kWh/m³ with reverse osmosis: <a href="https://masdar.ae/-/media/corporate/projects/downloads/renewable-energy-desalination-pilot/desal-factsheet.pdf">Masdar desalination factsheet</a>, which also notes Abu Dhabi gets virtually all its drinking water from desalination.</li>
+      <li>Dubai's capacity mix (427 MIGD thermal, 63 MIGD reverse osmosis in 2023, with all new capacity to 2030 being reverse osmosis): <a href="https://www.dewa.gov.ae/en/about-us/media-publications/latest-news/2023/11/dubai-electricity-and-water-authority-pjsc">DEWA results, Q3 2023</a>.</li>
+      <li>Grid emissions about 0.40 kg CO₂ per kWh: DEWA sustainability report 2021, via <a href="https://oer.enviraj.com/data/country-wise-electricity-emissions-factors-2022/">country grid emission factors</a>.</li>
+      <li>Treated wastewater reuse in Abu Dhabi around half, with pipelines planned to reach 70%: <a href="https://gulfnews.com/uae/environment/two-pipelines-to-ensure-70-wastewater-recycling-in-abu-dhabi-1.1967374">Gulf News</a>.</li>
+      <li>Pumping, distribution and sewage treatment energy (about 0.4 and 0.6 kWh/m³) and the heat-to-electricity equivalent for thermal plants are typical engineering values, not UAE-specific measurements. Change them above if you have better numbers.</li>
+    </ul>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  // [key, label, hint, default, min, max, step, slider?]
+  var USE = [
+    ['people', 'People at home', '', 4, 1, 20, 1],
+    ['showers', 'Showers a day (whole household)', '', 5, 0, 40, 1],
+    ['mins', 'Minutes per shower', '', 8, 1, 60, 1, true],
+    ['flow', 'Shower flow, litres a minute', 'Standard heads 9–12, water-saving 6–8', 10, 3, 25, 0.5, true],
+    ['baths', 'Baths a week', 'about 150 L each', 1, 0, 30, 1],
+    ['flush', 'Toilet flushes a day (all)', '6 L each, older cisterns 9–12 L', 20, 0, 100, 1],
+    ['laundry', 'Washing machine loads a week', 'about 60 L a load', 5, 0, 40, 1],
+    ['dish', 'Dishwasher runs a week', 'about 12 L, sink washing up uses far more', 5, 0, 30, 1],
+    ['sink', 'Hand-washing up, minutes a day', 'tap running at about 8 L/min', 10, 0, 120, 1],
+    ['garden', 'Garden and car washing, litres a day', 'a hose runs at about 15 L/min', 60, 0, 2000, 10]
+  ];
+  var ASM = [
+    ['desal', 'Share of your water that is desalinated (%)', 'Close to 100% for UAE drinking water', 100, 0, 100, 1, true],
+    ['ro', 'Share made by reverse osmosis (%)', 'Dubai about 13% in 2023, rising fast; the rest thermal', 30, 0, 100, 1, true],
+    ['rrRo', 'Reverse osmosis recovery ratio', 'fresh water out per seawater in', 0.42, 0.2, 0.6, 0.01],
+    ['rrTh', 'Thermal (MSF) recovery ratio', '', 0.22, 0.05, 0.5, 0.01],
+    ['eRo', 'Reverse osmosis energy, kWh/m³', '', 4, 2, 7, 0.1],
+    ['eTh', 'Thermal energy, kWh/m³ (electricity equivalent)', '3 kWh power + 80 kWh heat ≈ 12–18 kWh lost power', 15, 3, 30, 0.5],
+    ['ePipe', 'Pumping and distribution, kWh/m³', '', 0.4, 0, 3, 0.1],
+    ['eWw', 'Sewage treatment, kWh/m³', '', 0.6, 0, 3, 0.1],
+    ['co2', 'Grid CO₂, kg per kWh', 'UAE about 0.40', 0.4, 0, 1, 0.01],
+    ['sewer', 'Share of indoor water that reaches the sewer (%)', '', 90, 0, 100, 1],
+    ['tse', 'Share of treated sewage reused (%)', 'Abu Dhabi about half, target 70–100%', 55, 0, 100, 1, true]
+  ];
+  var S = {};
+  function defaults() { USE.concat(ASM).forEach(function (r) { S[r[0]] = r[3]; }); }
+  defaults();
+  try { var sv = JSON.parse(localStorage.getItem('showerJourney') || 'null'); if (sv) for (var k in sv) if (k in S) S[k] = +sv[k]; } catch (e) {}
+  function save() { try { localStorage.setItem('showerJourney', JSON.stringify(S)); } catch (e) {} }
+  function build(el, list) {
+    $(el).innerHTML = list.map(function (r) {
+      return '<label class="rw"><span>' + r[1] + (r[2] ? '<small>' + r[2] + '</small>' : '') + '</span><input type="number" data-k="' + r[0] + '" min="' + r[4] + '" max="' + r[5] + '" step="' + r[6] + '" value="' + S[r[0]] + '">' + (r[7] ? '<input type="range" data-k="' + r[0] + '" min="' + r[4] + '" max="' + r[5] + '" step="' + r[6] + '" value="' + S[r[0]] + '" aria-label="' + r[1] + '">' : '') + '</label>';
+    }).join('');
+  }
+  build('use', USE); build('asm', ASM);
+  document.addEventListener('input', function (e) {
+    var k = e.target.dataset && e.target.dataset.k; if (!k) return;
+    var v = parseFloat(e.target.value); if (isNaN(v)) return;
+    S[k] = v; [].forEach.call(document.querySelectorAll('[data-k="' + k + '"]'), function (x) { if (x !== e.target) x.value = v; });
+    save(); calc();
+  });
+  $('reset').onclick = function () { defaults(); save(); build('use', USE); build('asm', ASM); calc(); };
+
+  function f0(x) { return Math.round(x).toLocaleString('en-US'); }
+  function f1(x) { return x < 10 ? x.toFixed(1) : f0(x); }
+  var COLS = { shower: '#4FD3BD', bath: '#84A0FF', toilet: '#A7ADCB', laundry: '#E9B467', dish: '#F08AB3', sink: '#c9e264', garden: '#6fbf73' };
+  var ICON = {
+    sea: '<svg viewBox="0 0 52 46" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 30c4-4 8-4 12 0s8 4 12 0 8-4 12 0 6 3 8 1"/><path d="M4 38c4-4 8-4 12 0s8 4 12 0 8-4 12 0 6 3 8 1" opacity=".6"/><path d="M14 22V8h6l4 6" /><path d="M20 22v-6h10" opacity=".7"/></svg>',
+    plant: '<svg viewBox="0 0 52 46" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="4" y="18" width="30" height="22" rx="2"/><path d="M8 26h22M8 32h22" stroke-dasharray="3 3"/><path d="M38 40V10h6v30"/><path d="M41 8c0-3 3-4 3-6" opacity=".6"/><path d="M34 30h4"/></svg>',
+    tank: '<svg viewBox="0 0 52 46" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="26" cy="10" rx="16" ry="5"/><path d="M10 10v24c0 3 7 5 16 5s16-2 16-5V10"/><path d="M10 22c0 3 7 5 16 5s16-2 16-5" opacity=".5"/></svg>',
+    pipe: '<svg viewBox="0 0 52 46" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M2 14h24v18h24"/><path d="M2 22h16v18h32" opacity=".6"/><rect x="22" y="10" width="8" height="8" rx="1"/></svg>',
+    tap: '<svg viewBox="0 0 52 46" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 6h22a6 6 0 0 1 6 6v4"/><path d="M38 16v4"/><path d="M38 26v2M36 32v2M40 34v2M38 40v2" opacity=".7"/><path d="M18 2v4"/><path d="M12 2h12"/></svg>',
+    drain: '<svg viewBox="0 0 52 46" fill="none" stroke="currentColor" stroke-width="2"><circle cx="26" cy="14" r="10"/><path d="M20 14h12M26 8v12" opacity=".6"/><path d="M26 24v8c0 4 4 6 8 6h14"/></svg>',
+    tree: '<svg viewBox="0 0 52 46" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M26 44V20"/><path d="M26 20c-6-8-14-8-18-6M26 20c6-8 14-8 18-6M26 20c-4-10-2-16 0-18M26 20c4-10 2-16 0-18"/><path d="M6 44h40"/><path d="M14 40c2 0 2-2 4-2M34 40c2 0 2-2 4-2" opacity=".6"/></svg>'
+  };
+  function calc() {
+    var p = Math.max(1, S.people);
+    var parts = {
+      shower: S.showers * S.mins * S.flow,
+      bath: S.baths * 150 / 7,
+      toilet: S.flush * 6,
+      laundry: S.laundry * 60 / 7,
+      dish: S.dish * 12 / 7,
+      sink: S.sink * 8,
+      garden: S.garden
+    };
+    var L = 0; for (var k in parts) L += parts[k];
+    var indoor = L - parts.garden;
+    var desal = L * S.desal / 100, ro = desal * S.ro / 100, th = desal - ro;
+    var seaRo = ro / S.rrRo, seaTh = th / S.rrTh, sea = seaRo + seaTh, brine = sea - desal;
+    var kDesal = (ro * S.eRo + th * S.eTh) / 1000, kPipe = L * S.ePipe / 1000;
+    var sewer = indoor * S.sewer / 100, kWw = sewer * S.eWw / 1000, tse = sewer * S.tse / 100;
+    var kwh = kDesal + kPipe + kWw, co2 = kwh * S.co2;
+    $('litres').textContent = f0(L) + ' L';
+    $('perPerson').textContent = f0(L / p) + ' litres per person a day · ' + f0(L * 365 / 1000) + ' m³ a year.';
+    var NAMES = { shower: 'Showers', bath: 'Baths', toilet: 'Toilet', laundry: 'Laundry', dish: 'Dishwasher', sink: 'Sink', garden: 'Garden & car' };
+    $('split').innerHTML = Object.keys(parts).map(function (k) { return '<i style="width:' + (L ? parts[k] / L * 100 : 0) + '%;background:' + COLS[k] + '" title="' + NAMES[k] + ': ' + f0(parts[k]) + ' L"></i>'; }).join('');
+    $('key').innerHTML = Object.keys(parts).filter(function (k) { return parts[k] > 0; }).map(function (k) { return '<span style="--c:' + COLS[k] + '">' + NAMES[k] + ' ' + f0(parts[k]) + ' L</span>'; }).join('');
+    $('sSea').textContent = f0(sea); $('sKwh').textContent = f1(kwh); $('sCo2').textContent = f1(co2);
+    $('sBrine').textContent = f0(brine); $('sTse').textContent = f0(tse); $('sYear').textContent = (co2 * 365 / 1000).toFixed(2);
+    var showerKwh = parts.shower / L * kwh;
+    $('compare').textContent = 'Just making and moving your water uses about as much electricity as running a 1.5-ton split AC for ' + f1(kwh / 1.6) + ' hours, and that\'s before heating any of it. The showers alone are ' + Math.round(parts.shower / (L || 1) * 100) + '% of it. Cutting each shower by 2 minutes saves ' + f0(S.showers * 2 * S.flow) + ' litres and ' + f0(S.showers * 2 * S.flow / (S.rrRo * S.ro / 100 + S.rrTh * (1 - S.ro / 100)) * S.desal / 100) + ' litres of seawater a day.';
+    var J = [
+      ['sea', '#84A0FF', 'Intake from the Gulf', 'Large pumps draw seawater through screens that keep out fish and jellyfish. The Gulf is about 4% salt, more than the open ocean, because it is shallow and evaporates fast.', [['seawater', f0(sea) + ' L']]],
+      ['plant', '#E9B467', 'Desalination', 'Two ways to pull the salt out. Thermal plants (multi-stage flash) boil seawater under low pressure using waste heat from power stations, then condense the steam. Reverse osmosis pushes seawater through membranes at 60 to 70 bar, about 30 times the pressure in a car tyre. It needs a third to a quarter of the energy, which is why new UAE plants use it.', [['reverse osmosis', f0(ro) + ' L from ' + f0(seaRo) + ' L sea'], ['thermal', f0(th) + ' L from ' + f0(seaTh) + ' L sea'], ['energy', f1(kDesal) + ' kWh']]],
+      ['sea', '#F08AB3', 'Brine back to the sea', 'What isn\'t turned into fresh water goes back to the Gulf as brine, saltier and often warmer than the water around it. Outfalls are designed to mix it quickly, but in a shallow, enclosed sea it adds up: the UAE produces about a fifth of the world\'s desalination brine.', [['brine', f0(brine) + ' L'], ['salt in it', 'about ' + f1(sea * 0.042) + ' kg']]],
+      ['tank', '#4FD3BD', 'Treatment and storage', 'The fresh water is almost too pure, so minerals are added back to protect pipes and make it taste right, plus a little chlorine. It is stored in big reservoirs and, in Abu Dhabi, aquifer storage that holds a strategic reserve.', [['your share', f0(desal) + ' L desalinated']]],
+      ['pipe', '#84A0FF', 'Through the network', 'Pumping stations push it through thousands of kilometres of mains to your area\'s tanks and then to your building, often to a roof tank that heats up in summer.', [['pumping', f1(kPipe) + ' kWh']]],
+      ['tap', '#4FD3BD', 'Your tap and shower', 'This is the part you control. Showers are usually the biggest single use, then garden watering in villas.', [['showers', f0(parts.shower) + ' L'], ['everything else', f0(L - parts.shower) + ' L']]],
+      ['drain', '#A7ADCB', 'Down the drain', 'Nearly all indoor water goes to the sewer. Garden water soaks into the ground or evaporates. Sewage plants treat it in stages: screening, settling, bacteria that eat the waste, filtering and disinfection.', [['to sewer', f0(sewer) + ' L'], ['treatment', f1(kWw) + ' kWh']]],
+      ['tree', '#6fbf73', 'Treated water for irrigation', 'The cleaned water, called treated sewage effluent (TSE), travels in a separate pipe network (often purple) to water parks, roadside trees and golf courses, saving desalinated water. Some is still released to the sea when there is more than the network can use.', [['reused', f0(tse) + ' L'], ['released', f0(sewer - tse) + ' L']]]
+    ];
+    $('journey').innerHTML = J.map(function (j) {
+      return '<li style="--c:' + j[1] + '"><div class="ic" style="color:' + j[1] + '">' + ICON[j[0]] + '</div><div><h3>' + j[2] + '</h3><div class="num">' + j[4].map(function (n) { return '<span>' + n[0] + ' <b>' + n[1] + '</b></span>'; }).join('') + '</div><p>' + j[3] + '</p></div></li>';
+    }).join('');
+  }
+  calc();
+})();
+</script>
+</body>
+</html>

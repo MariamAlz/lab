@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Weekly Meal Planner · Mariam's Lab</title>
+<meta name="description" content="Plan a week of breakfasts, lunches and dinners with everyday Emirati and Arab home dishes, then get one shopping list merged by ingredient and sorted by supermarket aisle.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/meal-planner/">
+<meta property="og:title" content="Weekly Meal Planner · Mariam's Lab"><meta property="og:description" content="Plan the week's meals and get one shopping list sorted by aisle."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.pills { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 0; }
+.f { display: grid; gap: 5px; min-width: 0; }
+.f > span { font-size: 0.84rem; color: var(--muted); }
+.f input, .f select, .f textarea, .srch { font: inherit; color: var(--ink); background: rgba(7, 10, 24, 0.6); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; min-width: 0; width: 100%; }
+.f textarea { font-family: var(--font-mono); font-size: 0.82rem; min-height: 7.5em; resize: vertical; }
+.f input[type=number] { font-family: var(--font-mono); }
+.chk { display: inline-flex; gap: 6px; align-items: center; font-size: 0.86rem; cursor: pointer; }
+.chk input { accent-color: var(--accent); width: 16px; height: 16px; margin: 0; }
+.week { display: grid; grid-template-columns: 3em repeat(3, minmax(0, 1fr)); gap: 6px; }
+.week .hd { font-family: var(--font-mono); font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; padding: 0 2px; }
+.week .dy { font-family: var(--font-display); font-weight: 600; font-size: 0.95rem; align-self: center; }
+.slot { font: inherit; text-align: start; color: var(--ink); min-height: 58px; border: 1px dashed var(--line); background: rgba(7,10,24,.45); border-radius: 10px; padding: 7px 26px 7px 8px; cursor: pointer; position: relative; font-size: 0.84rem; line-height: 1.25; overflow-wrap: anywhere; }
+.slot.full { border-style: solid; background: var(--surface); }
+.slot.note { font-style: italic; color: var(--muted); }
+.slot.sel { outline: 2px solid var(--accent); outline-offset: 1px; }
+.slot.over { border-color: var(--sat-b); background: color-mix(in srgb, var(--sat-b) 14%, transparent); }
+.slot .x { position: absolute; top: 3px; inset-inline-end: 3px; width: 20px; height: 20px; border-radius: 50%; border: 0; background: transparent; color: var(--muted); cursor: pointer; font-size: 0.9rem; line-height: 1; padding: 0; }
+.slot .x:hover { color: var(--sat-c); }
+.slot .ph { color: var(--muted); font-size: 0.78rem; }
+.selbar { border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: grid; gap: 8px; background: rgba(7,10,24,.5); }
+.selbar b { font-family: var(--font-display); }
+.selbar small { color: var(--muted); font-size: 0.8rem; }
+.lib { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; max-height: 560px; overflow-y: auto; padding-inline-end: 4px; }
+.lib li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; align-items: center; border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; cursor: grab; background: var(--surface); }
+.lib li:hover { border-color: var(--accent); }
+.lib li b { font-weight: 600; font-size: 0.9rem; display: block; }
+.lib li small { color: var(--muted); font-size: 0.74rem; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lib .ar { font-family: 'IBM Plex Sans Arabic', sans-serif; font-weight: 400; color: var(--muted); font-size: 0.82rem; margin-left: 8px; display: inline-block; }
+.lib .tg { font-family: var(--font-mono); font-size: 0.66rem; color: var(--muted); }
+.lib .del { border: 0; background: none; color: var(--muted); cursor: pointer; font-size: 0.8rem; }
+.lib .del:hover { color: var(--sat-c); }
+.shop { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px 22px; }
+.shop h3 { font-size: 0.95rem; margin: 0 0 6px; color: var(--accent); font-family: var(--font-display); }
+.shop ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.shop li label { display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; gap: 8px; align-items: baseline; font-size: 0.88rem; cursor: pointer; padding: 3px 0; border-bottom: 1px solid var(--line); }
+.shop li input { accent-color: var(--sat-b); margin: 0; }
+.shop li .q { font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted); white-space: nowrap; }
+.shop li.done span { text-decoration: line-through; color: var(--muted); }
+.shop li small { color: var(--muted); font-size: 0.72rem; }
+.ing { margin: 0; padding-inline-start: 1.1em; font-size: 0.82rem; color: var(--muted); columns: 2; column-gap: 18px; }
+details.add summary { cursor: pointer; font-weight: 600; font-size: 0.92rem; }
+.addf { display: grid; gap: 10px; margin-top: 10px; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.hint { font-size: 0.76rem; color: var(--muted); margin: 0; }
+@media (max-width: 520px) { .week { grid-template-columns: 2.4em repeat(3, minmax(0, 1fr)); gap: 4px; } .slot { font-size: 0.76rem; padding: 6px 20px 6px 6px; min-height: 54px; } .ing { columns: 1; } }
+[hidden] { display: none !important; }
+@media print {
+  body { background: #fff !important; color: #000 !important; }
+  body::before, .labbar, .labfoot, .noprint, .sec-head p, .lib, .selbar { display: none !important; }
+  .labmain { padding: 0 !important; }
+  .game { display: block !important; }
+  .slot { border: 1px solid #999 !important; background: #fff !important; color: #000 !important; min-height: 0; }
+  .slot .x { display: none; }
+  .shop h3 { color: #000 !important; }
+  .shop li label, .shop li .q { color: #000 !important; border-color: #ccc !important; }
+  .panel { break-inside: avoid; }
+  .week .hd, .week .dy { color: #000 !important; }
+}
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Home · Food</span>
+    <h1 style="font-size:var(--step-3)">Weekly meal planner.</h1>
+    <p>Fill a week of breakfasts, lunches and dinners from about 40 everyday home dishes, from machboos and harees to shakshuka and lentil soup, or add your own. The shopping list builds itself, adds up the same ingredient across meals and sorts it by supermarket section. Send it to WhatsApp or print it.</p>
+  </div>
+  <div class="game">
+    <div class="panel">
+      <div class="pills noprint">
+        <label class="chk" style="gap:8px">People eating <input id="ppl" type="number" min="1" max="30" value="4" style="width:4.2em;font:inherit;font-family:var(--font-mono);color:var(--ink);background:rgba(7,10,24,.6);border:1px solid var(--line);border-radius:8px;padding:4px 6px"></label>
+        <button class="sm" type="button" id="fill">Suggest for empty slots</button>
+        <button class="sm" type="button" id="clear">Clear week</button>
+        <button class="sm" type="button" id="print">Print</button>
+      </div>
+      <div class="week" id="week"></div>
+      <div class="selbar noprint" id="selbar"></div>
+      <div class="stats noprint"><div><b id="sMeals">0</b><span>meals planned</span></div><div><b id="sItems">0</b><span>items to buy</span></div><div><b id="sLeft">21</b><span>slots still empty</span></div></div>
+    </div>
+    <div class="panel noprint">
+      <span class="label">Meals · tap a slot, then a meal, or drag</span>
+      <input class="srch" id="q" type="search" placeholder="Search meals or ingredients…" aria-label="Search meals">
+      <div class="pills" id="tf"></div>
+      <ul class="lib" id="lib"></ul>
+      <details class="add" id="addbox">
+        <summary>Add your own meal</summary>
+        <form class="addf" id="addf">
+          <label class="f"><span>Meal name</span><input id="aName" required maxlength="60" placeholder="Mum's chicken pasta"></label>
+          <div class="two">
+            <label class="f"><span>Serves</span><input id="aServ" type="number" min="1" max="30" value="4"></label>
+            <div class="f"><span>Good for</span><div class="pills"><label class="chk"><input type="checkbox" id="aB">B</label><label class="chk"><input type="checkbox" id="aL" checked>L</label><label class="chk"><input type="checkbox" id="aD" checked>D</label></div></div>
+          </div>
+          <label class="f"><span>Ingredients, one per line</span><textarea id="aIng" placeholder="500 g chicken breast&#10;2 pcs onions&#10;1 pack Arabic bread&#10;200 ml cooking cream @dairy"></textarea></label>
+          <p class="hint">Start with an amount and a unit (g, kg, ml, l, pcs, tbsp, tsp, cup, bunch, pack, can). The section is guessed; add @produce, @meat, @dairy, @bakery, @pantry, @spices or @frozen to set it.</p>
+          <button class="sm" type="submit" style="justify-self:start">Save meal</button>
+          <p class="msg" id="aMsg" role="status"></p>
+        </form>
+      </details>
+    </div>
+  </div>
+  <div class="panel" style="margin-top:28px" id="listpanel">
+    <div class="pills" style="justify-content:space-between">
+      <span class="label">Shopping list</span>
+      <div class="pills noprint">
+        <label class="chk"><input type="checkbox" id="basics" checked>Skip basics (salt, pepper, oil, sugar)</label>
+        <button class="sm" type="button" id="copy">Copy</button>
+        <a class="sm" id="wa" href="#" target="_blank" rel="noopener" style="text-decoration:none">WhatsApp</a>
+        <button class="sm" type="button" id="untick">Untick all</button>
+      </div>
+    </div>
+    <p class="msg" id="shopMsg" role="status"></p>
+    <div class="shop" id="shop"></div>
+    <p class="fact noprint" style="margin:0">Amounts are scaled from each recipe's usual serving count to the number of people eating, then added together. Grams and kilos are combined, so two dishes needing 500 g and 1.2 kg of chicken show as 1.7 kg. Things sold whole, like onions, bunches of parsley or packs of bread, are rounded up. Everything stays in this browser; nothing is sent anywhere.</p>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var SEC = { v: 'Produce', m: 'Meat & fish', d: 'Dairy & eggs', b: 'Bakery', p: 'Pantry', s: 'Spices', f: 'Frozen' };
+  var SECORD = ['v', 'm', 'd', 'b', 'f', 'p', 's'];
+  var BASICS = { 'salt': 1, 'black pepper': 1, 'cooking oil': 1, 'sugar': 1, 'water': 1 };
+  // [name, arabic, types, serves, ingredients "qty unit name#section|…"]
+  var RAW = [
+    ['Balaleet', 'بلاليط', 'b', 4, '250 g vermicelli#p|4 pcs eggs#d|80 g sugar#p|1 tsp ground cardamom#s|0.5 tsp saffron#s|2 tbsp rose water#p|2 tbsp ghee#d'],
+    ['Chebab pancakes', 'جباب', 'b', 4, '300 g plain flour#p|1 tsp dry yeast#p|2 pcs eggs#d|1 tsp ground cardamom#s|0.25 tsp saffron#s|60 g sugar#p|250 ml milk#d|100 ml date syrup#p'],
+    ['Khameer bread', 'خمير', 'b', 4, '400 g plain flour#p|1 tsp dry yeast#p|200 ml milk#d|1 pcs eggs#d|2 tbsp sugar#p|1 tsp fennel seeds#s|2 tbsp sesame seeds#s'],
+    ['Regag with egg and cheese', 'رقاق', 'b', 4, '8 pcs regag bread#b|4 pcs eggs#d|150 g processed cheese#d|2 tbsp butter#d'],
+    ['Shakshuka', 'شكشوكة', 'bl', 4, '6 pcs eggs#d|6 pcs tomatoes#v|1 pcs onions#v|1 pcs green peppers#v|2 pcs garlic cloves#v|1 tsp ground cumin#s|1 tsp paprika#s|2 tbsp olive oil#p|1 pack Arabic bread#b'],
+    ['Foul medames', 'فول مدمس', 'b', 4, '2 can fava beans#p|1 pcs lemons#v|2 pcs garlic cloves#v|1 tsp ground cumin#s|3 tbsp olive oil#p|2 pcs tomatoes#v|1 bunch parsley#v|1 pack Arabic bread#b'],
+    ['Za\'atar manakish with labneh', 'مناقيش زعتر', 'b', 4, '500 g plain flour#p|1 tsp dry yeast#p|4 tbsp za\'atar#s|120 ml olive oil#p|250 g labneh#d|2 pcs cucumbers#v|2 pcs tomatoes#v|1 bunch mint#v'],
+    ['Eggs with tomato', 'بيض وطماط', 'b', 4, '6 pcs eggs#d|3 pcs tomatoes#v|1 pcs onions#v|1 pcs green chillies#v|0.5 tsp turmeric#s|1 tbsp cooking oil#p|1 pack Arabic bread#b'],
+    ['Oats with dates and milk', '', 'b', 4, '200 g rolled oats#p|600 ml milk#d|100 g dates#p|1 tsp ground cinnamon#s|2 pcs bananas#v'],
+    ['Yogurt, berries and granola', '', 'b', 4, '500 g plain yogurt#d|200 g granola#p|250 g frozen berries#f|2 tbsp honey#p'],
+    ['Halloumi breakfast plate', 'حلوم', 'b', 4, '250 g halloumi#d|2 pcs cucumbers#v|3 pcs tomatoes#v|100 g olives#p|1 bunch mint#v|1 pack Arabic bread#b'],
+    ['Cheese omelette', '', 'b', 4, '8 pcs eggs#d|100 g cheddar cheese#d|1 pcs green peppers#v|1 pcs onions#v|30 g butter#d'],
+    ['Fatteh with chickpeas', 'فتة حمص', 'bl', 4, '2 can chickpeas#p|500 g plain yogurt#d|3 tbsp tahini#p|2 pcs garlic cloves#v|1 pack Arabic bread#b|30 g pine nuts#p|2 tbsp ghee#d'],
+    ['Chicken machboos', 'مجبوس دجاج', 'ld', 4, '1.2 kg chicken pieces#m|500 g basmati rice#p|2 pcs onions#v|3 pcs tomatoes#v|3 pcs garlic cloves#v|1 pcs green chillies#v|2 tbsp bzar spice mix#s|2 pcs dried limes (loomi)#s|1 tsp turmeric#s|2 tbsp ghee#d|1 bunch coriander#v'],
+    ['Lamb machboos', 'مجبوس لحم', 'ld', 4, '1.2 kg lamb on the bone#m|500 g basmati rice#p|2 pcs onions#v|2 pcs tomatoes#v|3 pcs garlic cloves#v|2 tbsp bzar spice mix#s|2 pcs dried limes (loomi)#s|1 tsp turmeric#s|2 pcs cinnamon sticks#s|2 tbsp ghee#d'],
+    ['Fish machboos', 'مجبوس سمك', 'ld', 4, '1 kg kingfish (kanaad) steaks#m|500 g basmati rice#p|2 pcs onions#v|2 pcs tomatoes#v|3 pcs garlic cloves#v|2 tbsp bzar spice mix#s|2 pcs dried limes (loomi)#s|1 tsp turmeric#s|1 bunch coriander#v'],
+    ['Harees', 'هريس', 'ld', 6, '500 g harees wheat#p|1 kg lamb on the bone#m|1 tsp ground cumin#s|3 tbsp ghee#d|1 tsp salt#p'],
+    ['Thareed', 'ثريد', 'd', 4, '800 g lamb on the bone#m|3 pcs potatoes#v|2 pcs zucchini#v|2 pcs carrots#v|1 pcs onions#v|2 pcs tomatoes#v|2 tbsp tomato paste#p|2 tbsp bzar spice mix#s|2 pcs dried limes (loomi)#s|6 pcs regag bread#b'],
+    ['Chicken saloona with rice', 'صالونة دجاج', 'ld', 4, '1 kg chicken pieces#m|3 pcs potatoes#v|2 pcs zucchini#v|2 pcs carrots#v|1 pcs onions#v|3 pcs tomatoes#v|2 tbsp tomato paste#p|2 tbsp bzar spice mix#s|1 tsp turmeric#s|2 pcs dried limes (loomi)#s|400 g basmati rice#p'],
+    ['Fish saloona with rice', 'صالونة سمك', 'ld', 4, '800 g hammour fillets#m|2 pcs onions#v|3 pcs tomatoes#v|1 tbsp tamarind paste#p|2 tbsp bzar spice mix#s|1 tsp turmeric#s|1 bunch coriander#v|400 g basmati rice#p'],
+    ['Lentil soup', 'شوربة عدس', 'ld', 4, '300 g red lentils#p|1 pcs onions#v|2 pcs carrots#v|1 pcs potatoes#v|2 tsp ground cumin#s|2 pcs lemons#v|1 pcs stock cubes#p|1 pack Arabic bread#b'],
+    ['Fattoush', 'فتوش', 'ld', 4, '1 pcs romaine lettuce#v|3 pcs tomatoes#v|2 pcs cucumbers#v|1 bunch radishes#v|1 bunch parsley#v|1 bunch mint#v|1 bunch spring onions#v|1 tbsp sumac#s|2 tbsp pomegranate molasses#p|4 tbsp olive oil#p|2 pcs lemons#v|1 pack Arabic bread#b'],
+    ['Tabbouleh', 'تبولة', 'l', 4, '3 bunch parsley#v|1 bunch mint#v|4 pcs tomatoes#v|60 g fine bulgur#p|3 pcs lemons#v|5 tbsp olive oil#p|1 bunch spring onions#v'],
+    ['Hummus plate', 'حمص', 'l', 4, '2 can chickpeas#p|5 tbsp tahini#p|2 pcs lemons#v|2 pcs garlic cloves#v|4 tbsp olive oil#p|1 tsp paprika#s|2 pcs cucumbers#v|1 pack Arabic bread#b'],
+    ['Falafel wraps', 'فلافل', 'ld', 4, '16 pcs frozen falafel#f|1 pack Arabic bread#b|3 tbsp tahini#p|2 pcs tomatoes#v|1 pcs romaine lettuce#v|200 g pickles#p|1 bunch parsley#v'],
+    ['Chicken shawarma wraps', 'شاورما دجاج', 'ld', 4, '800 g boneless chicken thighs#m|250 g plain yogurt#d|4 pcs garlic cloves#v|2 tsp shawarma spice#s|2 pcs lemons#v|1 pack Arabic bread#b|200 g pickles#p|3 pcs tomatoes#v|400 g frozen fries#f'],
+    ['Mujaddara', 'مجدرة', 'ld', 4, '250 g brown lentils#p|200 g basmati rice#p|4 pcs onions#v|1 tsp ground cumin#s|4 tbsp olive oil#p|500 g plain yogurt#d'],
+    ['Chicken kabsa', 'كبسة دجاج', 'ld', 4, '1.2 kg chicken pieces#m|500 g basmati rice#p|2 pcs onions#v|2 pcs tomatoes#v|2 tbsp tomato paste#p|2 pcs carrots#v|2 tbsp kabsa spice mix#s|2 pcs dried limes (loomi)#s|50 g raisins#p|30 g almonds#p'],
+    ['Madrouba', 'مضروبة', 'ld', 4, '600 g chicken pieces#m|300 g Egyptian rice#p|2 pcs onions#v|2 pcs tomatoes#v|2 tbsp bzar spice mix#s|1 tsp turmeric#s|3 tbsp ghee#d'],
+    ['Maqluba', 'مقلوبة', 'd', 5, '1 kg chicken pieces#m|2 pcs eggplants#v|1 pcs cauliflower#v|500 g basmati rice#p|1 pcs onions#v|2 tsp baharat#s|30 g almonds#p|500 g plain yogurt#d'],
+    ['Musakhan', 'مسخن', 'd', 4, '1.2 kg chicken pieces#m|6 pcs onions#v|3 tbsp sumac#s|120 ml olive oil#p|30 g pine nuts#p|1 pack Arabic bread#b'],
+    ['Kofta and potato tray', 'كفتة بالصينية', 'd', 4, '600 g minced beef#m|1 pcs onions#v|1 bunch parsley#v|4 pcs potatoes#v|4 pcs tomatoes#v|2 tbsp tomato paste#p|1 tsp baharat#s'],
+    ['Okra stew with rice', 'بامية', 'ld', 4, '500 g lamb cubes#m|500 g frozen okra#f|1 pcs onions#v|4 pcs garlic cloves#v|2 tbsp tomato paste#p|3 pcs tomatoes#v|1 bunch coriander#v|400 g basmati rice#p'],
+    ['Molokhia with chicken', 'ملوخية', 'ld', 4, '400 g frozen molokhia#f|1 kg chicken pieces#m|6 pcs garlic cloves#v|2 tsp ground coriander#s|400 g Egyptian rice#p'],
+    ['Koshari', 'كشري', 'ld', 5, '250 g brown lentils#p|250 g Egyptian rice#p|250 g macaroni#p|1 can chickpeas#p|400 g tomato passata#p|3 pcs onions#v|3 pcs garlic cloves#v|1 tsp ground cumin#s|2 tbsp vinegar#p'],
+    ['Chicken biryani', 'برياني دجاج', 'ld', 5, '1 kg chicken pieces#m|500 g basmati rice#p|3 pcs onions#v|250 g plain yogurt#d|3 pcs tomatoes#v|2 tbsp biryani masala#s|1 bunch mint#v|1 bunch coriander#v|4 pcs garlic cloves#v|30 g ginger#v|2 tbsp ghee#d'],
+    ['Dal with rice', 'دال', 'ld', 4, '300 g yellow lentils (toor dal)#p|1 pcs onions#v|2 pcs tomatoes#v|3 pcs garlic cloves#v|1 tsp turmeric#s|1 tsp cumin seeds#s|400 g basmati rice#p|1 bunch coriander#v'],
+    ['Grilled hammour, rice and salad', 'هامور مشوي', 'ld', 4, '800 g hammour fillets#m|2 pcs lemons#v|3 pcs garlic cloves#v|1 tsp ground cumin#s|400 g basmati rice#p|2 pcs cucumbers#v|3 pcs tomatoes#v'],
+    ['Spaghetti bolognese', '', 'ld', 4, '500 g spaghetti#p|500 g minced beef#m|700 g tomato passata#p|1 pcs onions#v|2 pcs carrots#v|3 pcs garlic cloves#v|1 tsp dried oregano#s|60 g parmesan#d'],
+    ['Grilled chicken with potatoes', 'دجاج مشوي', 'ld', 4, '1 kg chicken pieces#m|2 pcs lemons#v|4 pcs garlic cloves#v|250 g plain yogurt#d|1 tsp paprika#s|4 pcs potatoes#v|1 pcs romaine lettuce#v|2 pcs cucumbers#v|3 pcs tomatoes#v'],
+    ['Spinach fatayer', 'فطاير سبانخ', 'ld', 4, '500 g plain flour#p|1 tsp dry yeast#p|400 g frozen spinach#f|2 pcs onions#v|2 pcs lemons#v|1 tbsp sumac#s|5 tbsp olive oil#p'],
+    ['Vegetable soup', 'شوربة خضار', 'ld', 4, '2 pcs carrots#v|2 pcs potatoes#v|2 pcs zucchini#v|1 pcs onions#v|2 pcs tomatoes#v|400 g frozen mixed vegetables#f|1 pcs stock cubes#p|100 g vermicelli#p'],
+    ['Tuna pasta bake', '', 'ld', 4, '500 g penne pasta#p|3 can tuna#p|700 g tomato passata#p|200 g mozzarella#d|1 pcs onions#v|200 g frozen sweetcorn#f'],
+    ['Chicken noodle stir fry', '', 'ld', 4, '600 g chicken breast#m|400 g egg noodles#p|2 pcs bell peppers#v|1 pcs broccoli#v|3 tbsp soy sauce#p|2 pcs garlic cloves#v|30 g ginger#v|1 tbsp cooking oil#p']
+  ];
+  var DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], SLOTS = [['b', 'Breakfast'], ['l', 'Lunch'], ['d', 'Dinner']];
+  var UNITS = { g: 'g', gram: 'g', grams: 'g', kg: 'kg', ml: 'ml', l: 'l', litre: 'l', liter: 'l', pcs: 'pcs', pc: 'pcs', piece: 'pcs', pieces: 'pcs', x: 'pcs', tbsp: 'tbsp', tsp: 'tsp', cup: 'cup', cups: 'cup', bunch: 'bunch', bunches: 'bunch', pack: 'pack', packs: 'pack', can: 'can', cans: 'can', tin: 'can', tins: 'can' };
+  function parseIng(s) {
+    var p = s.split('#'), sec = p[1] || 'p', m = p[0].match(/^(\S+)\s+(\S+)\s+(.+)$/);
+    return { q: parseFloat(m[1]), u: m[2], n: m[3], s: sec };
+  }
+  var BUILT = RAW.map(function (r, i) { return { id: 'm' + i, n: r[0], ar: r[1], t: r[2], sv: r[3], ing: r[4].split('|').map(parseIng) }; });
+
+  // storage
+  var S = { plan: {}, ppl: 4, custom: [], ticks: {}, basics: true };
+  try { var saved = JSON.parse(localStorage.getItem('mealPlanner') || 'null'); if (saved) for (var k in saved) S[k] = saved[k]; } catch (e) {}
+  function save() { try { localStorage.setItem('mealPlanner', JSON.stringify(S)); } catch (e) {} }
+
+  function allMeals() { return BUILT.concat(S.custom); }
+  function meal(id) { var a = allMeals(); for (var i = 0; i < a.length; i++) if (a[i].id === id) return a[i]; return null; }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+
+  var sel = null, filt = '';
+  // ---------- week grid
+  function renderWeek() {
+    var h = '<span></span>' + SLOTS.map(function (s) { return '<span class="hd">' + s[1] + '</span>'; }).join('');
+    DAYS.forEach(function (d, di) {
+      h += '<span class="dy">' + d + '</span>';
+      SLOTS.forEach(function (s) {
+        var key = di + s[0], v = S.plan[key], m = v && v.id ? meal(v.id) : null, cls = 'slot';
+        var inner = '<span class="ph">+ ' + s[1].toLowerCase() + '</span>';
+        if (m) { cls += ' full'; inner = esc(m.n); }
+        else if (v && v.note) { cls += ' full note'; inner = esc(v.note); }
+        if (sel === key) cls += ' sel';
+        h += '<div class="' + cls + '" role="button" tabindex="0" data-k="' + key + '" aria-label="' + d + ' ' + s[1] + '">' + inner + ((m || (v && v.note)) ? '<button class="x" type="button" data-x="' + key + '" aria-label="Clear">×</button>' : '') + '</div>';
+      });
+    });
+    $('week').innerHTML = h;
+    renderSel();
+    renderShop();
+    renderLib();
+  }
+  function renderSel() {
+    var bar = $('selbar');
+    if (!sel) { bar.innerHTML = '<small>Tap a slot to pick it. Then tap a meal on the right, or type a note like "Eating out" or "Leftovers". On a computer you can also drag meals into the week, or drag between days.</small>'; return; }
+    var di = +sel[0], s = sel[1], v = S.plan[sel], m = v && v.id ? meal(v.id) : null;
+    var name = DAYS[di] + ' ' + SLOTS.filter(function (x) { return x[0] === s; })[0][1].toLowerCase();
+    var h = '<b>' + name + (m ? ': ' + esc(m.n) : '') + '</b>';
+    if (m) {
+      var f = S.ppl / m.sv;
+      h += '<small>Recipe serves ' + m.sv + ', scaled ×' + (Math.round(f * 100) / 100) + ' for ' + S.ppl + ' people</small><ul class="ing">' + m.ing.map(function (g) { return '<li>' + fmtQty(norm(g.q * f, g.u)) + ' ' + esc(g.n) + '</li>'; }).join('') + '</ul>';
+    } else {
+      h += '<small>Tap a meal on the right to put it here, or write a note.</small>';
+    }
+    h += '<div class="pills"><input class="srch" id="note" placeholder="Note, e.g. Eating out" maxlength="40" style="flex:1;min-width:10em" value="' + esc(v && v.note ? v.note : '') + '"><button class="sm" type="button" id="noteOk">Set note</button><button class="sm" type="button" id="done">Done</button></div>';
+    bar.innerHTML = h;
+    $('noteOk').onclick = function () { var t = $('note').value.trim(); if (t) S.plan[sel] = { note: t }; else delete S.plan[sel]; save(); renderWeek(); };
+    $('note').onkeydown = function (e) { if (e.key === 'Enter') $('noteOk').click(); };
+    $('done').onclick = function () { sel = null; renderWeek(); };
+  }
+  function nextEmpty(from) {
+    var order = []; DAYS.forEach(function (d, di) { SLOTS.forEach(function (s) { order.push(di + s[0]); }); });
+    var i = order.indexOf(from);
+    for (var j = 1; j <= order.length; j++) { var k = order[(i + j) % order.length]; if (!S.plan[k]) return k; }
+    return null;
+  }
+  function put(key, id) {
+    S.plan[key] = { id: id }; save();
+    var nx = nextEmpty(key); sel = nx; renderWeek();
+  }
+  $('week').addEventListener('click', function (e) {
+    var x = e.target.closest('[data-x]');
+    if (x) { e.stopPropagation(); delete S.plan[x.dataset.x]; save(); renderWeek(); return; }
+    var s = e.target.closest('.slot'); if (!s) return;
+    sel = sel === s.dataset.k ? null : s.dataset.k; renderWeek();
+    if (sel && innerWidth < 860 && !(S.plan[sel])) $('q').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+  $('week').addEventListener('keydown', function (e) { if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('slot')) { e.preventDefault(); e.target.click(); } });
+  // drag and drop
+  var dragFrom = null;
+  $('week').addEventListener('dragstart', function (e) { var s = e.target.closest('.slot'); if (!s || !S.plan[s.dataset.k]) return; dragFrom = s.dataset.k; e.dataTransfer.setData('text/plain', 'slot:' + s.dataset.k); });
+  $('week').addEventListener('dragover', function (e) { var s = e.target.closest('.slot'); if (!s) return; e.preventDefault(); [].forEach.call(document.querySelectorAll('.slot.over'), function (o) { if (o !== s) o.classList.remove('over'); }); s.classList.add('over'); });
+  $('week').addEventListener('dragleave', function (e) { var s = e.target.closest('.slot'); if (s && !s.contains(e.relatedTarget)) s.classList.remove('over'); });
+  $('week').addEventListener('drop', function (e) {
+    var s = e.target.closest('.slot'); if (!s) return; e.preventDefault();
+    var d = e.dataTransfer.getData('text/plain'), k = s.dataset.k;
+    if (d.indexOf('slot:') === 0) { var from = d.slice(5); if (from !== k) { var tmp = S.plan[k]; S.plan[k] = S.plan[from]; if (tmp) S.plan[from] = tmp; else delete S.plan[from]; } }
+    else if (d.indexOf('meal:') === 0 && meal(d.slice(5))) S.plan[k] = { id: d.slice(5) };
+    save(); dragFrom = null; renderWeek();
+  });
+
+  // ---------- library
+  var TF = [['', 'All'], ['b', 'Breakfast'], ['l', 'Lunch'], ['d', 'Dinner'], ['c', 'Mine']];
+  $('tf').innerHTML = TF.map(function (t) { return '<button class="sm" type="button" data-t="' + t[0] + '" aria-pressed="' + (t[0] === '' ? 'true' : 'false') + '">' + t[1] + '</button>'; }).join('');
+  $('tf').onclick = function (e) { var b = e.target.closest('[data-t]'); if (!b) return; filt = b.dataset.t; [].forEach.call($('tf').children, function (x) { x.setAttribute('aria-pressed', x === b); }); renderLib(); };
+  $('q').oninput = renderLib;
+  function renderLib() {
+    var q = $('q').value.trim().toLowerCase(), slotType = null;
+    var list = allMeals().filter(function (m) {
+      if (filt === 'c' && m.id[0] !== 'c') return false;
+      if (filt && filt !== 'c' && m.t.indexOf(filt) < 0) return false;
+      if (q && (m.n + ' ' + m.ar + ' ' + m.ing.map(function (g) { return g.n; }).join(' ')).toLowerCase().indexOf(q) < 0) return false;
+      return true;
+    });
+    if (sel && !filt) { slotType = sel[1]; list.sort(function (a, b) { return (b.t.indexOf(slotType) >= 0) - (a.t.indexOf(slotType) >= 0); }); }
+    $('lib').innerHTML = list.length ? list.map(function (m) {
+      return '<li draggable="true" data-id="' + m.id + '" title="' + esc(m.ing.map(function (g) { return g.n; }).join(', ')) + '"><div style="min-width:0"><b>' + esc(m.n) + (m.ar ? '<span class="ar" dir="rtl" lang="ar">' + m.ar + '</span>' : '') + '</b><small>' + esc(m.ing.slice(0, 5).map(function (g) { return g.n; }).join(', ')) + (m.ing.length > 5 ? '…' : '') + '</small></div><span><span class="tg">' + m.t.toUpperCase().split('').join(' ') + '</span>' + (m.id[0] === 'c' ? ' <button class="del" type="button" data-del="' + m.id + '" aria-label="Delete ' + esc(m.n) + '">✕</button>' : '') + '</span></li>';
+    }).join('') : '<li style="cursor:default"><small>No meals match. Try another word, or add your own below.</small></li>';
+  }
+  $('lib').addEventListener('click', function (e) {
+    var d = e.target.closest('[data-del]');
+    if (d) { e.stopPropagation(); if (!confirm('Delete this meal?')) return; S.custom = S.custom.filter(function (m) { return m.id !== d.dataset.del; }); for (var k in S.plan) if (S.plan[k].id === d.dataset.del) delete S.plan[k]; save(); renderLib(); renderWeek(); return; }
+    var li = e.target.closest('[data-id]'); if (!li) return;
+    var target = sel || nextEmpty('6d');
+    if (!target) { $('shopMsg').textContent = 'The week is full. Clear a slot first.'; return; }
+    put(target, li.dataset.id);
+    if (innerWidth < 860) $('week').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+  $('lib').addEventListener('dragstart', function (e) { var li = e.target.closest('[data-id]'); if (li) e.dataTransfer.setData('text/plain', 'meal:' + li.dataset.id); });
+  document.addEventListener('dragend', function () { [].forEach.call(document.querySelectorAll('.slot.over'), function (o) { o.classList.remove('over'); }); });
+  // make filled slots draggable after each render
+  new MutationObserver(function () { [].forEach.call(document.querySelectorAll('.slot.full'), function (s) { s.draggable = true; }); }).observe($('week'), { childList: true });
+
+  // ---------- custom meals
+  var GUESS = [
+    ['m', /chicken|beef|lamb|mutton|camel|fish|hammour|kingfish|shrimp|prawn|salmon|tuna steak|mince|meat|turkey|sausage/],
+    ['f', /frozen|ice cream|peas$/],
+    ['d', /milk|cheese|yogurt|yoghurt|labneh|laban|butter|cream|egg|ghee|halloumi|feta|mozzarella|parmesan/],
+    ['b', /bread|bun|pita|regag|tortilla|wrap|croissant|baguette|samoon|khubz/],
+    ['s', /cumin|cardamom|saffron|turmeric|paprika|cinnamon|pepper flakes|black pepper|chilli powder|spice|masala|bzar|baharat|sumac|za'?atar|oregano|thyme|clove|nutmeg|coriander powder|ground|seeds|loomi|dried lime|bay lea/],
+    ['v', /onion|tomato|potato|garlic|carrot|lettuce|cucumber|pepper|chilli|lemon|lime|parsley|coriander|mint|spinach|zucchini|courgette|eggplant|aubergine|cabbage|cauliflower|broccoli|banana|apple|orange|date fresh|mango|ginger|mushroom|avocado|dill|celery|radish|leek|okra/]
+  ];
+  var SECWORD = { produce: 'v', veg: 'v', fruit: 'v', meat: 'm', fish: 'm', dairy: 'd', eggs: 'd', bakery: 'b', bread: 'b', pantry: 'p', spices: 's', spice: 's', frozen: 'f' };
+  function guessSec(n) { n = n.toLowerCase(); for (var i = 0; i < GUESS.length; i++) if (GUESS[i][1].test(n)) return GUESS[i][0]; return 'p'; }
+  function parseLine(line) {
+    line = line.trim(); if (!line) return null;
+    var sec = null, mm = line.match(/@(\w+)\s*$/);
+    if (mm) { sec = SECWORD[mm[1].toLowerCase()] || null; line = line.slice(0, mm.index).trim(); }
+    var q = 1, u = 'pcs', m = line.match(/^(\d+(?:[.,]\d+)?|\d+\/\d+|½|¼|¾)\s*(.*)$/);
+    if (m) {
+      var qs = m[1].replace(',', '.'); q = qs === '½' ? 0.5 : qs === '¼' ? 0.25 : qs === '¾' ? 0.75 : qs.indexOf('/') > 0 ? qs.split('/')[0] / qs.split('/')[1] : parseFloat(qs);
+      line = m[2];
+      var um = line.match(/^([a-zA-Z]+)\.?\s+(.+)$/);
+      if (um && UNITS[um[1].toLowerCase()]) { u = UNITS[um[1].toLowerCase()]; line = um[2]; }
+    }
+    if (!line) return null;
+    return { q: q, u: u, n: line.toLowerCase().replace(/\s+/g, ' '), s: sec || guessSec(line) };
+  }
+  $('addf').onsubmit = function (e) {
+    e.preventDefault();
+    var n = $('aName').value.trim(), ing = $('aIng').value.split('\n').map(parseLine).filter(Boolean);
+    var t = ($('aB').checked ? 'b' : '') + ($('aL').checked ? 'l' : '') + ($('aD').checked ? 'd' : '');
+    if (!n) return;
+    if (!ing.length) { $('aMsg').textContent = 'Add at least one ingredient.'; return; }
+    var m = { id: 'c' + Date.now().toString(36), n: n, ar: '', t: t || 'ld', sv: Math.max(1, +$('aServ').value || 4), ing: ing };
+    S.custom.push(m); save();
+    $('aMsg').textContent = 'Saved "' + n + '" with ' + ing.length + ' ingredients: ' + ing.map(function (g) { return g.n + ' (' + SEC[g.s].toLowerCase() + ')'; }).join(', ') + '.';
+    $('aName').value = ''; $('aIng').value = '';
+    renderLib();
+  };
+
+  // ---------- shopping list
+  function norm(q, u) { if (u === 'kg') return [q * 1000, 'g']; if (u === 'l') return [q * 1000, 'ml']; return [q, u]; }
+  var WHOLE = { pcs: 1, bunch: 1, pack: 1, can: 1 };
+  function fmtQty(a) {
+    var q = a[0], u = a[1];
+    if (u === 'g' || u === 'ml') {
+      if (q >= 1000) return (Math.ceil(q / 100) / 10) + (u === 'g' ? ' kg' : ' l');
+      return (q >= 100 ? Math.ceil(q / 10) * 10 : Math.ceil(q / 5) * 5) + ' ' + u;
+    }
+    if (WHOLE[u]) { var w = Math.ceil(q - 0.05); w = Math.max(1, w); return u === 'pcs' ? String(w) : w + ' ' + u + (w > 1 && u !== 'bunch' ? 's' : w > 1 ? 'es' : ''); }
+    var r = Math.max(0.25, Math.round(q * 4) / 4);
+    return String(r).replace('0.25', '¼').replace('0.5', '½').replace('0.75', '¾').replace(/^(\d+)\.25$/, '$1¼').replace(/^(\d+)\.5$/, '$1½').replace(/^(\d+)\.75$/, '$1¾') + ' ' + u;
+  }
+  function buildList() {
+    var items = {}, n = 0;
+    for (var k in S.plan) {
+      var m = S.plan[k].id && meal(S.plan[k].id); if (!m) continue; n++;
+      var f = S.ppl / m.sv;
+      m.ing.forEach(function (g) {
+        var a = norm(g.q * f, g.u), key = g.n.toLowerCase() + '|' + a[1];
+        if (S.basics && BASICS[g.n.toLowerCase()]) return;
+        if (!items[key]) items[key] = { n: g.n, u: a[1], q: 0, s: g.s, from: {} };
+        items[key].q += a[0]; items[key].from[m.n] = 1;
+      });
+    }
+    return { items: items, meals: n };
+  }
+  function renderShop() {
+    var L = buildList(), by = {}, cnt = 0;
+    for (var k in L.items) { var it = L.items[k]; (by[it.s] = by[it.s] || []).push([k, it]); cnt++; }
+    var h = '';
+    SECORD.forEach(function (s) {
+      if (!by[s]) return;
+      by[s].sort(function (a, b) { return a[1].n.localeCompare(b[1].n); });
+      h += '<div><h3>' + SEC[s] + '</h3><ul>' + by[s].map(function (p) {
+        var it = p[1], done = !!S.ticks[p[0]], from = Object.keys(it.from);
+        return '<li class="' + (done ? 'done' : '') + '"><label><input type="checkbox" data-tick="' + esc(p[0]) + '"' + (done ? ' checked' : '') + '><span>' + esc(it.n) + (from.length > 1 ? ' <small>· ' + from.length + ' meals</small>' : '') + '</span><span class="q">' + fmtQty([it.q, it.u]) + '</span></label></li>';
+      }).join('') + '</ul></div>';
+    });
+    $('shop').innerHTML = h || '<p class="msg">Your list appears here as you add meals to the week.</p>';
+    var filled = Object.keys(S.plan).length;
+    $('sMeals').textContent = L.meals; $('sItems').textContent = cnt; $('sLeft').textContent = 21 - filled;
+    $('wa').href = 'https://wa.me/?text=' + encodeURIComponent(listText());
+  }
+  function listText() {
+    var L = buildList(), by = {}, lines = ['Shopping list for ' + S.ppl + ' people (' + L.meals + ' meals)'];
+    for (var k in L.items) { if (S.ticks[k]) continue; var it = L.items[k]; (by[it.s] = by[it.s] || []).push(it); }
+    SECORD.forEach(function (s) { if (!by[s]) return; lines.push('', '*' + SEC[s] + '*'); by[s].sort(function (a, b) { return a.n.localeCompare(b.n); }).forEach(function (it) { lines.push('- ' + it.n + ': ' + fmtQty([it.q, it.u])); }); });
+    return lines.join('\n');
+  }
+  $('shop').addEventListener('change', function (e) { var k = e.target.dataset.tick; if (k == null) return; if (e.target.checked) S.ticks[k] = 1; else delete S.ticks[k]; save(); renderShop(); });
+  $('untick').onclick = function () { S.ticks = {}; save(); renderShop(); };
+  $('basics').checked = S.basics;
+  $('basics').onchange = function () { S.basics = this.checked; save(); renderShop(); };
+  $('copy').onclick = function () {
+    var t = listText();
+    function ok() { $('shopMsg').textContent = 'Copied. Ticked items are left out.'; }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(ok, fallback); else fallback();
+    function fallback() { var ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); ok(); } catch (e) { $('shopMsg').textContent = 'Couldn\'t copy. Select the list and copy it by hand.'; } ta.remove(); }
+  };
+  $('print').onclick = function () { window.print(); };
+  $('ppl').value = S.ppl;
+  $('ppl').oninput = function () { var v = Math.round(+this.value); if (v >= 1 && v <= 30) { S.ppl = v; save(); renderWeek(); } };
+  $('clear').onclick = function () { if (Object.keys(S.plan).length && !confirm('Clear the whole week?')) return; S.plan = {}; S.ticks = {}; sel = null; save(); renderWeek(); };
+  $('fill').onclick = function () {
+    // pick varied meals: avoid repeating a dish within the week where possible
+    var used = {}; for (var k in S.plan) if (S.plan[k].id) used[S.plan[k].id] = 1;
+    var added = 0;
+    DAYS.forEach(function (d, di) {
+      SLOTS.forEach(function (s) {
+        var key = di + s[0]; if (S.plan[key]) return;
+        var opts = allMeals().filter(function (m) { return m.t.indexOf(s[0]) >= 0 && !used[m.id]; });
+        if (!opts.length) opts = allMeals().filter(function (m) { return m.t.indexOf(s[0]) >= 0; });
+        if (!opts.length) return;
+        var m = opts[Math.floor(Math.random() * opts.length)]; used[m.id] = 1; S.plan[key] = { id: m.id }; added++;
+      });
+    });
+    save(); sel = null; renderWeek();
+    $('shopMsg').textContent = added ? 'Added ' + added + ' suggestions. Tap any slot to change it.' : 'No empty slots to fill.';
+  };
+  renderWeek();
+})();
+</script>
+</body>
+</html>

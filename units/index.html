@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>UAE Unit Converter · Mariam's Lab</title>
+<meta name="description" content="Type a number and a unit and see every conversion at once: gold tolas with today's value, square feet, imperial and US gallons, fuel economy, AC tons and BTU, cooking cups and the dirham peg.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/units/">
+<meta property="og:title" content="UAE Unit Converter · Mariam's Lab"><meta property="og:description" content="Tolas, square feet, gallons, AC tons, fuel economy and cups, converted as you type."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.pills { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 0; }
+.qin { width: 100%; font: 500 clamp(1.3rem, 4.5vw, 1.9rem) var(--font-display); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 18px; }
+.qin:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.ex { font-size: 0.82rem; color: var(--muted); }
+.ex button { font: inherit; font-family: var(--font-mono); font-size: 0.78rem; color: var(--sat-b); background: none; border: 0; padding: 0 4px; cursor: pointer; text-decoration: underline dotted; }
+.res { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.cv { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 8px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); align-items: center; }
+.cv b { font-family: var(--font-mono); font-size: 1.12rem; font-weight: 500; overflow-wrap: anywhere; cursor: copy; }
+.cv span { font-size: 0.78rem; color: var(--muted); grid-column: 1; }
+.cv.src { border-color: var(--line); opacity: .65; }
+.cv.tgt { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+.star { grid-column: 2; grid-row: 1 / span 2; border: 0; background: none; color: var(--muted); font-size: 1.1rem; cursor: pointer; padding: 4px; }
+.star[aria-pressed="true"] { color: var(--accent); }
+.favs { display: grid; gap: 6px; }
+.fav { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; font-size: 0.88rem; cursor: pointer; background: transparent; color: var(--ink); font: inherit; text-align: start; }
+.fav:hover { border-color: var(--accent); }
+.fav small { color: var(--muted); font-family: var(--font-mono); font-size: 0.78rem; }
+.fav i { font-style: normal; color: var(--muted); }
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+.tile { padding: 12px; border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line)); border-radius: 12px; background: var(--surface); }
+.tile span { font-size: 0.76rem; color: var(--muted); display: block; }
+.tile b { font-family: var(--font-display); font-size: 1.25rem; display: block; }
+.copied { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--accent); color: var(--bg); padding: 6px 14px; border-radius: 99px; font-size: 0.85rem; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 9; }
+.copied.on { opacity: 1; }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Everyday · UAE</span>
+    <h1 style="font-size:var(--step-3)">UAE unit converter.</h1>
+    <p>Type a number and a unit, like "5 tola" or "1450 sqft", and see every useful conversion at once. It covers the units that come up here: gold tolas with today's value, property in square feet, imperial versus US gallons, AC tons and BTU, fuel economy and cooking cups. Star the ones you use.</p>
+  </div>
+  <input class="qin" id="q" autocomplete="off" spellcheck="false" placeholder="e.g. 10 tola, 1200 sq ft, 18000 btu/h, 8 l/100km" aria-label="Number and unit to convert">
+  <p class="ex" id="ex"></p>
+  <p class="msg" id="msg" role="status" style="margin-top:4px"></p>
+  <div class="pills" id="cats" style="margin:8px 0 16px"></div>
+  <div class="game">
+    <div class="panel">
+      <div class="tiles" id="value" hidden></div>
+      <div class="res" id="res"></div>
+      <p class="msg" id="note"></p>
+    </div>
+    <div class="panel">
+      <span class="label">Favourites</span>
+      <div class="favs" id="favs"></div>
+      <span class="label" style="margin-top:6px">Good to know</span>
+      <p class="fact" style="margin:0">A <b>tola</b> is 11.6638 grams, three-eighths of a troy ounce. Gold is priced per troy ounce (31.10 g), not the everyday ounce (28.35 g). The 10-tola TT bar sold in Dubai's souks weighs 116.64 g.</p>
+      <p class="fact" style="margin:0">A UK (imperial) gallon is 4.546 litres, a US gallon 3.785. Older car brochures from the region often quote miles per imperial gallon. An AC <b>ton</b> isn't a weight: it's the cooling power of melting one ton of ice a day, 12,000 BTU an hour or about 3.5 kW of heat moved. A typical bedroom split unit is 1.5 to 2 tons.</p>
+      <p class="fact" style="margin:0">The dirham has been pegged to the US dollar at 3.6725 since 1997, so this rate doesn't move. Gold value is spot price only; shops add making charges and VAT.</p>
+    </div>
+  </div>
+</div></main>
+<div class="copied" id="copied">Copied</div>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var TOLA = 11.6638, TROY = 31.1034768, PEG = 3.6725;
+  // unit: [id, label, factor-to-base or {to,from}, aliases]
+  var C = {
+    gold: { name: 'Gold', base: 'g', u: [['g', 'grams', 1, 'g gram grams gm gms'], ['tola', 'tola', TOLA, 'tola tolas tolah tole'], ['ozt', 'troy ounces', TROY, 'ozt troyoz troyounce troyounces ozt'], ['tt', '10-tola TT bars', TOLA * 10, 'tt ttbar ttbars'], ['kg', 'kilograms', 1000, ''], ['mithqal', 'mithqal', 4.25, 'mithqal mithqals mithkal misqal'], ['oz', 'ounces (everyday)', 28.349523125, '']] },
+    area: { name: 'Property area', base: 'm2', u: [['sqft', 'square feet', 0.09290304, 'sqft sqfeet squarefeet squarefoot ft2 ft² sf'], ['m2', 'square metres', 1, 'm2 m² sqm sqmeter sqmetre sqmeters sqmetres squaremeter squaremetre squaremeters squaremetres'], ['sqyd', 'square yards', 0.83612736, 'sqyd sqyards yd2 squareyards'], ['acre', 'acres', 4046.8564224, 'acre acres ac'], ['ha', 'hectares', 10000, 'ha hectare hectares'], ['km2', 'square km', 1e6, 'km2 km² sqkm'], ['plot', 'plots of 15,000 sq ft', 0.09290304 * 15000, 'plot plots']] },
+    ppa: { name: 'Price per area', base: 'pm2', u: [['psf', 'AED per sq ft', 1 / 0.09290304, 'aed/sqft aedpersqft psf persqft /sqft dhs/sqft aedsqft'], ['pm2', 'AED per m²', 1, 'aed/m2 aed/sqm aedpersqm aedperm2 psm perm2 persqm /m2 /sqm dhs/m2 aedm2']] },
+    len: { name: 'Length', base: 'm', u: [['mm', 'millimetres', 0.001, 'mm millimeter millimetre millimeters millimetres'], ['cm', 'centimetres', 0.01, 'cm centimeter centimetre centimeters centimetres'], ['m', 'metres', 1, 'm meter metre meters metres'], ['km', 'kilometres', 1000, 'km kilometer kilometre kilometers kilometres kms'], ['in', 'inches', 0.0254, 'in inch inches "'], ['ft', 'feet', 0.3048, 'ft foot feet \''], ['yd', 'yards', 0.9144, 'yd yard yards'], ['mi', 'miles', 1609.344, 'mi mile miles'], ['nmi', 'nautical miles', 1852, 'nmi nm nauticalmile nauticalmiles']] },
+    mass: { name: 'Weight', base: 'kg', u: [['g', 'grams', 0.001, 'g gram grams'], ['kg', 'kilograms', 1, 'kg kgs kilo kilos kilogram kilograms'], ['t', 'tonnes', 1000, 't tonne tonnes ton tons metricton'], ['oz', 'ounces', 0.028349523125, 'oz ounce ounces'], ['lb', 'pounds', 0.45359237, 'lb lbs pound pounds'], ['st', 'stone', 6.35029318, 'st stone stones']] },
+    vol: { name: 'Volume', base: 'l', u: [['ml', 'millilitres', 0.001, 'ml millilitre milliliter millilitres milliliters'], ['l', 'litres', 1, 'l lt ltr litre liter litres liters'], ['impgal', 'UK (imperial) gallons', 4.54609, 'impgal ukgal imperialgallon imperialgallons ukgallon ukgallons'], ['usgal', 'US gallons', 3.785411784, 'gal gallon gallons usgal usgallon usgallons'], ['m3', 'cubic metres', 1000, 'm3 m³ cubicmeter cubicmetre cbm'], ['ig', 'imperial gallons (old water bills)', 4.54609, ''], ['bbl', 'oil barrels', 158.987294928, 'bbl barrel barrels'], ['usfloz', 'US fl oz', 0.0295735295625, 'floz usfloz fluidounce fluidounces'], ['cuft', 'cubic feet', 28.316846592, 'cuft ft3 cubicfeet cf']] },
+    temp: { name: 'Temperature', base: 'c', u: [['c', '°C', { to: function (x) { return x; }, from: function (x) { return x; } }, 'c °c celsius centigrade degc'], ['f', '°F', { to: function (x) { return (x - 32) * 5 / 9; }, from: function (x) { return x * 9 / 5 + 32; } }, 'f °f fahrenheit degf'], ['k', 'kelvin', { to: function (x) { return x - 273.15; }, from: function (x) { return x + 273.15; } }, 'k kelvin']] },
+    fuel: { name: 'Fuel economy', base: 'kpl', u: [['l100', 'L/100 km', { to: function (x) { return 100 / x; }, from: function (x) { return 100 / x; } }, 'l/100km l/100 l100km l100 litresper100km'], ['kpl', 'km per litre', 1, 'km/l kmpl kml kmperlitre kmperliter'], ['mpgus', 'mpg (US)', { to: function (x) { return x * 1.609344 / 3.785411784; }, from: function (x) { return x / 1.609344 * 3.785411784; } }, 'mpg mpgus usmpg'], ['mpguk', 'mpg (UK)', { to: function (x) { return x * 1.609344 / 4.54609; }, from: function (x) { return x / 1.609344 * 4.54609; } }, 'mpguk ukmpg mpgimp']] },
+    speed: { name: 'Speed', base: 'ms', u: [['kmh', 'km/h', 1 / 3.6, 'km/h kmh kph kmph'], ['mph', 'mph', 0.44704, 'mph mi/h'], ['ms', 'm/s', 1, 'm/s ms mps'], ['kn', 'knots', 1852 / 3600, 'kn kt kts knot knots']] },
+    energy: { name: 'Energy', base: 'kwh', u: [['kwh', 'kWh', 1, 'kwh kilowatthour kilowatthours units'], ['mj', 'megajoules', 1 / 3.6, 'mj megajoule megajoules'], ['btu', 'BTU', 1 / 3412.14163, 'btu btus'], ['kcal', 'kcal (food calories)', 1 / 860.420650, 'kcal calories cal kilocalories'], ['trh', 'ton-hours of cooling', 12000 / 3412.14163, 'trh tonhour tonhours ton-hour rth'], ['mmbtu', 'MMBtu (gas)', 1e6 / 3412.14163, 'mmbtu']] },
+    power: { name: 'Power & AC', base: 'kw', u: [['kw', 'kW', 1, 'kw kilowatt kilowatts'], ['w', 'watts', 0.001, 'w watt watts'], ['btuh', 'BTU per hour', 1 / 3412.14163, 'btu/h btuh btu/hr btuhr btuperhour'], ['tr', 'tons of refrigeration', 12000 / 3412.14163, 'tr ton(ac) tonac tonsac actons acton rt tonsofrefrigeration tonrefrigeration'], ['hp', 'horsepower', 0.745699872, 'hp horsepower bhp']] },
+    cook: { name: 'Cooking', base: 'ml', u: [['cupus', 'US cups', 236.5882365, 'cup cups uscup uscups'], ['cupm', 'metric cups (250 ml)', 250, 'metriccup metriccups'], ['tbsp', 'tablespoons', 15, 'tbsp tablespoon tablespoons tbs tbl'], ['tsp', 'teaspoons', 5, 'tsp teaspoon teaspoons'], ['ml', 'ml', 1, ''], ['floz', 'US fl oz', 29.5735295625, '']] },
+    money: { name: 'AED ↔ USD', base: 'aed', u: [['aed', 'UAE dirhams', 1, 'aed dhs dh dirham dirhams'], ['usd', 'US dollars', PEG, 'usd $ dollar dollars us$'], ['fils', 'fils', 0.01, 'fils']] }
+  };
+  var ORDER = ['gold', 'area', 'ppa', 'len', 'mass', 'vol', 'temp', 'fuel', 'speed', 'energy', 'power', 'cook', 'money'];
+  // alias lookup; later categories don't override earlier ones, except preferred mappings
+  var ALIAS = {};
+  function key(s) { return s.toLowerCase().replace(/\s+|\./g, ''); }
+  ORDER.forEach(function (c) { C[c].u.forEach(function (u) { (u[3] + ' ' + u[0]).split(' ').forEach(function (a) { a = key(a); if (a && !ALIAS[a]) ALIAS[a] = [c, u[0]]; }); }); });
+  // context-sensitive defaults
+  ALIAS.g = ['mass', 'g']; ALIAS.gram = ALIAS.grams = ['mass', 'g']; ALIAS.ton = ALIAS.tons = ['mass', 't']; ALIAS.oz = ['mass', 'oz'];
+  ALIAS.cup = ALIAS.cups = ['cook', 'cupus']; ALIAS.ml = ['vol', 'ml']; ALIAS['sqmetres'] = ['area', 'm2'];
+  var FOOD = [['water / milk', 1], ['flour', 125 / 236.588], ['sugar', 200 / 236.588], ['rice (uncooked)', 185 / 236.588], ['butter / ghee', 227 / 236.588], ['honey', 340 / 236.588]];
+
+  function unit(c, id) { return C[c].u.filter(function (u) { return u[0] === id; })[0]; }
+  function toBase(c, id, x) { var f = unit(c, id)[2]; return typeof f === 'number' ? x * f : f.to(x); }
+  function fromBase(c, id, x) { var f = unit(c, id)[2]; return typeof f === 'number' ? x / f : f.from(x); }
+  function conv(c, a, b, x) { return fromBase(c, b, toBase(c, a, x)); }
+  function fmt(x) {
+    if (!isFinite(x)) return '—';
+    var ax = Math.abs(x);
+    if (ax !== 0 && (ax < 1e-4 || ax >= 1e12)) return x.toExponential(4);
+    var d = ax >= 1000 ? 2 : ax >= 1 ? 4 : 6;
+    var s = x.toLocaleString('en-US', { maximumFractionDigits: d, maximumSignificantDigits: ax >= 1e6 ? 21 : 6 });
+    return s;
+  }
+
+  var S = { favs: [['tola', 'gold', 'g'], ['sqft', 'area', 'm2'], ['psf', 'ppa', 'pm2'], ['tr', 'power', 'btuh'], ['l100', 'fuel', 'kpl'], ['usd', 'money', 'aed']], last: '10 tola' };
+  try { var sv = JSON.parse(localStorage.getItem('unitsConv') || 'null'); if (sv) for (var k in sv) S[k] = sv[k]; } catch (e) {}
+  function save() { try { localStorage.setItem('unitsConv', JSON.stringify(S)); } catch (e) {} }
+  var gold = null;
+  fetch('../assets/gold.json').then(function (r) { return r.json(); }).then(function (j) { if (j && j.xau_usd_oz > 0) { gold = j; run(); } }).catch(function () {});
+
+  var cur = null; // {c, u, x, to}
+  function parse(s) {
+    s = s.trim().replace(/[×x]\s*10\^/i, 'e');
+    if (!s) return null;
+    var m = s.match(/^([-+−]?\s*(?:\d{1,3}(?:,\d{3})+|\d+)?(?:\.\d+)?(?:e[-+]?\d+)?)\s*(.*)$/i);
+    var numTxt = m ? m[1].replace(/[,\s]/g, '').replace('−', '-') : '', rest = m ? m[2] : s;
+    var x = numTxt === '' || numTxt === '-' || numTxt === '+' ? 1 : parseFloat(numTxt);
+    if (isNaN(x)) return null;
+    var parts = rest.split(/\s+(?:to|in|into|as)\s+|\s*(?:->|→|=)\s*/i), from = parts[0] ? key(parts[0]) : '', to = parts[1] ? key(parts[1]) : '';
+    if (!from) return cur ? { c: cur.c, u: cur.u, x: x, to: null, keep: true } : null;
+    var a = ALIAS[from] || ALIAS[from.replace(/s$/, '')];
+    if (!a) return { err: 'I don\'t know the unit "' + parts[0] + '".' };
+    var t = null;
+    if (to) {
+      // prefer a target within the same category
+      var hit = C[a[0]].u.filter(function (u) { return (u[3] + ' ' + u[0]).split(' ').map(key).indexOf(to) >= 0 || key(u[1]) === to; })[0];
+      if (!hit) { var b = ALIAS[to] || ALIAS[to.replace(/s$/, '')]; if (b) { var hit2 = unit(a[0], b[1]); if (hit2) hit = hit2; else if (C[b[0]].u.some(function () { return true; }) && unit(b[0], a[1])) { a = [b[0], a[1]]; hit = unit(b[0], b[1]); } } }
+      if (hit) t = hit[0];
+    }
+    return { c: a[0], u: a[1], x: x, to: t };
+  }
+  var food = 0;
+  function run() {
+    var p = parse($('q').value);
+    if (!p) { $('res').innerHTML = ''; $('value').hidden = true; $('msg').textContent = ''; $('note').textContent = ''; renderFavs(); return; }
+    if (p.err) { $('res').innerHTML = ''; $('value').hidden = true; $('note').textContent = ''; $('msg').textContent = p.err + ' Try one of the examples, or pick a category.'; return; }
+    cur = p; $('msg').textContent = '';
+    S.last = $('q').value; save();
+    [].forEach.call($('cats').children, function (b) { b.setAttribute('aria-pressed', b.dataset.c === p.c); });
+    var cat = C[p.c], h = '';
+    var list = cat.u.filter(function (u) { return u[0] !== 'ig'; });
+    if (p.to) list.sort(function (a, b) { return (b[0] === p.to) - (a[0] === p.to); });
+    list.forEach(function (u) {
+      var v = conv(p.c, p.u, u[0], p.x), fav = isFav(p.u, p.c, u[0]);
+      h += '<div class="cv' + (u[0] === p.u ? ' src' : '') + (u[0] === p.to ? ' tgt' : '') + '"><b data-copy="' + fmt(v) + '">' + fmt(v) + '</b><span>' + u[1] + '</span>' + (u[0] !== p.u ? '<button class="star" type="button" data-f="' + u[0] + '" aria-pressed="' + fav + '" aria-label="Favourite ' + unit(p.c, p.u)[1] + ' to ' + u[1] + '">' + (fav ? '★' : '☆') + '</button>' : '') + '</div>';
+    });
+    $('res').innerHTML = h;
+    // extras
+    var vt = '', note = '';
+    if (p.c === 'gold') {
+      var g = toBase('gold', p.u, p.x);
+      if (gold) {
+        var perG = gold.xau_usd_oz / TROY * PEG;
+        vt = [[24, 'AED, 24K'], [22, 'AED, 22K'], [21, 'AED, 21K'], [18, 'AED, 18K']].map(function (k) { return '<div class="tile"><span>' + k[1] + '</span><b>' + Math.round(g * perG * k[0] / 24).toLocaleString('en-US') + '</b></div>'; }).join('');
+        note = 'Spot value at US$' + gold.xau_usd_oz.toFixed(0) + ' per troy ounce (' + perG.toFixed(2) + ' AED per gram of 24K), updated ' + new Date(gold.updated).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) + '. Shop prices add making charges and 5% VAT on jewellery.';
+      } else note = 'Today\'s gold price couldn\'t be loaded, so only weights are shown.';
+    } else if (p.c === 'cook') {
+      var ml = toBase('cook', p.u, p.x);
+      vt = FOOD.map(function (f, i) { return '<div class="tile" style="cursor:pointer" data-food="' + i + '"><span>grams of ' + f[0] + '</span><b>' + fmt(Math.round(ml * f[1])) + '</b></div>'; }).join('');
+      note = 'Grams are approximate: flour 125 g, sugar 200 g, rice 185 g, butter 227 g per US cup. Spoon flour into the cup and level it.';
+    } else if (p.c === 'ppa') {
+      note = 'Handy for comparing listings: Dubai prices are usually quoted per square foot, while some developers and Abu Dhabi documents use square metres.';
+    } else if (p.c === 'area') {
+      var m2 = toBase('area', p.u, p.x);
+      note = 'One square metre is 10.764 square feet. ' + (m2 > 30 && m2 < 2000 ? 'For scale, a standard 7-a-side football pitch is about 1,800 m².' : '');
+    } else if (p.c === 'fuel') {
+      note = 'Lower L/100 km is better; higher km/L or mpg is better. UK mpg figures look about 20% bigger than US mpg for the same car.';
+    } else if (p.c === 'power') {
+      var kw = toBase('power', p.u, p.x);
+      note = 'Cooling ' + fmt(kw) + ' kW of heat. A modern split AC uses roughly a third of that in electricity (' + fmt(kw / 3.2) + ' kW at an efficiency ratio of 3.2), so an hour costs about ' + fmt(kw / 3.2 * 0.38) + ' AED at 38 fils per kWh.';
+    } else if (p.c === 'energy') {
+      note = 'DEWA and ADDC bills count electricity in kWh, which they call units. Gas is sold in MMBtu.';
+    } else if (p.c === 'money') {
+      note = 'Fixed peg: 1 USD = 3.6725 AED. Banks and exchange houses add their own margin.';
+    } else if (p.c === 'vol') {
+      note = 'Petrol pumps here sell by the litre. US recipes and car specs use US gallons; old British ones use imperial.';
+    }
+    $('value').innerHTML = vt; $('value').hidden = !vt; $('note').textContent = note;
+    renderFavs();
+  }
+  function isFav(a, c, b) { return S.favs.some(function (f) { return f[0] === a && f[1] === c && f[2] === b; }); }
+  $('res').onclick = function (e) {
+    var s = e.target.closest('[data-f]');
+    if (s && cur) {
+      var f = [cur.u, cur.c, s.dataset.f];
+      if (isFav(f[0], f[1], f[2])) S.favs = S.favs.filter(function (x) { return !(x[0] === f[0] && x[1] === f[1] && x[2] === f[2]); });
+      else S.favs.unshift(f);
+      S.favs = S.favs.slice(0, 12); save(); run(); return;
+    }
+    var c = e.target.closest('[data-copy]');
+    if (c && navigator.clipboard) navigator.clipboard.writeText(c.dataset.copy.replace(/,/g, '')).then(function () { $('copied').classList.add('on'); setTimeout(function () { $('copied').classList.remove('on'); }, 900); }, function () {});
+  };
+  function renderFavs() {
+    $('favs').innerHTML = S.favs.length ? S.favs.map(function (f, i) {
+      var a = unit(f[1], f[0]), b = unit(f[1], f[2]); if (!a || !b) return '';
+      var x = cur && cur.c === f[1] && cur.u === f[0] ? cur.x : 1;
+      return '<button class="fav" type="button" data-i="' + i + '"><span>' + fmt(x) + ' ' + a[1] + ' <i>→</i> ' + b[1] + '</span><small>' + fmt(conv(f[1], f[0], f[2], x)) + '</small></button>';
+    }).join('') : '<p class="msg">Tap ☆ on any result to keep it here.</p>';
+  }
+  $('favs').onclick = function (e) {
+    var b = e.target.closest('[data-i]'); if (!b) return;
+    var f = S.favs[+b.dataset.i], a = unit(f[1], f[0]), t = unit(f[1], f[2]);
+    var x = cur && cur.c === f[1] ? (cur.u === f[0] ? cur.x : 1) : 1;
+    $('q').value = x + ' ' + shortName(f[1], f[0]) + ' to ' + shortName(f[1], f[2]); run(); $('q').focus();
+  };
+  function shortName(c, id) { var u = unit(c, id), al = u[3].split(' ').filter(Boolean); var s = al[0] || id; return (ALIAS[key(s)] && ALIAS[key(s)][0] === c && ALIAS[key(s)][1] === id) ? s : id; }
+  $('value').onclick = function (e) { var t = e.target.closest('[data-food]'); if (t) food = +t.dataset.food; };
+  $('cats').innerHTML = ORDER.map(function (c) { return '<button class="sm" type="button" data-c="' + c + '" aria-pressed="false">' + C[c].name + '</button>'; }).join('');
+  var CDEF = { gold: '10 tola', area: '1200 sqft', ppa: '1500 aed/sqft', len: '100 ft', mass: '150 lb', vol: '10 us gal', temp: '113 f', fuel: '8 l/100km', speed: '120 km/h', energy: '100 kwh', power: '1.5 tr', cook: '1 cup', money: '100 usd' };
+  $('cats').onclick = function (e) {
+    var b = e.target.closest('[data-c]'); if (!b) return;
+    var x = cur ? cur.x : 1; var def = CDEF[b.dataset.c];
+    $('q').value = def; run(); $('q').focus();
+  };
+  var EX = ['5 tola', '1450 sqft', '1200 aed/sqft', '24000 btu/h', '30 mpg', '45 °C to f', '2 cups', '500 usd', '20 imp gal', '10 tt'];
+  $('ex').innerHTML = 'Try ' + EX.map(function (x) { return '<button type="button">' + x + '</button>'; }).join('');
+  $('ex').onclick = function (e) { if (e.target.tagName === 'BUTTON') { $('q').value = e.target.textContent; run(); } };
+  $('q').oninput = run;
+  $('q').value = S.last || '10 tola';
+  run();
+})();
+</script>
+</body>
+</html>

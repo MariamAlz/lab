@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Noise That Matches Your Room · Mariam's Lab</title>
+<meta name="description" content="Listen to your room for a few seconds, then play soft masking noise shaped to the same sound, so the AC hum, traffic or neighbours blend in. Nothing is recorded or uploaded.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/masking-noise/">
+<meta property="og:title" content="Noise That Matches Your Room · Mariam's Lab"><meta property="og:description" content="Masking noise shaped to your room's own sound."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.sm:disabled { opacity: .45; cursor: default; }
+.go { font: 600 1rem var(--font-body); color: var(--bg); background: var(--sat-b); border: 0; border-radius: 999px; padding: 11px 22px; cursor: pointer; }
+.go.stop { background: var(--sat-c); }
+.go:disabled { opacity: .5; cursor: default; }
+.pills { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 0; }
+.plot { position: relative; border: 1px solid var(--line); border-radius: var(--radius); background: rgba(7,10,24,.82); overflow: hidden; }
+.plot canvas { width: 100%; height: 260px; display: block; }
+.legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 0.76rem; color: var(--muted); }
+.legend span::before { content: ''; display: inline-block; width: 14px; height: 3px; border-radius: 2px; margin-inline-end: 5px; vertical-align: 3px; background: var(--c); }
+.meter { height: 8px; border-radius: 99px; background: var(--line); overflow: hidden; }
+.meter i { display: block; height: 100%; width: 0; background: var(--sat-b); transition: width .1s linear; }
+.sl { display: grid; gap: 4px; }
+.sl > span { display: flex; justify-content: space-between; font-size: 0.86rem; }
+.sl > span b { font-family: var(--font-mono); font-weight: 500; font-size: 0.8rem; color: var(--muted); }
+.sl input { width: 100%; accent-color: var(--accent); }
+.ab { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+.ab button { font: inherit; font-size: 0.86rem; border: 0; padding: 8px 10px; background: transparent; color: var(--ink); cursor: pointer; }
+.ab button[aria-pressed="true"] { background: var(--accent); color: var(--bg); }
+.box { border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; display: grid; gap: 14px; background: rgba(7,10,24,.5); }
+.clock { font-family: var(--font-mono); font-size: 0.9rem; color: var(--accent); }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Sound · Sleep · Focus</span>
+    <h1 style="font-size:var(--step-3)">Noise that matches your room.</h1>
+    <p>White noise apps play the same hiss everywhere. This listens to your room for a few seconds, the AC, the traffic on Sheikh Zayed Road, the neighbour's TV, then plays soft noise with the same shape. Sudden sounds stand out less against it, so they wake you or distract you less. Nothing is recorded or sent anywhere.</p>
+  </div>
+  <div class="game">
+    <div class="panel">
+      <div class="plot"><canvas id="cv" aria-label="Room spectrum and masking noise shape"></canvas></div>
+      <div class="legend"><span style="--c:var(--sat-b)">Your room (measured)</span><span style="--c:var(--accent)">Masking noise (A)</span><span style="--c:var(--muted)">Plain noise (B)</span></div>
+      <div class="box">
+        <span class="label">1 · Listen to the room</span>
+        <p class="msg" style="margin:0">Keep the room as it normally is, with the AC on, and stay quiet. Put your phone or laptop where you'll be sitting or sleeping.</p>
+        <div class="pills">
+          <button class="go" type="button" id="rec">Listen for</button>
+          <div class="pills" id="secs"></div>
+        </div>
+        <div class="meter"><i id="meter"></i></div>
+        <p class="msg" id="recMsg" role="status"></p>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="box">
+        <span class="label">2 · Play</span>
+        <div class="pills"><button class="go" type="button" id="play">▶ Play</button><span class="clock" id="clock"></span></div>
+        <div class="ab" role="group" aria-label="Which noise"><button type="button" id="bA" aria-pressed="true">A · Matched</button><button type="button" id="bB" aria-pressed="false">B · Plain pink</button></div>
+        <label class="sl"><span>Cover strength <b id="vStr"></b></span><input type="range" id="str" min="0" max="100" value="45"></label>
+        <label class="sl"><span>Tone, darker ↔ brighter <b id="vTilt"></b></span><input type="range" id="tilt" min="-6" max="2" step="0.5" value="-1.5"></label>
+        <label class="sl"><span>How closely to match <b id="vMatch"></b></span><input type="range" id="match" min="0" max="100" value="80"></label>
+        <div><span class="label">Sleep timer</span><div class="pills" id="timer" style="margin-top:6px"></div></div>
+        <p class="msg" id="playMsg" role="status"></p>
+      </div>
+      <p class="fact" style="margin:0">Masking works because your ear notices change, not level. A door closing or a motorbike stands out against silence but blends into a steady sound that already covers the same pitches. Noise shaped like the room fills the gaps between the AC's hum and hiss without needing to be loud. Start low and raise it only until the sounds that bother you stop popping out.</p>
+      <p class="fact" style="margin:0">How it's made: the microphone signal is split into 2,048 frequency bins about 20 times a second for the time you choose, and the power in each is averaged. Those are grouped into 16 half-octave bands. White noise is then passed through 16 equaliser filters set to those band levels, plus a gentle downward slope so it never sounds harsh. The audio stays in memory and the microphone is switched off right after. Only the 16 band levels are kept, in this browser, so the shape is ready next time. Keep it at a comfortable volume, and for babies keep the speaker across the room and quiet.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var BANDS = []; for (var i = 0; i < 16; i++) BANDS.push(62.5 * Math.pow(2, i / 2)); // 62.5 Hz … 11.3 kHz, half-octave
+  var Q = 2.87; // ~half-octave bandwidth
+  // a typical air-conditioned room as a starting point (dB, relative)
+  var DEFAULT = [6, 9, 8, 5, 3, 1, 0, -1, -2, -3, -4, -6, -8, -10, -13, -16];
+  var S = { secs: 8, str: 45, tilt: -1.5, match: 80, mode: 'A', room: null };
+  try { var sv = JSON.parse(localStorage.getItem('maskingNoise') || 'null'); if (sv) for (var k in sv) if (k in S) S[k] = sv[k]; } catch (e) {}
+  // only the band levels (16 numbers) are kept, so the same shape is ready next time
+  function save() { try { localStorage.setItem('maskingNoise', JSON.stringify(S)); } catch (e) {} }
+
+  var ctx = null, src = null, filters = [], pinkF = [], gA, gB, master, playing = false;
+  function ac() { if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)(); return ctx; }
+
+  // ---------- target band gains
+  function room() { return S.room || DEFAULT; }
+  function smooth(a) { return a.map(function (v, i) { var p = a[Math.max(0, i - 1)], n = a[Math.min(a.length - 1, i + 1)]; return 0.25 * p + 0.5 * v + 0.25 * n; }); }
+  function targetGains() {
+    var r = smooth(room()), mean = r.reduce(function (s, x) { return s + x; }, 0) / r.length, m = S.match / 100;
+    return r.map(function (v, i) {
+      var g = (v - mean) * m + S.tilt * Math.log2(BANDS[i] / 1000);
+      return Math.max(-18, Math.min(15, g));
+    });
+  }
+  // fit filter gains so the cascade's response at band centres hits the target (two refinement passes)
+  function fitGains(nodes, target) {
+    var gains = target.slice();
+    nodes.forEach(function (f, i) { f.gain.value = gains[i]; });
+    var fr = new Float32Array(BANDS), mag = new Float32Array(BANDS.length), ph = new Float32Array(BANDS.length);
+    for (var it = 0; it < 3; it++) {
+      var tot = new Float32Array(BANDS.length);
+      nodes.forEach(function (f) { f.getFrequencyResponse(fr, mag, ph); for (var j = 0; j < mag.length; j++) tot[j] += 20 * Math.log10(mag[j]); });
+      gains = gains.map(function (g, j) { return Math.max(-24, Math.min(20, g + 0.6 * (target[j] - tot[j]))); });
+      nodes.forEach(function (f, i) { f.gain.value = gains[i]; });
+    }
+    return gains;
+  }
+  function response(nodes, freqs) {
+    var fr = new Float32Array(freqs), mag = new Float32Array(freqs.length), ph = new Float32Array(freqs.length), tot = new Float32Array(freqs.length);
+    nodes.forEach(function (f) { f.getFrequencyResponse(fr, mag, ph); for (var j = 0; j < mag.length; j++) tot[j] += 20 * Math.log10(mag[j]); });
+    return tot;
+  }
+
+  // ---------- audio graph
+  function noiseBuffer(c) {
+    var len = c.sampleRate * 8, b = c.createBuffer(2, len, c.sampleRate);
+    for (var ch = 0; ch < 2; ch++) { var d = b.getChannelData(ch); for (var i = 0; i < len; i++) d[i] = Math.random() * 2 - 1; }
+    // short crossfade at the loop point so the seam is inaudible
+    for (ch = 0; ch < 2; ch++) { var e = b.getChannelData(ch), n = 2048; for (i = 0; i < n; i++) { var w = i / n; e[len - n + i] = e[len - n + i] * (1 - w) + e[i] * w; } }
+    return b;
+  }
+  function build() {
+    var c = ac();
+    if (!filters.length) {
+      filters = BANDS.map(function (f) { var b = c.createBiquadFilter(); b.type = 'peaking'; b.frequency.value = f; b.Q.value = Q; return b; });
+      pinkF = BANDS.map(function (f) { var b = c.createBiquadFilter(); b.type = 'peaking'; b.frequency.value = f; b.Q.value = Q; return b; });
+      gA = c.createGain(); gB = c.createGain(); master = c.createGain(); master.gain.value = 0;
+      for (var i = 0; i < filters.length - 1; i++) { filters[i].connect(filters[i + 1]); pinkF[i].connect(pinkF[i + 1]); }
+      var lpA = c.createBiquadFilter(); lpA.type = 'lowpass'; lpA.frequency.value = 14000;
+      filters[filters.length - 1].connect(lpA); lpA.connect(gA);
+      pinkF[pinkF.length - 1].connect(gB);
+      gA.connect(master); gB.connect(master); master.connect(c.destination);
+    }
+    apply();
+  }
+  var trimA = 1, trimB = 1;
+  function apply() {
+    if (!filters.length) { draw(); return; }
+    var tA = targetGains(), tB = BANDS.map(function (f) { return -3 * Math.log2(f / 1000); }); // pink: -3 dB/octave
+    fitGains(filters, tA); fitGains(pinkF, tB);
+    // equal loudness-ish: normalise each path's average band level to 0 dB, and keep peaks from clipping
+    trimA = norm(filters); trimB = norm(pinkF);
+    setMix(0.15);
+    draw();
+  }
+  function norm(nodes) {
+    var r = response(nodes, BANDS), p = 0; r.forEach(function (d) { p += Math.pow(10, d / 10); }); p /= r.length;
+    return 1 / Math.sqrt(p);
+  }
+  function level() { var s = S.str / 100; return s === 0 ? 0 : 0.5 * Math.pow(10, (s - 1) * 40 / 20); } // 40 dB range
+  function setMix(t) {
+    if (!gA) return;
+    var c = ac(), now = c.currentTime;
+    gA.gain.setTargetAtTime(S.mode === 'A' ? trimA : 0, now, t);
+    gB.gain.setTargetAtTime(S.mode === 'B' ? trimB : 0, now, t);
+    if (playing) master.gain.setTargetAtTime(level(), now, 0.3);
+  }
+  function play() {
+    build();
+    var c = ac(); if (c.state === 'suspended') c.resume();
+    src = c.createBufferSource(); src.buffer = noiseBuffer(c); src.loop = true;
+    src.connect(filters[0]); src.connect(pinkF[0]); src.start();
+    playing = true; master.gain.cancelScheduledValues(c.currentTime); master.gain.setValueAtTime(0, c.currentTime); setMix(0.05);
+    $('play').textContent = '■ Stop'; $('play').classList.add('stop');
+    $('playMsg').textContent = S.room ? 'Playing noise matched to your room.' : 'Playing a typical air-conditioned room shape. Listen to your room first for a closer match.';
+  }
+  function stop(fade) {
+    if (!playing) return;
+    var c = ac(), s = src; playing = false;
+    master.gain.cancelScheduledValues(c.currentTime); master.gain.setTargetAtTime(0, c.currentTime, fade ? fade / 4 : 0.08);
+    setTimeout(function () { try { s.stop(); s.disconnect(); } catch (e) {} }, (fade || 0.4) * 1000 + 200);
+    $('play').textContent = '▶ Play'; $('play').classList.remove('stop');
+    clearTimer();
+  }
+  $('play').onclick = function () { if (playing) { stop(); $('playMsg').textContent = 'Stopped.'; } else play(); };
+  function setMode(m) { S.mode = m; save(); $('bA').setAttribute('aria-pressed', m === 'A'); $('bB').setAttribute('aria-pressed', m === 'B'); setMix(0.15); draw(); }
+  $('bA').onclick = function () { setMode('A'); }; $('bB').onclick = function () { setMode('B'); };
+  function sliders() {
+    $('str').value = S.str; $('tilt').value = S.tilt; $('match').value = S.match;
+    $('vStr').textContent = S.str + '%'; $('vTilt').textContent = (S.tilt > 0 ? '+' : '') + S.tilt + ' dB/oct'; $('vMatch').textContent = S.match + '%';
+  }
+  $('str').oninput = function () { S.str = +this.value; sliders(); save(); setMix(0.1); };
+  $('tilt').oninput = function () { S.tilt = +this.value; sliders(); save(); apply(); };
+  $('match').oninput = function () { S.match = +this.value; sliders(); save(); apply(); };
+  document.addEventListener('keydown', function (e) { if (e.target.tagName === 'INPUT' && e.target.type !== 'range') return; if (e.key === 'a' || e.key === 'A') setMode('A'); if (e.key === 'b' || e.key === 'B') setMode('B'); });
+
+  // ---------- timer
+  var tEnd = 0, tInt = null, fadeT = null;
+  var TIMES = [[0, 'Off'], [15, '15 min'], [30, '30 min'], [60, '1 hour'], [90, '90 min'], [480, '8 hours']];
+  $('timer').innerHTML = TIMES.map(function (t) { return '<button class="sm" type="button" data-t="' + t[0] + '" aria-pressed="' + (t[0] === 0) + '">' + t[1] + '</button>'; }).join('');
+  function clearTimer() { clearInterval(tInt); clearTimeout(fadeT); tEnd = 0; $('clock').textContent = ''; [].forEach.call($('timer').children, function (b) { b.setAttribute('aria-pressed', b.dataset.t === '0'); }); }
+  $('timer').onclick = function (e) {
+    var b = e.target.closest('[data-t]'); if (!b) return;
+    var m = +b.dataset.t; clearTimer(); if (!m) return;
+    [].forEach.call($('timer').children, function (x) { x.setAttribute('aria-pressed', x === b); });
+    if (!playing) play();
+    tEnd = Date.now() + m * 60000;
+    fadeT = setTimeout(function () { stop(30); $('playMsg').textContent = 'Timer finished. Faded out.'; }, Math.max(0, m * 60000 - 30000));
+    tInt = setInterval(function () { var l = Math.max(0, tEnd - Date.now()), s = Math.round(l / 1000); $('clock').textContent = 'stops in ' + Math.floor(s / 60) + ':' + ('0' + s % 60).slice(-2); }, 1000);
+  };
+
+  // ---------- measuring
+  $('secs').innerHTML = [5, 8, 10].map(function (s) { return '<button class="sm" type="button" data-s="' + s + '" aria-pressed="' + (s === S.secs) + '">' + s + ' s</button>'; }).join('');
+  $('secs').onclick = function (e) { var b = e.target.closest('[data-s]'); if (!b) return; S.secs = +b.dataset.s; save(); [].forEach.call($('secs').children, function (x) { x.setAttribute('aria-pressed', x === b); }); };
+  var recording = false;
+  $('rec').onclick = function () {
+    if (recording) return;
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { $('recMsg').textContent = 'This browser can\'t use the microphone here. You can still play the typical room shape.'; return; }
+    var wasPlaying = playing; if (wasPlaying) stop();
+    recording = true; $('rec').disabled = true; $('recMsg').textContent = 'Asking for the microphone…';
+    navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } }).then(function (stream) {
+      var c = ac(); if (c.state === 'suspended') c.resume();
+      var mic = c.createMediaStreamSource(stream), an = c.createAnalyser();
+      an.fftSize = 4096; an.smoothingTimeConstant = 0; mic.connect(an);
+      var bins = an.frequencyBinCount, buf = new Float32Array(bins), acc = new Float64Array(bins), n = 0, t0 = performance.now(), dur = S.secs * 1000;
+      $('recMsg').textContent = 'Listening… stay quiet.';
+      var iv = setInterval(function () {
+        an.getFloatFrequencyData(buf);
+        var ok = false;
+        for (var i = 0; i < bins; i++) { if (isFinite(buf[i])) { acc[i] += Math.pow(10, buf[i] / 10); ok = true; } }
+        if (ok) n++;
+        var el = performance.now() - t0; $('meter').style.width = Math.min(100, el / dur * 100) + '%';
+        if (el >= dur) {
+          clearInterval(iv); mic.disconnect(); stream.getTracks().forEach(function (t) { t.stop(); });
+          recording = false; $('rec').disabled = false;
+          if (!n) { $('recMsg').textContent = 'The microphone gave no sound. Check it isn\'t muted and try again.'; return; }
+          var hz = c.sampleRate / an.fftSize, bands = BANDS.map(function (fc) {
+            var lo = fc / Math.pow(2, 0.25), hi = fc * Math.pow(2, 0.25), s = 0, m = 0;
+            for (var i = Math.max(1, Math.floor(lo / hz)); i <= Math.min(bins - 1, Math.ceil(hi / hz)); i++) { s += acc[i] / n; m++; }
+            return m ? 10 * Math.log10(s / m + 1e-20) : -120;
+          });
+          var top = Math.max.apply(null, bands);
+          S.room = bands.map(function (b) { return Math.round((b - top) * 10) / 10; }); save();
+          var loud = top; // per-bin dBFS, rough
+          $('recMsg').textContent = 'Done. Microphone off, nothing saved but the 16 band levels. ' + describe(S.room) + (loud < -100 ? ' The room is very quiet, so the match is rough.' : '');
+          apply(); if (wasPlaying) play(); else draw();
+        }
+      }, 50);
+    }).catch(function () { recording = false; $('rec').disabled = false; $('recMsg').textContent = 'Microphone access was blocked. You can still play the typical room shape, or allow the mic and try again.'; });
+  };
+  function describe(r) {
+    var low = (r[0] + r[1] + r[2] + r[3]) / 4, mid = (r[6] + r[7] + r[8] + r[9]) / 4, high = (r[12] + r[13] + r[14] + r[15]) / 4;
+    return low - mid > 10 ? 'Your room is mostly low rumble, typical of AC units and traffic.' : high > mid - 6 ? 'Your room has a lot of hiss, like fans or vents.' : 'Your room has a fairly even mix of hum and hiss.';
+  }
+
+  // ---------- drawing
+  var cv = $('cv');
+  function draw() {
+    var dpr = window.devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight;
+    cv.width = w * dpr; cv.height = h * dpr; var g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+    var css = getComputedStyle(document.documentElement), col = function (n) { return css.getPropertyValue(n).trim(); };
+    var rr = room(), rm = rr.reduce(function (s, x) { return s + x; }, 0) / rr.length, rmax = Math.max.apply(null, rr) - rm, rmin = Math.min.apply(null, rr) - rm;
+    var f0 = 50, f1 = 16000, padL = 34, padB = 22, padT = 10, padR = 8, X = function (f) { return padL + (Math.log(f / f0) / Math.log(f1 / f0)) * (w - padL - padR); }, dB0 = Math.max(-60, Math.min(-30, Math.floor((rmin - 5) / 10) * 10)), dB1 = Math.min(60, Math.max(20, Math.ceil((rmax + 5) / 10) * 10)), Y = function (d) { return padT + (1 - (d - dB0) / (dB1 - dB0)) * (h - padT - padB); };
+    g.font = '10px ' + col('--font-mono'); g.fillStyle = col('--muted'); g.strokeStyle = col('--line'); g.lineWidth = 1;
+    [100, 250, 500, 1000, 2000, 4000, 8000].forEach(function (f) { g.beginPath(); g.moveTo(X(f), padT); g.lineTo(X(f), h - padB); g.stroke(); g.fillText(f >= 1000 ? f / 1000 + 'k' : f, X(f) - 8, h - 6); });
+    [-50, -40, -30, -20, -10, 0, 10, 20, 30, 40, 50].filter(function (d) { return d > dB0 && d < dB1; }).forEach(function (d) { g.beginPath(); g.moveTo(padL, Y(d)); g.lineTo(w - padR, Y(d)); g.stroke(); g.fillText(d + '', 4, Y(d) + 3); });
+    // measured room (relative to its mean)
+    var r = room(), mean = r.reduce(function (s, x) { return s + x; }, 0) / r.length;
+    line(g, BANDS.map(function (f, i) { return [X(f), Y(r[i] - mean)]; }), col('--sat-b'), 2, !S.room);
+    g.fillStyle = col('--sat-b'); BANDS.forEach(function (f, i) { g.beginPath(); g.arc(X(f), Y(r[i] - mean), 2.5, 0, 7); g.fill(); });
+    // synthesised responses
+    if (!filters.length) { build(); return; }
+    var fs = []; for (var i = 0; i <= 120; i++) fs.push(f0 * Math.pow(f1 / f0, i / 120));
+    var ra = response(filters, fs), rb = response(pinkF, fs), oa = 20 * Math.log10(trimA), ob = 20 * Math.log10(trimB);
+    line(g, fs.map(function (f, i) { return [X(f), Y(rb[i] + ob)]; }), col('--muted'), S.mode === 'B' ? 2.2 : 1.2, true);
+    line(g, fs.map(function (f, i) { return [X(f), Y(ra[i] + oa - (f > 14000 ? 3 * Math.log2(f / 14000) * 4 : 0))]; }), col('--accent'), S.mode === 'A' ? 2.6 : 1.4, false);
+    g.fillStyle = col('--muted'); g.fillText(S.room ? 'dB, relative' : 'typical AC room (not measured yet)', padL + 4, padT + 10);
+  }
+  function line(g, pts, c, wd, dash) { g.beginPath(); g.setLineDash(dash ? [5, 4] : []); g.strokeStyle = c; g.lineWidth = wd; pts.forEach(function (p, i) { if (i) g.lineTo(p[0], p[1]); else g.moveTo(p[0], p[1]); }); g.stroke(); g.setLineDash([]); }
+  window.addEventListener('resize', draw);
+  sliders(); setMode(S.mode);
+  if (S.room) $('recMsg').textContent = 'Using your last room measurement. ' + describe(S.room);
+  // set up the graph lazily (AudioContext starts suspended until a tap, which is fine for analysis)
+  try { build(); } catch (e) { draw(); }
+})();
+</script>
+</body>
+</html>
