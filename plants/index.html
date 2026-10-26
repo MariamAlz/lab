@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Plant Care for UAE Homes · Mariam's Lab</title>
+<meta name="description" content="Plant care made for UAE heat: watering that adjusts to today's weather, a garden water planner, a what's-wrong-with-my-plant checker, pet-safe plants and a planting calendar.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/plants/">
+<meta property="og:title" content="Plant Care for UAE Homes · Mariam's Lab"><meta property="og:description" content="Watering that follows the weather, a plant doctor, pet-safe plants and a UAE planting calendar."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.tabsP { display: flex; gap: 6px; flex-wrap: wrap; }
+.sm { font: inherit; font-size: 0.85rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 13px; cursor: pointer; }
+.sm[aria-pressed="true"], .sm.pri { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: 0.9rem; }
+.row input, .row select { font: inherit; color: var(--ink); background: rgba(7,10,24,.6); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; max-width: 13em; }
+.row input[type=number] { width: 6em; font-family: var(--font-mono); }
+.wx { padding: 14px 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); font-size: 0.9rem; display: flex; gap: 16px; flex-wrap: wrap; align-items: baseline; }
+.wx b { font-family: var(--font-display); font-size: 1.4rem; }
+.mine { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.mine li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); font-size: 0.88rem; }
+.mine b { font-size: 1rem; }
+.mine small { grid-column: 1 / -1; color: var(--muted); }
+.mine .due { font-family: var(--font-mono); text-align: end; }
+.mine .acts { grid-column: 1 / -1; display: flex; gap: 6px; flex-wrap: wrap; }
+.due.now { color: var(--sat-c); } .due.soon { color: var(--accent); } .due.ok { color: var(--sat-b); }
+.lib { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+.lib div { padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); font-size: 0.86rem; display: grid; gap: 4px; align-content: start; }
+.lib b { font-size: 0.98rem; }
+.lib .ar { font-family: 'IBM Plex Sans Arabic', sans-serif; color: var(--muted); font-weight: 500; }
+.tags { display: flex; gap: 4px; flex-wrap: wrap; }
+.tags span { font-size: 0.7rem; padding: 2px 7px; border-radius: 99px; background: rgba(255,255,255,.06); color: var(--muted); }
+.tags .bad { background: rgba(255,79,109,.18); color: #ff8aa0; } .tags .good { background: rgba(79,211,189,.15); color: var(--sat-b); }
+.search { width: 100%; font: inherit; color: var(--ink); background: rgba(7,10,24,.7); border: 1px solid var(--line); border-radius: 999px; padding: 10px 16px; margin-bottom: 10px; }
+.sym { display: flex; gap: 6px; flex-wrap: wrap; }
+.sym button { font: inherit; font-size: 0.84rem; padding: 7px 12px; border-radius: 10px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; text-align: start; }
+.sym button[aria-pressed="true"] { border-color: var(--accent); background: rgba(255,200,87,.12); }
+.dx { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.dx li { padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; font-size: 0.9rem; display: grid; gap: 4px; }
+.dx b { font-size: 1rem; }
+.dx .bar { height: 6px; border-radius: 99px; background: var(--line); overflow: hidden; } .dx .bar i { display: block; height: 100%; background: var(--accent); }
+.cal { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 3px; font-size: 0.7rem; }
+.cal div { padding: 6px 2px; border-radius: 6px; text-align: center; background: rgba(255,255,255,.04); font-family: var(--font-mono); cursor: pointer; }
+.cal div.on { background: var(--accent); color: var(--bg); }
+.months2 { display: grid; grid-template-columns: repeat(12, 1fr); gap: 4px; align-items: end; height: 120px; }
+.months2 div { display: grid; justify-items: center; align-content: end; gap: 3px; height: 100%; font-size: 0.66rem; color: var(--muted); font-family: var(--font-mono); }
+.months2 i { width: 100%; border-radius: 4px 4px 0 0; background: var(--sat-b); min-height: 2px; }
+.out { padding: 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); display: grid; gap: 4px; font-size: 0.92rem; }
+.out b.big { font-family: var(--font-display); font-size: 1.6rem; }
+section.pg[hidden] { display: none; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Plants · UAE · Live</span>
+    <h1 style="font-size:var(--step-3)">Plant care for UAE homes.</h1>
+    <p>Most plant advice is written for cool, rainy countries. Here a pot on a sunny balcony can dry out in a day in July, while the same plant indoors under AC might need water once a week. This page follows the real weather where you live to say when to water, works out how much a garden needs, and helps diagnose a struggling plant.</p>
+  </div>
+  <div class="wx" id="wx">Loading today's weather…</div>
+  <div class="tabsP" role="tablist" style="margin-top:14px"><button class="sm" type="button" data-t="mine" aria-pressed="true">My plants</button><button class="sm" type="button" data-t="doctor" aria-pressed="false">Plant doctor</button><button class="sm" type="button" data-t="garden" aria-pressed="false">Garden water</button><button class="sm" type="button" data-t="lib" aria-pressed="false">Plant library</button><button class="sm" type="button" data-t="cal" aria-pressed="false">Planting calendar</button></div>
+
+  <section class="pg" id="p-mine" style="margin-top:16px">
+    <div class="game">
+      <div class="panel" style="display:grid;gap:10px;align-content:start">
+        <span class="label">Add a plant</span>
+        <label class="row"><span>Plant</span><select id="aP"></select></label>
+        <label class="row"><span>Nickname (optional)</span><input id="aN" maxlength="30" placeholder="e.g. Kitchen basil"></label>
+        <label class="row"><span>Where it lives</span><select id="aL"><option value="ac">Indoors with AC</option><option value="win">Indoors, sunny window</option><option value="shade">Shaded balcony</option><option value="sun">Sunny balcony or roof</option><option value="ground">In the garden ground</option></select></label>
+        <label class="row"><span>Pot size</span><select id="aS"><option value="1">Small (up to 15 cm)</option><option value="4" selected>Medium (20–25 cm)</option><option value="12">Large (30–40 cm)</option><option value="30">Very large or planter</option></select></label>
+        <button class="sm pri" type="button" id="add" style="justify-self:start">Add plant</button>
+        <p class="fact" style="margin:0">How it works: each day the weather service estimates how much water evaporates from soil and leaves (evapotranspiration). The page multiplies that by the plant's thirst and its spot, and compares it with how much water the pot can hold. In summer outdoors, small pots can need water twice a day.</p>
+      </div>
+      <div class="panel" style="display:grid;gap:10px;align-content:start;min-width:0">
+        <span class="label">Your plants</span>
+        <ul class="mine" id="mine"></ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="pg" id="p-doctor" hidden style="margin-top:16px">
+    <div class="game">
+      <div class="panel" style="display:grid;gap:10px;align-content:start">
+        <span class="label">What do you see? Pick all that apply</span>
+        <div class="sym" id="sym"></div>
+        <label class="row"><span>Where is it?</span><select id="dL"><option value="in">Indoors</option><option value="out">Outdoors</option></select></label>
+        <label class="row"><span>Soil when you touch it</span><select id="dS"><option value="">Not sure</option><option value="wet">Wet or soggy</option><option value="dry">Bone dry</option><option value="ok">Slightly moist</option></select></label>
+      </div>
+      <div class="panel" style="display:grid;gap:10px;align-content:start">
+        <span class="label">Most likely causes</span>
+        <ul class="dx" id="dx"><li>Pick a symptom to start.</li></ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="pg" id="p-garden" hidden style="margin-top:16px">
+    <div class="game">
+      <div class="panel" style="display:grid;gap:10px;align-content:start">
+        <span class="label">Your garden</span>
+        <label class="row"><span>Lawn (m²)</span><input type="number" id="gL" min="0" value="20"></label>
+        <label class="row"><span>Shrubs and flower beds (m²)</span><input type="number" id="gS" min="0" value="10"></label>
+        <label class="row"><span>Trees (count)</span><input type="number" id="gT" min="0" value="2"></label>
+        <label class="row"><span>Palms (count)</span><input type="number" id="gP" min="0" value="1"></label>
+        <label class="row"><span>Lawn grass</span><select id="gG"><option value="0.8">Bermuda or paspalum (warm-season)</option><option value="1">Thirsty grass</option><option value="0">Artificial or none</option></select></label>
+        <label class="row"><span>System</span><select id="gI"><option value="0.9">Drip</option><option value="0.7">Sprinklers</option><option value="0.5">Hose by hand</option></select></label>
+        <label class="row"><span>Drip emitter flow (litres per hour)</span><input type="number" id="gE" min="1" max="20" value="4"></label>
+        <label class="row"><span>Water price (AED per 1,000 L)</span><input type="number" id="gC" min="0" step="0.5" value="10"></label>
+      </div>
+      <div class="panel" style="display:grid;gap:10px;align-content:start">
+        <div class="out" id="gOut"></div>
+        <span class="label">Daily need by month (litres)</span>
+        <div class="months2" id="gM"></div>
+        <p class="fact" style="margin:0">Uses today's evapotranspiration for "now" and typical Dubai monthly values for the year. Water early in the morning or after sunset: midday watering in summer can lose a third to evaporation. Many UAE water bills use slabs, so edit the price to match yours.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="pg" id="p-lib" hidden style="margin-top:16px">
+    <input class="search" id="lq" placeholder="Search plants, or try: pet safe, low light, heat" aria-label="Search plants">
+    <div class="lib" id="lib"></div>
+  </section>
+
+  <section class="pg" id="p-cal" hidden style="margin-top:16px">
+    <p style="color:var(--muted);font-size:.9rem;margin:0 0 10px">The UAE growing season runs opposite to Europe's: plant from October and harvest through spring. Tap a month.</p>
+    <div class="cal" id="calM"></div>
+    <div class="out" id="calOut" style="margin-top:12px"></div>
+  </section>
+  <p class="fact" style="margin-top:22px">Weather from Open-Meteo (FAO-56 reference evapotranspiration). Pet safety follows ASPCA plant lists; if a pet eats a plant marked toxic, call your vet. Plant care is never exact, so check the soil with a finger before watering.</p>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  // [id, name, arabic, kc (thirst), light, heat (1 low–3 high), pets (s safe / t toxic), where (i indoor, o outdoor, b both), note]
+  var PL = [
+    ['pothos', 'Pothos (money plant)', 'بوتس', 0.4, 'low', 2, 't', 'i', 'Nearly unkillable indoors. Let the top half of the soil dry between waterings.'],
+    ['snake', 'Snake plant', 'جلد النمر', 0.25, 'low', 3, 't', 'b', 'Stores water in its leaves. Overwatering is the only common way to kill it.'],
+    ['zz', 'ZZ plant', 'زاميا', 0.25, 'low', 3, 't', 'i', 'Thrives on neglect and AC rooms. Water every 2 to 3 weeks indoors.'],
+    ['peace', 'Peace lily', 'زنبق السلام', 0.6, 'low', 1, 't', 'i', 'Droops dramatically when thirsty, then perks up within hours of watering.'],
+    ['spider', 'Spider plant', 'نبتة العنكبوت', 0.45, 'medium', 2, 's', 'i', 'Safe for cats and dogs. Brown tips usually mean salty or chlorinated tap water.'],
+    ['areca', 'Areca palm', 'نخلة الأريكا', 0.55, 'medium', 2, 's', 'b', 'Pet-safe palm. Likes bright indirect light and steady moisture.'],
+    ['monstera', 'Monstera', 'مونستيرا', 0.5, 'medium', 2, 't', 'i', 'Bright indirect light makes the split leaves. Wipe dust off the leaves monthly.'],
+    ['fiddle', 'Fiddle-leaf fig', 'تين الكمان', 0.5, 'bright', 1, 't', 'i', 'Hates being moved and AC drafts. Drops leaves when stressed.'],
+    ['rubber', 'Rubber plant', 'المطاط', 0.45, 'medium', 2, 't', 'i', 'Tough and glossy. Let the top 5 cm dry out between waterings.'],
+    ['calathea', 'Calathea', 'كالاثيا', 0.6, 'low', 1, 's', 'i', 'Pet-safe but fussy: wants humidity, which UAE AC rooms lack. Group plants together.'],
+    ['boston', 'Boston fern', 'سرخس بوسطن', 0.7, 'medium', 1, 's', 'i', 'Pet-safe. Needs humidity; a bathroom with a window is ideal.'],
+    ['aloe', 'Aloe vera', 'الصبار', 0.2, 'bright', 3, 't', 'b', 'Loves sun and heat. Water deeply but rarely. Mildly toxic to pets.'],
+    ['jade', 'Jade plant', 'نبتة اليشم', 0.2, 'bright', 3, 't', 'b', 'A succulent that handles balcony heat in winter; give afternoon shade in summer.'],
+    ['succulents', 'Echeveria and other succulents', 'عصاريات', 0.2, 'bright', 2, 's', 'b', 'Most echeverias are pet-safe. Need sun but can scorch in UAE July.'],
+    ['cactus', 'Cactus', 'صبار', 0.15, 'full', 3, 's', 'b', 'Water every 2 to 4 weeks in summer, almost never in winter.'],
+    ['adenium', 'Desert rose (Adenium)', 'وردة الصحراء', 0.3, 'full', 3, 't', 'o', 'Built for UAE sun. Very toxic sap: keep away from pets and children.'],
+    ['bougainvillea', 'Bougainvillea', 'جهنمية', 0.4, 'full', 3, 't', 'o', 'Flowers best when slightly dry. Overwatering gives leaves, not flowers.'],
+    ['frangipani', 'Frangipani (plumeria)', 'الفل الهندي', 0.45, 'full', 3, 't', 'o', 'Loves heat. Drops leaves in winter, which is normal.'],
+    ['hibiscus', 'Hibiscus', 'كركديه', 0.7, 'full', 2, 's', 'o', 'Thirsty in summer. Yellow leaves usually mean irregular watering.'],
+    ['jasmine', 'Arabian jasmine', 'فل / ياسمين', 0.6, 'bright', 2, 's', 'o', 'Pet-safe and fragrant. Morning sun, afternoon shade in summer.'],
+    ['oleander', 'Oleander', 'الدفلة', 0.35, 'full', 3, 't', 'o', 'Very common and very tough, but every part is highly toxic to people and pets.'],
+    ['ghaf', 'Ghaf tree', 'الغاف', 0.2, 'full', 3, 's', 'o', 'The UAE national tree. Deep roots: once established it needs little water.'],
+    ['date', 'Date palm', 'النخلة', 0.9, 'full', 3, 's', 'o', 'Needs a lot of water in summer for good fruit. Water deeply, less often.'],
+    ['sidr', 'Sidr (lote tree)', 'السدر', 0.3, 'full', 3, 's', 'o', 'A native tree that handles heat and some salt.'],
+    ['neem', 'Neem tree', 'النيم', 0.4, 'full', 3, 's', 'o', 'Fast shade tree, very heat tolerant.'],
+    ['lemon', 'Lemon or lime tree', 'ليمون', 0.65, 'full', 2, 't', 'o', 'Mildly toxic to pets. Deep, regular watering; mulch to keep roots cool.'],
+    ['mango', 'Mango tree', 'المانجو', 0.7, 'full', 2, 's', 'o', 'Grows well in UAE gardens with regular water and wind protection.'],
+    ['basil', 'Basil', 'ريحان', 0.85, 'bright', 2, 's', 'b', 'Pet-safe. Grows all year if shaded in summer. Pinch flowers off.'],
+    ['mint', 'Mint', 'نعناع', 0.9, 'bright', 1, 's', 'b', 'Thirsty. Best October to April outdoors; indoors near a window in summer.'],
+    ['coriander', 'Coriander', 'كزبرة', 0.8, 'bright', 1, 's', 'o', 'A cool-season herb. Sow October to February; it bolts in heat.'],
+    ['parsley', 'Parsley', 'بقدونس', 0.8, 'bright', 1, 's', 'o', 'Cool season. Pet-safe in small amounts.'],
+    ['rosemary', 'Rosemary', 'إكليل الجبل', 0.35, 'full', 3, 's', 'o', 'Pet-safe and drought tolerant. Let it dry between waterings.'],
+    ['tomato', 'Tomato', 'طماطم', 0.9, 'full', 1, 't', 'o', 'Plant September to November. Leaves and stems are toxic to pets.'],
+    ['chilli', 'Chilli pepper', 'فلفل حار', 0.8, 'full', 2, 's', 'o', 'Handles heat better than tomatoes. Can fruit into early summer with shade.'],
+    ['okra', 'Okra (bamya)', 'بامية', 0.75, 'full', 3, 's', 'o', 'A rare summer vegetable that loves UAE heat. Plant March to June.'],
+    ['moringa', 'Moringa', 'المورينجا', 0.5, 'full', 3, 's', 'o', 'Fast-growing, heat-loving, with edible leaves.'],
+    ['sunflower', 'Sunflower', 'دوار الشمس', 0.8, 'full', 2, 's', 'o', 'Sow October to March. Kids love it.'],
+    ['petunia', 'Petunia', 'بيتونيا', 0.75, 'full', 1, 's', 'o', 'Classic UAE winter bedding flower; dies off in summer heat.'],
+    ['portulaca', 'Portulaca (moss rose)', 'رجلة الزينة', 0.3, 'full', 3, 't', 'o', 'Summer flowers that love full sun and heat.'],
+    ['lantana', 'Lantana', 'لانتانا', 0.4, 'full', 3, 't', 'o', 'Tough and colourful but toxic berries for dogs.'],
+    ['grass', 'Lawn (Bermuda or paspalum)', 'عشب', 0.8, 'full', 3, 's', 'o', 'Summer lawns can need 6 to 8 L per m² a day. Consider artificial or native ground cover.']
+  ];
+  var byId = {}; PL.forEach(function (p) { byId[p[0]] = p; });
+  var LOCF = { ac: 0.25, win: 0.45, shade: 0.6, sun: 1.0, ground: 0.9 }, LOCN = { ac: 'indoors with AC', win: 'by a sunny window', shade: 'on a shaded balcony', sun: 'on a sunny balcony', ground: 'in the ground' };
+  var ET = [3.0, 3.9, 5.4, 7.1, 8.6, 9.5, 9.6, 9.1, 8.0, 6.4, 4.5, 3.3]; // typical Dubai mm/day by month (FAO-56 reference)
+  var et0 = null, wx = null, loc = { lat: 25.2, lon: 55.27, name: 'Dubai' }, mine = [];
+  try { mine = JSON.parse(localStorage.getItem('myPlants') || '[]'); } catch (e) {}
+  function save() { try { localStorage.setItem('myPlants', JSON.stringify(mine)); } catch (e) {} }
+  function etNow() { return et0 != null ? et0 : ET[new Date().getMonth()]; }
+  // days between waterings and amount: pot volume (L) holds ~25% plant-available water; ground uses a 30 cm root zone on 0.25 m²
+  function plan(p) {
+    var pl = byId[p.id], kc = pl[3], lf = LOCF[p.loc], et = p.loc === 'ac' || p.loc === 'win' ? 4 : etNow(), mmDay = et * kc * lf;
+    var area = p.loc === 'ground' ? 0.25 : Math.pow(p.size, 2 / 3) * 0.055, lossL = mmDay * area, store = p.loc === 'ground' ? 20 : p.size * 0.25;
+    var days = Math.max(0.5, store * 0.6 / Math.max(0.02, lossL));
+    return { days: days, litres: store * 0.6, lossL: lossL };
+  }
+  function renderMine() {
+    if (!mine.length) { $('mine').innerHTML = '<li>No plants yet. Add one to get a watering schedule that follows the weather.</li>'; return; }
+    var now = Date.now();
+    $('mine').innerHTML = mine.map(function (p, i) {
+      var pl = byId[p.id], r = plan(p), next = (p.last || now) + r.days * 864e5, left = (next - now) / 864e5, cls = left <= 0.25 ? 'now' : left <= 1 ? 'soon' : 'ok';
+      var when = !p.last ? 'Check soil today' : left <= 0 ? 'Water now' : left < 1 ? 'In ' + Math.max(1, Math.round(left * 24)) + ' h' : 'In ' + left.toFixed(left < 3 ? 1 : 0) + ' days';
+      var amt = r.litres >= 1 ? r.litres.toFixed(1) + ' L' : Math.round(r.litres * 1000) + ' ml';
+      return '<li><b>' + esc(p.nick || pl[1]) + '</b><span class="due ' + cls + '">' + when + '</span><small>' + esc(pl[1]) + ' ' + LOCN[p.loc] + '. Water about every ' + (r.days < 1 ? Math.round(r.days * 24) + ' hours' : r.days.toFixed(r.days < 3 ? 1 : 0) + ' days') + ' right now, around ' + amt + ' each time' + (p.loc === 'ground' ? ' (per plant)' : '') + '.' + (p.last ? ' Last watered ' + new Date(p.last).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) + '.' : '') + (pl[5] === 1 && (p.loc === 'sun') && new Date().getMonth() >= 4 && new Date().getMonth() <= 8 ? ' Too hot here in summer: move it to shade.' : '') + '</small><div class="acts"><button class="sm" type="button" data-w="' + i + '">💧 Watered now</button><button class="sm" type="button" data-x="' + i + '">Remove</button></div></li>';
+    }).join('');
+  }
+  $('mine').addEventListener('click', function (e) { var w = e.target.closest('[data-w]'), x = e.target.closest('[data-x]'); if (w) { mine[+w.dataset.w].last = Date.now(); save(); renderMine(); } if (x) { mine.splice(+x.dataset.x, 1); save(); renderMine(); } });
+  $('aP').innerHTML = PL.slice().sort(function (a, b) { return a[1].localeCompare(b[1]); }).map(function (p) { return '<option value="' + p[0] + '">' + esc(p[1]) + '</option>'; }).join('');
+  $('aP').value = 'pothos';
+  $('aP').onchange = function () { var w = byId[this.value][7]; $('aL').value = w === 'i' ? 'ac' : w === 'o' ? 'sun' : 'shade'; };
+  $('add').onclick = function () { mine.push({ id: $('aP').value, nick: $('aN').value.trim(), loc: $('aL').value, size: +$('aS').value, last: null }); $('aN').value = ''; save(); renderMine(); };
+  // doctor
+  var SYM = [['yl', 'Yellow lower leaves'], ['yn', 'Yellow new leaves'], ['tips', 'Brown crispy tips or edges'], ['spots', 'Brown or black soft spots'], ['wilt', 'Wilting or drooping'], ['drop', 'Leaves falling off'], ['bleach', 'Pale, bleached or white patches'], ['crust', 'White crust on soil or pot'], ['sticky', 'Sticky leaves or white fluff'], ['webs', 'Fine webs or tiny dots under leaves'], ['leggy', 'Long, stretched, pale stems'], ['smell', 'Bad smell from the soil'], ['curl', 'Leaves curling'], ['noflower', 'Healthy leaves but no flowers'], ['dust', 'Dull, dusty leaves']];
+  var CAUSES = [
+    ['Overwatering or poor drainage', { yl: 3, spots: 2, wilt: 2, smell: 4, drop: 1 }, 'Let the soil dry before watering again and make sure the pot has a drainage hole. Remove any water sitting in the saucer. If the roots are brown and mushy, trim them and repot in fresh, airy soil.', function (s) { return s === 'wet' ? 2 : s === 'dry' ? -3 : 0; }],
+    ['Underwatering or heat stress', { wilt: 3, tips: 2, drop: 1, curl: 2, yl: 1 }, 'Water deeply until it runs out of the bottom, then check daily in summer. On balconies, move pots out of the afternoon sun and group them so they shade each other.', function (s) { return s === 'dry' ? 3 : s === 'wet' ? -3 : 0; }],
+    ['Sunburn', { bleach: 4, tips: 1, curl: 1 }, 'Common after moving a plant outside or to a new window. Give it shade and move it gradually over 2 weeks. Burnt patches won\'t recover, but new leaves will be fine.', function (s, l) { return l === 'out' ? 1 : 0; }],
+    ['Salty or hard water', { crust: 4, tips: 3, yn: 1 }, 'UAE tap water can carry salts that build up in pots. Once a month, flush the pot with plenty of water, or use filtered or AC-condensate water for sensitive plants.', function () { return 0; }],
+    ['Dry AC air and drafts', { tips: 2, drop: 2, curl: 2 }, 'Move the plant away from AC vents. Group plants, or set the pot on a tray of wet pebbles to raise humidity around it.', function (s, l) { return l === 'in' ? 1 : -2; }],
+    ['Mealybugs or scale', { sticky: 4, yl: 1, drop: 1 }, 'Wipe the fluff off with cotton dipped in rubbing alcohol, then spray with neem oil or insecticidal soap weekly for a month. Isolate the plant.', function () { return 0; }],
+    ['Spider mites', { webs: 4, bleach: 1, drop: 1, dust: 1 }, 'Thrive in hot, dry, dusty air, so they\'re very common in the UAE. Rinse the leaves (especially undersides) in the shower, then spray neem oil weekly.', function () { return 0; }],
+    ['Not enough light', { leggy: 4, yl: 1, noflower: 2, drop: 1 }, 'Move it closer to a bright window. Flowering plants usually need several hours of direct sun.', function (s, l) { return l === 'in' ? 1 : -1; }],
+    ['Nutrient shortage', { yn: 3, yl: 2, noflower: 1 }, 'Feed with a balanced liquid fertiliser every 2 to 4 weeks in the growing season. Yellow new leaves with green veins often means iron: use a chelated iron feed.', function () { return 0; }],
+    ['Too much fertiliser or nitrogen', { noflower: 3, tips: 1, crust: 1 }, 'Lots of leaves and no flowers usually means too much nitrogen. Flush the soil and switch to a feed for flowering plants.', function () { return 0; }],
+    ['Fungal leaf spot', { spots: 3, yl: 1, drop: 1 }, 'Remove affected leaves, water the soil rather than the leaves, and improve airflow.', function (s) { return s === 'wet' ? 1 : 0; }],
+    ['Dust on the leaves', { dust: 4, yl: 1 }, 'UAE dust blocks light from the leaves. Wipe them with a damp cloth or rinse the plant every few weeks.', function () { return 0; }]
+  ];
+  var sel = {};
+  $('sym').innerHTML = SYM.map(function (s) { return '<button type="button" data-s="' + s[0] + '" aria-pressed="false">' + s[1] + '</button>'; }).join('');
+  $('sym').addEventListener('click', function (e) { var b = e.target.closest('[data-s]'); if (!b) return; sel[b.dataset.s] = !sel[b.dataset.s]; b.setAttribute('aria-pressed', !!sel[b.dataset.s]); doctor(); });
+  $('dL').onchange = $('dS').onchange = doctor;
+  function doctor() {
+    var keys = Object.keys(sel).filter(function (k) { return sel[k]; });
+    if (!keys.length) { $('dx').innerHTML = '<li>Pick a symptom to start.</li>'; return; }
+    var res = CAUSES.map(function (c) { var s = 0; keys.forEach(function (k) { s += c[1][k] || 0; }); if (s > 0) s += c[3]($('dS').value, $('dL').value); return [c, s]; }).filter(function (r) { return r[1] > 0; }).sort(function (a, b) { return b[1] - a[1]; }).slice(0, 4);
+    var mx = res.length ? res[0][1] : 1;
+    $('dx').innerHTML = res.length ? res.map(function (r) { return '<li><b>' + r[0][0] + '</b><div class="bar"><i style="width:' + Math.round(r[1] / mx * 100) + '%"></i></div><span>' + r[0][2] + '</span></li>'; }).join('') : '<li>No clear match. Check the roots: healthy roots are firm and white or tan.</li>';
+  }
+  // garden
+  function garden() {
+    var eff = +$('gI').value, m = new Date().getMonth();
+    function need(et) { return (+$('gL').value * +$('gG').value * et + +$('gS').value * 0.5 * et + +$('gT').value * 0.6 * et * 4 + +$('gP').value * 0.9 * et * 6) / eff; }
+    var today = need(etNow()), yr = ET.map(need), drip = (+$('gS').value * 0.5 * etNow() / eff) / Math.max(1, +$('gS').value * 2) / (+$('gE').value || 4) * 60, cost = today * 30 / 1000 * +$('gC').value;
+    $('gOut').innerHTML = '<b class="big">' + Math.round(today).toLocaleString('en') + ' L a day</b><span>About ' + Math.round(cost).toLocaleString('en') + ' AED a month at this rate. ' + (+$('gS').value ? 'With 2 drippers per m² in the beds, run them about ' + Math.max(1, Math.round(drip)) + ' minutes a day.' : '') + '</span><small>Today\'s evapotranspiration ' + etNow().toFixed(1) + ' mm' + (et0 != null ? ' (live, ' + loc.name + ')' : ' (typical for this month)') + '. Summer peak: about ' + Math.round(Math.max.apply(null, yr)).toLocaleString('en') + ' L a day.</small>';
+    var mx = Math.max.apply(null, yr); var MN = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
+    $('gM').innerHTML = yr.map(function (v, i) { return '<div title="' + Math.round(v) + ' L"><i style="height:' + (v / mx * 96) + 'px;' + (i === m ? 'background:var(--accent)' : '') + '"></i>' + MN[i] + '</div>'; }).join('');
+  }
+  ['gL', 'gS', 'gT', 'gP', 'gG', 'gI', 'gE', 'gC'].forEach(function (k) { $(k).oninput = garden; });
+  // library
+  function lib() {
+    var q = $('lq').value.toLowerCase().trim();
+    var rows = PL.filter(function (p) {
+      if (!q) return true; var hay = (p[1] + ' ' + p[2] + ' ' + p[8] + ' ' + p[4] + ' light ' + (p[6] === 's' ? 'pet safe cat dog' : 'toxic') + ' ' + (p[5] === 3 ? 'heat tough' : '') + (p[7] === 'i' ? ' indoor' : p[7] === 'o' ? ' outdoor garden balcony' : ' indoor outdoor')).toLowerCase();
+      return q.split(/\s+/).every(function (w) { return hay.indexOf(w) >= 0; });
+    });
+    $('lib').innerHTML = rows.map(function (p) { return '<div><b>' + esc(p[1]) + ' <span class="ar">' + p[2] + '</span></b><div class="tags"><span>' + { low: 'Low light', medium: 'Medium light', bright: 'Bright light', full: 'Full sun' }[p[4]] + '</span><span>' + ['', 'Dislikes heat', 'Some heat', 'Loves heat'][p[5]] + '</span><span>' + (p[3] < 0.35 ? 'Rarely thirsty' : p[3] < 0.65 ? 'Average water' : 'Thirsty') + '</span><span class="' + (p[6] === 's' ? 'good' : 'bad') + '">' + (p[6] === 's' ? 'Pet safe' : 'Toxic to pets') + '</span></div><span>' + esc(p[8]) + '</span></div>'; }).join('') || '<div>No match.</div>';
+  }
+  $('lq').oninput = lib;
+  // calendar
+  var CAL = [
+    ['Jan', 'Lettuce, rocket, spinach, radish, carrots, beetroot, peas, coriander, dill. Petunias and marigolds in full bloom.'],
+    ['Feb', 'Last chance for leafy greens and herbs. Sow sunflowers, cucumbers and beans for spring.'],
+    ['Mar', 'Plant okra, chillies, aubergine, watermelon and melons. Heat-loving flowers: portulaca, vinca, zinnia.'],
+    ['Apr', 'Okra, moringa, sweet potato and heat-tolerant herbs like holy basil. Start shading delicate pots.'],
+    ['May', 'Mostly maintenance: mulch, shade cloth (30 to 50%), water early. Okra keeps producing.'],
+    ['Jun', 'Too hot to plant most things outside. Grow herbs and microgreens indoors.'],
+    ['Jul', 'Survival mode: water morning and evening, move pots into shade. Plan the winter garden.'],
+    ['Aug', 'Prepare beds: add compost, check drip lines. Start tomato and pepper seeds indoors late in the month.'],
+    ['Sep', 'Sow tomatoes, peppers, aubergine, beans, cucumbers and squash. Plant new trees and shrubs from late September.'],
+    ['Oct', 'The best month: almost everything. Tomatoes, cucumbers, beans, lettuce, herbs, and winter flowers like petunias.'],
+    ['Nov', 'Leafy greens, onions, garlic, broccoli, cauliflower, strawberries, coriander, parsley, mint.'],
+    ['Dec', 'Lettuce, spinach, carrots, radish, peas and herbs. Plant bulbs and winter annuals.']
+  ];
+  function cal(m) { $('calM').innerHTML = CAL.map(function (c, i) { return '<div data-m="' + i + '" class="' + (i === m ? 'on' : '') + '">' + c[0] + '</div>'; }).join(''); $('calOut').innerHTML = '<b>' + ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][m] + '</b><span>' + CAL[m][1] + '</span>'; }
+  $('calM').addEventListener('click', function (e) { var d = e.target.closest('[data-m]'); if (d) cal(+d.dataset.m); });
+  // tabs
+  [].forEach.call(document.querySelectorAll('[data-t]'), function (b) { b.onclick = function () { [].forEach.call(document.querySelectorAll('[data-t]'), function (x) { x.setAttribute('aria-pressed', x === b); $('p-' + x.dataset.t).hidden = x !== b; }); }; });
+  // weather
+  function loadWx() {
+    fetch('https://api.open-meteo.com/v1/forecast?latitude=' + loc.lat + '&longitude=' + loc.lon + '&daily=et0_fao_evapotranspiration,temperature_2m_max,precipitation_sum&current=temperature_2m,relative_humidity_2m&timezone=auto&forecast_days=1').then(function (r) { return r.json(); }).then(function (j) {
+      et0 = j.daily.et0_fao_evapotranspiration[0]; wx = j;
+      $('wx').innerHTML = '<span><b>' + Math.round(j.current.temperature_2m) + '°C</b> now, high ' + Math.round(j.daily.temperature_2m_max[0]) + '°C</span><span>Humidity ' + Math.round(j.current.relative_humidity_2m) + '%</span><span>Soil and leaves lose about <b>' + et0.toFixed(1) + ' mm</b> of water today' + (j.daily.precipitation_sum[0] > 1 ? ', and rain is expected' : '') + '</span><span style="color:var(--muted)">' + loc.name + ' · <a href="#" id="me">use my location</a></span>';
+      $('me').onclick = function (e) { e.preventDefault(); navigator.geolocation && navigator.geolocation.getCurrentPosition(function (p) { loc = { lat: p.coords.latitude.toFixed(3), lon: p.coords.longitude.toFixed(3), name: 'Your location' }; loadWx(); }); };
+      renderMine(); garden();
+    }).catch(function () { $('wx').textContent = 'Live weather unavailable, so using typical values for this month.'; });
+  }
+  renderMine(); garden(); lib(); cal(new Date().getMonth()); loadWx();
+})();
+</script>
+</body>
+</html>
