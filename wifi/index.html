@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wi-Fi Spot Planner · Mariam's Lab</title>
+<meta name="description" content="Sketch your home's walls, place the router and see a rough Wi-Fi signal map through brick, glass and concrete. Find the best spot for a booster.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/wifi/">
+<meta property="og:title" content="Wi-Fi Spot Planner · Mariam's Lab"><meta property="og:description" content="Where should the router go? Draw your home and see."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.plan { position: relative; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); background: #0b1124; touch-action: none; }
+.plan canvas { width: 100%; display: block; cursor: crosshair; }
+.ctrls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm:hover { border-color: var(--muted); }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.sm i { display: inline-block; width: 14px; height: 4px; border-radius: 2px; vertical-align: 3px; margin-inline-end: 6px; }
+.lbl { font-size: 0.78rem; color: var(--muted); margin-inline-end: 2px; }
+.key { display: flex; flex-wrap: wrap; gap: 10px; font-size: 0.78rem; color: var(--muted); margin-top: 10px; }
+.key i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -2px; margin-inline-end: 5px; }
+.read { padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; font-size: 0.9rem; }
+.read b { font-family: var(--font-display); font-size: 1.4rem; font-weight: 800; }
+.dims { display: flex; gap: 6px; align-items: center; font-size: 0.85rem; flex-wrap: wrap; }
+.dims input { width: 4em; font: inherit; font-family: var(--font-mono); color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 8px; padding: 4px 6px; }
+.tip { font-size: 0.82rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Home</span>
+    <h1 style="font-size:var(--step-3)">Wi-Fi spot planner.</h1>
+    <p>Wi-Fi fades with distance and loses a chunk at every wall, a lot more at concrete than at glass. Sketch your home, drop the router where it is now, and see roughly where the signal dies. Then drag it around, or let the planner find the best spot for a booster.</p>
+  </div>
+  <div class="game">
+    <div>
+      <div class="plan"><canvas id="cv" aria-label="Floor plan with Wi-Fi signal map. Draw walls by dragging; drag the router to move it."></canvas></div>
+      <div class="ctrls" role="group" aria-label="Brush">
+        <span class="lbl">Draw</span>
+        <button class="sm" type="button" data-m="drywall" aria-pressed="false"><i style="background:#c9cfe6"></i>Light wall</button>
+        <button class="sm" type="button" data-m="brick" aria-pressed="true"><i style="background:#d08a5c"></i>Block wall</button>
+        <button class="sm" type="button" data-m="concrete" aria-pressed="false"><i style="background:#8a90a8"></i>Concrete</button>
+        <button class="sm" type="button" data-m="glass" aria-pressed="false"><i style="background:#7fd4f0"></i>Glass</button>
+        <button class="sm" type="button" data-m="metal" aria-pressed="false"><i style="background:#f08ab3"></i>Metal / mirror</button>
+        <button class="sm" type="button" data-m="erase" aria-pressed="false">Erase</button>
+      </div>
+      <div class="key" id="key"></div>
+    </div>
+    <div class="panel" style="display:grid;gap:12px">
+      <div class="ctrls" style="margin:0" role="group" aria-label="Band">
+        <span class="lbl">Band</span>
+        <button class="sm" type="button" data-b="2400" aria-pressed="false">2.4 GHz</button>
+        <button class="sm" type="button" data-b="5200" aria-pressed="true">5 GHz</button>
+        <button class="sm" type="button" data-b="6000" aria-pressed="false">6 GHz</button>
+      </div>
+      <div class="ctrls" style="margin:0">
+        <button class="sm" type="button" id="addB">+ Booster</button>
+        <button class="sm" type="button" id="best">Find best booster spot</button>
+        <button class="sm" type="button" id="bestR">Find best router spot</button>
+      </div>
+      <div class="ctrls" style="margin:0">
+        <span class="lbl">Start from</span>
+        <button class="sm" type="button" data-p="flat">2-bedroom flat</button>
+        <button class="sm" type="button" data-p="villa">Villa floor</button>
+        <button class="sm" type="button" data-p="empty">Empty</button>
+      </div>
+      <div class="dims"><span class="lbl">Size</span><input type="number" id="W" min="4" max="60" value="16" aria-label="Width in metres"> × <input type="number" id="H" min="4" max="60" value="11" aria-label="Depth in metres"> m
+        <label class="sm" style="margin-inline-start:auto">Trace a plan image<input type="file" id="img" accept="image/*" hidden></label></div>
+      <div class="read" id="read">Tap anywhere on the plan to read the signal there.</div>
+      <div class="stats">
+        <div><span class="label">Good for calls</span><b id="sG">—</b></div>
+        <div><span class="label">Patchy</span><b id="sW">—</b></div>
+        <div><span class="label">Dead</span><b id="sD">—</b></div>
+      </div>
+      <p class="tip">Router: drag the gold dot. Boosters: teal dots; double-tap one to remove it. Walls: drag to draw; they snap straight.</p>
+      <p class="fact">This is a simple model: free-space loss plus a fixed loss per wall (light wall 3 dB, block 8, concrete 13, glass 3, metal 25). Real homes add reflections and furniture, so treat it as a guide. 5 and 6 GHz are faster but weaker through walls than 2.4 GHz. Your plan is kept on this device.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var LOSS = { drywall: 3, brick: 8, concrete: 13, glass: 3, metal: 25 };
+  var COL = { drywall: '#c9cfe6', brick: '#d08a5c', concrete: '#8a90a8', glass: '#7fd4f0', metal: '#f08ab3' };
+  var LV = [[-55, '#2fbf8f', 'Excellent'], [-65, '#7ccf6a', 'Good for calls'], [-72, '#e9c467', 'Browsing OK'], [-80, '#ef8f5a', 'Weak'], [-200, '#c4476e', 'Dead']];
+  var TX = 20 + 3; // dBm EIRP-ish for a home router
+  var st = { W: 16, H: 11, walls: [], router: { x: 3, y: 3 }, boosters: [], band: 5200 }, mode = 'brick', bg = null;
+  var cv = $('cv'), g = cv.getContext('2d'), heat = document.createElement('canvas'), RES = 0.25, field = null, sc = 1;
+
+  var PRESETS = {
+    flat: { W: 16, H: 11, router: { x: 1.5, y: 9.5 }, boosters: [], walls: [
+      [0, 0, 16, 0, 'concrete'], [16, 0, 16, 11, 'concrete'], [16, 11, 0, 11, 'concrete'], [0, 11, 0, 0, 'concrete'],
+      [6, 0, 6, 4.5, 'brick'], [6, 6, 6, 11, 'brick'], [11, 0, 11, 4, 'brick'], [11, 5.2, 11, 11, 'brick'], [11, 5.5, 16, 5.5, 'brick'],
+      [0, 4.5, 3.5, 4.5, 'drywall'], [4.6, 4.5, 6, 4.5, 'drywall'], [6, 7.5, 8.5, 7.5, 'drywall'], [8.5, 7.5, 8.5, 11, 'drywall'],
+      [6.5, 0, 10.5, 0, 'glass'], [0.5, 11, 5, 11, 'glass'], [9.2, 8.3, 10.6, 8.3, 'metal']] },
+    villa: { W: 24, H: 16, router: { x: 2, y: 2 }, boosters: [], walls: [
+      [0, 0, 24, 0, 'concrete'], [24, 0, 24, 16, 'concrete'], [24, 16, 0, 16, 'concrete'], [0, 16, 0, 0, 'concrete'],
+      [8, 0, 8, 6, 'concrete'], [8, 7.5, 8, 16, 'concrete'], [16, 0, 16, 9, 'brick'], [16, 10.5, 16, 16, 'brick'], [0, 9, 6.5, 9, 'brick'], [8, 9, 14.5, 9, 'brick'],
+      [16, 6, 24, 6, 'brick'], [19.5, 6, 19.5, 16, 'drywall'], [3, 9, 3, 16, 'drywall'], [10, 0.1, 14, 0.1, 'glass'], [10, 15.9, 14, 15.9, 'glass'], [4.5, 3, 6, 3, 'metal']] },
+    empty: { W: 16, H: 11, router: { x: 8, y: 5.5 }, boosters: [], walls: [] }
+  };
+  function copy(o) { return JSON.parse(JSON.stringify(o)); }
+  function save() { try { localStorage.setItem('wifiPlan', JSON.stringify(st)); } catch (e) {} }
+  function setPlan(p) { st.W = p.W; st.H = p.H; st.walls = copy(p.walls); st.router = copy(p.router); st.boosters = copy(p.boosters || []); $('W').value = st.W; $('H').value = st.H; size(); compute(); }
+
+  // does segment p->q cross wall w?
+  function cross(px, py, qx, qy, w) {
+    var rx = qx - px, ry = qy - py, sx = w[2] - w[0], sy = w[3] - w[1], d = rx * sy - ry * sx;
+    if (Math.abs(d) < 1e-9) return false;
+    var t = ((w[0] - px) * sy - (w[1] - py) * sx) / d, u = ((w[0] - px) * ry - (w[1] - py) * rx) / d;
+    return t > 0 && t < 1 && u >= 0 && u <= 1;
+  }
+  function rssiFrom(ap, x, y) {
+    var d = Math.max(0.5, Math.hypot(x - ap.x, y - ap.y));
+    var pl = 20 * Math.log10(d) + 20 * Math.log10(st.band) - 27.55 + 6 * Math.log10(d); // a little extra indoor clutter
+    for (var i = 0; i < st.walls.length; i++) if (cross(ap.x, ap.y, x, y, st.walls[i])) pl += LOSS[st.walls[i][4]];
+    return TX - pl;
+  }
+  // a booster only helps if it hears the router well; it rebroadcasts at full power
+  function apList(bs) { return [st.router].concat((bs || st.boosters).filter(function (b) { return rssiFrom(st.router, b.x, b.y) > -72; })); }
+  function sig(x, y, aps) { var m = -200; for (var i = 0; i < aps.length; i++) { var v = rssiFrom(aps[i], x, y); if (v > m) m = v; } return m; }
+  function level(v) { for (var i = 0; i < LV.length; i++) if (v >= LV[i][0]) return i; return LV.length - 1; }
+  function cover(aps) {
+    var c = [0, 0, 0, 0, 0], n = 0;
+    var cs = Math.max(st.W, st.H) / 48; for (var y = cs / 2; y < st.H; y += cs) for (var x = cs / 2; x < st.W; x += cs) { c[level(sig(x, y, aps))]++; n++; }
+    return { good: (c[0] + c[1]) / n, ok: c[2] / n, weak: c[3] / n, dead: c[4] / n };
+  }
+  function compute() {
+    RES = Math.max(st.W, st.H) / 150; var nx = Math.ceil(st.W / RES), ny = Math.ceil(st.H / RES), aps = apList();
+    heat.width = nx; heat.height = ny; var hg = heat.getContext('2d'), im = hg.createImageData(nx, ny), d = im.data;
+    field = new Float32Array(nx * ny);
+    for (var j = 0; j < ny; j++) for (var i = 0; i < nx; i++) {
+      var v = sig((i + 0.5) * RES, (j + 0.5) * RES, aps), k = j * nx + i; field[k] = v;
+      var c = LV[level(v)][1], p = k * 4;
+      d[p] = parseInt(c.slice(1, 3), 16); d[p + 1] = parseInt(c.slice(3, 5), 16); d[p + 2] = parseInt(c.slice(5, 7), 16); d[p + 3] = 150;
+    }
+    hg.putImageData(im, 0, 0);
+    var cvr = cover(aps);
+    $('sG').textContent = Math.round(cvr.good * 100) + '%'; $('sW').textContent = Math.round((cvr.weak + cvr.ok) * 100) + '%'; $('sD').textContent = Math.round(cvr.dead * 100) + '%';
+    save(); draw();
+  }
+  function size() {
+    var r = cv.parentNode.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var w = r.width, h = w * st.H / st.W; cv.style.height = h + 'px';
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); sc = cv.width / st.W; draw();
+  }
+  var drag = null, preview = null;
+  function draw() {
+    var W = cv.width, H = cv.height;
+    g.clearRect(0, 0, W, H);
+    if (bg) { g.globalAlpha = 0.45; g.drawImage(bg, 0, 0, W, H); g.globalAlpha = 1; }
+    g.imageSmoothingEnabled = true; g.drawImage(heat, 0, 0, W, H);
+    g.strokeStyle = 'rgba(255,255,255,0.06)'; g.lineWidth = 1;
+    for (var x = 1; x < st.W; x++) { g.beginPath(); g.moveTo(x * sc, 0); g.lineTo(x * sc, H); g.stroke(); }
+    for (var y = 1; y < st.H; y++) { g.beginPath(); g.moveTo(0, y * sc); g.lineTo(W, y * sc); g.stroke(); }
+    st.walls.concat(preview ? [preview] : []).forEach(function (w) {
+      g.strokeStyle = COL[w[4]]; g.lineWidth = Math.max(3, sc * (w[4] === 'concrete' ? 0.22 : w[4] === 'brick' ? 0.17 : 0.11)); g.lineCap = 'round';
+      if (w === preview) g.setLineDash([sc * 0.3, sc * 0.2]);
+      g.beginPath(); g.moveTo(w[0] * sc, w[1] * sc); g.lineTo(w[2] * sc, w[3] * sc); g.stroke(); g.setLineDash([]);
+    });
+    var on = apList();
+    st.boosters.forEach(function (b) { dot(b, on.indexOf(b) > 0 ? '#4FD3BD' : 'rgba(79,211,189,0.4)', 'B'); });
+    dot(st.router, '#E9B467', 'R');
+    g.fillStyle = 'rgba(238,240,250,0.7)'; g.font = (11 * (cv.width / cv.getBoundingClientRect().width)) + 'px "JetBrains Mono", monospace';
+    g.fillText('1 m grid · ' + st.W + ' × ' + st.H + ' m', 8, H - 8);
+  }
+  function dot(p, c, t) {
+    var r = Math.max(9, sc * 0.35);
+    g.beginPath(); g.arc(p.x * sc, p.y * sc, r, 0, 7); g.fillStyle = c; g.fill(); g.lineWidth = 2; g.strokeStyle = '#070A18'; g.stroke();
+    g.fillStyle = '#070A18'; g.font = '700 ' + Math.round(r * 1.1) + 'px "Instrument Sans", sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(t, p.x * sc, p.y * sc + 1); g.textAlign = 'start'; g.textBaseline = 'alphabetic';
+  }
+  function pos(e) { var r = cv.getBoundingClientRect(); return { x: Math.max(0, Math.min(st.W, (e.clientX - r.left) / r.width * st.W)), y: Math.max(0, Math.min(st.H, (e.clientY - r.top) / r.height * st.H)) }; }
+  function snap(v) { return Math.round(v * 4) / 4; }
+  function near(p, q) { return Math.hypot(p.x - q.x, p.y - q.y) < Math.max(0.6, 14 / (cv.getBoundingClientRect().width / st.W)); }
+  function distSeg(p, w) { var vx = w[2] - w[0], vy = w[3] - w[1], l = vx * vx + vy * vy, t = l ? Math.max(0, Math.min(1, ((p.x - w[0]) * vx + (p.y - w[1]) * vy) / l)) : 0; return Math.hypot(p.x - w[0] - t * vx, p.y - w[1] - t * vy); }
+  function readAt(p) {
+    var v = sig(p.x, p.y, apList()), L = LV[level(v)];
+    $('read').innerHTML = '<span class="lbl">At ' + p.x.toFixed(1) + ', ' + p.y.toFixed(1) + ' m</span><br><b style="color:' + L[1] + '">' + Math.round(v) + ' dBm</b> · ' + L[2];
+  }
+  var lastTap = 0;
+  cv.addEventListener('pointerdown', function (e) {
+    var p = pos(e); cv.setPointerCapture(e.pointerId);
+    if (near(p, st.router)) { drag = { k: 'ap', o: st.router }; return; }
+    for (var i = 0; i < st.boosters.length; i++) if (near(p, st.boosters[i])) {
+      var now = Date.now();
+      if (now - lastTap < 350) { st.boosters.splice(i, 1); compute(); drag = null; return; }
+      lastTap = now; drag = { k: 'ap', o: st.boosters[i] }; return;
+    }
+    if (mode === 'erase') { var bi = -1, bd = 0.5; st.walls.forEach(function (w, k) { var d = distSeg(p, w); if (d < bd) { bd = d; bi = k; } }); if (bi >= 0) { st.walls.splice(bi, 1); compute(); } else readAt(p); drag = { k: 'erase' }; return; }
+    drag = { k: 'wall', a: { x: snap(p.x), y: snap(p.y) }, moved: false };
+  });
+  cv.addEventListener('pointermove', function (e) {
+    if (!drag) return; var p = pos(e);
+    if (drag.k === 'ap') { drag.o.x = p.x; drag.o.y = p.y; drag.moved = true; draw(); return; }
+    if (drag.k === 'wall') {
+      var b = { x: snap(p.x), y: snap(p.y) }, a = drag.a, dx = Math.abs(b.x - a.x), dy = Math.abs(b.y - a.y);
+      if (dy < dx * 0.25) b.y = a.y; else if (dx < dy * 0.25) b.x = a.x;
+      if (Math.hypot(b.x - a.x, b.y - a.y) > 0.2) { drag.moved = true; preview = [a.x, a.y, b.x, b.y, mode]; draw(); }
+    }
+  });
+  function up(e) {
+    if (!drag) return;
+    if (drag.k === 'ap') compute();
+    else if (drag.k === 'wall') { if (preview) { st.walls.push(preview); preview = null; compute(); } else readAt(pos(e)); }
+    drag = null;
+  }
+  cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', function () { drag = null; preview = null; draw(); });
+
+  function search(kind) {
+    var best = null, bestS = -1, step = Math.max(0.5, Math.min(st.W, st.H) / 16), save0 = { x: st.router.x, y: st.router.y };
+    for (var y = step / 2; y < st.H; y += step) for (var x = step / 2; x < st.W; x += step) {
+      var aps;
+      if (kind === 'router') { st.router.x = x; st.router.y = y; aps = apList(); }
+      else { var b = { x: x, y: y }; if (rssiFrom(st.router, x, y) <= -72) continue; aps = apList(st.boosters.concat([b])); }
+      var c = cover(aps), s = c.good * 3 + c.ok - c.dead * 2;
+      if (s > bestS) { bestS = s; best = { x: x, y: y }; }
+    }
+    if (kind === 'router') { st.router.x = best ? best.x : save0.x; st.router.y = best ? best.y : save0.y; }
+    else if (best) st.boosters.push(best);
+    else $('read').textContent = 'No spot hears the router well enough for a booster. Move the router first.';
+    compute();
+  }
+  $('best').onclick = function () { search('booster'); };
+  $('bestR').onclick = function () { search('router'); };
+  $('addB').onclick = function () { st.boosters.push({ x: st.W / 2, y: st.H / 2 }); compute(); };
+  [].forEach.call(document.querySelectorAll('[data-m]'), function (b) { b.onclick = function () { mode = b.dataset.m; [].forEach.call(document.querySelectorAll('[data-m]'), function (x) { x.setAttribute('aria-pressed', x === b); }); }; });
+  [].forEach.call(document.querySelectorAll('[data-b]'), function (b) { b.onclick = function () { st.band = +b.dataset.b; [].forEach.call(document.querySelectorAll('[data-b]'), function (x) { x.setAttribute('aria-pressed', x === b); }); compute(); }; });
+  [].forEach.call(document.querySelectorAll('[data-p]'), function (b) { b.onclick = function () { bg = null; setPlan(PRESETS[b.dataset.p]); }; });
+  ['W', 'H'].forEach(function (k) { $(k).addEventListener('change', function () { st[k] = Math.max(4, Math.min(60, +this.value || 10)); this.value = st[k]; st.router.x = Math.min(st.router.x, st.W); st.router.y = Math.min(st.router.y, st.H); size(); compute(); }); });
+  $('img').onchange = function () { var f = this.files[0]; if (!f) return; var im = new Image(); im.onload = function () { bg = im; st.H = Math.round(st.W * im.height / im.width * 2) / 2; $('H').value = st.H; size(); compute(); }; im.src = URL.createObjectURL(f); };
+  $('key').innerHTML = LV.map(function (l, i) { return '<span><i style="background:' + l[1] + '"></i>' + l[2] + (i < LV.length - 1 ? ' (≥ ' + l[0] + ' dBm)' : '') + '</span>'; }).join('');
+  var saved = null; try { saved = JSON.parse(localStorage.getItem('wifiPlan') || 'null'); } catch (e) {}
+  if (saved && saved.walls) { st = saved; $('W').value = st.W; $('H').value = st.H; [].forEach.call(document.querySelectorAll('[data-b]'), function (x) { x.setAttribute('aria-pressed', +x.dataset.b === st.band); }); size(); compute(); }
+  else setPlan(PRESETS.flat);
+  window.addEventListener('resize', size);
+})();
+</script>
+</body>
+</html>
