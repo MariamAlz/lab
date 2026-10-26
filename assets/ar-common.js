@@ -181,3 +181,10 @@ LabAr.add({
  "Paste a privacy policy in English or Arabic and see what it says about selling your data, ads, AI training, retention and deletion, with quotes.": "الصق سياسة خصوصية بالعربية أو الإنجليزية واعرف ما تقوله عن بيع بياناتك والإعلانات وتدريب الذكاء الاصطناعي ومدة الاحتفاظ والحذف، مع الاقتباسات.",
  "Read a policy →": "اقرأ سياسة ←"
 });
+/* index cards for newer tools */
+LabAr.add({
+ "Guide · Security": "دليل · أمان",
+ "SIM swap protection": "الحماية من استبدال الشريحة",
+ "Spot the warning signs, close the gaps on your number and accounts, and know what to do in the first minutes.": "تعرّف على علامات التحذير، وسدّ الثغرات في رقمك وحساباتك، واعرف ما تفعله في الدقائق الأولى.",
+ "Protect my number →": "احمِ رقمي ←"
+});

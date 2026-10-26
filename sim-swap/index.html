@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SIM Swap Protection · Mariam's Lab</title>
+<meta name="description" content="How SIM swap and number transfer fraud work, the warning signs, a checklist to protect your number and accounts, and what to do in the first minutes if it happens.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/sim-swap/">
+<meta property="og:title" content="SIM Swap Protection · Mariam's Lab"><meta property="og:description" content="Protect your number, and know what to do if it is taken."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.sm { font: inherit; font-size: 0.84rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 13px; cursor: pointer; text-decoration: none; display: inline-block; }
+.sm:hover { border-color: var(--accent); }
+.sm.pri { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.box { padding: 16px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); display: grid; gap: 10px; }
+.box h2 { font-size: 1.15rem; }
+.box p { margin: 0; }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: 10px; }
+.two > div { padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); font-size: 0.9rem; }
+.two b { display: block; margin-bottom: 4px; }
+.two span { color: var(--muted); }
+.signs { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.signs li { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 8px; font-size: 0.92rem; align-items: start; }
+.signs li::before { content: '!'; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; background: var(--sat-c); color: var(--bg); font-weight: 700; font-size: 0.8rem; }
+.signs small { display: block; color: var(--muted); font-size: 0.82rem; }
+.grp { display: grid; gap: 8px; }
+.grp h3 { font-size: 0.95rem; color: var(--accent); font-family: var(--font-body); font-weight: 600; margin-top: 6px; }
+.it { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; padding: 11px 12px; border: 1px solid var(--line); border-radius: 10px; cursor: pointer; font-size: 0.92rem; }
+.it:has(input:checked) { border-color: var(--sat-b); background: rgba(79,211,189,.07); }
+.it input { width: 18px; height: 18px; margin: 2px 0 0; accent-color: var(--sat-b); }
+.it small { display: block; color: var(--muted); font-size: 0.83rem; margin-top: 3px; }
+.it .w { font-family: var(--font-mono); font-size: 0.68rem; color: var(--sat-c); margin-inline-start: 6px; }
+html.ar .it .w { font-family: inherit; }
+.svc { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: 8px; }
+.svc .it { padding: 9px 11px; font-size: 0.88rem; }
+.meter { height: 10px; border-radius: 999px; background: var(--line); overflow: hidden; }
+.meter i { display: block; height: 100%; width: 0; background: var(--sat-c); transition: width .3s, background .3s; }
+.lvl { font-family: var(--font-display); font-size: 1.3rem; font-weight: 800; }
+.plan { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; counter-reset: pl; }
+.plan li { counter-increment: pl; display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 10px; font-size: 0.92rem; }
+.plan li::before { content: counter(pl); width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; background: var(--accent); color: var(--bg); font-family: var(--font-mono); font-weight: 600; }
+.plan small { display: block; color: var(--muted); font-size: 0.83rem; margin-top: 2px; }
+.ecard { border: 1px dashed var(--accent); }
+.fld { display: grid; gap: 4px; font-size: 0.82rem; color: var(--muted); }
+.fld input { font: inherit; font-size: 0.92rem; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; width: 100%; min-width: 0; }
+.hint { font-size: 0.8rem; color: var(--muted); margin: 0; }
+.panel a:not(.sm) { color: var(--accent); }
+@media print {
+  .labbar, .labfoot, .btns, .noprint { display: none !important; }
+  body { background: #fff; color: #000; } body::before { display: none; }
+  .box, .it, .two > div { border-color: #999; background: none; break-inside: avoid; }
+  .it small, .signs small, .plan small, .two span, .hint { color: #333; }
+  .game { display: block; } .labmain { padding: 0; }
+  .fld input { color: #000; background: #fff; border-color: #999; }
+}
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Guide · Security</span>
+    <h1 style="font-size:var(--step-3)">SIM swap protection.</h1>
+    <p>Your phone number unlocks more than calls. Banks, email and apps send login codes to it. In a SIM swap, a criminal gets your number moved to their SIM, and every code goes to them. This page shows the warning signs, a checklist to close the gaps, and a plan for the first few minutes. Your ticks stay in this browser. Nothing is uploaded.</p>
+  </div>
+  <div class="game">
+    <div class="panel">
+      <div class="box">
+        <h2>What it is</h2>
+        <div class="two">
+          <div><b>SIM swap</b><span>Someone convinces your carrier, in a shop or on the phone, to put your number on a new SIM or eSIM. They often use a fake ID or details found online.</span></div>
+          <div><b>Number transfer fraud</b><span>Someone asks another carrier to move your number to an account they control. The effect is the same: your number now rings their phone.</span></div>
+        </div>
+        <p class="hint">Either way, they then reset your email, banking or messaging accounts with codes sent by text.</p>
+      </div>
+      <div class="box">
+        <h2>Warning signs</h2>
+        <ul class="signs">
+          <li><span>Sudden "No service" or "SOS only"<small>Your phone loses signal where it normally works, and a restart doesn't fix it.</small></span></li>
+          <li><span>A message about a SIM change you didn't ask for<small>Some carriers send a text or email when a SIM or eSIM is replaced. Take it seriously.</small></span></li>
+          <li><span>You are logged out of accounts<small>Email, WhatsApp or banking apps ask you to sign in again, or say your password changed.</small></span></li>
+          <li><span>Login codes you didn't ask for<small>Someone may be testing which accounts they can reset.</small></span></li>
+          <li><span>Friends get odd messages from you<small>A hijacked WhatsApp is often used to ask your contacts for money or codes.</small></span></li>
+        </ul>
+      </div>
+      <div class="box">
+        <h2>Your protection checklist</h2>
+        <div class="stats">
+          <div><b id="sScore">0%</b><span>Score</span></div>
+          <div><b id="sDone">0</b><span>Steps done</span></div>
+          <div><b id="sSvc">0</b><span>Services moved</span></div>
+        </div>
+        <div class="meter"><i id="meter"></i></div>
+        <div class="lvl" id="lvl">Not started</div>
+        <div id="list"></div>
+      </div>
+      <div class="box">
+        <h2>Move two-step login off SMS</h2>
+        <p class="hint">Go account by account. Open each service's security settings and look for an authenticator app, passkey or security key. Tick it when done.</p>
+        <div class="svc" id="svc"></div>
+      </div>
+      <p class="fact">How it works: your number is just a record at the carrier that says which SIM it belongs to. Change that record and every call and text follows it, even though your phone is still in your hand. That is why an authenticator app or passkey, which lives on your device, is safer than a code by text.</p>
+    </div>
+    <div class="panel" style="align-content:start">
+      <div class="box" style="border-color:var(--sat-c)">
+        <h2>If it happens: the first minutes</h2>
+        <ol class="plan">
+          <li><span>Call your carrier from another phone<small>Use the official number from the carrier's website or a bill. Say you think your SIM was swapped and ask them to block it and give you a new one.</small></span></li>
+          <li><span>Call your bank<small>Use the number on the back of your card. Ask them to freeze cards and online banking until you are back in control.</small></span></li>
+          <li><span>Change your main email password first<small>Do it from a computer or a phone you trust. Sign out all other sessions, then check the recovery phone, recovery email and forwarding rules haven't been changed.</small></span></li>
+          <li><span>Then the rest<small>Apple or Google account, WhatsApp, social media, shopping and crypto. Turn on an authenticator app as you go.</small></span></li>
+          <li><span>Warn your contacts<small>Tell family and friends not to answer money or code requests from your number for now.</small></span></li>
+          <li><span>Report it to the police<small>Use your emirate's police e-crime reporting service or app. Keep a record of times, messages and reference numbers from the carrier and bank.</small></span></li>
+        </ol>
+      </div>
+      <div class="box ecard">
+        <h2>My emergency card</h2>
+        <p class="hint">Fill it in now, print it, and keep it with your passport. It stays in this browser only.</p>
+        <label class="fld"><span>Carrier's official number</span><input type="text" id="e1" autocomplete="off"></label>
+        <label class="fld"><span>Bank's official number</span><input type="text" id="e2" autocomplete="off"></label>
+        <label class="fld"><span>Email to secure first</span><input type="text" id="e3" autocomplete="off"></label>
+        <label class="fld"><span>Where my recovery codes are</span><input type="text" id="e4" autocomplete="off"></label>
+        <div class="btns"><button class="sm pri" type="button" id="print">Print this page</button><button class="sm" type="button" id="reset">Clear my ticks</button></div>
+      </div>
+      <div class="box">
+        <h2>See what depends on your number</h2>
+        <p>The <a href="../account-map/">account recovery map</a> shows which of your accounts would fall with a SIM swap, and what to fix first.</p>
+      </div>
+      <p class="hint">General guidance, not legal advice. Check with your carrier and bank what they offer, since services change.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  var GROUPS = [
+    ['Your carrier', [
+      ['c1', 3, 'Ask your carrier about a PIN or password on your account', 'Call or visit your carrier (in the UAE, e& or du) and ask what protection they offer against SIM replacement and number transfers, such as a PIN, a password or extra ID checks. What is available differs and changes, so ask them directly.'],
+      ['c2', 2, 'Secure your carrier app and online account', 'Use a strong, unique password and two-step login if offered. Someone inside that account may be able to order a new SIM or eSIM.'],
+      ['c3', 1, 'Save your carrier\'s official contact details', 'Take them from the carrier\'s website, not from a search ad or a message, so you can reach them fast from another phone.']
+    ]],
+    ['Your accounts', [
+      ['a1', 3, 'Move your main email to an authenticator app or passkey', 'Your email can reset almost everything else. Do this one first.'],
+      ['a2', 3, 'Do the same for your Apple or Google account', 'It holds your backups, photos and saved passwords.'],
+      ['a3', 2, 'Remove your phone number as a recovery method where you can', 'Keep it only where a service insists. Add recovery codes or a well-protected backup email instead.'],
+      ['a4', 2, 'Save recovery codes somewhere offline', 'Print them or write them down. Then losing your phone won\'t lock you out either.'],
+      ['a5', 2, 'Turn on WhatsApp two-step verification', 'It adds a PIN, so a new SIM alone isn\'t enough to take over your WhatsApp.']
+    ]],
+    ['Your phone', [
+      ['p1', 2, 'Set a SIM PIN', 'Your phone asks for it after a restart, so your SIM can\'t be used in another phone. Find it in your phone\'s SIM or mobile network settings. The default PIN is on your SIM pack or from your carrier. Careful: three wrong tries lock the SIM and you need the PUK code to unlock it, and too many wrong PUK tries can block the SIM for good. Keep the PUK somewhere safe.'],
+      ['p2', 1, 'Hide message previews on the lock screen', 'Codes shown on a locked screen can be read by anyone holding your phone.'],
+      ['p3', 1, 'If you use an eSIM, guard the transfer', 'An eSIM can\'t be pulled out of your phone, but it can be moved to a new phone through your carrier or its app. Treat an eSIM QR code like a key and never send it to anyone.']
+    ]],
+    ['Your money', [
+      ['b1', 3, 'Turn on bank alerts', 'Ask for alerts on every transaction, new device login and new beneficiary, by app notification and email as well as SMS if your bank offers them.'],
+      ['b2', 2, 'Use your bank app\'s in-app approval if it has one', 'Approving logins inside the app is harder to steal than a code by text.'],
+      ['b3', 1, 'Know your bank\'s official number', 'It is on the back of your card. Save it somewhere you can reach without your phone.']
+    ]],
+    ['Your habits', [
+      ['h1', 2, 'Keep your number and birthday off public profiles', 'Criminals use them to pass a carrier\'s identity checks.'],
+      ['h2', 2, 'Never share a code you didn\'t ask for', 'No carrier, bank or government office calls to ask for a one-time code. Hang up and call the official number yourself.']
+    ]]
+  ];
+  var SERVICES = [
+    ['Google account and Gmail', 'Passkey or authenticator app'], ['Microsoft account and Outlook', 'Authenticator app or passkey'], ['Apple Account', 'Check trusted phone numbers, add a recovery key'],
+    ['WhatsApp', 'Two-step verification PIN'], ['Telegram', 'Two-step verification password'], ['Instagram', 'Authenticator app'], ['Facebook', 'Authenticator app or security key'],
+    ['X', 'Authenticator app or security key'], ['TikTok', 'Authenticator app'], ['Snapchat', 'Authenticator app'], ['LinkedIn', 'Authenticator app'],
+    ['PayPal', 'Authenticator app or passkey'], ['Amazon', 'Authenticator app'], ['Crypto exchanges', 'Security key or authenticator app, plus a withdrawal allow-list'], ['Your bank', 'In-app approval or token, if offered']
+  ];
+  var KEY = 'simswap.v1', st = { t: {}, s: {}, e: {} };
+  try { var d = JSON.parse(localStorage.getItem(KEY) || 'null'); if (d) { st.t = d.t || {}; st.s = d.s || {}; st.e = d.e || {}; } } catch (e) {}
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} }
+  $('list').innerHTML = GROUPS.map(function (g) {
+    return '<div class="grp"><h3>' + esc(g[0]) + '</h3>' + g[1].map(function (x) {
+      return '<label class="it"><input type="checkbox" data-t="' + x[0] + '"><span><b>' + esc(x[2]) + '</b>' + (x[1] === 3 ? '<span class="w">Top priority</span>' : '') + '<small>' + esc(x[3]) + '</small></span></label>';
+    }).join('') + '</div>';
+  }).join('');
+  $('svc').innerHTML = SERVICES.map(function (s, i) { return '<label class="it"><input type="checkbox" data-s="' + i + '"><span><b>' + esc(s[0]) + '</b><small>' + esc(s[1]) + '</small></span></label>'; }).join('');
+  [].forEach.call(document.querySelectorAll('[data-t]'), function (c) { c.checked = !!st.t[c.getAttribute('data-t')]; });
+  [].forEach.call(document.querySelectorAll('[data-s]'), function (c) { c.checked = !!st.s[c.getAttribute('data-s')]; });
+  ['e1', 'e2', 'e3', 'e4'].forEach(function (k) { $(k).value = st.e[k] || ''; $(k).addEventListener('input', function () { st.e[k] = this.value.slice(0, 120); save(); }); });
+  document.addEventListener('change', function (e) {
+    var t = e.target;
+    if (t.hasAttribute('data-t')) { st.t[t.getAttribute('data-t')] = t.checked; save(); score(); }
+    if (t.hasAttribute('data-s')) { st.s[t.getAttribute('data-s')] = t.checked; save(); score(); }
+  });
+  function score() {
+    var got = 0, tot = 0, n = 0, all = 0;
+    GROUPS.forEach(function (g) { g[1].forEach(function (x) { tot += x[1]; all++; if (st.t[x[0]]) { got += x[1]; n++; } }); });
+    var sv = SERVICES.filter(function (s, i) { return st.s[i]; }).length;
+    var pct = Math.round(100 * (got + Math.min(sv, 6) * 0.5) / (tot + 3));
+    $('sScore').textContent = pct + '%'; $('sDone').textContent = n + '/' + all; $('sSvc').textContent = sv + '/' + SERVICES.length;
+    var m = $('meter'); m.style.width = pct + '%'; m.style.background = pct >= 75 ? 'var(--sat-b)' : pct >= 40 ? 'var(--accent)' : 'var(--sat-c)';
+    $('lvl').textContent = pct === 0 ? 'Not started' : pct < 40 ? 'Easy target' : pct < 75 ? 'Some gaps left' : pct < 100 ? 'Well protected' : 'Locked down';
+    $('lvl').style.color = pct >= 75 ? 'var(--sat-b)' : pct >= 40 ? 'var(--accent)' : 'var(--sat-c)';
+  }
+  $('print').onclick = function () { window.print(); };
+  $('reset').onclick = function () { if (confirm('Clear all ticks on this page?')) { st.t = {}; st.s = {}; save(); [].forEach.call(document.querySelectorAll('[data-t],[data-s]'), function (c) { c.checked = false; }); score(); } };
+  score();
+})();
+</script>
+</body>
+</html>
