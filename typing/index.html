@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Typing Speed Test · Mariam's Lab</title>
+<meta name="description" content="Test your typing speed in Arabic or English and see which keys slow you down, on a keyboard heat map.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/typing/">
+<meta property="og:title" content="Typing Speed Test · Mariam's Lab"><meta property="og:description" content="Arabic and English typing test with a weak-key heat map."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.ctrls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.sm { font: inherit; font-size: 0.85rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; cursor: pointer; }
+.sm:hover { border-color: var(--muted); }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.lbl { font-size: 0.8rem; color: var(--muted); }
+.box { position: relative; margin-top: 14px; padding: 22px; border-radius: var(--radius); border: 1px solid var(--line); background: rgba(7, 10, 24, 0.82); cursor: text; }
+.txt { font-family: var(--font-mono); font-size: clamp(1.05rem, 2.4vw, 1.35rem); line-height: 1.9; color: var(--muted); word-break: break-word; min-height: 5.7em; max-height: 5.7em; overflow: hidden; }
+.txt[dir="rtl"] { font-family: 'IBM Plex Sans Arabic', sans-serif; font-size: clamp(1.2rem, 2.8vw, 1.55rem); line-height: 2; }
+.txt span.ok { color: var(--ink); }
+.txt span.bad { color: var(--sat-c); background: rgba(240, 138, 179, 0.15); border-radius: 3px; }
+.txt span.cur { box-shadow: inset 2px 0 0 var(--accent); }
+.txt[dir="rtl"] span.cur { box-shadow: inset -2px 0 0 var(--accent); }
+.hid { position: absolute; opacity: 0; inset: 0; width: 100%; height: 100%; border: 0; resize: none; font-size: 16px; }
+.cover { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; color: var(--muted); background: rgba(7, 10, 24, 0.7); border-radius: inherit; font-size: 0.95rem; pointer-events: none; }
+.cover b { display: block; color: var(--ink); font-size: 1.2rem; }
+.time { font-family: var(--font-display); font-size: 2rem; font-weight: 800; color: var(--accent); }
+.kb { display: grid; gap: 5px; margin-top: 6px; }
+.kb div { display: flex; gap: 5px; justify-content: center; }
+.kb i { font-style: normal; flex: 1 1 0; max-width: 38px; aspect-ratio: 1; display: grid; place-items: center; border-radius: 7px; border: 1px solid var(--line); font-family: var(--font-mono); font-size: 0.8rem; min-width: 0; }
+.kb.ar i { font-family: 'IBM Plex Sans Arabic', sans-serif; font-size: 0.95rem; }
+@media (max-width: 520px) { .kb div { gap: 3px; } .kb i { aspect-ratio: auto; height: 30px; font-size: 0.72rem; } .kb.ar i { font-size: 0.8rem; } }
+.weak { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.weak li { font-size: 0.82rem; padding: 3px 10px; border-radius: 99px; border: 1px solid var(--sat-c); color: var(--sat-c); }
+.hist { font-family: var(--font-mono); font-size: 0.78rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Game · Language</span>
+    <h1 style="font-size:var(--step-3)">Typing speed test.</h1>
+    <p>Type the text as fast and accurately as you can, in Arabic or English. Afterwards a keyboard heat map shows exactly which keys trip you up, so you know what to practise.</p>
+  </div>
+  <div class="ctrls">
+    <span class="lbl">Language</span>
+    <button class="sm" type="button" data-l="en" aria-pressed="true">English</button>
+    <button class="sm" type="button" data-l="ar" aria-pressed="false">العربية</button>
+    <span class="lbl" style="margin-inline-start:10px">Time</span>
+    <button class="sm" type="button" data-s="30" aria-pressed="false">30 s</button>
+    <button class="sm" type="button" data-s="60" aria-pressed="true">1 min</button>
+    <button class="sm" type="button" data-s="120" aria-pressed="false">2 min</button>
+    <button class="sm" type="button" id="new" style="margin-inline-start:auto">New text</button>
+  </div>
+  <div class="box" id="box">
+    <div class="txt" id="txt"></div>
+    <textarea class="hid" id="inp" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="Type here"></textarea>
+    <div class="cover" id="cover"><span><b>Tap here and start typing</b>The timer starts with your first key.</span></div>
+  </div>
+  <div class="game" style="margin-top:16px">
+    <div class="panel" style="display:grid;gap:10px;grid-template-columns:minmax(0,1fr)">
+      <span class="label">Mistakes by key</span>
+      <div class="kb" id="kb"></div>
+      <ul class="weak" id="weak"></ul>
+    </div>
+    <div class="panel" style="display:grid;gap:12px">
+      <div class="stats">
+        <div><span class="label">Speed</span><b id="sW">—</b></div>
+        <div><span class="label">Accuracy</span><b id="sA">—</b></div>
+        <div><span class="label">Time left</span><b id="sT">60</b></div>
+      </div>
+      <p class="hist" id="hist"></p>
+      <p class="fact">Speed is in words per minute, counting every 5 correct characters as one word, which is the standard. Average adults type about 40 wpm; 70 is fast. Arabic words are often shorter, so the same rule keeps the two fair.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var TEXT = {
+    en: ['The falcon is the national bird of the UAE, and some can dive faster than three hundred kilometres an hour.', 'Satellites high above the equator move at the same speed the Earth turns, so they seem to hang still in the sky.', 'Mangroves grow where the sea meets the land, and their roots hold the mud together when storms arrive.', 'A good password is long and random, and it is never used for more than one account.', 'Before the age of oil, pearl divers from the Gulf held their breath for minutes to reach the oyster beds.', 'The desert at night can be surprisingly cold, and on a clear evening you can see thousands of stars.', 'Light from the Sun takes a little over eight minutes to reach us, so we always see it slightly in the past.', 'Dates were dried in the sun and stored for months, which made them one of the best foods for long journeys.', 'Every email has a hidden travel log that shows which servers passed it along the way.', 'Water expands when it freezes, which is why ice floats and why pipes sometimes burst in winter.', 'The old wind towers of Dubai caught the breeze and pushed it down into the rooms below to keep them cool.', 'Coffee in the region is often flavoured with cardamom and served in small cups with dates on the side.', 'A map is only a model of the world, and every model leaves something out to make the rest easier to see.', 'Sound travels about three hundred and forty metres every second, much slower than light, which is why thunder arrives late.', 'Practice a little every day; small, steady effort beats one long session at the end of the week.'],
+    ar: ['الصقر هو الطائر الوطني لدولة الإمارات، وبعض الصقور تنقض بسرعة تزيد على ثلاثمئة كيلومتر في الساعة.', 'تنمو أشجار القرم حيث يلتقي البحر باليابسة، وتمسك جذورها الطين عندما تهب العواصف.', 'كان الغواصون يحبسون أنفاسهم لدقائق طويلة ليصلوا إلى مغاصات اللؤلؤ في قاع الخليج.', 'في ليالي الصحراء الصافية يمكنك أن ترى آلاف النجوم، ومنها نجم سهيل الذي يبشر بانكسار الحر.', 'كلمة المرور الجيدة طويلة وعشوائية، ولا تستخدم لأكثر من حساب واحد.', 'يصل ضوء الشمس إلينا بعد ثماني دقائق تقريبا، فنحن نراها دائما كما كانت قبل قليل.', 'كانت البراجيل القديمة تلتقط النسيم وتدفعه إلى الغرف في الأسفل لتبقى باردة في الصيف.', 'القهوة العربية تقدم في فناجين صغيرة مع التمر، وغالبا ما تضاف إليها الهيل والزعفران.', 'يتمدد الماء عندما يتجمد، ولهذا يطفو الجليد على سطح الماء.', 'القليل من التدريب كل يوم أفضل من جلسة طويلة واحدة في نهاية الأسبوع.', 'تدور الأقمار الصناعية فوق خط الاستواء بسرعة دوران الأرض نفسها، فتبدو ثابتة في السماء.', 'الخريطة نموذج للعالم فقط، وكل نموذج يترك شيئا جانبا ليجعل الباقي أوضح.', 'كان التمر يجفف تحت الشمس ويخزن شهورا، فصار من أفضل الأطعمة في الرحلات الطويلة.', 'ينتقل الصوت نحو ثلاثمئة وأربعين مترا في الثانية، ولهذا يتأخر صوت الرعد عن البرق.']
+  };
+  var KB = {
+    en: ['qwertyuiop', 'asdfghjkl', 'zxcvbnm'],
+    ar: ['ضصثقفغعهخحجد', 'شسيبلاتنمكط', 'ئءؤرىةوزظ']
+  };
+  var lang = 'en', secs = 60, target = '', start = 0, timer = null, done = false, miss = {}, hits = {}, typedChars = 0, errors = 0;
+  function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function norm(c) { return lang === 'en' ? c.toLowerCase() : ({ 'أ': 'ا', 'إ': 'ا', 'آ': 'ا' })[c] || c; }
+  function reset() {
+    clearInterval(timer); timer = null; done = false; start = 0; miss = {}; hits = {}; typedChars = 0; errors = 0;
+    target = shuffle(TEXT[lang]).join(' ');
+    $('inp').value = ''; $('inp').disabled = false; $('txt').dir = lang === 'ar' ? 'rtl' : 'ltr'; $('inp').dir = $('txt').dir;
+    $('sT').textContent = secs; $('sW').textContent = '—'; $('sA').textContent = '—'; $('cover').hidden = false;
+    $('cover').querySelector('span').innerHTML = '<b>' + (lang === 'ar' ? 'اضغط هنا وابدأ الكتابة' : 'Tap here and start typing') + '</b>' + (lang === 'ar' ? 'يبدأ المؤقت مع أول حرف. تحتاج إلى لوحة مفاتيح عربية.' : 'The timer starts with your first key.');
+    paint(); keyboard();
+  }
+  function paint() {
+    var v = $('inp').value, out = '', n = Math.min(target.length, v.length + 220), from = Math.max(0, v.length - 60);
+    from = target.lastIndexOf(' ', from) + 1;
+    for (var i = from; i < n; i++) {
+      var c = target[i], cls = i < v.length ? (v[i] === c ? 'ok' : 'bad') : i === v.length ? 'cur' : '';
+      var ch = c === ' ' && cls === 'bad' ? '·' : c.replace('&', '&amp;').replace('<', '&lt;');
+      out += cls ? '<span class="' + cls + '">' + ch + '</span>' : ch;
+    }
+    $('txt').innerHTML = out;
+  }
+  function stats() {
+    var v = $('inp').value, correct = 0; for (var i = 0; i < v.length; i++) if (v[i] === target[i]) correct++;
+    var min = Math.max(1 / 60, (Date.now() - start) / 60000);
+    $('sW').textContent = start ? Math.round(correct / 5 / min) : '—';
+    $('sA').textContent = typedChars ? Math.round((1 - errors / typedChars) * 100) + '%' : '—';
+  }
+  function finish() {
+    clearInterval(timer); done = true; $('inp').disabled = true; stats(); keyboard(true);
+    var w = +$('sW').textContent, a = $('sA').textContent;
+    $('cover').hidden = false; $('cover').querySelector('span').innerHTML = '<b>' + w + ' wpm · ' + a + ' accurate</b>' + (lang === 'ar' ? 'اضغط "نص جديد" للمحاولة مرة أخرى' : 'Press "New text" to go again');
+    try { var h = JSON.parse(localStorage.getItem('typingHist') || '[]'); h.unshift([lang, secs, w, a, Date.now()]); h = h.slice(0, 8); localStorage.setItem('typingHist', JSON.stringify(h)); history(h); } catch (e) {}
+  }
+  function history(h) { $('hist').textContent = h.length ? 'Your last runs: ' + h.map(function (x) { return x[2] + ' wpm (' + (x[0] === 'ar' ? 'AR' : 'EN') + ')'; }).join(' · ') : ''; }
+  $('inp').addEventListener('input', function (e) {
+    if (done) return;
+    if (!start) { start = Date.now(); $('cover').hidden = true; timer = setInterval(function () { var left = Math.max(0, secs - Math.floor((Date.now() - start) / 1000)); $('sT').textContent = left; stats(); if (!left) finish(); }, 250); }
+    var v = this.value;
+    if (e.inputType && e.inputType.indexOf('insert') === 0) {
+      var i = v.length - 1, want = target[i], got = v[i];
+      if (want != null) { var k = norm(want); typedChars++; hits[k] = (hits[k] || 0) + 1; if (got !== want) { errors++; miss[k] = (miss[k] || 0) + 1; } }
+    }
+    if (v.length >= target.length) target += ' ' + shuffle(TEXT[lang]).join(' ');
+    paint(); stats();
+  });
+  $('inp').addEventListener('focus', function () { if (!start && !done) $('cover').querySelector('span').innerHTML = '<b>' + (lang === 'ar' ? 'ابدأ الكتابة' : 'Go!') + '</b>'; });
+  $('inp').addEventListener('paste', function (e) { e.preventDefault(); });
+  function keyboard(final) {
+    var rows = KB[lang], maxRate = 0;
+    rows.join('').split('').forEach(function (k) { if (hits[k]) maxRate = Math.max(maxRate, (miss[k] || 0) / hits[k]); });
+    $('kb').className = 'kb' + (lang === 'ar' ? ' ar' : '');
+    $('kb').innerHTML = rows.map(function (r) { return '<div' + (lang === 'ar' ? ' dir="rtl"' : '') + '>' + r.split('').map(function (k) { var rate = hits[k] ? (miss[k] || 0) / hits[k] : 0, a = maxRate ? rate / maxRate : 0; return '<i title="' + k + ': ' + (miss[k] || 0) + ' of ' + (hits[k] || 0) + ' wrong" style="background:rgba(240,138,179,' + (a * 0.8).toFixed(2) + ');' + (hits[k] ? '' : 'opacity:.45') + '">' + k + '</i>'; }).join('') + '</div>'; }).join('');
+    var weak = Object.keys(miss).filter(function (k) { return hits[k] >= 2 && k.trim(); }).sort(function (a, b) { return miss[b] / hits[b] - miss[a] / hits[a]; }).slice(0, 6);
+    $('weak').innerHTML = final ? (weak.length ? weak.map(function (k) { return '<li>' + k + ' · ' + Math.round(miss[k] / hits[k] * 100) + '% wrong</li>'; }).join('') : '<li style="border-color:var(--sat-b);color:var(--sat-b)">No weak keys. Lovely.</li>') : '';
+  }
+  [].forEach.call(document.querySelectorAll('[data-l]'), function (b) { b.onclick = function () { lang = b.dataset.l; [].forEach.call(document.querySelectorAll('[data-l]'), function (x) { x.setAttribute('aria-pressed', x === b); }); reset(); $('inp').focus(); }; });
+  [].forEach.call(document.querySelectorAll('[data-s]'), function (b) { b.onclick = function () { secs = +b.dataset.s; [].forEach.call(document.querySelectorAll('[data-s]'), function (x) { x.setAttribute('aria-pressed', x === b); }); reset(); }; });
+  $('new').onclick = function () { reset(); $('inp').focus(); };
+  try { history(JSON.parse(localStorage.getItem('typingHist') || '[]')); } catch (e) {}
+  reset();
+})();
+</script>
+</body>
+</html>
