@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Desert Night Planner · Mariam's Lab</title>
+<meta name="description" content="Plan a desert night under the stars in the UAE. For Liwa, Al Qudra, Al Wathba, Jebel Jais, Hatta, Fossil Rock, Al Badayer and the Rub al Khali edge: moonrise and moonset, true darkness, the Milky Way core, and the cloud and wind forecast for the next 14 nights.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/desert-night/">
+<meta property="og:title" content="Desert Night Planner · Mariam's Lab"><meta property="og:description" content="The best nights in the next two weeks for stars at UAE camping spots."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.where { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm:hover { border-color: var(--muted); }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 8px 0 0; }
+.verdict { margin-top: 12px; padding: 20px; border-radius: var(--radius); border: 1px solid var(--line); background: rgba(7,10,24,.82); display: grid; gap: 6px; }
+.verdict b { font-family: var(--font-display); font-size: clamp(1.4rem, 4.5vw, 2.2rem); font-weight: 800; line-height: 1.1; }
+.verdict p { margin: 0; color: var(--muted); }
+.nights { display: grid; gap: 6px; }
+.night { display: grid; grid-template-columns: 112px minmax(0, 1fr) 150px; gap: 12px; align-items: center; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.night.best { border-color: var(--accent); }
+.night .d { font-weight: 600; font-size: 0.92rem; }
+.night .d small { display: block; font-family: var(--font-mono); font-size: 0.72rem; color: var(--muted); font-weight: 400; }
+.night .rank { display: inline-block; font-family: var(--font-mono); font-size: 0.7rem; background: var(--accent); color: var(--bg); border-radius: 999px; padding: 1px 7px; margin-top: 3px; }
+.bar { position: relative; height: 30px; border-radius: 6px; overflow: hidden; background: #2a3366; }
+.bar i { position: absolute; top: 0; bottom: 0; }
+.bar .gc { top: auto; height: 6px; bottom: 0; background: #b48cff; }
+.bar .tk { top: 0; bottom: 0; width: 1px; background: rgba(255,255,255,.18); }
+.wx { font-family: var(--font-mono); font-size: 0.76rem; color: var(--muted); display: grid; gap: 2px; text-align: end; }
+.wx b { color: var(--ink); font-weight: 500; }
+.axis { display: grid; grid-template-columns: 112px minmax(0, 1fr) 150px; gap: 12px; padding: 0 12px; }
+.axis div { position: relative; height: 16px; font-family: var(--font-mono); font-size: 0.68rem; color: var(--muted); }
+.axis span { position: absolute; transform: translateX(-50%); }
+.legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 0.78rem; color: var(--muted); margin-top: 6px; }
+.legend span::before { content: ''; display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-inline-end: 5px; vertical-align: -2px; background: var(--c); }
+@media (max-width: 640px) {
+  .night { grid-template-columns: minmax(0, 1fr) auto; }
+  .night .bar { grid-column: 1 / -1; grid-row: 2; }
+  .axis { grid-template-columns: minmax(0, 1fr); }
+  .axis > div:first-child, .axis > div:last-child { display: none; }
+}
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Space · Weather · Live</span>
+    <h1 style="font-size:var(--step-3)">Desert night planner.</h1>
+    <p>Heading out to camp under the stars? Pick a spot to see the next 14 nights: when the sky is truly dark, when the Moon is up, whether the Milky Way's bright core is visible, and the cloud and wind forecast. The best nights are ranked at the top.</p>
+  </div>
+  <div class="where" id="where"></div>
+  <p class="msg" id="msg" role="status"></p>
+  <div class="verdict" id="verdict"><b>Working it out…</b></div>
+  <div class="stats" id="stats" style="margin-top:12px"></div>
+  <div class="panel" style="margin-top:18px;display:grid;gap:8px;min-width:0">
+    <span class="label">The next 14 nights · sunset to sunrise, UAE time</span>
+    <div class="axis" id="axis"></div>
+    <div class="nights" id="nights"></div>
+    <div class="legend"><span style="--c:#c9a24a">Daylight</span><span style="--c:#2a3366">Twilight</span><span style="--c:#03040a">Dark, no Moon</span><span style="--c:#6f7aa8">Moon up</span><span style="--c:#b48cff">Milky Way core above 10°</span></div>
+  </div>
+  <div class="game" style="margin-top:18px">
+    <div class="panel" style="display:grid;gap:10px;align-content:start">
+      <span class="label">How the ranking works</span>
+      <p class="fact" style="margin:0"><b>Dark hours</b> count the time when the Sun is more than 18° below the horizon (astronomical night) and the Moon is down or only a thin sliver. That's when the faint stars and the Milky Way show. Each night's score is those dark hours, reduced by the forecast cloud cover, with a penalty for strong wind and a bonus for hours when the Milky Way's core is up.</p>
+      <p class="fact" style="margin:0">The <b>Milky Way core</b> is the bright, dusty centre of our galaxy, in Sagittarius. From the UAE it's best from March to September. In winter it's below the horizon all night, but the winter sky has Orion, Sirius and the Pleiades instead.</p>
+      <p class="fact" style="margin:0">Moon times are calculated for the spot. Weather comes from the Open-Meteo forecast, which covers up to 16 days but becomes much less reliable after 4 or 5. Forecasts can't see local dust, so check again on the day.</p>
+    </div>
+    <div class="panel" style="display:grid;gap:10px;align-content:start">
+      <span class="label">Before you go</span>
+      <p class="fact" style="margin:0">Let your eyes adjust for 20 minutes with no phone screens, or use a red light. Park and camp well away from car headlights and the glow on the horizon from cities. Desert nights in winter can drop below 10°C, and Jebel Jais can get close to freezing. Wind over 30 km/h lifts sand and makes tents miserable.</p>
+      <p class="fact" style="margin:0">Tell someone where you're going, carry plenty of water and a charged phone, and only drive in the dunes with experience and a second car. Some areas are protected or need permission for camping, so check local rules first.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script src="../assets/sky.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var R = Math.PI / 180, D = 180 / Math.PI, MIN = 60000, HOUR = 3600000, DAY = 86400000, TZ = 4;
+  var SPOTS = [['Liwa (Moreeb)', 23.040, 53.780], ['Al Qudra', 24.840, 55.370], ['Al Wathba', 24.260, 54.610], ['Jebel Jais', 25.940, 56.130], ['Hatta', 24.800, 56.120], ['Fossil Rock', 25.030, 55.850], ['Al Badayer', 25.030, 55.660], ['Rub al Khali edge', 22.700, 55.150]];
+  var GC = { ra: 266.42, dec: -29.0 }; // Galactic Centre, RA 17h45m40s
+  var spot = null, wx = null;
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function clock(ms) { var d = new Date(ms + TZ * HOUR); return pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes()); }
+  function localHourKey(ms) { return new Date(ms + TZ * HOUR).toISOString().slice(0, 13); }
+  function dlabel(ms) { return new Date(ms + TZ * HOUR).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }); }
+  function sky(ms) {
+    var d = Sky.dayNum(ms), s = Sky.sun(d), m = Sky.moon(d, s), se = Sky.eclToEq(s, d), me = Sky.eclToEq(m, d), l = Sky.lst(ms, spot.lon);
+    var hs = Sky.toHoriz(se.ra, se.dec, l, spot.lat), hm = Sky.toHoriz(me.ra, me.dec, l, spot.lat), hp = Math.asin(1 / m.r) * D;
+    return { sun: hs.alt, moon: hm.alt - hp * Math.cos(hm.alt * R), lit: (1 - Math.cos(m.elong * R)) / 2, dl: m.dl, gc: Sky.toHoriz(GC.ra, GC.dec, l, spot.lat).alt };
+  }
+  function phaseName(dl) { return ['New moon', 'Waxing crescent', 'First quarter', 'Waxing gibbous', 'Full moon', 'Waning gibbous', 'Last quarter', 'Waning crescent'][Math.floor(((dl + 22.5) % 360) / 45)]; }
+  // one night: from 16:00 local on the given day to 08:00 next morning, in 10 minute steps
+  function night(day0) {
+    var start = day0 + 16 * HOUR, end = day0 + 32 * HOUR, step = 10 * MIN, S = [], n = { start: start, day0: day0 };
+    for (var t = start; t <= end; t += step) S.push({ t: t, s: sky(t) });
+    function cross(f, v, rising) { for (var i = 1; i < S.length; i++) { var a = f(S[i - 1].s), b = f(S[i].s); if (rising ? (a < v && b >= v) : (a >= v && b < v)) return S[i - 1].t + step * (v - a) / (b - a); } return null; }
+    n.sunset = cross(function (x) { return x.sun; }, -0.833, false); n.sunrise = cross(function (x) { return x.sun; }, -0.833, true);
+    n.dusk = cross(function (x) { return x.sun; }, -18, false); n.dawn = cross(function (x) { return x.sun; }, -18, true);
+    n.moonrise = cross(function (x) { return x.moon; }, -0.833, true); n.moonset = cross(function (x) { return x.moon; }, -0.833, false);
+    var mid = S[Math.floor(S.length / 2)].s; n.lit = mid.lit; n.dl = mid.dl;
+    n.segs = []; n.dark = 0; n.gcDark = 0; n.gcMax = -90; var clouds = [], winds = [], temps = [], gusts = [];
+    S.forEach(function (x, i) {
+      var st = x.s.sun < -18 ? (x.s.moon > 0 && x.s.lit > 0.08 ? 'moon' : 'dark') : x.s.sun < -0.833 ? 'tw' : 'day';
+      var gc = st === 'dark' && x.s.gc > 10;
+      if (st === 'dark') { n.dark += step / HOUR; if (x.s.gc > n.gcMax) n.gcMax = x.s.gc; }
+      if (gc) n.gcDark += step / HOUR;
+      var last = n.segs[n.segs.length - 1];
+      if (last && last.st === st && last.gc === gc) last.t1 = x.t + step; else n.segs.push({ st: st, gc: gc, t0: x.t, t1: x.t + step });
+      if (wx && x.s.sun < -0.833 && (x.t - start) % HOUR === 0) {
+        var k = wx.idx[localHourKey(x.t)];
+        if (k != null) { var cc = wx.h.cloud_cover[k]; if (cc != null) clouds.push({ v: cc, dark: st === 'dark' }); if (wx.h.wind_speed_10m[k] != null) winds.push(wx.h.wind_speed_10m[k]); if (wx.h.wind_gusts_10m && wx.h.wind_gusts_10m[k] != null) gusts.push(wx.h.wind_gusts_10m[k]); if (wx.h.temperature_2m[k] != null) temps.push(wx.h.temperature_2m[k]); }
+      }
+    });
+    var cd = clouds.filter(function (c) { return c.dark; }); if (!cd.length) cd = clouds;
+    n.cloud = cd.length ? cd.reduce(function (a, c) { return a + c.v; }, 0) / cd.length : null;
+    n.wind = winds.length ? Math.max.apply(null, winds) : null; n.gust = gusts.length ? Math.max.apply(null, gusts) : null;
+    n.tmin = temps.length ? Math.min.apply(null, temps) : null;
+    n.score = n.dark * (n.cloud == null ? 0.75 : 1 - n.cloud / 100 * 0.9) - (n.wind == null ? 0 : Math.max(0, n.wind - 20) / 8) + 0.4 * n.gcDark * (n.cloud == null ? 0.75 : 1 - n.cloud / 100);
+    return n;
+  }
+  function render() {
+    var now = Date.now(), today0 = Date.parse(new Date(now + TZ * HOUR).toISOString().slice(0, 10) + 'T00:00:00Z') - TZ * HOUR, list = [];
+    for (var k = 0; k < 14; k++) list.push(night(today0 + k * DAY));
+    var ranked = list.slice().sort(function (a, b) { return b.score - a.score; });
+    ranked.forEach(function (n, i) { n.rank = i + 1; });
+    var best = ranked[0];
+    function wxText(n) { return n.cloud == null ? 'no forecast yet' : (n.cloud < 15 ? 'clear' : n.cloud < 40 ? 'some cloud' : n.cloud < 75 ? 'cloudy' : 'overcast') + ', wind up to ' + Math.round(n.wind) + ' km/h'; }
+    $('verdict').innerHTML = '<span class="label">Best night at ' + spot.name + '</span><b>' + dlabel(best.day0 + 12 * HOUR) + ' night</b><p>' + best.dark.toFixed(1) + ' hours of moonless dark sky' + (best.dark > 0 ? ' from ' + clock(best.segs.filter(function (s) { return s.st === 'dark'; })[0].t0) : '') + ', ' + wxText(best) + (best.tmin != null ? ', down to about ' + Math.round(best.tmin) + '°C' : '') + '. ' + (best.gcDark > 0.3 ? 'The Milky Way core is up for ' + best.gcDark.toFixed(1) + ' dark hours.' : 'The Milky Way core is too low or below the horizon during the dark hours.') + '</p>';
+    // next new moon
+    var nm = null; for (var h = 0; h < 30 * 24; h += 3) { var a = sky(now + h * HOUR).dl, b = sky(now + (h + 3) * HOUR).dl; if (a > 300 && b < 60) { nm = now + (h + 1.5) * HOUR; break; } }
+    var gcBest = Math.max.apply(null, list.map(function (n) { return n.gcDark; }));
+    $('stats').innerHTML = '<div><b>' + Math.round(list[0].lit * 100) + '% lit</b><span>Moon tonight</span></div><div><b>' + (nm ? dlabel(nm) : '—') + '</b><span>next new moon</span></div><div><b>' + (gcBest > 0.3 ? gcBest.toFixed(1) + ' h' : 'Out of season') + '</b><span>' + (gcBest > 0.3 ? 'Milky Way core, best night' : 'Milky Way core') + '</span></div>';
+    // axis 17:00 to 07:00
+    var a0 = 17, a1 = 31;
+    function pct(t, day0) { return ((t - day0) / HOUR - a0) / (a1 - a0) * 100; }
+    var ax = ''; for (var hh = 18; hh <= 30; hh += 2) ax += '<span style="left:' + ((hh - a0) / (a1 - a0) * 100) + '%">' + pad(hh % 24) + '</span>';
+    $('axis').innerHTML = '<div></div><div>' + ax + '</div><div></div>';
+    $('nights').innerHTML = list.map(function (n) {
+      var bar = n.segs.map(function (s) {
+        var l = Math.max(0, pct(s.t0, n.day0)), r = Math.min(100, pct(s.t1, n.day0)); if (r <= l) return '';
+        var c = s.st === 'dark' ? '#03040a' : s.st === 'moon' ? '#6f7aa8' : s.st === 'tw' ? '#2a3366' : '#c9a24a';
+        return '<i style="left:' + l + '%;width:' + (r - l) + '%;background:' + c + '"></i>' + (s.gc ? '<i class="gc" style="left:' + l + '%;width:' + (r - l) + '%"></i>' : '');
+      }).join('');
+      for (var hh = 18; hh <= 30; hh += 2) bar += '<i class="tk" style="left:' + ((hh - a0) / (a1 - a0) * 100) + '%"></i>';
+      var mt = [];
+      if (n.moonrise) mt.push('rise ' + clock(n.moonrise)); if (n.moonset) mt.push('set ' + clock(n.moonset));
+      var title = 'Sunset ' + clock(n.sunset) + ', dark ' + (n.dusk ? clock(n.dusk) : '—') + ' to ' + (n.dawn ? clock(n.dawn) : '—') + ', Moon ' + Math.round(n.lit * 100) + '% ' + mt.join(', ');
+      return '<div class="night' + (n.rank <= 3 ? ' best' : '') + '" title="' + title + '"><div class="d">' + dlabel(n.day0 + 12 * HOUR) + '<small>Moon ' + Math.round(n.lit * 100) + '%' + (mt.length ? ' · ' + mt.join(' · ') : '') + '</small>' + (n.rank <= 3 ? '<span class="rank">#' + n.rank + ' best</span>' : '') + '</div><div class="bar" role="img" aria-label="' + title + '">' + bar + '</div><div class="wx"><span><b>' + n.dark.toFixed(1) + ' h</b> dark</span><span>' + (n.cloud == null ? 'no forecast' : '☁ ' + Math.round(n.cloud) + '% · 💨 ' + Math.round(n.wind) + ' km/h') + '</span>' + (n.tmin != null ? '<span>low ' + Math.round(n.tmin) + '°C</span>' : '') + '</div></div>';
+    }).join('');
+  }
+  function load(s) {
+    spot = { name: s[0], lat: s[1], lon: s[2] }; wx = null;
+    $('msg').textContent = 'Working out the sky and fetching the forecast for ' + s[0] + '…';
+    render();
+    var u = 'https://api.open-meteo.com/v1/forecast?latitude=' + s[1] + '&longitude=' + s[2] + '&hourly=cloud_cover,wind_speed_10m,wind_gusts_10m,temperature_2m&timezone=Asia%2FDubai&forecast_days=16';
+    fetch(u).then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(function (j) {
+      if (spot.name !== s[0]) return;
+      var idx = {}; j.hourly.time.forEach(function (t, i) { idx[t.slice(0, 13)] = i; });
+      wx = { h: j.hourly, idx: idx }; render();
+      $('msg').textContent = s[0] + ' · ' + s[1].toFixed(2) + '°N, ' + s[2].toFixed(2) + '°E · forecast from Open-Meteo';
+    }).catch(function () { $('msg').textContent = 'Couldn\'t reach the weather forecast, so this ranks nights on darkness only.'; });
+  }
+  SPOTS.forEach(function (s, i) {
+    var b = document.createElement('button'); b.className = 'sm'; b.type = 'button'; b.textContent = s[0]; b.setAttribute('aria-pressed', 'false');
+    b.onclick = function () { [].forEach.call(document.querySelectorAll('#where .sm'), function (x) { x.setAttribute('aria-pressed', x === b); }); load(s); try { localStorage.setItem('desertSpot', i); } catch (e) {} };
+    $('where').appendChild(b);
+  });
+  var i0 = 0; try { var v = localStorage.getItem('desertSpot'); if (v != null && SPOTS[+v]) i0 = +v; } catch (e) {}
+  document.querySelectorAll('#where .sm')[i0].click();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Shadow Clock · Mariam's Lab</title>
+<meta name="description" content="Stand a stick in the sun, measure its shadow, and find the Sun's height, the time of day and your latitude. Plus today's shadow lengths for your location and the shadow-tip method for finding east and west.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/shadow-clock/">
+<meta property="og:title" content="Shadow Clock · Mariam's Lab"><meta property="og:description" content="A stick, a shadow and some geometry: time, latitude and east-west without GPS."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.where { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm:hover { border-color: var(--muted); }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 8px 0 0; }
+.form { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.form label { display: grid; gap: 4px; font-size: 0.82rem; color: var(--muted); }
+.form input { font: inherit; font-family: var(--font-mono); font-size: 1rem; color: var(--ink); background: rgba(7,10,24,.6); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; width: 100%; min-width: 0; box-sizing: border-box; }
+.seg { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; font-size: 0.82rem; color: var(--muted); }
+.out { display: grid; gap: 8px; }
+.big { font-family: var(--font-display); font-weight: 800; font-size: clamp(1.4rem, 4vw, 2rem); line-height: 1.1; }
+.out p { margin: 0; color: var(--muted); font-size: 0.9rem; }
+.side { width: 100%; height: auto; display: block; }
+.side text, .chart text, .topv text { font-family: var(--font-mono); font-size: 11px; fill: var(--muted); }
+.chart { width: 100%; height: auto; display: block; }
+.topv { width: 100%; max-width: 440px; height: auto; display: block; margin: 0 auto; }
+.tipsteps { margin: 0; padding-inline-start: 1.2em; display: grid; gap: 6px; color: var(--muted); font-size: 0.9rem; }
+.tipsteps b { color: var(--ink); }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Experiment · Earth · Sun · Navigation</span>
+    <h1 style="font-size:var(--step-3)">Shadow clock.</h1>
+    <p>Stand a straight stick upright in the sun and measure its shadow. From those two numbers you can work out how high the Sun is, roughly what time it is, and even how far north you are. It's how people kept time and found their way long before clocks and GPS.</p>
+  </div>
+  <div class="where" id="where"><button class="sm" type="button" id="me">📍 Use my location</button></div>
+  <p class="msg" id="msg" role="status"></p>
+  <div class="game" style="margin-top:14px">
+    <div class="panel" style="display:grid;gap:12px;min-width:0">
+      <span class="label">Your measurement</span>
+      <div class="form">
+        <label>Stick height (cm)<input id="h" type="number" inputmode="decimal" min="1" step="any" value="100"></label>
+        <label>Shadow length (cm)<input id="l" type="number" inputmode="decimal" min="0" step="any" value="120"></label>
+        <label>Date<input id="date" type="date"></label>
+        <label>Shadow direction (° from north, optional)<input id="dir" type="number" inputmode="decimal" min="0" max="360" step="any" placeholder="e.g. 320"></label>
+      </div>
+      <div class="seg"><button class="sm" type="button" id="cmp">🧭 Read direction from phone</button><span id="cmsg"></span></div>
+      <div class="seg">Is the shadow getting <button class="sm" type="button" data-p="am" aria-pressed="false">shorter (morning)</button><button class="sm" type="button" data-p="pm" aria-pressed="false">longer (afternoon)</button><button class="sm" type="button" data-p="" aria-pressed="true">not sure</button></div>
+      <svg class="side" id="side" viewBox="0 0 400 170" role="img" aria-label="Stick and shadow"></svg>
+    </div>
+    <div class="panel out" style="align-content:start">
+      <span class="label">What it tells you</span>
+      <span class="big" id="alt">—</span>
+      <p id="altx"></p>
+      <span class="big" id="time" style="color:var(--accent)">—</span>
+      <p id="timex"></p>
+      <span class="big" id="lat" style="color:var(--sat-b)">—</span>
+      <p id="latx"></p>
+      <label class="seg" style="margin-top:4px">Clock time of the shortest shadow (UAE time) <input id="noon" type="time" style="font:inherit;font-family:var(--font-mono);color:var(--ink);background:rgba(7,10,24,.6);border:1px solid var(--line);border-radius:8px;padding:4px 8px"></label>
+      <p id="lonx"></p>
+    </div>
+  </div>
+  <div class="game" style="margin-top:18px">
+    <div class="panel" style="display:grid;gap:10px;min-width:0">
+      <span class="label" id="todayLbl">Shadow of a 1 m stick today</span>
+      <svg class="chart" id="chart" viewBox="0 0 600 260" role="img" aria-label="Shadow length through the day"></svg>
+      <p class="msg" id="chartx" style="margin:0"></p>
+    </div>
+    <div class="panel" style="display:grid;gap:10px;min-width:0">
+      <span class="label">Seen from above · where the shadow tip goes today</span>
+      <svg class="topv" id="top" viewBox="-200 -200 400 400" role="img" aria-label="Path of the shadow tip seen from above"></svg>
+      <p class="msg" style="margin:0">Each dot is the shadow tip on the hour. The tip moves from west to east during the day, which is the trick behind the shadow-tip method.</p>
+    </div>
+  </div>
+  <div class="game" style="margin-top:18px">
+    <div class="panel" style="display:grid;gap:10px;align-content:start">
+      <span class="label">Find east and west: the shadow-tip method</span>
+      <ol class="tipsteps">
+        <li><b>Push a stick upright</b> into flat ground in the sun.</li>
+        <li><b>Mark the tip</b> of its shadow with a stone. This first mark is <b>west</b>.</li>
+        <li><b>Wait 15 to 20 minutes</b> and mark the new tip.</li>
+        <li><b>Draw a line</b> from the first mark to the second. It points roughly <b>east</b>. Stand with the first mark on your left and the second on your right, and you're facing north.</li>
+      </ol>
+      <p class="fact" style="margin:0">It works because the Sun moves east to west, so the shadow moves west to east. It's most accurate around midday and near the equinoxes. In early morning or late afternoon in summer it can be off by 10° or more. Marking the tip at two times when the shadow has the <b>same length</b>, before and after noon, gives an exact east-west line.</p>
+    </div>
+    <div class="panel" style="display:grid;gap:10px;align-content:start">
+      <span class="label">Before GPS</span>
+      <p class="fact" style="margin:0">The Sun at noon gives your latitude: its height above the horizon depends only on how far you are from the equator and the date. Sailors measured it with a sextant every day at noon. Arab navigators in the Indian Ocean used the same idea at night with stars and a simple wooden <b>kamal</b>, a card on a knotted string. Ahmad ibn Majid, the 15th century master navigator born in Julfar near today's Ras Al Khaimah, wrote guides full of these star heights.</p>
+      <p class="fact" style="margin:0">Longitude is harder, because it needs an accurate clock. If you know the exact time when the shadow is shortest, the difference from noon at Greenwich tells you how far east you are: 15° for every hour. That's what the clock box above does. Measurements with a stick are usually good to a degree or two, about 100 to 200 km.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script src="../assets/sky.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var R = Math.PI / 180, D = 180 / Math.PI, MIN = 60000, HOUR = 3600000;
+  var PLACES = [['Abu Dhabi', 24.4539, 54.3773], ['Dubai', 25.2048, 55.2708], ['Al Ain', 24.2075, 55.7447], ['Ras Al Khaimah', 25.7895, 55.9432], ['Fujairah', 25.1288, 56.3265], ['Liwa', 23.1333, 53.7667]];
+  var loc = { lat: 24.4539, lon: 54.3773, name: 'Abu Dhabi' }, part = '', TZ = 4; // times shown in UAE time (UTC+4)
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function clock(ms) { var d = new Date(ms + TZ * HOUR); return pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes()); }
+  function sunAt(ms) { var d = Sky.dayNum(ms), s = Sky.sun(d), e = Sky.eclToEq(s, d), h = Sky.toHoriz(e.ra, e.dec, Sky.lst(ms, loc.lon), loc.lat); return { alt: h.alt, az: h.az, dec: e.dec, ra: e.ra }; }
+  function dayStart() { var v = $('date').value || new Date(Date.now() + TZ * HOUR).toISOString().slice(0, 10); return Date.parse(v + 'T00:00:00Z') - TZ * HOUR; } // local midnight, UAE time
+  function solarNoon(t0) { var best = t0, ba = -99; for (var t = t0 + 9 * HOUR; t < t0 + 15 * HOUR; t += MIN) { var a = sunAt(t).alt; if (a > ba) { ba = a; best = t; } } return { t: best, alt: ba }; }
+  function card8(b) { return ['north', 'north-east', 'east', 'south-east', 'south', 'south-west', 'west', 'north-west'][Math.round(((b % 360) + 360) % 360 / 45) % 8]; }
+  function num(id) { var v = parseFloat($(id).value); return isFinite(v) ? v : null; }
+  function update() {
+    var h = num('h'), L = num('l'), dir = num('dir'), t0 = dayStart(), noon = solarNoon(t0), dec = sunAt(noon.t).dec;
+    drawSide(h, L);
+    if (!h || h <= 0 || L == null || L < 0) { $('alt').textContent = '—'; $('altx').textContent = 'Enter the stick height and shadow length.'; $('time').textContent = $('lat').textContent = '—'; $('timex').textContent = $('latx').textContent = ''; return; }
+    var alt = Math.atan2(h, L) * D, sunAz = dir == null ? null : (dir + 180) % 360;
+    $('alt').textContent = 'Sun ' + alt.toFixed(1) + '° up';
+    $('altx').textContent = 'The angle whose tangent is height ÷ shadow (' + h + ' ÷ ' + L + ' = ' + (h / L || Infinity).toFixed(2) + ').' + (sunAz != null ? ' The Sun is in the ' + card8(sunAz) + ', opposite the shadow.' : '');
+    // time: when does the Sun reach this altitude on this date here?
+    var hits = [], prev = sunAt(t0 + 4 * HOUR).alt;
+    for (var t = t0 + 4 * HOUR + 2 * MIN; t < t0 + 21 * HOUR; t += 2 * MIN) { var a = sunAt(t).alt; if ((prev - alt) * (a - alt) <= 0 && prev !== a) hits.push(t - 2 * MIN * (a - alt) / (a - prev)); prev = a; }
+    if (!hits.length && alt <= noon.alt + 0.7) hits = [noon.t];
+    if (!hits.length) {
+      $('time').textContent = 'Not today';
+      $('timex').textContent = 'At ' + loc.name + ' the Sun only reaches ' + noon.alt.toFixed(1) + '° on this date, so a shadow this short can\'t happen. Check the measurements, the date or the place.';
+    } else {
+      var pick = hits;
+      if (sunAz != null) { pick = [hits.slice().sort(function (x, y) { return Math.abs(((sunAt(x).az - sunAz + 540) % 360) - 180) - Math.abs(((sunAt(y).az - sunAz + 540) % 360) - 180); })[0]]; }
+      else if (part === 'am') pick = hits.filter(function (x) { return x <= noon.t; });
+      else if (part === 'pm') pick = hits.filter(function (x) { return x >= noon.t; });
+      if (!pick.length) pick = hits;
+      $('time').textContent = pick.length === 1 ? 'About ' + clock(pick[0]) : 'About ' + clock(pick[0]) + ' or ' + clock(pick[pick.length - 1]);
+      var extra = pick.length > 1 ? 'The Sun is this high twice a day. Add the shadow direction, or say whether the shadow is shrinking or growing, to pick one.' : sunAz != null ? 'Matched using the shadow direction. The Sun at that time is at ' + sunAt(pick[0]).az.toFixed(0) + '°, you measured ' + sunAz.toFixed(0) + '°.' : '';
+      $('timex').textContent = 'UAE time, assuming you are near ' + loc.name + ' on this date. ' + extra + ' Near noon the shadow barely changes, so the estimate there is rough.';
+    }
+    // latitude if this was the noon shadow
+    var z = 90 - alt, northward = dir == null || Math.abs(((dir + 540) % 360) - 180) < 90;
+    var latEst = northward ? dec + z : dec - z;
+    $('lat').textContent = 'Latitude ' + Math.abs(latEst).toFixed(1) + '°' + (latEst >= 0 ? 'N' : 'S');
+    $('latx').textContent = 'If this was the shortest shadow of the day: latitude = Sun\'s declination (' + dec.toFixed(1) + '° on this date) ' + (northward ? '+' : '−') + ' (90° − ' + alt.toFixed(1) + '°). ' + loc.name + ' is at ' + loc.lat.toFixed(1) + '°N. At noon today the shadow of this stick would be ' + (h / Math.tan(noon.alt * R)).toFixed(1) + ' cm, at ' + clock(noon.t) + '.';
+    // longitude from clock time of shortest shadow
+    var nt = $('noon').value;
+    if (nt) {
+      var ms = t0 + (+nt.slice(0, 2)) * HOUR + (+nt.slice(3, 5)) * MIN, ra = sunAt(ms).ra, lon = ((ra - Sky.lst(ms, 0)) % 360 + 540) % 360 - 180;
+      $('lonx').textContent = 'Longitude ' + Math.abs(lon).toFixed(1) + '°' + (lon >= 0 ? 'E' : 'W') + ' (' + loc.name + ' is at ' + loc.lon.toFixed(1) + '°E). Each minute off on the clock moves this by 0.25°, about 25 km.';
+    } else $('lonx').textContent = 'Add the clock time when the shadow was shortest to estimate your longitude too. Here it should be about ' + clock(noon.t) + '.';
+  }
+  function drawSide(h, L) {
+    var s = '', base = 140, ok = h > 0 && L >= 0, sc = ok ? Math.min(110 / h, 300 / Math.max(L, 1)) : 1, x0 = 60, hh = ok ? h * sc : 100, ll = ok ? L * sc : 60;
+    s += '<line x1="10" x2="390" y1="' + base + '" y2="' + base + '" stroke="var(--line)"/>';
+    s += '<line x1="' + x0 + '" x2="' + (x0 + ll) + '" y1="' + base + '" y2="' + base + '" stroke="#0b0d14" stroke-width="7" stroke-linecap="round"/><line x1="' + x0 + '" x2="' + (x0 + ll) + '" y1="' + base + '" y2="' + base + '" stroke="rgba(154,163,199,.6)" stroke-width="4"/>';
+    s += '<line x1="' + x0 + '" x2="' + x0 + '" y1="' + base + '" y2="' + (base - hh) + '" stroke="#c49a6c" stroke-width="5" stroke-linecap="round"/>';
+    s += '<line x1="' + x0 + '" y1="' + (base - hh) + '" x2="' + (x0 + ll) + '" y2="' + base + '" stroke="#ffc857" stroke-dasharray="4 4"/>';
+    if (ok && L > 0) { var a = Math.atan2(hh, ll), r = 34; s += '<path d="M' + (x0 + ll - r) + ',' + base + ' A' + r + ',' + r + ' 0 0 1 ' + (x0 + ll - r * Math.cos(a)).toFixed(1) + ',' + (base - r * Math.sin(a)).toFixed(1) + '" fill="none" stroke="#ffc857"/><text x="' + (x0 + ll - r - 44) + '" y="' + (base - 8) + '" style="fill:#ffc857">' + (a * D).toFixed(1) + '°</text>'; }
+    s += '<text x="' + (x0 - 8) + '" y="' + (base - hh / 2) + '" text-anchor="end">' + (h || '?') + '</text><text x="' + (x0 + ll / 2) + '" y="' + (base + 18) + '" text-anchor="middle">' + (L == null ? '?' : L) + ' cm shadow</text>';
+    $('side').innerHTML = s;
+  }
+  function today() {
+    var t0 = dayStart(), pts = [], noon = solarNoon(t0), stick = num('h') > 0 ? num('h') : 100;
+    for (var t = t0 + 5 * HOUR; t <= t0 + 20 * HOUR; t += 10 * MIN) { var s = sunAt(t); if (s.alt > 3) pts.push({ t: t, alt: s.alt, az: s.az, L: stick / Math.tan(s.alt * R) }); }
+    $('todayLbl').textContent = 'Shadow of a ' + stick + ' cm stick on ' + new Date(t0 + 12 * HOUR).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' }) + ' at ' + loc.name;
+    if (!pts.length) { $('chart').innerHTML = ''; $('top').innerHTML = ''; return; }
+    var W = 600, H = 260, Lm = 50, Rm = 12, T = 14, B = 30, maxL = Math.min(stick * 6, Math.max.apply(null, pts.map(function (p) { return p.L; }))), x0 = t0 + 5 * HOUR, x1 = t0 + 20 * HOUR;
+    function X(t) { return Lm + (t - x0) / (x1 - x0) * (W - Lm - Rm); } function Y(L) { return T + (1 - Math.min(L, maxL) / maxL) * (H - T - B); }
+    var s = '';
+    for (var hr = 6; hr <= 20; hr += 2) s += '<line x1="' + X(t0 + hr * HOUR) + '" x2="' + X(t0 + hr * HOUR) + '" y1="' + T + '" y2="' + (H - B) + '" stroke="rgba(255,255,255,.06)"/><text x="' + X(t0 + hr * HOUR) + '" y="' + (H - 10) + '" text-anchor="middle">' + pad(hr) + ':00</text>';
+    var step = maxL > 400 ? 100 : maxL > 200 ? 50 : 25;
+    for (var g = 0; g <= maxL; g += step) s += '<line x1="' + Lm + '" x2="' + (W - Rm) + '" y1="' + Y(g) + '" y2="' + Y(g) + '" stroke="rgba(255,255,255,.06)"/><text x="' + (Lm - 6) + '" y="' + (Y(g) + 4) + '" text-anchor="end">' + g + '</text>';
+    s += '<path d="' + pts.map(function (p, i) { return (i ? 'L' : 'M') + X(p.t).toFixed(1) + ',' + Y(p.L).toFixed(1); }).join('') + '" fill="none" stroke="#ffc857" stroke-width="2.5"/>';
+    s += '<line x1="' + X(noon.t) + '" x2="' + X(noon.t) + '" y1="' + T + '" y2="' + (H - B) + '" stroke="var(--sat-b)" stroke-dasharray="3 3"/><text x="' + X(noon.t) + '" y="' + (T + 10) + '" text-anchor="middle" style="fill:var(--sat-b)">noon ' + clock(noon.t) + '</text>';
+    var now = Date.now(); if (now > x0 && now < x1) { var sn = sunAt(now); if (sn.alt > 3) s += '<circle cx="' + X(now) + '" cy="' + Y(stick / Math.tan(sn.alt * R)) + '" r="5" fill="var(--sat-c)"/><text x="' + (X(now) + 8) + '" y="' + (Y(stick / Math.tan(sn.alt * R)) - 6) + '" style="fill:var(--sat-c)">now</text>'; }
+    $('chart').innerHTML = s;
+    var nl = stick / Math.tan(noon.alt * R);
+    $('chartx').textContent = 'Shortest at ' + clock(noon.t) + ': ' + nl.toFixed(1) + ' cm, with the Sun ' + noon.alt.toFixed(1) + '° up. Times are UAE time. The shadow is longer than the stick whenever the Sun is below 45°.';
+    // top view: shadow tip on each hour; north up
+    var tips = pts.filter(function (p) { return Math.round((p.t - t0) / MIN) % 60 === 0; }), maxR = Math.max.apply(null, tips.map(function (p) { return Math.min(p.L, stick * 4); })), k = 170 / Math.max(maxR, stick * 0.5);
+    var xs = [0], ys = [0]; pts.forEach(function (p) { if (p.L < stick * 4) { var an = (p.az + 180) * R; xs.push(p.L * k * Math.sin(an)); ys.push(-p.L * k * Math.cos(an)); } });
+    var bx0 = Math.min.apply(null, xs) - 30, bx1 = Math.max.apply(null, xs) + 30, by0 = Math.min.apply(null, ys) - 30, by1 = Math.max.apply(null, ys) + 30;
+    if (bx1 - bx0 < 200) { var cxm = (bx0 + bx1) / 2; bx0 = cxm - 100; bx1 = cxm + 100; } if (by1 - by0 < 160) { var cym = (by0 + by1) / 2; by0 = cym - 80; by1 = cym + 80; }
+    $('top').setAttribute('viewBox', bx0 + ' ' + by0 + ' ' + (bx1 - bx0) + ' ' + (by1 - by0));
+    var t2 = '<line x1="' + bx0 + '" x2="' + bx1 + '" y1="0" y2="0" stroke="rgba(255,255,255,.08)"/><line y1="' + by0 + '" y2="' + by1 + '" x1="0" x2="0" stroke="rgba(255,255,255,.08)"/><circle r="5" fill="#c49a6c"/><text x="4" y="' + (by0 + 14) + '" style="fill:#ff4f6d">N</text><text x="' + (bx1 - 4) + '" y="-4" text-anchor="end">E</text><text x="' + (bx0 + 4) + '" y="-4">W</text><text x="4" y="' + (by1 - 6) + '">S</text><text x="8" y="16" style="fill:#c49a6c">stick</text>';
+    var path = pts.filter(function (p) { return p.L < stick * 4; }).map(function (p, i) { var ang = (p.az + 180) * R, r = p.L * k; return (i ? 'L' : 'M') + (r * Math.sin(ang)).toFixed(1) + ',' + (-r * Math.cos(ang)).toFixed(1); }).join('');
+    t2 += '<path d="' + path + '" fill="none" stroke="rgba(255,200,87,.5)" stroke-width="2"/>';
+    tips.forEach(function (p) { if (p.L > stick * 4) return; var ang = (p.az + 180) * R, r = p.L * k, x = r * Math.sin(ang), y = -r * Math.cos(ang); t2 += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="3.5" fill="#ffc857"/><text x="' + x.toFixed(1) + '" y="' + (y - 7).toFixed(1) + '" text-anchor="middle" font-size="10">' + clock(p.t).slice(0, 2) + '</text>'; });
+    var sn2 = sunAt(Date.now()); if (sn2.alt > 3) { var an = (sn2.az + 180) * R, rn = Math.min(stick * 4, stick / Math.tan(sn2.alt * R)) * k; t2 += '<line x1="0" y1="0" x2="' + (rn * Math.sin(an)).toFixed(1) + '" y2="' + (-rn * Math.cos(an)).toFixed(1) + '" stroke="var(--sat-c)" stroke-width="3"/>'; }
+    $('top').innerHTML = t2;
+  }
+  // phone compass: read the direction the top of the phone points
+  var reading = false;
+  function fromEuler(al, be, ga) {
+    var cA = Math.cos(al * R), sA = Math.sin(al * R), cB = Math.cos(be * R), sB = Math.sin(be * R), cG = Math.cos(ga * R), sG = Math.sin(ga * R);
+    var m = [[cA * cG - sA * sB * sG, -cB * sA, cA * sG + cG * sA * sB], [cG * sA + cA * sB * sG, cA * cB, sA * sG - cA * cG * sB], [-cB * sG, sB, cB * cG]];
+    return { u: [m[0][1], m[1][1], m[2][1]] };
+  }
+  function onOri(e) {
+    if (!reading) return;
+    var al = e.alpha; if (e.webkitCompassHeading != null) al = 360 - e.webkitCompassHeading; else if (al == null || (!e.absolute && e.type !== 'deviceorientationabsolute')) return;
+    var u = fromEuler(al, e.beta || 0, e.gamma || 0).u; if (Math.hypot(u[0], u[1]) < 0.2) return;
+    var hd = (Math.atan2(u[0], u[1]) * D + 360) % 360;
+    $('dir').value = Math.round(hd); $('cmsg').textContent = 'Read ' + Math.round(hd) + '°. Tap again to update.'; reading = false; update();
+  }
+  $('cmp').onclick = function () {
+    var ask = window.DeviceOrientationEvent && DeviceOrientationEvent.requestPermission ? DeviceOrientationEvent.requestPermission() : Promise.resolve('granted');
+    function go() { reading = true; $('cmsg').textContent = 'Lay the phone flat with its top pointing along the shadow…'; if ('ondeviceorientationabsolute' in window) window.addEventListener('deviceorientationabsolute', onOri); else window.addEventListener('deviceorientation', onOri); setTimeout(function () { if (reading) { reading = false; $('cmsg').textContent = 'No compass reading. Type the direction instead.'; } }, 4000); }
+    ask.then(go, go);
+  };
+  [].forEach.call(document.querySelectorAll('[data-p]'), function (b) { b.onclick = function () { part = b.dataset.p; [].forEach.call(document.querySelectorAll('[data-p]'), function (x) { x.setAttribute('aria-pressed', x === b); }); update(); }; });
+  ['h', 'l', 'dir', 'noon'].forEach(function (id) { $(id).oninput = update; });
+  $('h').addEventListener('change', today); $('date').onchange = function () { update(); today(); };
+  $('date').value = new Date(Date.now() + TZ * HOUR).toISOString().slice(0, 10);
+  PLACES.forEach(function (p, i) {
+    var b = document.createElement('button'); b.className = 'sm'; b.type = 'button'; b.textContent = p[0]; b.setAttribute('aria-pressed', 'false');
+    b.onclick = function () { pick(b); loc = { lat: p[1], lon: p[2], name: p[0] }; $('msg').textContent = p[0] + ' · ' + p[1].toFixed(2) + '°N, ' + p[2].toFixed(2) + '°E'; update(); today(); try { localStorage.setItem('shadowPlace', i); } catch (e) {} };
+    $('where').appendChild(b);
+  });
+  function pick(b) { [].forEach.call(document.querySelectorAll('#where .sm'), function (x) { x.setAttribute('aria-pressed', x === b); }); }
+  $('me').onclick = function () {
+    if (!navigator.geolocation) { $('msg').textContent = 'Your browser can\'t share a location.'; return; }
+    $('msg').textContent = 'Asking for your location…';
+    navigator.geolocation.getCurrentPosition(function (p) { pick($('me')); loc = { lat: p.coords.latitude, lon: p.coords.longitude, name: 'your location' }; $('msg').textContent = 'Your location · ' + loc.lat.toFixed(2) + '°, ' + loc.lon.toFixed(2) + '° · times still shown in UAE time'; update(); today(); }, function () { $('msg').textContent = 'Location was not shared. Pick a place instead.'; }, { maximumAge: 6e5, timeout: 10000 });
+  };
+  var i0 = 0; try { var s = localStorage.getItem('shadowPlace'); if (s != null && PLACES[+s]) i0 = +s; } catch (e) {}
+  document.querySelectorAll('#where .sm')[i0 + 1].click();
+  setInterval(today, 60000);
+})();
+</script>
+</body>
+</html>

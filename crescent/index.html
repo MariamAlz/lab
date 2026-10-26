@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Crescent Tonight · Mariam's Lab</title>
+<meta name="description" content="Will the new crescent moon be seen tonight? Moon age, moonset lag, altitude, elongation and crescent width at sunset, with the Odeh and Yallop visibility criteria, for the evenings around the start of each Hijri month.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/crescent/">
+<meta property="og:title" content="Crescent Tonight · Mariam's Lab"><meta property="og:description" content="Can the new crescent be seen tonight? The numbers behind each Hijri month's start."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;600&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.where { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm:hover { border-color: var(--muted); }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin-top: 8px; }
+.verdict { margin-top: 12px; padding: 20px; border-radius: var(--radius); border: 1px solid var(--line); background: rgba(7,10,24,.82); display: grid; gap: 6px; }
+.verdict b { font-family: var(--font-display); font-size: clamp(1.4rem, 4.5vw, 2.2rem); font-weight: 800; line-height: 1.1; }
+.verdict p { margin: 0; color: var(--muted); }
+.ar { font-family: 'IBM Plex Sans Arabic', sans-serif; }
+.month { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); padding: 14px; display: grid; gap: 10px; min-width: 0; }
+.month h3 { margin: 0; font-size: 1.15rem; display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+.month h3 .ar { font-weight: 600; color: var(--accent); }
+.month .mono { font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted); }
+.eves { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 8px; }
+.eve { border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: grid; gap: 6px; cursor: pointer; text-align: start; font: inherit; color: var(--ink); background: rgba(7,10,24,.5); }
+.eve:hover, .eve[aria-pressed="true"] { border-color: var(--accent); }
+.eve .vv { font-family: var(--font-display); font-weight: 700; font-size: 1.02rem; }
+.eve dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; margin: 0; font-size: 0.8rem; }
+.eve dt { color: var(--muted); } .eve dd { margin: 0; font-family: var(--font-mono); text-align: end; }
+.dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-inline-end: 6px; vertical-align: 0; }
+.scene { width: 100%; height: auto; aspect-ratio: 16 / 10; display: block; border-radius: 12px; background: #050816; }
+.legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 0.78rem; color: var(--muted); }
+.gloss { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; margin: 0; font-size: 0.86rem; }
+.gloss dt { font-family: var(--font-mono); color: var(--accent); }
+.gloss dd { margin: 0; color: var(--muted); }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Space · Moon · Hijri</span>
+    <h1 style="font-size:var(--step-3)">Will the crescent be seen tonight?</h1>
+    <p>Each Hijri month starts with the first thin crescent after the new moon. Whether it can be seen depends on how far it is from the Sun, how long it stays up after sunset, and how thick it is. This works out those numbers for the evenings around each new moon and applies a published visibility rule, so you know which evening is worth going out to look.</p>
+  </div>
+  <div class="where" id="where"><button class="sm" type="button" id="me">📍 Use my location</button></div>
+  <p class="msg" id="msg" role="status"></p>
+  <div class="verdict" id="verdict"><b>Working it out…</b></div>
+  <div class="game" style="margin-top:18px">
+    <div class="panel" style="display:grid;gap:10px;min-width:0">
+      <span class="label">The western sky at the best time to look</span>
+      <canvas class="scene" id="scene" width="800" height="500" aria-label="Western horizon after sunset with the Moon's position"></canvas>
+      <p class="msg" id="scap" style="margin:0"></p>
+      <div class="legend"><span><i class="dot" style="background:#4fd3bd"></i>Naked eye</span><span><i class="dot" style="background:#ffc857"></i>Optical aid, maybe naked eye</span><span><i class="dot" style="background:#ff8a4c"></i>Optical aid only</span><span><i class="dot" style="background:#ff4f6d"></i>Not visible</span></div>
+    </div>
+    <div class="panel" style="display:grid;gap:10px;align-content:start">
+      <span class="label">What the numbers mean</span>
+      <dl class="gloss">
+        <dt>Age</dt><dd>Hours since the new moon (conjunction), when the Moon passes the Sun. A young Moon is thin and close to the Sun.</dd>
+        <dt>Lag</dt><dd>Minutes between sunset and moonset. More time means a darker sky while the Moon is still up.</dd>
+        <dt>ARCV</dt><dd>How much higher the Moon is than the Sun, in degrees.</dd>
+        <dt>ARCL</dt><dd>The angle between the Moon and the Sun (elongation). Below about 7° no crescent forms that anyone has seen.</dd>
+        <dt>W</dt><dd>The crescent's width in arcminutes. Even a good crescent is only about 0.5′ thick, less than a sixtieth of the Moon's width.</dd>
+      </dl>
+      <p class="fact" style="margin:0">The verdict uses <b>Odeh's criterion (2004)</b>, fitted to 737 real sighting reports. It compares ARCV with the width W at the "best time", which is sunset plus four ninths of the lag: V = ARCV − (−0.1018W³ + 0.7319W² − 6.3226W + 7.1651). V ≥ 5.65 means naked eye, 2 to 5.65 optical aid and maybe naked eye, −0.96 to 2 optical aid only, below −0.96 not visible. The older <b>Yallop q</b> value is shown for comparison.</p>
+    </div>
+  </div>
+  <div style="display:grid;gap:12px;margin-top:18px" id="months"></div>
+  <div class="game" style="margin-top:18px">
+    <div class="panel" style="display:grid;gap:10px;align-content:start">
+      <span class="label">Calculation vs sighting</span>
+      <p class="fact" style="margin:0">A calculation can say whether a crescent is <i>possible</i> to see. It can't promise someone will see it. Dust, haze and city lights near the horizon, the observer's eyesight and simply knowing where to look all matter. In the UAE, summer haze often hides crescents that the numbers say should be visible.</p>
+      <p class="fact" style="margin:0">That's why months are announced in different ways. Many authorities, including in the UAE, still wait for a confirmed sighting by a moon-sighting committee, and use calculations to judge whether a reported sighting is believable. The Umm al-Qura calendar used for labels on this page is calculated in advance: a month starts when the Moon sets after the Sun in Makkah on the evening after the new moon, whether or not a crescent can be seen.</p>
+    </div>
+    <div class="panel" style="display:grid;gap:10px;align-content:start">
+      <span class="label">How it's calculated</span>
+      <p class="fact" style="margin:0">Sun and Moon positions use a low-precision orbit model (good to a couple of arcminutes), corrected for where you stand on Earth: the Moon is close enough that it looks about one degree lower from the ground than from Earth's centre. Sunset and moonset include normal refraction. Altitudes in the criteria are "airless", as the criteria require. Times are UAE time (Makkah time for Makkah, your device's time zone for your own location).</p>
+      <p class="fact" style="margin:0">This is an estimate for planning, not a ruling. For the official start of a month, follow the announcement from the relevant authority.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script src="../assets/sky.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var R = Math.PI / 180, D = 180 / Math.PI, MIN = 60000, HOUR = 3600000, DAY = 86400000;
+  var PLACES = [['Abu Dhabi', 24.4539, 54.3773, 'Asia/Dubai'], ['Dubai', 25.2048, 55.2708, 'Asia/Dubai'], ['Al Ain', 24.2075, 55.7447, 'Asia/Dubai'], ['Fujairah', 25.1288, 56.3265, 'Asia/Dubai'], ['Liwa', 23.1333, 53.7667, 'Asia/Dubai'], ['Makkah', 21.4225, 39.8262, 'Asia/Riyadh']];
+  var loc = { lat: 24.4539, lon: 54.3773, name: 'Abu Dhabi' };
+  var COLS = ['#ff4f6d', '#ff8a4c', '#ffc857', '#4fd3bd'], WORDS = ['Not visible', 'Optical aid only', 'Optical aid, maybe naked eye', 'Naked eye'];
+  function sind(x) { return Math.sin(x * R); } function cosd(x) { return Math.cos(x * R); }
+  function sep(a1, d1, a2, d2) { return Math.acos(Math.max(-1, Math.min(1, sind(d1) * sind(d2) + cosd(d1) * cosd(d2) * cosd(a1 - a2)))) * D; }
+  // ---- positions ----
+  function pos(ms) {
+    var d = Sky.dayNum(ms), s = Sky.sun(d), m = Sky.moon(d, s), se = Sky.eclToEq(s, d), me = Sky.eclToEq(m, d);
+    var l = Sky.lst(ms, loc.lon), hs = Sky.toHoriz(se.ra, se.dec, l, loc.lat), hm = Sky.toHoriz(me.ra, me.dec, l, loc.lat);
+    var hp = Math.asin(1 / m.r) * D;                       // horizontal parallax, m.r in Earth radii
+    var altT = hm.alt - hp * cosd(hm.alt);                 // topocentric (airless) altitude of the Moon's centre
+    var sdT = 0.27245 * hp * (1 + sind(altT) * sind(hp));  // topocentric semidiameter, degrees
+    return { sun: hs, moonG: hm, moonT: { alt: altT, az: hm.az }, hp: hp, sd: sdT, arclG: sep(se.ra, se.dec, me.ra, me.dec), dl: m.dl, sunDec: se.dec };
+  }
+  function arcl(a, b) { return sep(a.az, a.alt, b.az, b.alt); }
+  // ---- events ----
+  function bisect(f, a, b) { var fa = f(a); for (var i = 0; i < 30; i++) { var m = (a + b) / 2, fm = f(m); if ((fm > 0) === (fa > 0)) { a = m; fa = fm; } else b = m; } return (a + b) / 2; }
+  function sunAlt(t) { return pos(t).sun.alt + 0.8333; }
+  function moonAlt(t) { var p = pos(t); return p.moonT.alt + 0.5667 + p.sd; } // upper limb touches the refracted horizon
+  // sunset on the local evening of a given calendar date (yyyy-mm-dd), using solar time from longitude
+  function sunsetOn(dateStr) {
+    var noon = Date.parse(dateStr + 'T12:00:00Z') - loc.lon / 15 * HOUR, t = noon;
+    for (; t < noon + 12 * HOUR; t += 10 * MIN) if (sunAlt(t) > 0 && sunAlt(t + 10 * MIN) <= 0) return bisect(sunAlt, t, t + 10 * MIN);
+    return null;
+  }
+  function moonsetAfter(t0) {
+    if (moonAlt(t0) <= 0) return null;
+    for (var t = t0; t < t0 + 20 * HOUR; t += 10 * MIN) if (moonAlt(t + 10 * MIN) <= 0) return bisect(moonAlt, t, t + 10 * MIN);
+    return null;
+  }
+  function conjunctionsFrom(t0, n) {
+    var out = [], t = t0, prev = pos(t).dl;
+    while (out.length < n && t < t0 + 200 * DAY) {
+      var t2 = t + 6 * HOUR, dl = pos(t2).dl;
+      if (prev > 300 && dl < 60) out.push(bisect(function (x) { var v = pos(x).dl; return v > 180 ? v - 360 : v; }, t, t2));
+      prev = dl; t = t2;
+    }
+    return out;
+  }
+  // ---- criteria ----
+  function evening(dateStr, conj) {
+    var ts = sunsetOn(dateStr); if (ts == null) return null;
+    var e = { date: dateStr, ts: ts, age: (ts - conj) / HOUR };
+    var tm = moonsetAfter(ts);
+    var ps = pos(ts);
+    if (tm == null) { e.lag = null; e.code = -1; e.why = 'Moon sets before the Sun'; e.p = ps; e.tb = ts; }
+    else {
+      e.tm = tm; e.lag = (tm - ts) / MIN; e.tb = ts + 4 / 9 * (tm - ts);
+      var p = pos(e.tb); e.p = p;
+      e.arclT = arcl(p.sun, p.moonT); e.arcvT = p.moonT.alt - p.sun.alt; e.arcvG = p.moonG.alt - p.sun.alt; e.daz = p.sun.az - p.moonT.az;
+      e.W = p.sd * 60 * (1 - cosd(e.arclT));
+      var W = e.W, poly = -0.1018 * W * W * W + 0.7319 * W * W - 6.3226 * W;
+      e.V = e.arcvT - (poly + 7.1651);                 // Odeh (2004)
+      e.q = (e.arcvG - (poly + 11.8371)) / 10;         // Yallop (1997)
+      e.code = e.V >= 5.65 ? 3 : e.V >= 2 ? 2 : e.V >= -0.96 ? 1 : 0;
+      if (e.age < 0) { e.code = -2; e.why = 'New moon hasn\'t happened yet at sunset'; }
+    }
+    e.alt = ps.moonT.alt; e.arclS = arcl(ps.sun, ps.moonT);
+    return e;
+  }
+  function yallopCat(q) { return q > 0.216 ? 'A' : q > -0.014 ? 'B' : q > -0.160 ? 'C' : q > -0.232 ? 'D' : q > -0.293 ? 'E' : 'F'; }
+  // ---- formatting ----
+  var tf, df;
+  function setFormats() {
+    var o = loc.tz ? { timeZone: loc.tz } : {};
+    tf = new Intl.DateTimeFormat('en-GB', Object.assign({ hour: '2-digit', minute: '2-digit' }, o));
+    df = new Intl.DateTimeFormat('en-GB', Object.assign({ weekday: 'short', day: 'numeric', month: 'short' }, o));
+  }
+  var hijEn = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+  var hijAr = new Intl.DateTimeFormat('ar-AE-u-ca-islamic-umalqura', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+  var hijDay = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura-nu-latn', { day: 'numeric', timeZone: 'UTC' });
+  function ymd(ms) { var d = new Date(ms + loc.lon / 15 * HOUR); return d.toISOString().slice(0, 10); } // local solar date at the place
+  function addDays(s, k) { return new Date(Date.parse(s + 'T00:00:00Z') + k * DAY).toISOString().slice(0, 10); }
+  function dlabel(s) { return new Date(Date.parse(s + 'T12:00:00Z')).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }); }
+  function verdictOf(e) { return e.code < 0 ? { c: COLS[0], w: e.code === -2 ? 'Too early' : 'Not possible', sub: e.why } : { c: COLS[e.code], w: WORDS[e.code], sub: '' }; }
+  function hijriStart(conj) {
+    // the Umm al-Qura month that starts within a few days of this conjunction
+    for (var k = -1; k <= 3; k++) { var s = addDays(ymd(conj), k), d = new Date(Date.parse(s + 'T12:00:00Z')); if (+hijDay.format(d) === 1) return { date: s, en: hijEn.format(d), ar: hijAr.format(d) }; }
+    var d2 = new Date(conj + 2 * DAY); return { date: null, en: hijEn.format(d2), ar: hijAr.format(d2) };
+  }
+  var selected = null, allEves = [];
+  function card(e) {
+    var v = verdictOf(e), id = allEves.push(e) - 1;
+    var rows = e.code === -1 || e.lag == null ? [['Sunset', tf.format(e.ts)], ['Moon age', e.age.toFixed(1) + ' h'], ['Moon alt. at sunset', e.alt.toFixed(1) + '°']] :
+      [['Sunset · moonset', tf.format(e.ts) + ' · ' + tf.format(e.tm)], ['Moon age', e.age.toFixed(1) + ' h'], ['Lag', Math.round(e.lag) + ' min'], ['Best time', tf.format(e.tb)], ['ARCL · ARCV', e.arclT.toFixed(1) + '° · ' + e.arcvT.toFixed(1) + '°'], ['Width W', e.W.toFixed(2) + '′'], ['Odeh V', e.V.toFixed(2)], ['Yallop q', e.q.toFixed(3) + ' (' + yallopCat(e.q) + ')']];
+    return '<button class="eve" type="button" data-i="' + id + '" aria-pressed="false"><span class="mono" style="font-family:var(--font-mono);font-size:.8rem;color:var(--muted)">Evening of ' + dlabel(e.date) + '</span><span class="vv" style="color:' + v.c + '"><i class="dot" style="background:' + v.c + '"></i>' + v.w + '</span>' + (v.sub ? '<span style="font-size:.8rem;color:var(--muted)">' + v.sub + '</span>' : '') + '<dl>' + rows.map(function (r) { return '<dt>' + r[0] + '</dt><dd>' + r[1] + '</dd>'; }).join('') + '</dl></button>';
+  }
+  function run() {
+    allEves = []; setFormats();
+    var now = Date.now(), conjs = conjunctionsFrom(now - 4 * DAY, 4), html = '';
+    // tonight
+    var today = ymd(now), last = null; conjs.forEach(function (c) { if (c < now + DAY) last = c; });
+    var tonight = evening(today, last != null ? last : now - 30 * DAY);
+    var nextConj = conjs.filter(function (c) { return c > now; })[0];
+    if (tonight) {
+      var age = tonight.age, v = verdictOf(tonight), txt;
+      if (last != null && age >= -24 && age < 72) txt = '<b style="color:' + v.c + '">' + (tonight.code >= 0 ? 'Tonight: ' + v.w.toLowerCase() : 'Tonight: ' + v.w.toLowerCase()) + '</b><p>At ' + loc.name + ' the Moon is ' + age.toFixed(1) + ' hours old at sunset (' + tf.format(tonight.ts) + ')' + (tonight.lag != null ? ' and sets ' + Math.round(tonight.lag) + ' minutes after the Sun.' : '. ' + (tonight.why || '') + '.') + ' Tap any evening below to see where to look.</p>';
+      else {
+        var days = (now - (last || now)) / DAY;
+        txt = '<b>Not a crescent-hunting evening</b><p>The Moon is ' + (last ? Math.floor(days) + ' days past new' : 'nowhere near new') + ', so it\'s easy to see if it\'s up. The next new moon is ' + df.format(new Date(nextConj)) + ' at ' + tf.format(nextConj) + '. The evenings that matter are listed below.</p>';
+      }
+      $('verdict').innerHTML = '<span class="label">' + loc.name + ' · ' + df.format(new Date(now)) + '</span>' + txt;
+    }
+    conjs.forEach(function (c) {
+      if (c < now - 4 * DAY) return;
+      var h = hijriStart(c), d0 = ymd(c), eves = [];
+      for (var k = 0; k < 3; k++) { var e = evening(addDays(d0, k), c); if (e) eves.push(e); }
+      // skip the day of conjunction when the Moon is not yet born at sunset, add a third day instead
+      if (eves.length && eves[0].code === -2) { var e3 = evening(addDays(d0, 3), c); eves = eves.slice(1); if (e3) eves.push(e3); }
+      html += '<section class="month"><h3><span>' + h.en + '</span><span class="ar" dir="rtl" lang="ar">' + h.ar + '</span></h3><span class="mono">New moon ' + df.format(new Date(c)) + ' at ' + tf.format(c) + (h.date ? ' · Umm al-Qura calendar starts the month on ' + dlabel(h.date) : '') + '</span><div class="eves">' + eves.map(card).join('') + '</div></section>';
+    });
+    $('months').innerHTML = html;
+    [].forEach.call(document.querySelectorAll('.eve'), function (b) { b.onclick = function () { pickEve(+b.dataset.i); }; });
+    // default: first evening that is visible somehow and still ahead, otherwise first card
+    var def = 0; for (var i = 0; i < allEves.length; i++) if (allEves[i].code >= 1 && allEves[i].ts > now - 2 * HOUR) { def = i; break; }
+    pickEve(def);
+    $('msg').textContent = loc.name + ' · ' + loc.lat.toFixed(2) + '°N, ' + loc.lon.toFixed(2) + '°E';
+  }
+  function pickEve(i) {
+    var e = allEves[i]; if (!e) return; selected = e;
+    [].forEach.call(document.querySelectorAll('.eve'), function (b) { b.setAttribute('aria-pressed', +b.dataset.i === i); });
+    drawScene(e);
+  }
+  // ---- western sky scene ----
+  var cv = $('scene'), c = cv.getContext('2d');
+  function drawScene(e) {
+    var W = cv.width, H = cv.height, p = e.p, sAz = p.sun.az;
+    var azC = (sAz + (p.moonT.az > sAz + 180 ? p.moonT.az - 360 : p.moonT.az)) / 2, span = 50, altMin = -12, altMax = 18;
+    function X(az) { var d = ((az - azC + 540) % 360) - 180; return W / 2 + d / span * W; }
+    function Y(alt) { return H - (alt - altMin) / (altMax - altMin) * H; }
+    var sky = c.createLinearGradient(0, 0, 0, Y(0)); sky.addColorStop(0, '#060a1c'); sky.addColorStop(0.55, '#141a3a'); sky.addColorStop(1, p.sun.alt > -6 ? '#8a4a32' : '#2a2850');
+    c.fillStyle = sky; c.fillRect(0, 0, W, Y(0));
+    c.fillStyle = '#0b0d14'; c.fillRect(0, Y(0), W, H - Y(0));
+    // grid
+    c.strokeStyle = 'rgba(255,255,255,.08)'; c.fillStyle = 'rgba(255,255,255,.45)'; c.font = '26px "JetBrains Mono", monospace'; c.textAlign = 'left';
+    for (var a = -10; a <= 15; a += 5) if (a) { c.beginPath(); c.moveTo(0, Y(a)); c.lineTo(W, Y(a)); c.stroke(); c.fillText(a + '°', 8, Y(a) - 4); }
+    c.textAlign = 'center';
+    [['S', 180], ['SW', 225], ['W', 270], ['NW', 315]].forEach(function (k) { var x = X(k[1]); if (x > 20 && x < W - 20) c.fillText(k[0], x, Y(0) + 28); });
+    c.strokeStyle = 'rgba(79,211,189,.7)'; c.beginPath(); c.moveTo(0, Y(0)); c.lineTo(W, Y(0)); c.stroke();
+    // Sun (below horizon)
+    var sx = X(sAz), sy = Y(p.sun.alt); c.fillStyle = '#ffc857'; c.beginPath(); c.arc(sx, sy, 14, 0, 2 * Math.PI); c.fill();
+    c.fillStyle = 'rgba(255,255,255,.7)'; c.fillText('Sun', sx, sy + 38);
+    // Moon crescent: lit limb points to the Sun
+    var mx = X(p.moonT.az), my = Y(p.moonT.alt), r = 22, ang = Math.atan2(sy - my, sx - mx), k = Math.max(0.1, (1 - Math.cos((e.arclT || e.arclS) * R)) / 2);
+    c.save(); c.translate(mx, my); c.rotate(ang);
+    c.fillStyle = 'rgba(255,255,255,.08)'; c.beginPath(); c.arc(0, 0, r, 0, 2 * Math.PI); c.fill();
+    c.fillStyle = '#f6f1d8'; c.beginPath(); c.arc(0, 0, r, -Math.PI / 2, Math.PI / 2); c.ellipse(0, 0, Math.max(0.6, r * Math.abs(1 - 2 * k)), r, 0, Math.PI / 2, -Math.PI / 2, k < 0.5); c.fill();
+    c.restore();
+    var v = verdictOf(e); c.fillStyle = v.c; c.fillText('Moon', mx, my - r - 10);
+    c.setLineDash([4, 6]); c.strokeStyle = 'rgba(255,255,255,.25)'; c.beginPath(); c.moveTo(sx, sy); c.lineTo(mx, my); c.stroke(); c.setLineDash([]);
+    $('scap').textContent = 'Evening of ' + dlabel(e.date) + ' at ' + tf.format(e.tb) + (e.lag != null ? ' (best time). The Moon is ' + e.p.moonT.alt.toFixed(1) + '° up, ' + Math.abs(e.daz).toFixed(1) + '° ' + (e.daz > 0 ? 'left' : 'right') + ' of the Sun\'s position. The crescent is drawn much thicker than it really is.' : '. ' + (e.why || ''));
+  }
+  // ---- places ----
+  PLACES.forEach(function (p, i) {
+    var b = document.createElement('button'); b.className = 'sm'; b.type = 'button'; b.textContent = p[0]; b.setAttribute('aria-pressed', 'false');
+    b.onclick = function () { pick(b); loc = { lat: p[1], lon: p[2], name: p[0], tz: p[3] }; run(); try { localStorage.setItem('crescentPlace', i); } catch (e) {} };
+    $('where').appendChild(b);
+  });
+  function pick(b) { [].forEach.call(document.querySelectorAll('#where .sm'), function (x) { x.setAttribute('aria-pressed', x === b); }); }
+  $('me').onclick = function () {
+    if (!navigator.geolocation) { $('msg').textContent = 'Your browser can\'t share a location.'; return; }
+    $('msg').textContent = 'Asking for your location…';
+    navigator.geolocation.getCurrentPosition(function (p) { pick($('me')); loc = { lat: p.coords.latitude, lon: p.coords.longitude, name: 'your location' }; run(); }, function () { $('msg').textContent = 'Location was not shared. Pick a place instead.'; }, { maximumAge: 6e5, timeout: 10000 });
+  };
+  window.__crescent = { evening: evening, conjunctionsFrom: conjunctionsFrom, setLoc: function (l) { loc = l; }, pos: pos };
+  var i0 = 0; try { var s = localStorage.getItem('crescentPlace'); if (s != null && PLACES[+s]) i0 = +s; } catch (e) {}
+  document.querySelectorAll('#where .sm')[i0 + 1].click();
+})();
+</script>
+</body>
+</html>

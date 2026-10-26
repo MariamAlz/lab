@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>How Fast Are You Moving? · Mariam's Lab</title>
+<meta name="description" content="Sitting still? You're spinning with Earth, orbiting the Sun, circling the galaxy and drifting through the universe. Live counters of how far you've travelled since opening the page.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/how-fast/">
+<meta property="og:title" content="How Fast Are You Moving? · Mariam's Lab"><meta property="og:description" content="Live counters of how far you've travelled through space since you opened this page."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.where { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm:hover { border-color: var(--muted); }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 8px 0 0; }
+.since { margin-top: 12px; font-family: var(--font-mono); color: var(--muted); font-size: 0.85rem; }
+.motions { display: grid; grid-template-columns: repeat(auto-fit, minmax(195px, 1fr)); gap: 10px; margin-top: 10px; }
+.mot { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); padding: 16px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.mot .k { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--c); }
+.mot .spd { font-family: var(--font-display); font-weight: 800; font-size: clamp(1.6rem, 4vw, 2.1rem); line-height: 1.05; }
+.mot .spd small { font-size: 0.9rem; font-weight: 600; color: var(--muted); }
+.mot .alt { font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted); }
+.mot .dist { font-family: var(--font-mono); font-size: 1.05rem; color: var(--ink); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.mot p { margin: 0; font-size: 0.86rem; color: var(--muted); }
+.ladder { width: 100%; height: auto; display: block; }
+.ladder text { font-family: var(--font-mono); font-size: 12px; fill: var(--muted); }
+.ladder .nm { fill: var(--ink); font-family: inherit; font-size: 13px; }
+.orbit { width: 100%; max-width: 460px; height: auto; display: block; margin: 0 auto; border-radius: 12px; background: #050816; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Experiment · Space · Earth · Live</span>
+    <h1 style="font-size:var(--step-3)">How fast are you moving right now?</h1>
+    <p>Even sitting on the sofa, you're spinning with Earth, racing around the Sun, circling the centre of the galaxy and drifting through the universe. The counters below show how far each of those motions has carried you since you opened this page.</p>
+  </div>
+  <div class="where" id="where"><button class="sm" type="button" id="me">📍 Use my location and GPS speed</button></div>
+  <p class="msg" id="msg" role="status"></p>
+  <div class="since" id="since">Since you opened this page: 0 s</div>
+  <div class="motions" id="motions"></div>
+  <div class="game" style="margin-top:18px">
+    <div class="panel" style="display:grid;gap:10px;min-width:0">
+      <span class="label">Speed ladder · each step is ten times faster</span>
+      <svg class="ladder" id="ladder" viewBox="0 0 640 420" role="img" aria-label="Speeds compared on a log scale"></svg>
+    </div>
+    <div class="panel" style="display:grid;gap:10px;min-width:0">
+      <span class="label">Why the orbit speed changes through the year</span>
+      <svg class="orbit" id="orbit" viewBox="-255 -190 490 380" role="img" aria-label="Earth's orbit around the Sun"></svg>
+      <p class="fact" style="margin:0">Earth's orbit is a slightly squashed circle. We're closest to the Sun in early January (147.1 million km) and furthest in early July (152.1 million km). Closer in, gravity pulls harder and Earth speeds up, so you move about 1 km/s faster in January than in July. The shape is exaggerated here so you can see it.</p>
+    </div>
+  </div>
+  <div class="game" style="margin-top:18px">
+    <div class="panel" style="display:grid;gap:10px;align-content:start">
+      <span class="label">So why don't we feel it?</span>
+      <p class="fact" style="margin:0">You only feel <b>changes</b> in speed or direction, not speed itself. Earth's spin and orbit are so smooth and steady that everything around you, the air, the sofa and your tea, moves along with you. It's the same reason you can pour a drink on a plane at 900 km/h.</p>
+      <p class="fact" style="margin:0">The spin is fastest at the equator (1,670 km/h) and zero at the poles. In the UAE, at about 24°N, it's around 1,525 km/h. That spin is why rockets launch eastward, and why the UAE's lower latitude gives a small free boost compared with Europe.</p>
+    </div>
+    <div class="panel" style="display:grid;gap:10px;align-content:start">
+      <span class="label">These speeds don't simply add up</span>
+      <p class="fact" style="margin:0">Each motion points in a different direction, and the directions change through the day and the year. The spin even runs backwards against the orbit at midnight and forwards with it at noon. So the true total is not the sum of the numbers. Measured against the afterglow of the Big Bang (the cosmic microwave background), the Sun moves at about 370 km/s towards the constellation Leo, and the Milky Way as a whole at about 550 km/s.</p>
+      <p class="fact" style="margin:0">Earth's spin and orbit come from precise orbit maths for today's date. The galactic and cosmic speeds are measured values with uncertainty of several percent.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script src="../assets/sky.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var R = Math.PI / 180, AU = 149597870.7, GM = 1.32712440018e11, A_EARTH = 1.00000261, SIDEREAL = 86164.0905;
+  var loc = { lat: 24.4539, name: 'Abu Dhabi' }, t0 = performance.now(), gps = { v: null, dist: 0, last: null };
+  function spinKms(lat) { var a = 6378.137, e2 = 0.00669438, s = Math.sin(lat * R), N = a / Math.sqrt(1 - e2 * s * s); return 2 * Math.PI * N * Math.cos(lat * R) / SIDEREAL; }
+  function orbitNow() { var d = Sky.dayNum(Date.now()), s = Sky.sun(d), r = s.r * AU; return { r: r, v: Math.sqrt(GM * (2 / r - 1 / (A_EARTH * AU))), M: s.M, lon: s.lon }; }
+  function fmt(n, dp) { return n.toLocaleString('en', { minimumFractionDigits: dp, maximumFractionDigits: dp }); }
+  function dist(km) { return km < 1 ? fmt(km * 1000, 1) + ' m' : km < 1e6 ? fmt(km, 2) + ' km' : fmt(km / 1e6, 3) + ' million km'; }
+  var M = [
+    { id: 'gps', k: 'You, on the ground', c: '#e8ecff', v: function () { return gps.v; }, p: 'From your phone\'s GPS. Walk, drive or ride to see this change.' },
+    { id: 'spin', k: 'Earth\'s spin', c: '#4fd3bd', v: function () { return spinKms(loc.lat); }, p: '' },
+    { id: 'orbit', k: 'Orbit around the Sun', c: '#ffc857', v: function () { return orbitNow().v; }, p: '' },
+    { id: 'gal', k: 'Sun around the galaxy', c: '#b48cff', v: function () { return 230; }, p: 'One lap of the Milky Way takes about 230 million years. Last time round, there were no flowering plants yet.' },
+    { id: 'cmb', k: 'Milky Way through the universe', c: '#ff4f6d', v: function () { return 552; }, p: 'Relative to the cosmic microwave background, pulled by the mass of nearby galaxy clusters.' }
+  ];
+  $('motions').innerHTML = M.map(function (m) { return '<div class="mot" style="--c:' + m.c + '" id="m-' + m.id + '"><span class="k">' + m.k + '</span><span class="spd" id="s-' + m.id + '"></span><span class="alt" id="a-' + m.id + '"></span><span class="dist" id="d-' + m.id + '"></span><p id="p-' + m.id + '">' + m.p + '</p></div>'; }).join('');
+  function updateStatic() {
+    var sp = spinKms(loc.lat), o = orbitNow();
+    $('p-spin').textContent = 'At ' + loc.name + ' (' + Math.abs(loc.lat).toFixed(1) + '°' + (loc.lat >= 0 ? 'N' : 'S') + '), you ride a circle ' + fmt(2 * Math.PI * 6378.137 * Math.cos(loc.lat * R), 0) + ' km around, once every 23 h 56 min.';
+    $('p-orbit').textContent = 'Today Earth is ' + fmt(o.r / 1e6, 2) + ' million km from the Sun. One lap is about 940 million km.';
+    M.forEach(function (m) {
+      var v = m.v();
+      if (v == null) { $('s-' + m.id).innerHTML = '—'; $('a-' + m.id).textContent = 'Tap "Use my location" to measure'; return; }
+      $('s-' + m.id).innerHTML = (v < 1 ? fmt(v * 3600, 1) + ' <small>km/h</small>' : fmt(v, v < 10 ? 3 : v < 100 ? 2 : 0) + ' <small>km/s</small>');
+      $('a-' + m.id).textContent = v < 1 ? fmt(v * 1000, 2) + ' m/s' : fmt(v * 3600, 0) + ' km/h';
+    });
+  }
+  function frame() {
+    requestAnimationFrame(frame);
+    var t = (performance.now() - t0) / 1000;
+    $('since').textContent = 'Since you opened this page: ' + (t < 60 ? t.toFixed(1) + ' s' : Math.floor(t / 60) + ' min ' + Math.floor(t % 60) + ' s');
+    M.forEach(function (m) { if (m.id === 'gps') { $('d-gps').textContent = gps.v == null ? '' : dist(gps.dist / 1000) + ' travelled'; return; } $('d-' + m.id).textContent = dist(m.v() * t) + ' travelled'; });
+  }
+  // ladder: log scale from 1 m/s to 1000 km/s
+  function ladder() {
+    var items = [['Walking', 0.0014, '#9aa3c7'], ['Car on the highway', 120 / 3600, '#9aa3c7'], ['Airliner', 900 / 3600, '#9aa3c7'], ['Speed of sound', 0.343, '#9aa3c7'], ['Earth\'s spin here', spinKms(loc.lat), '#4fd3bd'], ['Rifle bullet', 1.0, '#9aa3c7'], ['Space station', 7.66, '#9aa3c7'], ['Earth around the Sun', orbitNow().v, '#ffc857'], ['Sun around the galaxy', 230, '#b48cff'], ['Milky Way vs universe', 552, '#ff4f6d']];
+    if (gps.v != null) items.unshift(['You (GPS)', Math.max(gps.v, 0.0002), '#e8ecff']);
+    var W = Math.max(300, Math.round($('ladder').getBoundingClientRect().width) || 640), narrow = W < 500, L = narrow ? 8 : 190, Rr = narrow ? 30 : 20, lo = -4, hi = 3, rowH = (420 - 30) / items.length;
+    $('ladder').setAttribute('viewBox', '0 0 ' + W + ' 420');
+    function X(v) { return L + (Math.log10(v) - lo) / (hi - lo) * (W - L - Rr); }
+    var s = '';
+    for (var e = lo; e <= hi; e++) { if ((e - lo) % 2) continue; s += '<line x1="' + X(Math.pow(10, e)) + '" x2="' + X(Math.pow(10, e)) + '" y1="0" y2="392" stroke="rgba(255,255,255,.07)"/><text x="' + X(Math.pow(10, e)) + '" y="412" text-anchor="' + (e === lo ? 'start' : 'middle') + '">' + ['0.1 m/s', '1 m/s', '10 m/s', '100 m/s', '1 km/s', '10 km/s', '100 km/s', '1000 km/s'][e - lo] + '</text>'; }
+    items.forEach(function (it, i) { var y = i * rowH + rowH / 2 + (narrow ? 8 : 2); s += narrow ? '<text class="nm" x="' + L + '" y="' + (y - 11) + '">' + it[0] + '</text>' : '<text class="nm" x="' + (L - 10) + '" y="' + (y + 4) + '" text-anchor="end">' + it[0] + '</text>'; s += '<rect x="' + L + '" y="' + (y - 7) + '" width="' + Math.max(2, X(it[1]) - L) + '" height="' + (narrow ? 10 : 14) + '" rx="4" fill="' + it[2] + '" opacity=".85"/>'; });
+    $('ladder').innerHTML = s;
+  }
+  // orbit diagram (eccentricity exaggerated)
+  function orbit() {
+    var o = orbitNow(), e = 0.35, a = 140, b = a * Math.sqrt(1 - e * e), c = a * e, s = '';
+    // focus (Sun) at origin, perihelion to the right
+    s += '<ellipse cx="' + (-c) + '" cy="0" rx="' + a + '" ry="' + b + '" fill="none" stroke="rgba(255,255,255,.2)" stroke-dasharray="4 5"/>';
+    s += '<circle r="16" fill="#ffc857"/>';
+    s += '<text x="' + (a - c + 6) + '" y="-8" fill="#9aa3c7" font-size="12" font-family="JetBrains Mono, monospace">Jan</text><text x="' + (a - c + 6) + '" y="8" fill="#9aa3c7" font-size="11" font-family="JetBrains Mono, monospace">fastest</text>';
+    s += '<text x="' + (-a - c - 6) + '" y="-8" text-anchor="end" fill="#9aa3c7" font-size="12" font-family="JetBrains Mono, monospace">Jul</text><text x="' + (-a - c - 6) + '" y="8" text-anchor="end" fill="#9aa3c7" font-size="11" font-family="JetBrains Mono, monospace">slowest</text>';
+    // place Earth using the real mean anomaly, solved on the exaggerated ellipse
+    var M = o.M * R, E = M; for (var k = 0; k < 20; k++) E = M + e * Math.sin(E);
+    var x = a * (Math.cos(E) - e), y = b * Math.sin(E);
+    s += '<line x1="0" y1="0" x2="' + x.toFixed(1) + '" y2="' + (-y).toFixed(1) + '" stroke="rgba(79,211,189,.4)"/>';
+    s += '<circle cx="' + x.toFixed(1) + '" cy="' + (-y).toFixed(1) + '" r="8" fill="#4fa3ff"/>';
+    s += '<text x="' + x.toFixed(1) + '" y="' + (-y - 14).toFixed(1) + '" text-anchor="middle" fill="#e8ecff" font-size="13" font-family="JetBrains Mono, monospace">Earth today · ' + o.v.toFixed(2) + ' km/s</text>';
+    $('orbit').innerHTML = s;
+  }
+  function all() { updateStatic(); ladder(); orbit(); }
+  $('me').onclick = function () {
+    if (!navigator.geolocation) { $('msg').textContent = 'Your browser can\'t share a location.'; return; }
+    $('msg').textContent = 'Asking for your location…';
+    navigator.geolocation.watchPosition(function (p) {
+      var c = p.coords; loc = { lat: c.latitude, name: 'your location' }; $('me').setAttribute('aria-pressed', 'true');
+      var now = p.timestamp, v = c.speed;
+      if (gps.last) {
+        var dLat = (c.latitude - gps.last.lat) * R, dLon = (c.longitude - gps.last.lon) * R, mlat = (c.latitude + gps.last.lat) / 2 * R, d = 6371000 * Math.hypot(dLat, dLon * Math.cos(mlat)), dt = (now - gps.last.t) / 1000;
+        if (d > (c.accuracy || 20)) { gps.dist += d; if (v == null && dt > 0) v = d / dt; gps.last = { lat: c.latitude, lon: c.longitude, t: now }; }
+      } else gps.last = { lat: c.latitude, lon: c.longitude, t: now };
+      gps.v = v == null || isNaN(v) ? 0 : v / 1000;
+      $('msg').textContent = 'Using your location · GPS accuracy about ' + Math.round(c.accuracy) + ' m' + (gps.v * 3600 < 3 ? ' · you look stationary' : '');
+      all();
+    }, function () { $('msg').textContent = 'Location was not shared, so this uses Abu Dhabi.'; }, { enableHighAccuracy: true, maximumAge: 2000, timeout: 20000 });
+  };
+  all(); frame(); setInterval(all, 60000); window.addEventListener('resize', ladder);
+})();
+</script>
+</body>
+</html>
