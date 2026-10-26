@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Heat &amp; Air Now · Mariam's Lab</title>
+<meta name="description" content="Is it safe to go outside right now? Heat stress, dust, air quality and UV for your spot in the UAE, plus the best hours for a walk, a run or the kids' playground.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/heat-air/">
+<meta property="og:title" content="Heat &amp; Air Now · Mariam's Lab"><meta property="og:description" content="Heat stress, dust, air and UV, and the best hour to go out."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.where { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.verdict { margin-top: 16px; padding: 20px; border-radius: var(--radius); border: 1px solid var(--line); background: rgba(7,10,24,.82); display: grid; gap: 6px; }
+.verdict b { font-family: var(--font-display); font-size: clamp(1.5rem, 4.5vw, 2.4rem); font-weight: 800; line-height: 1.1; }
+.verdict p { margin: 0; color: var(--muted); }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 12px; }
+.tile { padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.tile span { font-size: 0.78rem; color: var(--muted); display: block; }
+.tile b { font-family: var(--font-display); font-size: 1.6rem; display: block; }
+.tile small { font-size: 0.78rem; }
+.strip { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(30px, 1fr); gap: 2px; overflow-x: auto; padding-bottom: 6px; }
+.strip div { height: 54px; border-radius: 5px; position: relative; display: flex; align-items: flex-end; justify-content: center; font-family: var(--font-mono); font-size: 0.62rem; color: rgba(0,0,0,.75); padding-bottom: 3px; }
+.strip div.now { outline: 2px solid var(--ink); outline-offset: 1px; }
+.strip div i { position: absolute; top: 4px; left: 0; right: 0; text-align: center; font-style: normal; font-weight: 600; }
+.acts { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.acts li { padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; font-size: 0.92rem; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; }
+.acts small { display: block; color: var(--muted); font-size: 0.8rem; }
+.acts b { font-family: var(--font-mono); font-size: 0.85rem; text-align: end; }
+.legend { display: flex; gap: 10px; flex-wrap: wrap; font-size: 0.75rem; color: var(--muted); margin-top: 6px; }
+.legend span::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-inline-end: 4px; vertical-align: -1px; background: var(--c); }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin-top: 8px; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Weather · UAE · Live</span>
+    <h1 style="font-size:var(--step-3)">Heat &amp; air now.</h1>
+    <p>A weather app tells you it's 41°C. What you actually want to know is whether it's safe to walk to the shop, take the kids out, or go for a run, and when today is the best hour to do it. This combines heat with humidity, dust, air quality and UV to answer that.</p>
+  </div>
+  <div class="where" id="where"><button class="sm" type="button" id="me">📍 Use my location</button></div>
+  <p class="msg" id="msg" role="status"></p>
+  <div class="verdict" id="verdict"><b>Loading…</b></div>
+  <div class="tiles" id="tiles"></div>
+  <div class="game" style="margin-top:18px">
+    <div class="panel" style="display:grid;gap:10px;min-width:0">
+      <span class="label">Next 24 hours · outdoor risk</span>
+      <div class="strip" id="strip"></div>
+      <div class="legend"><span style="--c:#4fd3bd">Fine</span><span style="--c:#c9e264">Take care</span><span style="--c:#ffc857">Limit effort</span><span style="--c:#ff8a4c">Avoid effort</span><span style="--c:#ff4f6d">Stay in</span></div>
+      <span class="label" style="margin-top:8px">Best time today for…</span>
+      <ul class="acts" id="acts"></ul>
+    </div>
+    <div class="panel" style="display:grid;gap:10px">
+      <span class="label">How the risk is worked out</span>
+      <p class="fact" style="margin:0"><b>Heat stress</b> uses the wet-bulb temperature, which is what a wet cloth would cool to. It captures humidity, and it's why 38°C on the coast in August can be worse than 45°C in Al Ain. Above about 28°C wet-bulb, the body struggles to cool itself during exercise. Above 31°C, even resting outdoors is hard work.</p>
+      <p class="fact" style="margin:0"><b>Air</b> uses the US AQI from fine particles (PM2.5), coarse dust (PM10) and ozone. On dusty days, PM10 can jump to ten times its normal level within an hour. <b>UV</b> of 8 or more burns unprotected skin in under 20 minutes.</p>
+      <p class="fact" style="margin:0">Outdoor workers in the UAE get a midday break from 12:30 to 15:00 between 15 June and 15 September each year. If you employ a driver, gardener or domestic worker, the strip above shows why. Data from Open-Meteo forecasts (CAMS for air quality), so it's modelled rather than read from a nearby sensor. If you feel dizzy, confused or stop sweating, get cool and call 998 or 999.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var PLACES = [['Abu Dhabi', 24.4539, 54.3773], ['Dubai', 25.2048, 55.2708], ['Sharjah', 25.3463, 55.4209], ['Al Ain', 24.2075, 55.7447], ['Ajman', 25.4052, 55.5136], ['Umm Al Quwain', 25.5647, 55.5552], ['Ras Al Khaimah', 25.7895, 55.9432], ['Fujairah', 25.1288, 56.3265], ['Liwa', 23.1333, 53.7667]];
+  var COL = ['#4fd3bd', '#c9e264', '#ffc857', '#ff8a4c', '#ff4f6d'], WORD = ['Fine to go out', 'Fine, but take care', 'Keep effort light', 'Avoid effort outdoors', 'Stay indoors'];
+  function wetBulb(T, RH) { return T * Math.atan(0.151977 * Math.sqrt(RH + 8.313659)) + Math.atan(T + RH) - Math.atan(RH - 1.676331) + 0.00391838 * Math.pow(RH, 1.5) * Math.atan(0.023101 * RH) - 4.686035; }
+  function heatLvl(tw) { return tw < 22 ? 0 : tw < 25 ? 1 : tw < 28 ? 2 : tw < 31 ? 3 : 4; }
+  function airLvl(a) { return a == null ? 0 : a <= 50 ? 0 : a <= 100 ? 1 : a <= 150 ? 2 : a <= 200 ? 3 : 4; }
+  function uvLvl(u) { return u == null ? 0 : u < 3 ? 0 : u < 6 ? 1 : u < 8 ? 2 : u < 11 ? 3 : 4; }
+  // overall: worst of heat and air; strong UV adds a step only when heat is already a factor
+  function level(h) { var l = Math.max(heatLvl(h.tw), airLvl(h.aqi)); if (uvLvl(h.uv) >= 3 && l < 3 && heatLvl(h.tw) >= 1) l++; return l; }
+  function why(h) {
+    var w = [];
+    if (heatLvl(h.tw) >= 2) w.push('heat with ' + Math.round(h.rh) + '% humidity');
+    if (airLvl(h.aqi) >= 2) w.push(h.dust > 100 || h.pm10 > 150 ? 'dust in the air' : 'poor air quality');
+    if (uvLvl(h.uv) >= 3) w.push('very strong sun');
+    return w;
+  }
+  function hh(t) { return t.slice(11, 13); }
+  function fmtH(t) { var h = +hh(t); return (h % 12 || 12) + (h < 12 ? 'am' : 'pm'); }
+  function get(u) { return fetch(u).then(function (r) { if (!r.ok) throw 0; return r.json(); }); }
+  function load(lat, lon, name) {
+    $('msg').textContent = 'Fetching the forecast for ' + name + '…';
+    var w = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon + '&hourly=temperature_2m,relative_humidity_2m,apparent_temperature,uv_index,wind_speed_10m,is_day&timezone=auto&forecast_days=2';
+    var a = 'https://air-quality-api.open-meteo.com/v1/air-quality?latitude=' + lat + '&longitude=' + lon + '&hourly=us_aqi,pm2_5,pm10,dust,ozone&timezone=auto&forecast_days=2';
+    Promise.all([get(w), get(a).catch(function () { return null; })]).then(function (r) {
+      var W = r[0].hourly, A = r[1] && r[1].hourly, rows = [];
+      var nowLocal = new Date(Date.now() + r[0].utc_offset_seconds * 1000).toISOString().slice(0, 13);
+      W.time.forEach(function (t, i) {
+        var j = A ? A.time.indexOf(t) : -1;
+        rows.push({ t: t, T: W.temperature_2m[i], rh: W.relative_humidity_2m[i], feel: W.apparent_temperature[i], uv: W.uv_index[i], wind: W.wind_speed_10m[i], day: W.is_day[i], tw: wetBulb(W.temperature_2m[i], W.relative_humidity_2m[i]), aqi: j >= 0 ? A.us_aqi[j] : null, pm10: j >= 0 ? A.pm10[j] : null, pm25: j >= 0 ? A.pm2_5[j] : null, dust: j >= 0 ? A.dust[j] : null });
+      });
+      var k = Math.max(0, rows.findIndex(function (x) { return x.t.slice(0, 13) === nowLocal; }));
+      $('msg').textContent = name + (A ? '' : ' · air quality is unavailable right now, so this is heat and UV only');
+      render(rows.slice(k, k + 24), A);
+    }).catch(function () { $('msg').textContent = 'Couldn\'t reach the forecast service. Check your connection and try again.'; $('verdict').innerHTML = '<b>No data</b>'; });
+  }
+  function render(rows, hasAir) {
+    var n = rows[0], L = level(n), ws = why(n);
+    $('verdict').style.borderColor = COL[L];
+    var msg = ['Good conditions for anything outdoors.', 'Drink water and keep to the shade for long stays.', 'A short walk is fine. Save the run or the playground for later.', 'Only go out if you have to, and keep it short.', 'Dangerous conditions. Stay in air conditioning if you can.'][L];
+    $('verdict').innerHTML = '<span class="label">Right now</span><b style="color:' + COL[L] + '">' + WORD[L] + '</b><p>' + msg + (ws.length ? ' The main issue is ' + ws.join(' and ') + '.' : '') + '</p>';
+    var t = [['Temperature', Math.round(n.T) + '°C', 'feels like ' + Math.round(n.feel) + '°C'], ['Humidity', Math.round(n.rh) + '%', 'wet-bulb ' + n.tw.toFixed(1) + '°C'], ['Air quality', n.aqi == null ? '—' : n.aqi, n.aqi == null ? '' : ['Good', 'Moderate', 'Sensitive groups', 'Unhealthy', 'Very unhealthy'][airLvl(n.aqi)]], ['Dust', n.dust == null ? '—' : Math.round(n.dust), 'µg/m³ (PM10 ' + (n.pm10 == null ? '—' : Math.round(n.pm10)) + ')'], ['UV index', n.uv == null ? '—' : n.uv.toFixed(0), ['Low', 'Moderate', 'High', 'Very high', 'Extreme'][uvLvl(n.uv)]], ['Wind', Math.round(n.wind) + ' km/h', n.wind > 35 ? 'strong, may lift sand' : '']];
+    $('tiles').innerHTML = t.map(function (x) { return '<div class="tile"><span>' + x[0] + '</span><b>' + x[1] + '</b><small>' + x[2] + '</small></div>'; }).join('');
+    $('strip').innerHTML = rows.map(function (h, i) { var l = level(h); return '<div class="' + (i === 0 ? 'now' : '') + '" style="background:' + COL[l] + '" title="' + fmtH(h.t) + ': ' + WORD[l] + ', ' + Math.round(h.T) + '°C, wet-bulb ' + h.tw.toFixed(1) + '°C' + (h.aqi != null ? ', AQI ' + h.aqi : '') + '"><i>' + Math.round(h.T) + '°</i>' + (i === 0 ? 'now' : hh(h.t)) + '</div>'; }).join('');
+    // activities: pick the lowest-risk window of the given length, within allowed hours
+    var acts = [['A walk', 1, 6, 23, 2, 'Most comfortable hour'], ['A run or cycle', 1, 4, 22, 1, 'Exercise needs cooler air than walking'], ['Kids at the playground', 2, 7, 20, 1, 'Slides and swings get hot in the sun, so after sunset is often best'], ['Washing the car or gardening', 2, 5, 20, 2, 'Physical work, so heat matters most']];
+    $('acts').innerHTML = acts.map(function (a) {
+      var best = null;
+      for (var i = 0; i + a[1] <= rows.length; i++) {
+        var win = rows.slice(i, i + a[1]), h0 = +hh(win[0].t); if (h0 < a[2] || h0 > a[3]) continue;
+        var score = Math.max.apply(null, win.map(function (h) { var l = level(h); return l + (a[4] === 2 && heatLvl(h.tw) >= 2 ? 1 : 0) + (a[0] === 'A run or cycle' ? heatLvl(h.tw) * 0.3 : 0) + (a[0][0] === 'K' && h.day && h.uv >= 6 ? 1 : 0); })) + i * 0.001;
+        if (!best || score < best.s) best = { s: score, t: win[0].t, l: Math.max.apply(null, win.map(level)) };
+      }
+      return '<li><span>' + a[0] + '<small>' + a[5] + '</small></span><b style="color:' + (best ? COL[best.l] : 'var(--muted)') + '">' + (best ? (best.t === rows[0].t ? 'Now' : fmtH(best.t)) + '<br><small style="text-align:end">' + WORD[best.l] + '</small>' : 'Not today') + '</b></li>';
+    }).join('');
+  }
+  PLACES.forEach(function (p, i) {
+    var b = document.createElement('button'); b.className = 'sm'; b.type = 'button'; b.textContent = p[0]; b.setAttribute('aria-pressed', 'false');
+    b.onclick = function () { pick(b); load(p[1], p[2], p[0]); try { localStorage.setItem('heatPlace', i); } catch (e) {} };
+    $('where').appendChild(b);
+  });
+  function pick(b) { [].forEach.call(document.querySelectorAll('#where .sm'), function (x) { x.setAttribute('aria-pressed', x === b); }); }
+  $('me').onclick = function () {
+    if (!navigator.geolocation) { $('msg').textContent = 'Your browser can\'t share a location.'; return; }
+    $('msg').textContent = 'Asking for your location…';
+    navigator.geolocation.getCurrentPosition(function (p) { pick($('me')); load(p.coords.latitude.toFixed(3), p.coords.longitude.toFixed(3), 'Your location'); }, function () { $('msg').textContent = 'Location was not shared. Pick a city instead.'; }, { maximumAge: 6e5, timeout: 10000 });
+  };
+  var i0 = 1; try { var s = localStorage.getItem('heatPlace'); if (s != null && PLACES[+s]) i0 = +s; } catch (e) {}
+  document.querySelectorAll('#where .sm')[i0 + 1].click();
+})();
+</script>
+</body>
+</html>
