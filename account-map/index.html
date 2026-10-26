@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Account Recovery Map · Mariam's Lab</title>
+<meta name="description" content="Map how your accounts reset each other, find the one email or phone number that would unlock everything, and get a fix list in order. Runs in your browser.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/account-map/">
+<meta property="og:title" content="Account Recovery Map · Mariam's Lab"><meta property="og:description" content="Find the one account that would unlock all the others."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.sm { font: inherit; font-size: 0.84rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 13px; cursor: pointer; text-decoration: none; }
+.sm:hover { border-color: var(--accent); }
+.sm.pri { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.sm.dang { color: var(--sat-c); }
+.addbar { display: grid; gap: 10px; padding: 16px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); margin-bottom: 22px; }
+.map { position: relative; border: 1px solid var(--line); border-radius: var(--radius); background: rgba(7,10,24,.82); overflow: hidden; touch-action: none; }
+.map svg { display: block; width: 100%; height: auto; user-select: none; -webkit-user-select: none; }
+.map .empty { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 20px; color: var(--muted); font-size: 0.92rem; margin: 0; }
+.nd { cursor: pointer; }
+.nd circle { fill: #121734; stroke: var(--sat-a); stroke-width: 2; transition: fill .2s, opacity .2s; }
+.nd text { fill: var(--ink); font-size: 11px; font-family: var(--font-body); text-anchor: middle; pointer-events: none; }
+.nd .ic { font-size: 14px; dominant-baseline: central; }
+.nd.fac circle { fill: #0c1028; stroke: var(--muted); stroke-dasharray: 3 2; stroke-width: 1; }
+.nd.fac text { fill: var(--muted); font-size: 9.5px; }
+.nd.spof circle { stroke: var(--sat-c); stroke-width: 3.5; }
+.nd.sim circle { stroke: var(--accent); }
+.nd.hit circle { fill: rgba(240,138,179,.55); stroke: var(--sat-c); }
+.nd.src circle { fill: var(--sat-c); stroke: var(--ink); }
+.nd.dim { opacity: .3; }
+html.ar .tg { font-family: inherit; }
+html.ar .nd text { direction: rtl; unicode-bidi: plaintext; }
+.ed { stroke: rgba(167,173,203,.55); stroke-width: 1.4; fill: none; }
+.ed.e2fa { stroke-dasharray: 2 4; stroke: var(--sat-b); }
+.ed.epm { stroke-dasharray: 6 4; stroke: rgba(233,180,103,.55); stroke-width: 1; }
+.ed.efac { stroke: rgba(167,173,203,.25); stroke-width: 1; }
+.ed.eboth { stroke-width: 2.4; }
+.ed.hot { stroke: var(--sat-c); stroke-width: 2.4; opacity: 1; }
+.ed.dim { opacity: .15; }
+.legend { display: flex; gap: 6px 14px; flex-wrap: wrap; font-size: 0.75rem; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { display: inline-block; width: 22px; height: 0; border-top: 2px solid var(--c); }
+.legend i.dot { border-top-style: dotted; } .legend i.dash { border-top-style: dashed; }
+.legend i.ring { width: 12px; height: 12px; border: 3px solid var(--c); border-radius: 50%; }
+.casc { padding: 14px 16px; border-radius: 12px; border: 1px solid var(--sat-c); background: rgba(240,138,179,.08); display: grid; gap: 8px; font-size: 0.9rem; }
+.casc[hidden] { display: none; }
+.casc ul { margin: 0; padding-inline-start: 1.1em; display: grid; gap: 4px; }
+.casc small { color: var(--muted); }
+.fixes { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; counter-reset: fx; }
+.fixes li { counter-increment: fx; display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 4px 8px; padding: 11px 12px; border: 1px solid var(--line); border-radius: 10px; font-size: 0.9rem; }
+.fixes li::before { content: counter(fx); font-family: var(--font-mono); font-size: 0.8rem; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; background: var(--line); grid-row: span 2; }
+.fixes li.s3::before { background: var(--sat-c); color: var(--bg); }
+.fixes li.s2::before { background: var(--accent); color: var(--bg); }
+.fixes li > span { color: var(--muted); font-size: 0.84rem; }
+.fixes a { color: var(--accent); }
+.acc { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.acc + .acc { margin-top: 8px; }
+.acc summary { cursor: pointer; display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 10px 12px; list-style: none; }
+.acc summary::-webkit-details-marker { display: none; }
+.acc summary .nm { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tg { font-family: var(--font-mono); font-size: 0.7rem; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+.tg.bad { color: var(--sat-c); border-color: var(--sat-c); } .tg.ok { color: var(--sat-b); border-color: var(--sat-b); }
+.accb { display: grid; gap: 10px; padding: 4px 12px 14px; }
+.fld { display: grid; gap: 4px; font-size: 0.82rem; color: var(--muted); }
+.fld input[type=text], .fld select { font: inherit; font-size: 0.9rem; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 7px 9px; width: 100%; min-width: 0; }
+fieldset.fld { border: 0; margin: 0; padding: 0; min-width: 0; }
+fieldset.fld legend { padding: 0; margin-bottom: 4px; }
+.opts { display: flex; flex-wrap: wrap; gap: 6px; }
+.opt { display: inline-flex; align-items: center; gap: 6px; font-size: 0.82rem; color: var(--ink); border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px 4px 8px; cursor: pointer; }
+.opt:has(input:checked) { border-color: var(--sat-b); background: rgba(79,211,189,.1); }
+.opt input { margin: 0; accent-color: var(--sat-b); }
+.hint { font-size: 0.8rem; color: var(--muted); margin: 0; }
+.msg { font-size: 0.84rem; color: var(--muted); min-height: 1.2em; margin: 0; }
+.cols2 { display: grid; gap: 14px; }
+@media (max-width: 520px) { .stats b { font-size: 1.2rem; } }
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Security</span>
+    <h1 style="font-size:var(--step-3)">Account recovery map.</h1>
+    <p>Most accounts can be reset through another account: an email, a text to your number, a phone you trust. List yours, say what resets each one, and the map shows which single account would hand an attacker all the others. Everything stays in this browser. Nothing is uploaded.</p>
+  </div>
+
+  <div class="addbar">
+    <span class="label">Add an account</span>
+    <div class="btns" id="presets"></div>
+    <div class="btns">
+      <button class="sm pri" type="button" id="demo">Load the demo set</button>
+      <button class="sm" type="button" id="exp">Export JSON</button>
+      <label class="sm" style="cursor:pointer">Import JSON<input type="file" id="imp" accept="application/json,.json" hidden></label>
+      <button class="sm dang" type="button" id="clear">Clear all</button>
+    </div>
+    <p class="msg" id="msg"></p>
+  </div>
+
+  <div class="game">
+    <div class="panel">
+      <div class="map" id="map"><svg id="svg" role="img" aria-label="Map of which accounts can reset which"></svg><p class="empty" id="empty">Add your accounts with the buttons above, or load the demo set.</p></div>
+      <div class="legend">
+        <span><i style="--c:rgba(167,173,203,.8)"></i>Can reset</span>
+        <span><i class="dot" style="--c:var(--sat-b)"></i>Gets the 2FA code</span>
+        <span><i class="dash" style="--c:var(--accent)"></i>Holds the password</span>
+        <span><i class="ring" style="--c:var(--sat-c)"></i>Single point of failure</span>
+      </div>
+      <div class="btns"><button class="sm pri" type="button" id="swap">Simulate a SIM swap</button><button class="sm" type="button" id="unsel">Clear highlight</button></div>
+      <p class="hint">Tap any account on the map to see what falls if someone takes it over. Drag to tidy the layout.</p>
+      <div class="casc" id="casc" hidden></div>
+      <div class="stats">
+        <div><b id="sN">0</b><span>Accounts</span></div>
+        <div><b id="sTop">0</b><span>Most lost from one</span></div>
+        <div><b id="sW">0</b><span>Weak spots</span></div>
+      </div>
+      <div class="cols2">
+        <span class="label">Fix these first</span>
+        <ol class="fixes" id="fixes"></ol>
+      </div>
+      <p class="fact">How it works: the map treats an account as lost when an attacker controls one way to reset it and can also pass its two-step check. It starts from one account, marks everything that falls, then repeats until nothing new falls. A SIM swap is the classic start, because one text message often does both jobs at once.</p>
+    </div>
+    <div class="panel" style="align-content:start">
+      <span class="label">Your accounts</span>
+      <p class="hint">Open an account to say what can reset it and how you sign in. Check each one in its security settings, since defaults change.</p>
+      <div id="accs"></div>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var T = function (s) { return window.LabAr ? LabAr.t(s) : s; };
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  var KINDS = {
+    email: ['Email', '✉'], phone: ['Phone number (SIM)', '☎'], platform: ['Apple or Google account', '◉'], bank: ['Bank', '¤'],
+    gov: ['Government ID app', '★'], msg: ['Messaging', '✆'], social: ['Social media', '♯'], work: ['Work email', '▣'],
+    vault: ['Password manager', '⚿'], crypto: ['Crypto', '₿'], other: ['Other', '•']
+  };
+  var SOURCES = { email: 1, phone: 1, platform: 1, work: 1 };
+  var FACTORS = { auth: 'Authenticator app', key: 'Security key', codes: 'Recovery codes', contacts: 'Trusted contacts', person: 'In person with ID', carrier: 'Carrier shop or call centre' };
+  var TWOFA = { none: 'None', sms: 'SMS code', email: 'Email code', app: 'Authenticator app', key: 'Passkey or security key', device: 'Prompt on a trusted device' };
+  var PRESETS = [
+    ['Phone number (SIM)', 'phone'], ['Personal email', 'email'], ['Apple or Google account', 'platform'], ['Bank', 'bank'], ['UAE Pass', 'gov'],
+    ['WhatsApp', 'msg'], ['Instagram', 'social'], ['Work email', 'work'], ['Password manager', 'vault'], ['Crypto exchange', 'crypto'], ['Other account', 'other']
+  ];
+  var KEY = 'acctmap.v1', accs = [], pos = {}, sel = null, uid = 1;
+
+  function save() { try { localStorage.setItem(KEY, JSON.stringify({ accounts: accs })); } catch (e) {} }
+  function load() { try { var d = JSON.parse(localStorage.getItem(KEY) || 'null'); if (d && d.accounts) accs = clean(d.accounts); } catch (e) {} }
+  function clean(list) {
+    if (!Array.isArray(list)) throw new Error('bad');
+    var ids = {};
+    var out = list.filter(function (a) { return a && typeof a === 'object'; }).slice(0, 60).map(function (a) {
+      var id = String(a.id || ('a' + uid++)).slice(0, 20); ids[id] = 1;
+      return { id: id, name: String(a.name || 'Account').slice(0, 40), kind: KINDS[a.kind] ? a.kind : 'other', reset: Array.isArray(a.reset) ? a.reset.map(String) : [],
+        factors: Array.isArray(a.factors) ? a.factors.filter(function (f) { return FACTORS[f]; }) : [], twofa: TWOFA[a.twofa] ? a.twofa : 'none', via: a.via ? String(a.via) : '', pm: !!a.pm };
+    });
+    out.forEach(function (a) { a.reset = a.reset.filter(function (r) { return ids[r] && r !== a.id; }); if (!ids[a.via]) a.via = ''; });
+    out.forEach(function (a) { var n = parseInt(String(a.id).replace(/\D/g, ''), 10); if (n >= uid) uid = n + 1; });
+    return out;
+  }
+  function byId(id) { for (var i = 0; i < accs.length; i++) if (accs[i].id === id) return accs[i]; return null; }
+  function first(kind) { for (var i = 0; i < accs.length; i++) if (accs[i].kind === kind) return accs[i].id; return ''; }
+  function vault() { for (var i = 0; i < accs.length; i++) if (accs[i].kind === 'vault') return accs[i]; return null; }
+
+  function add(name, kind) {
+    var ph = first('phone'), em = first('email'), a = { id: 'a' + uid++, name: name, kind: kind, reset: [], factors: [], twofa: 'none', via: '', pm: false };
+    var sms = function () { a.twofa = 'sms'; a.via = ph; };
+    if (kind === 'phone') a.factors = ['carrier', 'person'];
+    else if (kind === 'email') { if (ph) a.reset.push(ph); sms(); }
+    else if (kind === 'platform') { if (ph) a.reset.push(ph); if (em) a.reset.push(em); a.twofa = 'device'; }
+    else if (kind === 'bank') { if (ph) a.reset.push(ph); a.factors = ['person']; sms(); }
+    else if (kind === 'gov') { if (ph) a.reset.push(ph); a.factors = ['person']; a.twofa = 'device'; }
+    else if (kind === 'msg') { if (ph) a.reset.push(ph); }
+    else if (kind === 'social') { if (em) a.reset.push(em); if (ph) a.reset.push(ph); sms(); }
+    else if (kind === 'work') { a.factors = ['person']; a.twofa = 'app'; }
+    else if (kind === 'vault') { if (em) a.reset.push(em); }
+    else if (kind === 'crypto') { if (em) a.reset.push(em); a.twofa = 'app'; a.factors = ['codes']; }
+    else if (em) a.reset.push(em);
+    if (vault() && kind !== 'vault' && kind !== 'phone') a.pm = true;
+    if (kind === 'phone') accs.forEach(function (b) { if (b.twofa === 'sms' && !b.via) b.via = a.id; });
+    accs.push(a); return a;
+  }
+  function demo() {
+    accs = []; pos = {}; uid = 1;
+    var ph = add('Phone number (SIM)', 'phone'), em = add('Personal email', 'email'), old = add('Old email', 'email');
+    em.reset = [ph.id, old.id]; old.reset = [ph.id, em.id]; old.twofa = 'none'; old.via = '';
+    var pf = add('Apple or Google account', 'platform'); pf.reset = [em.id, ph.id];
+    var pm = add('Password manager', 'vault'); pm.reset = [em.id]; pm.twofa = 'email'; pm.via = em.id;
+    add('Bank', 'bank'); add('UAE Pass', 'gov'); add('WhatsApp', 'msg'); add('Instagram', 'social');
+    var wk = add('Work email', 'work'); wk.pm = false;
+    add('Crypto exchange', 'crypto');
+    sel = null; save(); renderAll(); msg('Demo set loaded. It is made up; replace it with your own accounts.');
+  }
+  function msg(s) { $('msg').textContent = s; }
+
+  // ---- the cascade
+  function twofaOk(a, C) { return a.twofa === 'none' || ((a.twofa === 'sms' || a.twofa === 'email') && a.via && C[a.via]); }
+  function why(a, C) {
+    if (!twofaOk(a, C)) return null;
+    var tail = a.twofa === 'none' ? '' : ', code sent to ' + nm(byId(a.via));
+    for (var i = 0; i < a.reset.length; i++) if (C[a.reset[i]]) return 'Reset through ' + nm(byId(a.reset[i])) + tail;
+    var v = vault(); if (a.pm && v && C[v.id] && v.id !== a.id) return 'Saved password in ' + nm(v) + tail;
+    return null;
+  }
+  function cascade(start) {
+    var C = {}, out = [], ch = true; C[start] = 1;
+    while (ch) { ch = false; accs.forEach(function (a) { if (C[a.id]) return; var w = why(a, C); if (w) { C[a.id] = 1; out.push([a, w]); ch = true; } }); }
+    return { set: C, list: out };
+  }
+  function cycles() {
+    var idx = {}, low = {}, on = {}, st = [], n = 0, res = [];
+    function sc(v) {
+      idx[v.id] = low[v.id] = n++; st.push(v); on[v.id] = 1;
+      v.reset.forEach(function (r) { var w = byId(r); if (!w) return; if (idx[w.id] == null) { sc(w); low[v.id] = Math.min(low[v.id], low[w.id]); } else if (on[w.id]) low[v.id] = Math.min(low[v.id], idx[w.id]); });
+      if (low[v.id] === idx[v.id]) { var comp = [], w; do { w = st.pop(); on[w.id] = 0; comp.push(w); } while (w !== v); if (comp.length > 1) res.push(comp); }
+    }
+    // edges point from the account to what resets it; a loop either way is the same loop
+    accs.forEach(function (a) { if (idx[a.id] == null) sc(a); });
+    return res;
+  }
+  function nm(a) { return a ? a.name : '?'; }
+  function weak(a) { return a.twofa === 'none' || a.twofa === 'sms' || a.twofa === 'email'; }
+
+  function analyse() {
+    var spread = {}, top = 0;
+    accs.forEach(function (a) { var c = cascade(a.id).list.length; spread[a.id] = c; if (c > top) top = c; });
+    var spof = {}; accs.forEach(function (a) { if (spread[a.id] >= 2 && spread[a.id] >= Math.max(2, top - 1)) spof[a.id] = 1; });
+    var fx = [], v = vault();
+    accs.slice().sort(function (a, b) { return spread[b.id] - spread[a.id]; }).forEach(function (a) {
+      if (!spof[a.id]) return;
+      var d = a.kind === 'phone' ? 'This is your SIM swap risk. Ask your carrier what account PIN or port-out protection they offer, then move accounts off SMS codes and SMS resets.'
+        : weak(a) ? 'Give it a passkey, security key or authenticator app, and save its recovery codes somewhere offline.'
+        : 'Its two-step login is strong. Now cut the links: where another option exists, stop using it to recover the other accounts.';
+      fx.push([3, spread[a.id], nm(a) + ' opens ' + spread[a.id] + ' other accounts', d]);
+    });
+    if (v) {
+      v.reset.forEach(function (r) { var e = byId(r); if (e && e.kind !== 'phone') fx.push([weak(e) ? 3 : 2, 5, nm(e) + ' can reset your password manager', 'Whoever gets into this account can reach every password you saved. Protect it with a passkey or security key, and use your password manager\'s own recovery kit if it has one.']); });
+      if (weak(v)) fx.push([3, 5, 'Your password manager has weak two-step login', 'Use an authenticator app, passkey or security key. This one account holds the keys to the rest.']);
+    }
+    cycles().forEach(function (c) { fx.push([2, c.length, c.map(nm).join(' ↔ ') + ' recover each other', 'Taking one helps take the other, and if you lose both you can\'t get back in. Give one of them a way out of the loop, like recovery codes or a security key.']); });
+    accs.forEach(function (a) {
+      var imp = a.kind === 'email' || a.kind === 'platform' || a.kind === 'bank' || a.kind === 'crypto' || a.kind === 'work';
+      if (a.kind === 'phone') { if (a.factors.indexOf('carrier') >= 0) fx.push([2, spread[a.id], nm(a) + ' can be moved to a new SIM', 'Carriers can move a number after a phone call or a shop visit. Read the <a href="../sim-swap/">SIM swap guide</a> and ask your carrier what extra checks they can add.']); return; }
+      if (a.kind !== 'vault' && a.twofa === 'none') fx.push([imp ? 3 : 2, spread[a.id], nm(a) + ' has no two-step login', 'Turn it on. An authenticator app or passkey is best. SMS is better than nothing.']);
+      if (a.kind !== 'vault' && a.twofa === 'sms') fx.push([imp ? 2 : 1, spread[a.id], nm(a) + ' uses SMS codes', 'Codes by text go to whoever controls your number. Switch to an authenticator app or passkey if the service offers one.']);
+      var onlySms = a.reset.length && a.reset.every(function (r) { var b = byId(r); return b && b.kind === 'phone'; }) && !a.factors.some(function (f) { return f !== 'carrier' && f !== 'contacts'; });
+      if (onlySms) fx.push([1, spread[a.id], nm(a) + ' can only be recovered by text message', 'Add a second recovery option, like recovery codes or a backup email that has strong two-step login.']);
+      if ((a.twofa === 'app' || a.twofa === 'key') && a.factors.indexOf('codes') < 0 && a.factors.indexOf('person') < 0) fx.push([1, 0, 'Save recovery codes for ' + nm(a), 'Strong two-step login can lock you out too if you lose your phone. Print the recovery codes or keep them somewhere safe and offline.']);
+    });
+    fx.sort(function (a, b) { return b[0] - a[0] || b[1] - a[1]; });
+    return { spread: spread, top: top, spof: spof, fixes: fx };
+  }
+
+  // ---- graph
+  var NS = 'http://www.w3.org/2000/svg', W = 800, H = 520, A = null, lastSig = '';
+  function el(t, at, p) { var e = document.createElementNS(NS, t); for (var k in at) e.setAttribute(k, at[k]); if (p) p.appendChild(e); return e; }
+  function graph() {
+    var nodes = [], edges = [], seen = {};
+    accs.forEach(function (a) { nodes.push({ id: a.id, a: a, r: 19 }); });
+    accs.forEach(function (a) {
+      a.reset.forEach(function (r) { var k = r + '>' + a.id; seen[k] = 1; edges.push({ s: r, t: a.id, c: (a.twofa === 'sms' || a.twofa === 'email') && a.via === r ? 'eboth' : '' }); });
+      if ((a.twofa === 'sms' || a.twofa === 'email') && a.via && !seen[a.via + '>' + a.id]) edges.push({ s: a.via, t: a.id, c: 'e2fa' });
+      a.factors.forEach(function (f) { var id = 'f:' + f; if (!seen[id]) { seen[id] = 1; nodes.push({ id: id, f: f, r: 8 }); } edges.push({ s: id, t: a.id, c: 'efac' }); });
+      var v = vault(); if (a.pm && v && v.id !== a.id) edges.push({ s: v.id, t: a.id, c: 'epm' });
+    });
+    return { nodes: nodes, edges: edges };
+  }
+  function layout(g) {
+    var n = g.nodes.length; if (!n) return;
+    var map = {}, area = W * H, K = Math.sqrt(area / n) * 0.8, t = W / 8;
+    g.nodes.forEach(function (d, i) {
+      map[d.id] = d;
+      var p = pos[d.id];
+      if (p) { d.x = p.x; d.y = p.y; } else { var ang = i * 2.399, rr = 40 + 14 * Math.sqrt(i) * 3; d.x = W / 2 + Math.cos(ang) * rr; d.y = H / 2 + Math.sin(ang) * rr * 0.8; }
+    });
+    var es = g.edges.map(function (e) { return [map[e.s], map[e.t], e.c === 'epm' ? 0.25 : e.c === 'efac' ? 0.7 : 1]; }).filter(function (e) { return e[0] && e[1]; });
+    for (var it = 0; it < 320; it++) {
+      g.nodes.forEach(function (d) { d.dx = 0; d.dy = 0; });
+      for (var i = 0; i < n; i++) for (var j = i + 1; j < n; j++) {
+        var a = g.nodes[i], b = g.nodes[j], dx = a.x - b.x, dy = a.y - b.y, d2 = Math.max(dx * dx + dy * dy, 0.01), d = Math.sqrt(d2);
+        var f = K * K / d * ((a.f || b.f) ? 0.55 : 1); a.dx += dx / d * f; a.dy += dy / d * f; b.dx -= dx / d * f; b.dy -= dy / d * f;
+      }
+      es.forEach(function (e) { var a = e[0], b = e[1], dx = a.x - b.x, dy = a.y - b.y, d = Math.max(Math.sqrt(dx * dx + dy * dy), 0.01), f = d * d / K * e[2]; a.dx -= dx / d * f; a.dy -= dy / d * f; b.dx += dx / d * f; b.dy += dy / d * f; });
+      g.nodes.forEach(function (d) {
+        if (d.pin) return;
+        d.dx += (W / 2 - d.x) * 0.02 * K / 60; d.dy += (H / 2 - d.y) * 0.03 * K / 60;
+        var l = Math.max(Math.sqrt(d.dx * d.dx + d.dy * d.dy), 0.01), m = Math.min(l, t);
+        d.x = Math.min(W - 60, Math.max(60, d.x + d.dx / l * m)); d.y = Math.min(H - 40, Math.max(28, d.y + d.dy / l * m));
+      });
+      t = Math.max(t * 0.985, 1.5);
+    }
+    // stretch to fill the box
+    var x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9, mx = Math.min(70, W * 0.14), my0 = 28, my1 = 40;
+    g.nodes.forEach(function (d) { x0 = Math.min(x0, d.x); x1 = Math.max(x1, d.x); y0 = Math.min(y0, d.y); y1 = Math.max(y1, d.y); });
+    g.nodes.forEach(function (d) {
+      d.x = n > 1 && x1 - x0 > 1 ? mx + (d.x - x0) / (x1 - x0) * (W - 2 * mx) : W / 2;
+      d.y = n > 1 && y1 - y0 > 1 ? my0 + (d.y - y0) / (y1 - y0) * (H - my0 - my1) : H / 2;
+      pos[d.id] = { x: d.x, y: d.y };
+    });
+  }
+  function short(s, n) { s = T(s); return s.length > n ? s.slice(0, n - 1) + '…' : s; }
+  function drawGraph() {
+    var box = $('map'), svg = $('svg');
+    W = Math.max(320, Math.round(box.clientWidth || 600)); H = W < 600 ? 500 : Math.round(Math.min(620, W * 0.68));
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    $('empty').hidden = accs.length > 0;
+    if (!accs.length) return;
+    var g = graph(), sig = W + '|' + g.nodes.map(function (d) { return d.id; }).join() + '|' + g.edges.map(function (e) { return e.s + '>' + e.t + e.c; }).join();
+    if (sig !== lastSig || g.nodes.some(function (d) { return !pos[d.id]; })) layout(g); else g.nodes.forEach(function (d) { d.x = pos[d.id].x; d.y = pos[d.id].y; });
+    lastSig = sig; A = A || analyse();
+    var defs = el('defs', {}, svg);
+    [['ar', 'rgba(167,173,203,.8)'], ['arH', '#F08AB3'], ['arG', '#4FD3BD'], ['arP', 'rgba(233,180,103,.7)']].forEach(function (m) {
+      var mk = el('marker', { id: m[0], viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' }, defs);
+      el('path', { d: 'M0,1 L10,5 L0,9 z', fill: m[1] }, mk);
+    });
+    var C = sel ? (sel === '*sim' ? simSet() : cascade(sel).set) : null;
+    var eg = el('g', {}, svg), ng = el('g', {}, svg), map = {};
+    g.nodes.forEach(function (d) { map[d.id] = d; });
+    g.edges.forEach(function (e) {
+      var a = map[e.s], b = map[e.t]; if (!a || !b) return;
+      var hot = C && C[e.s] && C[e.t];
+      var ln = el('line', { 'class': 'ed ' + e.c + (hot ? ' hot' : C ? ' dim' : ''), 'marker-end': 'url(#' + (hot ? 'arH' : e.c === 'e2fa' ? 'arG' : e.c === 'epm' ? 'arP' : 'ar') + ')' }, eg);
+      e.el = ln; e.a = a; e.b = b;
+    });
+    g.nodes.forEach(function (d) {
+      var cls = 'nd' + (d.f ? ' fac' : '') + (d.a && A.spof[d.id] ? ' spof' : '') + (d.a && d.a.kind === 'phone' ? ' sim' : '');
+      if (C) cls += C[d.id] ? (d.id === sel || (sel === '*sim' && d.a && d.a.kind === 'phone') ? ' src' : ' hit') : ' dim';
+      var gg = el('g', { 'class': cls, 'data-id': d.id, tabindex: d.a ? 0 : -1 }, ng);
+      el('circle', { r: d.r }, gg);
+      if (d.a) { var ic = el('text', { 'class': 'ic' }, gg); ic.textContent = KINDS[d.a.kind][1]; }
+      var lb = el('text', { y: d.r + 13 }, gg); lb.textContent = d.a ? short(d.a.name, 20) : short(FACTORS[d.f], 22);
+      d.el = gg;
+    });
+    place(g);
+    svg._g = g;
+  }
+  function place(g) {
+    g.nodes.forEach(function (d) { d.el.setAttribute('transform', 'translate(' + d.x.toFixed(1) + ',' + d.y.toFixed(1) + ')'); });
+    g.edges.forEach(function (e) {
+      if (!e.el) return; var dx = e.b.x - e.a.x, dy = e.b.y - e.a.y, d = Math.max(Math.sqrt(dx * dx + dy * dy), 1);
+      var ux = dx / d, uy = dy / d;
+      e.el.setAttribute('x1', (e.a.x + ux * (e.a.r + 2)).toFixed(1)); e.el.setAttribute('y1', (e.a.y + uy * (e.a.r + 2)).toFixed(1));
+      e.el.setAttribute('x2', (e.b.x - ux * (e.b.r + 4)).toFixed(1)); e.el.setAttribute('y2', (e.b.y - uy * (e.b.r + 4)).toFixed(1));
+    });
+  }
+  function simSet() { var C = {}; accs.forEach(function (a) { if (a.kind === 'phone') { var c = cascade(a.id); for (var k in c.set) C[k] = 1; } }); return C; }
+
+  // dragging and tapping
+  (function () {
+    var svg = $('svg'), drag = null;
+    function pt(e) { var p = svg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; return p.matrixTransform(svg.getScreenCTM().inverse()); }
+    svg.addEventListener('pointerdown', function (e) {
+      var g = e.target.closest && e.target.closest('.nd'); if (!g || !svg._g) return;
+      var d = svg._g.nodes.filter(function (n) { return n.id === g.getAttribute('data-id'); })[0]; if (!d) return;
+      drag = { d: d, moved: false, p: pt(e) }; svg.setPointerCapture(e.pointerId); e.preventDefault();
+    });
+    svg.addEventListener('pointermove', function (e) {
+      if (!drag) return; var p = pt(e);
+      if (!drag.moved && Math.abs(p.x - drag.p.x) + Math.abs(p.y - drag.p.y) < 4) return;
+      drag.moved = true; drag.d.x = Math.min(W - 20, Math.max(20, p.x)); drag.d.y = Math.min(H - 20, Math.max(20, p.y)); pos[drag.d.id] = { x: drag.d.x, y: drag.d.y }; place(svg._g);
+    });
+    svg.addEventListener('pointerup', function () {
+      if (drag && !drag.moved && drag.d.a) select(drag.d.id);
+      drag = null;
+    });
+    svg.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { var g = e.target.closest && e.target.closest('.nd'); if (g && byId(g.getAttribute('data-id'))) { e.preventDefault(); select(g.getAttribute('data-id')); } } });
+  })();
+  function select(id) {
+    sel = sel === id ? null : id; drawGraph(); showCasc();
+  }
+  function showCasc() {
+    var box = $('casc');
+    if (!sel) { box.hidden = true; box.innerHTML = ''; return; }
+    var h = '', list = [];
+    if (sel === '*sim') {
+      var phones = accs.filter(function (a) { return a.kind === 'phone'; });
+      if (!phones.length) { box.hidden = false; box.innerHTML = '<b>Add your phone number first.</b><span>Use the "Phone number (SIM)" button above.</span>'; return; }
+      var C = {}; list = [];
+      phones.forEach(function (p) { cascade(p.id).list.forEach(function (x) { if (!C[x[0].id]) { C[x[0].id] = 1; list.push(x); } }); });
+      h = '<b>SIM swap: ' + list.length + ' accounts fall with your number</b><span>A SIM swap moves your number to the attacker\'s SIM. Every reset text and SMS code then goes to them.</span>';
+    } else {
+      var a = byId(sel); list = cascade(sel).list;
+      h = '<b>If ' + esc(nm(a)) + ' is taken over: ' + list.length + ' more accounts fall</b>';
+    }
+    if (list.length) h += '<ul>' + list.map(function (x) { return '<li><span>' + esc(nm(x[0])) + '</span> <small>' + esc(x[1]) + '</small></li>'; }).join('') + '</ul>';
+    else h += '<span>Nothing else falls with it. Good.</span>';
+    box.innerHTML = h; box.hidden = false;
+  }
+
+  // ---- editor
+  function tag(a) {
+    if (a.kind === 'phone') return '<span class="tg">' + esc('SIM') + '</span>';
+    return '<span class="tg ' + (weak(a) ? 'bad' : 'ok') + '">' + esc(TWOFA[a.twofa]) + '</span>';
+  }
+  function editor() {
+    var open = {}; [].forEach.call(document.querySelectorAll('#accs details[open]'), function (d) { open[d.getAttribute('data-id')] = 1; });
+    var src = accs.filter(function (a) { return SOURCES[a.kind]; });
+    $('accs').innerHTML = accs.length ? accs.map(function (a) {
+      var kinds = Object.keys(KINDS).map(function (k) { return '<option value="' + k + '"' + (k === a.kind ? ' selected' : '') + '>' + esc(KINDS[k][0]) + '</option>'; }).join('');
+      var rs = src.filter(function (b) { return b.id !== a.id; }).map(function (b) { return '<label class="opt"><input type="checkbox" data-f="reset" value="' + b.id + '"' + (a.reset.indexOf(b.id) >= 0 ? ' checked' : '') + '><span>' + esc(b.name) + '</span></label>'; }).join('');
+      var fs = Object.keys(FACTORS).filter(function (f) { return f !== 'carrier' || a.kind === 'phone'; }).map(function (f) { return '<label class="opt"><input type="checkbox" data-f="factor" value="' + f + '"' + (a.factors.indexOf(f) >= 0 ? ' checked' : '') + '><span>' + esc(FACTORS[f]) + '</span></label>'; }).join('');
+      var tf = '<option value="none">' + esc(TWOFA.none) + '</option>';
+      accs.forEach(function (b) { if (b.id === a.id) return; if (b.kind === 'phone') tf += '<option value="sms:' + b.id + '"' + (a.twofa === 'sms' && a.via === b.id ? ' selected' : '') + '>' + esc('SMS code to ' + b.name) + '</option>'; });
+      accs.forEach(function (b) { if (b.id === a.id) return; if (b.kind === 'email' || b.kind === 'work') tf += '<option value="email:' + b.id + '"' + (a.twofa === 'email' && a.via === b.id ? ' selected' : '') + '>' + esc('Email code to ' + b.name) + '</option>'; });
+      if (a.twofa === 'sms' && !a.via) tf += '<option value="sms:" selected>' + esc(TWOFA.sms) + '</option>';
+      if (a.twofa === 'email' && !a.via) tf += '<option value="email:" selected>' + esc(TWOFA.email) + '</option>';
+      ['app', 'key', 'device'].forEach(function (k) { tf += '<option value="' + k + '"' + (a.twofa === k ? ' selected' : '') + '>' + esc(TWOFA[k]) + '</option>'; });
+      if (a.twofa === 'none') tf = tf.replace('value="none"', 'value="none" selected');
+      var v = vault();
+      return '<details class="acc" data-id="' + a.id + '"' + (open[a.id] ? ' open' : '') + '><summary><span>' + KINDS[a.kind][1] + '</span><span class="nm">' + esc(a.name) + '</span>' + tag(a) + '</summary><div class="accb">' +
+        '<label class="fld"><span>Name</span><input type="text" data-f="name" maxlength="40" value="' + esc(T(a.name)) + '"></label>' +
+        '<label class="fld"><span>Type</span><select data-f="kind">' + kinds + '</select></label>' +
+        (a.kind === 'phone' ? '<p class="hint">Your number is an account too. It lives with your carrier, who can move it to a new SIM.</p>' : '') +
+        '<fieldset class="fld"><legend>Can be reset or recovered by</legend><div class="opts">' + rs + fs + '</div></fieldset>' +
+        (a.kind === 'phone' ? '' : '<label class="fld"><span>Two-step login</span><select data-f="twofa">' + tf + '</select></label>') +
+        (v && v.id !== a.id && a.kind !== 'phone' ? '<label class="opt" style="justify-self:start"><input type="checkbox" data-f="pm"' + (a.pm ? ' checked' : '') + '><span>Password saved in my password manager</span></label>' : '') +
+        '<button class="sm dang" type="button" data-f="del" style="justify-self:start">Remove this account</button></div></details>';
+    }).join('') : '<p class="hint">No accounts yet.</p>';
+  }
+  $('accs').addEventListener('input', function (e) {
+    var t = e.target, d = t.closest('details'); if (!d || t.getAttribute('data-f') !== 'name') return;
+    var a = byId(d.getAttribute('data-id')); a.name = t.value.slice(0, 40) || 'Account';
+    d.querySelector('.nm').textContent = a.name; save(); A = null; drawGraph(); summary(); showCasc();
+  });
+  $('accs').addEventListener('change', function (e) {
+    var t = e.target, d = t.closest('details'); if (!d) return;
+    var a = byId(d.getAttribute('data-id')), f = t.getAttribute('data-f');
+    if (f === 'name') { editor(); return; }
+    if (f === 'kind') a.kind = t.value;
+    if (f === 'reset') { a.reset = a.reset.filter(function (x) { return x !== t.value; }); if (t.checked) a.reset.push(t.value); }
+    if (f === 'factor') { a.factors = a.factors.filter(function (x) { return x !== t.value; }); if (t.checked) a.factors.push(t.value); }
+    if (f === 'twofa') { var p = t.value.split(':'); a.twofa = p[0]; a.via = p[1] || ''; }
+    if (f === 'pm') a.pm = t.checked;
+    changed();
+  });
+  $('accs').addEventListener('click', function (e) {
+    var t = e.target.closest('[data-f="del"]'); if (!t) return;
+    var id = t.closest('details').getAttribute('data-id');
+    accs = accs.filter(function (a) { return a.id !== id; });
+    accs.forEach(function (a) { a.reset = a.reset.filter(function (r) { return r !== id; }); if (a.via === id) a.via = ''; });
+    if (sel === id) sel = null; delete pos[id]; changed();
+  });
+  function summary() {
+    A = analyse();
+    $('sN').textContent = accs.length; $('sTop').textContent = A.top;
+    $('sW').textContent = A.fixes.filter(function (f) { return f[0] >= 2; }).length;
+    $('fixes').innerHTML = A.fixes.length ? A.fixes.slice(0, 14).map(function (f) { return '<li class="s' + f[0] + '"><b>' + esc(f[2]) + '</b><span>' + (f[3].indexOf('<a ') >= 0 ? f[3] : esc(f[3])) + '</span></li>'; }).join('')
+      : '<li><b>' + (accs.length ? 'No obvious weak spots' : 'Nothing to fix yet') + '</b><span>' + (accs.length ? 'Check that what you entered matches each account\'s security settings.' : 'Add accounts to see your fix list.') + '</span></li>';
+  }
+  function changed() { save(); A = null; summary(); editor(); drawGraph(); showCasc(); }
+  function renderAll() { summary(); editor(); drawGraph(); showCasc(); }
+
+  $('presets').innerHTML = PRESETS.map(function (p, i) { return '<button class="sm" type="button" data-i="' + i + '">+ <span>' + esc(p[0]) + '</span></button>'; }).join('');
+  $('presets').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return; var p = PRESETS[+b.getAttribute('data-i')];
+    var a = add(p[0], p[1]); changed(); msg('Added ' + p[0] + '. Open it under Your accounts to check its settings.');
+    var d = document.querySelector('#accs details[data-id="' + a.id + '"]'); if (d) d.open = true;
+  });
+  $('demo').onclick = demo;
+  $('swap').onclick = function () { sel = sel === '*sim' ? null : '*sim'; drawGraph(); showCasc(); };
+  $('unsel').onclick = function () { sel = null; drawGraph(); showCasc(); };
+  $('clear').onclick = function () { if (!accs.length || confirm('Remove all accounts from this browser?')) { accs = []; pos = {}; sel = null; changed(); msg('Cleared.'); } };
+  $('exp').onclick = function () {
+    var b = new Blob([JSON.stringify({ tool: 'account-map', version: 1, accounts: accs }, null, 2)], { type: 'application/json' });
+    var u = URL.createObjectURL(b), a = document.createElement('a'); a.href = u; a.download = 'account-map.json'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(u); }, 2000);
+    msg('Saved account-map.json. It lists account names only, no passwords.');
+  };
+  $('imp').onchange = function () {
+    var f = this.files[0]; this.value = ''; if (!f) return;
+    var r = new FileReader(); r.onload = function () {
+      try { var d = JSON.parse(r.result); accs = clean(d.accounts || d); pos = {}; sel = null; changed(); msg('Imported ' + accs.length + ' accounts.'); }
+      catch (e) { msg('That file isn\'t an account map export.'); }
+    }; r.readAsText(f);
+  };
+  var rt = 0; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { var w = $('map').clientWidth; if (Math.abs(w - W) > 30) { pos = {}; drawGraph(); } }, 200); });
+
+  load(); renderAll();
+  window.addEventListener('labar-ready', renderAll);
+  window.ACCTMAP = { demo: demo, select: select, cascade: cascade, analyse: analyse };
+})();
+</script>
+</body>
+</html>

@@ -142,3 +142,10 @@ LabAr.add({
  "Lock a password or private note into a link with AES-256, encrypted on your device, with optional password, expiry and split key.": "اقفل كلمة مرور أو ملاحظة خاصة داخل رابط بتشفير AES-256 على جهازك، مع كلمة مرور ومدة صلاحية ومفتاح منفصل عند الحاجة.",
  "Lock a note →": "اقفل ملاحظة ←"
 });
+/* index cards for newer tools */
+LabAr.add({
+ "Tool · Security": "أداة · أمان",
+ "Account recovery map": "خريطة استرداد الحسابات",
+ "Map which email or phone number can reset your other accounts, simulate a SIM swap and get a fix list in order.": "اكتشف أي بريد أو رقم هاتف يستطيع إعادة تعيين حساباتك الأخرى، وحاكِ استبدال الشريحة، واحصل على قائمة إصلاحات مرتبة.",
+ "Map it →": "ارسم خريطتك ←"
+});
