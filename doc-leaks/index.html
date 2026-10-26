@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Document Leak Check · Mariam's Lab</title>
+<meta name="description" content="Check a Word, Excel, PowerPoint or PDF file for hidden details before you send it: author names, tracked changes, comments, hidden sheets and slides, speaker notes, file paths and earlier versions.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/doc-leaks/">
+<meta property="og:title" content="Document Leak Check · Mariam's Lab"><meta property="og:description" content="Find names, tracked changes, comments and hidden content in a document before you send it."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.privacy { display: flex; gap: 10px; align-items: center; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--sat-b); color: var(--ink); font-size: 0.92rem; margin-bottom: 18px; background: rgba(79,211,189,.08); }
+.privacy b { color: var(--sat-b); }
+.btns { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.sm { font: inherit; font-size: 0.85rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 7px 14px; cursor: pointer; text-decoration: none; display: inline-block; }
+.sm.pri { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.sm:disabled { opacity: .5; cursor: default; }
+.drop { border: 1px dashed var(--line); border-radius: 14px; padding: 26px 16px; text-align: center; color: var(--muted); font-size: 0.9rem; display: grid; gap: 10px; justify-items: center; }
+.drop.over { border-color: var(--accent); color: var(--ink); }
+.pane { padding: 18px; border-radius: var(--radius); border: 1px solid var(--line); background: rgba(7,10,24,.82); display: grid; gap: 12px; min-width: 0; }
+.pane h2 { font-size: 1.2rem; margin: 0; word-break: break-word; }
+.finds { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.finds > li { padding: 12px 14px; border: 1px solid var(--line); border-inline-start: 4px solid var(--c); border-radius: 10px; display: grid; gap: 6px; font-size: 0.92rem; }
+.finds .sev { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: .08em; text-transform: uppercase; color: var(--c); }
+.finds .det { color: var(--muted); font-size: 0.85rem; margin: 0; word-break: break-word; }
+.finds ul { margin: 0; padding-inline-start: 1.1em; font-size: 0.82rem; display: grid; gap: 3px; word-break: break-word; }
+.finds .fix { font-size: 0.82rem; color: var(--ink); margin: 0; padding: 8px 10px; background: var(--surface); border-radius: 8px; }
+.finds .fix b { color: var(--sat-b); }
+.s-high { --c: var(--sat-c); } .s-med { --c: var(--accent); } .s-low { --c: var(--sat-a); } .s-info { --c: var(--muted); } .s-ok { --c: var(--sat-b); }
+.kv { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 14px; font-size: 0.9rem; margin: 0; }
+.kv dt { color: var(--muted); } .kv dd { margin: 0; font-family: var(--font-mono); font-size: 0.82rem; word-break: break-word; }
+@media (max-width: 480px) { .kv { grid-template-columns: minmax(0, 1fr); gap: 2px; } .kv dd { margin-bottom: 8px; } }
+.mono2 { font-family: var(--font-mono); font-size: 0.8rem; }
+del.lk { color: var(--sat-c); } ins.lk { color: var(--sat-b); text-decoration: none; }
+.opts { display: grid; gap: 8px; font-size: 0.88rem; }
+.opts label { display: flex; gap: 8px; align-items: flex-start; }
+.tips { margin: 0; padding-inline-start: 1.1em; display: grid; gap: 6px; font-size: 0.88rem; color: var(--muted); }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 0; }
+.warnbox { padding: 10px 12px; border: 1px solid var(--accent); border-radius: 10px; font-size: 0.86rem; }
+html.ar .finds ul li, html.ar .kv dd { unicode-bidi: plaintext; }
+html.ar .kv dd { text-align: right; }
+[hidden] { display: none !important; }
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Privacy · Documents</span>
+    <h1 style="font-size:var(--step-3)">Document leak check.</h1>
+    <p>Office files and PDFs carry more than the words on the page. Author names, deleted text in tracked changes, comments, hidden sheets, speaker notes, file paths from your computer and earlier saved versions can all travel with them. Check a file here before you send it, and see how to fix each problem.</p>
+  </div>
+  <div class="privacy" role="note"><span aria-hidden="true">🔒</span><span><b>Your file never leaves this device.</b> It is opened and checked inside this browser tab. Nothing is uploaded.</span></div>
+  <div class="game">
+    <div class="panel" style="align-content:start">
+      <div class="drop" id="drop">
+        <span>Drop a document here, or</span>
+        <div class="btns" style="justify-content:center"><label class="sm pri" style="cursor:pointer">Choose a file<input type="file" id="file" accept=".docx,.docm,.xlsx,.xlsm,.pptx,.pptm,.pdf" hidden></label><button class="sm" type="button" id="demoDocx">Sample Word file</button><button class="sm" type="button" id="demoPdf">Sample PDF</button></div>
+        <span style="font-size:.8rem">DOCX, XLSX, PPTX or PDF. Older .doc, .xls and .ppt files aren't supported.</span>
+      </div>
+      <p class="msg" id="msg" role="status"></p>
+      <div class="pane" id="rep" hidden></div>
+    </div>
+    <div class="panel" style="align-content:start">
+      <div class="stats"><div><b id="sH">–</b><span>serious</span></div><div><b id="sM">–</b><span>worth fixing</span></div><div><b id="sL">–</b><span>minor</span></div></div>
+      <div class="pane">
+        <span class="label">The built-in fix</span>
+        <ul class="tips">
+          <li><b>Word, Excel, PowerPoint (Windows):</b> File › Info › Check for Issues › Inspect Document. Tick everything, Inspect, then Remove All for each item you don't need.</li>
+          <li><b>Office for Mac:</b> Review › Protect › Protect Document, then tick "Remove personal information from this file on save". Accept tracked changes and delete comments yourself.</li>
+          <li><b>Acrobat:</b> Tools › Redact › Sanitize Document (or Remove Hidden Information). This also drops earlier saved versions.</li>
+          <li><b>No Acrobat:</b> Print to PDF makes a fresh file with only what is visible. Links and form fields are lost.</li>
+          <li>Sending to someone who only needs to read it? Send a PDF made from the final, accepted version.</li>
+        </ul>
+      </div>
+      <p class="fact" style="margin:0"><b>How it works.</b> A .docx, .xlsx or .pptx file is really a zip folder of XML files. Deleted text in tracked changes sits in a <span class="mono2">w:delText</span> tag, and the author's name is written next to every change. This page unzips the file in your browser and reads those tags directly.</p>
+      <p class="fact" style="margin:0"><b>Earlier versions in PDFs.</b> When a PDF is edited and saved quickly, the changes are added to the end of the file and the old version stays in front of them. Each save ends with a <span class="mono2">%%EOF</span> marker. More than one marker usually means older content can be recovered.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script src="../photo-metadata/meta.js"></script>
+<script src="../assets/vendor/jszip.min.js"></script>
+<script src="../assets/vendor/pdf.min.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var AR = !!(window.LabAr && LabAr.on);
+  try { pdfjsLib.GlobalWorkerOptions.workerSrc = '../assets/vendor/pdf.worker.min.js'; } catch (e) {}
+  function T(s) { return AR ? LabAr.t(s) : s; }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function kv(rows) { rows = rows.filter(function (r) { return r[1] != null && r[1] !== ''; }); return rows.length ? '<dl class="kv">' + rows.map(function (r) { return '<dt>' + esc(r[0]) + '</dt><dd data-noar>' + esc(r[1]) + '</dd>'; }).join('') + '</dl>' : ''; }
+  function cut(s, n) { s = String(s).replace(/\s+/g, ' ').trim(); return s.length > n ? s.slice(0, n) + '…' : s; }
+  function kb(n) { return n > 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB'; }
+  function uniq(a) { return a.filter(function (x, i) { return x && a.indexOf(x) === i; }); }
+  var SEV = { high: 'Serious', med: 'Worth fixing', low: 'Minor', info: 'For your information', ok: 'Looks fine' };
+  var FIX = {
+    props: 'Word, Excel, PowerPoint: File › Info › Check for Issues › Inspect Document › Document Properties and Personal Information › Remove All. Or use "Clean core properties" below.',
+    track: 'Review › Accept › Accept All Changes (or Reject), then switch Track Changes off. Save, and check again.',
+    comments: 'Review › Delete › Delete All Comments in Document. In Excel also check Review › Notes.',
+    hidden: 'Word: File › Options › Display › tick "Hidden text" to see it, then delete it. Inspect Document › Hidden Text also removes it.',
+    sheets: 'Right-click a sheet tab › Unhide to see hidden sheets, then delete what you don\'t mean to share. "Very hidden" sheets only show in the VBA editor (Alt+F11), or use Inspect Document › Hidden Rows, Columns and Worksheets.',
+    rows: 'Select the whole sheet, right-click a row or column header › Unhide. Delete anything private. Inspect Document can remove hidden rows and columns.',
+    names: 'Formulas › Name Manager. Delete names you don\'t need, especially ones pointing at other files.',
+    links: 'Excel: Data › Edit Links › Break Link. Word: File › Info › Edit Links to Files (Windows), or remove the linked object.',
+    embed: 'Open the embedded object and check it, or delete it and paste a picture instead. An embedded chart often carries its whole source spreadsheet.',
+    images: 'Clean pictures before inserting them, or replace them. You can check and clean them with the photo tool on this site.',
+    notes: 'View › Notes to review them, or Inspect Document › Presentation Notes › Remove All.',
+    slides: 'In the slide sorter, hidden slides are greyed out. Delete any that shouldn\'t be shared, or untick Slide Show › Hide Slide if they should show.',
+    macros: 'Save as .docx, .xlsx or .pptx (not the "m" version) to drop the macros, if you don\'t need them.',
+    pdfmeta: 'Acrobat: File › Properties › Description to edit, or Tools › Redact › Remove Hidden Information. Change your name in the app that created the PDF too.',
+    incr: 'Acrobat: File › Save As (a full save) or Sanitize Document. Without Acrobat, Print to PDF makes a fresh file.',
+    pdfannot: 'Acrobat: Comments panel › Options › Delete all, or flatten the file. Print to PDF also drops them.',
+    pdfjs: 'Acrobat: Tools › JavaScript › Document JavaScripts to review, or Sanitize Document. Don\'t open PDFs with scripts from people you don\'t know.',
+    pdfredact: 'Redaction marks only take effect after Redact › Apply. Apply them, then Sanitize Document.',
+    attach: 'Acrobat: open the Attachments panel and delete files you don\'t mean to share.',
+    forms: 'Clear or flatten the form if the filled-in values shouldn\'t travel with it.'
+  };
+  var findings = [];
+  function add(sev, title, det, items, fix) { findings.push({ sev: sev, title: title, det: det || '', items: items || [], fix: fix ? FIX[fix] || fix : '' }); }
+  function xml(s) { return new DOMParser().parseFromString(s, 'application/xml'); }
+  function els(d, n) { return d ? [].slice.call(d.getElementsByTagNameNS('*', n)) : []; }
+  function one(d, n) { var e = els(d, n)[0]; return e ? e.textContent.trim() : ''; }
+  function attr(e, n) { if (!e) return ''; var v = e.getAttribute(n); if (v != null) return v; for (var i = 0; i < e.attributes.length; i++) if (e.attributes[i].localName === n.split(':').pop()) return e.attributes[i].value; return ''; }
+  function txt(e) { return els(e, 't').map(function (t) { return t.textContent; }).join(''); }
+  function pathy(s) { return /[a-z]:\\|\\\\|^file:|\/Users\/|\/home\/|\\Users\\|https?:\/\/[^/]*(sharepoint|intranet|local)|^\/\//i.test(s || ''); }
+
+  // ---------- OOXML ----------
+  function rels(z, part) {
+    var dir = part.replace(/[^/]*$/, ''), rp = dir + '_rels/' + part.slice(dir.length) + '.rels', f = z.file(rp);
+    if (!f) return Promise.resolve([]);
+    return f.async('string').then(function (s) { return els(xml(s), 'Relationship').map(function (r) { var t = attr(r, 'Target'), ext = attr(r, 'TargetMode') === 'External'; return { id: attr(r, 'Id'), type: attr(r, 'Type').split('/').pop(), target: t, ext: ext, path: ext ? t : resolve(dir, t) }; }); });
+  }
+  function resolve(dir, t) { if (t[0] === '/') return t.slice(1); var p = (dir + t).split('/'), o = []; p.forEach(function (x) { if (x === '..') o.pop(); else if (x !== '.') o.push(x); }); return o.join('/'); }
+  function read(z, p) { var f = z.file(p); return f ? f.async('string') : Promise.resolve(''); }
+  function ooxml(buf, name) {
+    return JSZip.loadAsync(buf).then(function (z) {
+      var kind = z.file('word/document.xml') ? 'docx' : z.file('xl/workbook.xml') ? 'xlsx' : z.file('ppt/presentation.xml') ? 'pptx' : '';
+      if (!kind) throw new Error('This zip doesn\'t look like a Word, Excel or PowerPoint file.');
+      var info = { kind: kind, z: z, props: [] };
+      return Promise.all([read(z, 'docProps/core.xml'), read(z, 'docProps/app.xml'), read(z, 'docProps/custom.xml')]).then(function (r) {
+        var core = r[0] && xml(r[0]), app = r[1] && xml(r[1]), cus = r[2] && xml(r[2]);
+        var P = { creator: one(core, 'creator'), lastBy: one(core, 'lastModifiedBy'), title: one(core, 'title'), subject: one(core, 'subject'), keywords: one(core, 'keywords'), desc: one(core, 'description'), category: one(core, 'category'), revision: one(core, 'revision'), created: one(core, 'created'), modified: one(core, 'modified'), printed: one(core, 'lastPrinted'), status: one(core, 'contentStatus'),
+          app: one(app, 'Application'), ver: one(app, 'AppVersion'), company: one(app, 'Company'), manager: one(app, 'Manager'), template: one(app, 'Template'), time: one(app, 'TotalTime'), hyperbase: one(app, 'HyperlinkBase') };
+        info.P = P;
+        var names = uniq([P.creator, P.lastBy, P.manager]);
+        if (names.length || P.company) add('med', 'Names in the document properties', 'Anyone can see these in File › Properties.', [P.creator && T('Author') + ': ' + esc(P.creator), P.lastBy && T('Last saved by') + ': ' + esc(P.lastBy), P.company && T('Company') + ': ' + esc(P.company), P.manager && T('Manager') + ': ' + esc(P.manager)].filter(Boolean), 'props');
+        if (P.template && pathy(P.template)) add('med', 'Template path from someone\'s computer', 'The template path can include a username or a network share name.', [esc(P.template)], 'props');
+        if (P.hyperbase) add('low', 'Hyperlink base address', 'Relative links resolve against this address.', [esc(P.hyperbase)], 'props');
+        var mins = parseInt(P.time, 10);
+        if (mins > 0) add('info', 'Total editing time is recorded', 'This file was open for editing for about ' + (mins >= 120 ? Math.round(mins / 60) + ' hours' : mins + ' minutes') + '.', [], '');
+        if (+P.revision > 1) add('info', 'Number of saves is recorded', 'Revision number ' + P.revision + '.', [], '');
+        if (P.printed) add('info', 'The last print date is recorded', '', [esc(P.printed)], '');
+        var cp = els(cus, 'property').map(function (p) { return esc(attr(p, 'name') + ': ' + cut(p.textContent, 80)); });
+        if (cp.length) add('med', 'Custom properties', 'Extra fields added by people or by systems such as document management or labelling tools.', cp, 'props');
+        // generic parts
+        var all = Object.keys(z.files).filter(function (p) { return !z.files[p].dir; });
+        if (all.some(function (p) { return /vbaProject\.bin$/i.test(p); })) add('med', 'Contains macros', 'The file has a VBA project. Macros can run code when the file is opened.', [], 'macros');
+        var thumb = all.filter(function (p) { return /^docProps\/thumbnail\./i.test(p); });
+        if (thumb.length) add('low', 'A preview image of the first page is saved', 'File managers show it without opening the file.', thumb.map(esc), '');
+        var emb = all.filter(function (p) { return /\/embeddings\//.test(p); });
+        if (emb.length) add('med', 'Embedded files', emb.length + ' file' + (emb.length > 1 ? 's are' : ' is') + ' packed inside. They keep their own content and properties.', emb.map(function (p) { return esc(p.split('/').pop()) + ' (' + kb(z.files[p]._data ? z.files[p]._data.uncompressedSize || 0 : 0) + ')'; }), 'embed');
+        if (all.some(function (p) { return /pivotCacheRecords/.test(p); })) add('med', 'Pivot table cache', 'A pivot table keeps a copy of its source data inside the file, even if the source sheet was deleted.', [], 'Pivot table › PivotTable Analyze › Options › Data: untick "Save source data with file", then refresh.');
+        var media = all.filter(function (p) { return /\/media\/[^/]+\.(jpe?g|png|webp|heic|tiff?)$/i.test(p); });
+        var tasks = [scanMedia(z, media), scanRels(z, all)];
+        if (kind === 'docx') tasks.push(docx(z));
+        if (kind === 'xlsx') tasks.push(xlsx(z));
+        if (kind === 'pptx') tasks.push(pptx(z));
+        return Promise.all(tasks).then(function () { return info; });
+      });
+    });
+  }
+  function scanMedia(z, media) {
+    if (!media.length || !window.PhotoMeta) return Promise.resolve();
+    return Promise.all(media.map(function (p) { return z.file(p).async('uint8array').then(function (u) { return [p, PhotoMeta.parse(u)]; }); })).then(function (r) {
+      var gps = [], dev = [], plain = 0;
+      r.forEach(function (x) {
+        var n = x[0].split('/').pop(), m = x[1], e = m.exif;
+        if (m.gps) gps.push(n + ': ' + m.gps.lat.toFixed(5) + ', ' + m.gps.lon.toFixed(5));
+        var d = [e.Make, e.Model, e.BodySerialNumber && 'serial ' + e.BodySerialNumber, e.CameraOwnerName || e.Artist, e.DateTimeOriginal].filter(Boolean);
+        if (d.length && !m.gps) dev.push(n + ': ' + d.join(', ')); else if (!m.gps) plain++;
+      });
+      if (gps.length) add('high', 'Pictures with a GPS location', 'Photos inside the document still carry the place they were taken.', gps.map(esc), 'images');
+      if (dev.length) add('low', 'Pictures with camera details', 'Device, date or owner details are inside these pictures.', dev.map(esc), 'images');
+      if (plain && !gps.length && !dev.length) add('ok', 'Pictures are clean', plain + ' picture' + (plain > 1 ? 's have' : ' has') + ' no location or camera details.', [], '');
+    });
+  }
+  function scanRels(z, all) {
+    var rp = all.filter(function (p) { return /_rels\/.*\.rels$/.test(p) && !/^_rels\//.test(p); });
+    return Promise.all(rp.map(function (p) { return z.file(p).async('string'); })).then(function (list) {
+      var ext = [], tpl = [];
+      list.forEach(function (s) { els(xml(s), 'Relationship').forEach(function (r) {
+        if (attr(r, 'TargetMode') !== 'External') return; var t = attr(r, 'Target'), ty = attr(r, 'Type').split('/').pop();
+        if (ty === 'attachedTemplate') tpl.push(decodeURIComponent(t)); else if (ty !== 'hyperlink' || pathy(t)) ext.push(ty + ': ' + decodeURIComponent(t));
+      }); });
+      if (tpl.length) add(tpl.some(pathy) ? 'med' : 'low', 'Attached template path', 'Word stores the full path of the template. It often contains a username or a server name.', tpl.map(esc), 'Developer › Document Template › Attach, and pick Normal. Or use "Clean core properties" below, which shortens this path.');
+      if (ext.length) add(ext.some(pathy) ? 'high' : 'med', 'Links to outside files', 'These point at files on someone\'s computer, a network share or a web address. They can reveal folder names, and some update automatically when opened.', uniq(ext).slice(0, 20).map(esc), 'links');
+    });
+  }
+  function docx(z) {
+    var parts = Object.keys(z.files).filter(function (p) { return /^word\/(document|header\d*|footer\d*|footnotes|endnotes)\.xml$/.test(p); });
+    return Promise.all(parts.map(function (p) { return z.file(p).async('string'); }).concat([read(z, 'word/comments.xml'), read(z, 'word/people.xml'), read(z, 'word/settings.xml')])).then(function (r) {
+      var people = r[r.length - 2], comments = r[r.length - 3], settings = r[r.length - 1];
+      var ins = [], del = [], authors = {}, hidden = [], rsids = 0;
+      r.slice(0, parts.length).forEach(function (s) {
+        var d = xml(s);
+        els(d, 'ins').concat(els(d, 'moveTo')).forEach(function (e) { var a = attr(e, 'w:author'); authors[a] = (authors[a] || 0) + 1; var t = txt(e); if (t) ins.push([a, t, attr(e, 'w:date')]); });
+        els(d, 'del').concat(els(d, 'moveFrom')).forEach(function (e) { var a = attr(e, 'w:author'); authors[a] = (authors[a] || 0) + 1; var t = els(e, 'delText').map(function (x) { return x.textContent; }).join('') || txt(e); if (t) del.push([a, t, attr(e, 'w:date')]); });
+        els(d, 'r').forEach(function (run) { var pr = els(run, 'rPr')[0]; if (pr && els(pr, 'vanish').some(function (v) { return attr(v, 'w:val') !== '0' && attr(v, 'w:val') !== 'false'; })) { var t = txt(run); if (t.trim()) hidden.push(t); } });
+      });
+      rsids = (settings.match(/<w:rsid\b/g) || []).length;
+      var an = Object.keys(authors).filter(Boolean);
+      if (del.length || ins.length) add('high', 'Tracked changes are still in the file', (del.length ? del.length + ' deletion' + (del.length > 1 ? 's' : '') + ' (the deleted words can be read) and ' : '') + ins.length + ' insertion' + (ins.length === 1 ? '' : 's') + '. Changes by: ' + (an.join(', ') || 'unknown') + '.',
+        del.slice(0, 8).map(function (x) { return '<del class="lk">' + esc(cut(x[1], 120)) + '</del> · ' + esc(x[0]) + (x[2] ? ' · ' + esc(x[2].slice(0, 10)) : ''); }).concat(ins.slice(0, 4).map(function (x) { return '<ins class="lk">' + esc(cut(x[1], 120)) + '</ins> · ' + esc(x[0]); })), 'track');
+      var cd = comments && xml(comments), cl = els(cd, 'comment').map(function (c) { return [attr(c, 'w:author'), txt(c), attr(c, 'w:date')]; });
+      if (cl.length) add('high', 'Comments', cl.length + ' comment' + (cl.length > 1 ? 's' : '') + ' by ' + uniq(cl.map(function (c) { return c[0]; })).join(', ') + '.', cl.slice(0, 10).map(function (c) { return esc(c[0]) + ': “' + esc(cut(c[1], 140)) + '”'; }), 'comments');
+      var pp = people && els(xml(people), 'presenceInfo').map(function (p) { return esc(attr(p.parentNode, 'w15:author') + ' → ' + attr(p, 'w15:userId')); }).filter(function (s) { return !/→ $/.test(s); });
+      if (pp && pp.length) add('med', 'Account IDs of reviewers', 'Word saved the sign-in IDs (often email addresses) of people who commented or edited.', pp, 'props');
+      if (hidden.length) add('high', 'Hidden text', 'Text formatted as hidden doesn\'t show on screen or in print, but it is in the file.', hidden.slice(0, 8).map(function (h) { return '“' + esc(cut(h, 140)) + '”'; }), 'hidden');
+      if (rsids > 1) add('info', 'Editing sessions are recorded', 'Word logged ' + rsids + ' editing sessions (revision IDs). They can show that two files share a history.', [], '');
+    });
+  }
+  function xlsx(z) {
+    return Promise.all([read(z, 'xl/workbook.xml'), rels(z, 'xl/workbook.xml')]).then(function (r) {
+      var wb = xml(r[0]), wr = r[1], byId = {}; wr.forEach(function (x) { byId[x.id] = x; });
+      var sheets = els(wb, 'sheet').map(function (s) { var rel = byId[attr(s, 'r:id')]; return { name: attr(s, 'name'), state: attr(s, 'state') || 'visible', path: rel && rel.path }; });
+      var hid = sheets.filter(function (s) { return s.state === 'hidden'; }), vh = sheets.filter(function (s) { return s.state === 'veryHidden'; });
+      if (vh.length) add('high', 'Very hidden sheets', 'These sheets can\'t be unhidden from the normal menu, so even careful senders miss them.', vh.map(function (s) { return esc(s.name); }), 'sheets');
+      if (hid.length) add('med', 'Hidden sheets', 'Right-click › Unhide shows them to anyone who opens the file.', hid.map(function (s) { return esc(s.name); }), 'sheets');
+      var dn = els(wb, 'definedName').map(function (d) { return { name: attr(d, 'name'), ref: d.textContent, hidden: attr(d, 'hidden') === '1' || attr(d, 'hidden') === 'true' }; });
+      var extN = dn.filter(function (d) { return /\[|\\|\/|https?:/.test(d.ref) && !/^_xlnm\./.test(d.name); });
+      if (extN.length) add('med', 'Named ranges pointing at other files', 'Names can hold full paths to other workbooks.', extN.map(function (d) { return esc(d.name) + ' = ' + esc(cut(d.ref, 120)); }), 'names');
+      var hidN = dn.filter(function (d) { return d.hidden && !/^_xlnm\./.test(d.name); });
+      if (hidN.length) add('low', 'Hidden named ranges', 'Hidden names don\'t show in Name Manager.', hidN.map(function (d) { return esc(d.name) + ' = ' + esc(cut(d.ref, 80)); }), 'names');
+      var exl = Object.keys(z.files).filter(function (p) { return /^xl\/externalLinks\/externalLink\d+\.xml$/.test(p); });
+      var hiddenRC = [], comm = [];
+      var jobs = sheets.filter(function (s) { return s.path && z.file(s.path); }).map(function (s) {
+        return Promise.all([z.file(s.path).async('string'), rels(z, s.path)]).then(function (q) {
+          var d = xml(q[0]), hr = els(d, 'row').filter(function (e) { return /^(1|true)$/.test(attr(e, 'hidden')); }).length, hc = els(d, 'col').filter(function (e) { return /^(1|true)$/.test(attr(e, 'hidden')); }).reduce(function (a, e) { return a + (+attr(e, 'max') - +attr(e, 'min') + 1 || 1); }, 0);
+          if (hr || hc) hiddenRC.push(esc(s.name) + ': ' + (hr ? hr + ' ' + T(hr > 1 ? 'hidden rows' : 'hidden row') : '') + (hr && hc ? (AR ? '، ' : ', ') : '') + (hc ? hc + ' ' + T(hc > 1 ? 'hidden columns' : 'hidden column') : ''));
+          return Promise.all(q[1].filter(function (x) { return /comments|threadedComment/.test(x.type); }).map(function (x) { return read(z, x.path).then(function (cs) { var cd = xml(cs), au = els(cd, 'author').map(function (a) { return a.textContent; });
+            els(cd, 'comment').forEach(function (c) { comm.push(esc(s.name) + ' ' + esc(attr(c, 'ref')) + (au.length ? ' · ' + esc(au[+attr(c, 'authorId')] || '') : '') + ': “' + esc(cut(txt(c), 120)) + '”'); });
+            els(cd, 'threadedComment').forEach(function (c) { comm.push(esc(s.name) + ' ' + esc(attr(c, 'ref')) + ': “' + esc(cut(one(c, 'text'), 120)) + '”'); });
+          }); }));
+        });
+      });
+      return Promise.all(jobs.concat([read(z, 'xl/persons/person.xml')])).then(function (rr) {
+        if (hiddenRC.length) add('med', 'Hidden rows and columns', 'Hidden cells still hold their values, and formulas can show them.', hiddenRC, 'rows');
+        if (comm.length) add('high', 'Comments and notes', comm.length + ' comment' + (comm.length > 1 ? 's' : '') + ' or note' + (comm.length > 1 ? 's' : '') + ' in cells.', comm.slice(0, 12), 'comments');
+        var per = rr[rr.length - 1]; if (per) { var pl = els(xml(per), 'person').map(function (p) { return attr(p, 'displayName') + (attr(p, 'userId') ? ' → ' + attr(p, 'userId') : ''); }); if (pl.length) add('med', 'Account IDs of commenters', 'Threaded comments store each person\'s sign-in ID.', pl.map(esc), 'comments'); }
+        return Promise.all(exl.map(function (p) { return rels(z, p); })).then(function (lr) {
+          var t = []; lr.forEach(function (l) { l.forEach(function (x) { if (x.ext) t.push(decodeURIComponent(x.target)); }); });
+          if (t.length) add('high', 'Links to other workbooks', 'The file remembers where its linked workbooks live, and keeps a cached copy of the linked values.', uniq(t).map(esc), 'links');
+        });
+      });
+    });
+  }
+  function pptx(z) {
+    return Promise.all([read(z, 'ppt/presentation.xml'), rels(z, 'ppt/presentation.xml'), read(z, 'ppt/commentAuthors.xml'), read(z, 'ppt/authors.xml')]).then(function (r) {
+      var pd = xml(r[0]), byId = {}; r[1].forEach(function (x) { byId[x.id] = x; });
+      var order = els(pd, 'sldId').map(function (s) { var x = byId[attr(s, 'r:id')]; return x && x.path; }).filter(Boolean);
+      var authors = {}; els(r[2] && xml(r[2]), 'cmAuthor').forEach(function (a) { authors[attr(a, 'id')] = attr(a, 'name'); }); els(r[3] && xml(r[3]), 'author').forEach(function (a) { authors[attr(a, 'id')] = attr(a, 'name') + (attr(a, 'userId') ? ' (' + attr(a, 'userId') + ')' : ''); });
+      var hidden = [], notes = [], comm = [];
+      return Promise.all(order.map(function (p, i) {
+        return Promise.all([z.file(p).async('string'), rels(z, p)]).then(function (q) {
+          var d = xml(q[0]), n = i + 1;
+          if (/^(0|false)$/.test(attr(d.documentElement, 'show'))) hidden.push(T('Slide') + ' ' + n + ': ' + esc(cut(txt(d) || T('(no text)'), 80)));
+          return Promise.all(q[1].map(function (x) {
+            if (x.type === 'notesSlide') return read(z, x.path).then(function (s) { var nd = xml(s), t = els(nd, 'sp').filter(function (sp) { return !els(sp, 'ph').some(function (ph) { return attr(ph, 'type') === 'sldImg' || attr(ph, 'type') === 'sldNum'; }); }).map(txt).join(' ').trim(); if (t) notes.push(T('Slide') + ' ' + n + ': “' + esc(cut(t, 140)) + '”'); });
+            if (/comments$/i.test(x.type) || /comment/i.test(x.type)) return read(z, x.path).then(function (s) { var cd = xml(s); els(cd, 'cm').forEach(function (c) { comm.push(T('Slide') + ' ' + n + ' · ' + esc(authors[attr(c, 'authorId')] || '?') + ': “' + esc(cut(one(c, 'text') || txt(c), 120)) + '”'); }); });
+          }));
+        });
+      })).then(function () {
+        if (comm.length) add('high', 'Comments', comm.length + ' comment' + (comm.length > 1 ? 's' : '') + ' on slides.', comm.slice(0, 12), 'comments');
+        if (notes.length) add('med', 'Speaker notes', notes.length + ' slide' + (notes.length > 1 ? 's have' : ' has') + ' notes. They travel with the file even though the audience never sees them.', notes.slice(0, 12), 'notes');
+        if (hidden.length) add('med', 'Hidden slides', 'Hidden slides skip the slideshow but open normally in PowerPoint.', hidden, 'slides');
+      });
+    });
+  }
+  // ---------- PDF ----------
+  function latin1(u8) { var s = '', CH = 0x8000; for (var i = 0; i < u8.length; i += CH) s += String.fromCharCode.apply(null, u8.subarray(i, i + CH)); return s; }
+  function pdf(buf) {
+    var u8 = new Uint8Array(buf), raw = latin1(u8), info = { kind: 'pdf' };
+    var eof = (raw.match(/%%EOF/g) || []).length, lin = /\/Linearized\s/.test(raw.slice(0, 2048));
+    var updates = eof - (lin ? 2 : 1);
+    if (updates > 0) add('med', 'Earlier versions may be recoverable', 'This PDF was saved ' + (updates + 1) + ' times by appending changes (' + eof + ' end-of-file markers). Older text, images or redacted content can sometimes be pulled back out.', [], 'incr');
+    if (/\/Encrypt\b/.test(raw)) info.encrypted = true;
+    if (typeof pdfjsLib === 'undefined') { add('info', 'PDF reader didn\'t load', 'Only a quick scan of the raw file was possible.', [], ''); return Promise.resolve(info); }
+    return pdfjsLib.getDocument({ data: u8.slice(), isEvalSupported: false }).promise.then(function (doc) {
+      info.pages = doc.numPages;
+      return Promise.all([doc.getMetadata().catch(function () { return {}; }), doc.getAttachments().catch(function () { return null; }), doc.getJavaScript ? doc.getJavaScript().catch(function () { return null; }) : null, doc.getFieldObjects ? doc.getFieldObjects().catch(function () { return null; }) : null, doc.getOpenAction ? doc.getOpenAction().catch(function () { return null; }) : null]).then(function (r) {
+        var I = (r[0] && r[0].info) || {}, M = r[0] && r[0].metadata, mx = {};
+        if (M && M.getAll) { var all = M.getAll(); Object.keys(all).forEach(function (k) { mx[k] = Array.isArray(all[k]) ? all[k].join(', ') : String(all[k]); }); }
+        info.P = I; info.X = mx;
+        var who = uniq([I.Author, mx['dc:creator'], mx['pdf:author']]);
+        if (who.length) add('med', 'Author name', 'Shown in File › Properties in any PDF reader.', who.map(esc), 'pdfmeta');
+        var tools = uniq([I.Creator, I.Producer, mx['xmp:creatortool'], mx['pdf:producer']]);
+        if (tools.length) add('low', 'Software used to make it', 'Shows the app and often the version, which hints at the computer it came from.', tools.map(esc), 'pdfmeta');
+        var paths = uniq([I.Title, I.Subject, mx['dc:title']]).filter(pathy);
+        if (paths.length) add('med', 'A file path in the title', 'The title field contains a path from someone\'s computer.', paths.map(esc), 'pdfmeta');
+        if (/xmpMM:History|stEvt:/.test(raw)) add('low', 'Editing history in XMP', 'The PDF carries a log of edits and the software used.', [], 'pdfmeta');
+        var att = r[1] ? Object.keys(r[1]).map(function (k) { var a = r[1][k]; return esc(a.filename || k) + (a.content ? ' (' + kb(a.content.length) + ')' : ''); }) : [];
+        if (att.length) add('high', 'Attached files', 'Files are packed inside the PDF. They keep their own content and metadata.', att, 'attach');
+        var js = (r[2] || []).filter(Boolean), jsRaw = (raw.match(/\/(JavaScript|JS)\b/g) || []).length, launch = /\/Launch\b/.test(raw);
+        if (js.length || jsRaw) add(launch ? 'high' : 'med', 'JavaScript inside', 'The PDF contains scripts' + (launch ? ' and a Launch action that can try to open another program' : '') + '. Scripts can run when the file opens or when you click.', js.slice(0, 3).map(function (s) { return '<span class="mono2">' + esc(cut(s, 140)) + '</span>'; }), 'pdfjs');
+        else if (launch) add('high', 'Launch action', 'The PDF can try to open another program or file.', [], 'pdfjs');
+        var f = r[3] ? Object.keys(r[3]).map(function (k) { var v = r[3][k][0]; return esc(k) + (v && v.value ? ' = ' + esc(cut(v.value, 60)) : ''); }) : [];
+        if (f.length) add(f.some(function (x) { return / = /.test(x); }) ? 'med' : 'low', 'Form fields', f.length + ' field' + (f.length > 1 ? 's' : '') + '. Filled-in values are saved in the file.', f.slice(0, 15), 'forms');
+        var pages = []; for (var i = 1; i <= Math.min(doc.numPages, 300); i++) pages.push(i);
+        return Promise.all(pages.map(function (n) { return doc.getPage(n).then(function (pg) { return pg.getAnnotations(); }).then(function (a) { return a.map(function (x) { x._p = n; return x; }); }).catch(function () { return []; }); })).then(function (lists) {
+          var ann = [].concat.apply([], lists), notes = [], red = [];
+          ann.forEach(function (a) {
+            var who = (a.titleObj && a.titleObj.str) || a.title || '', what = (a.contentsObj && a.contentsObj.str) || a.contents || '';
+            if (a.subtype === 'Redact') red.push(T('Page') + ' ' + a._p);
+            else if (/^(Text|FreeText|Highlight|Underline|StrikeOut|Squiggly|Ink|Square|Circle|Line|Polygon|PolyLine|Stamp|Caret|FileAttachment|Sound)$/.test(a.subtype)) notes.push(T('Page') + ' ' + a._p + ' · ' + T(a.subtype) + (who ? ' · ' + esc(who) : '') + (what ? ': “' + esc(cut(what, 100)) + '”' : ''));
+          });
+          if (red.length) add('high', 'Redaction marks not applied', 'Areas are marked for redaction, but the content underneath is still there until the redaction is applied.', red, 'pdfredact');
+          if (notes.length) add('high', 'Comments and markup', notes.length + ' annotation' + (notes.length > 1 ? 's' : '') + ', often with the reviewer\'s name.', notes.slice(0, 12), 'pdfannot');
+          return info;
+        });
+      });
+    });
+  }
+
+  // ---------- report ----------
+  var ORDER = { high: 0, med: 1, low: 2, info: 3, ok: 4 }, current = null;
+  function analyse(file) {
+    findings = []; $('msg').textContent = 'Checking ' + file.name + '…'; $('rep').hidden = true;
+    file.arrayBuffer().then(function (buf) {
+      var u = new Uint8Array(buf, 0, 4), isPdf = u[0] === 0x25 && u[1] === 0x50, isZip = u[0] === 0x50 && u[1] === 0x4B;
+      if (!isPdf && !isZip) throw new Error('This doesn\'t look like a DOCX, XLSX, PPTX or PDF file.');
+      return (isPdf ? pdf(buf) : ooxml(buf, file.name)).then(function (info) { current = { file: file, info: info, buf: buf }; report(file, info); $('msg').textContent = ''; });
+    }).catch(function (e) { $('msg').textContent = (e && e.message) || 'Could not read this file.'; });
+  }
+  function report(file, info, after) {
+    if (!findings.length) add('ok', 'Nothing hidden found', 'No names, comments, tracked changes or hidden content that this tool knows how to find.', [], '');
+    findings.sort(function (a, b) { return ORDER[a.sev] - ORDER[b.sev]; });
+    var c = { high: 0, med: 0, low: 0 }; findings.forEach(function (f) { if (f.sev in c) c[f.sev]++; });
+    $('sH').textContent = c.high; $('sM').textContent = c.med; $('sL').textContent = c.low;
+    var K = { docx: 'Word document', xlsx: 'Excel workbook', pptx: 'PowerPoint presentation', pdf: 'PDF' };
+    var h = '<span class="label">' + K[info.kind] + ' · ' + kb(file.size) + (info.pages ? ' · ' + info.pages + ' pages' : '') + '</span><h2 data-noar>' + esc(file.name) + '</h2>';
+    if (after) h += '<p class="warnbox">' + after + '</p>';
+    h += '<ul class="finds">' + findings.map(function (f) {
+      return '<li class="s-' + f.sev + '"><span class="sev">' + SEV[f.sev] + '</span><b>' + esc(f.title) + '</b>' + (f.det ? '<p class="det">' + esc(f.det) + '</p>' : '') +
+        (f.items.length ? '<ul data-noar>' + f.items.map(function (i) { return '<li>' + i + '</li>'; }).join('') + '</ul>' : '') + (f.fix ? '<p class="fix"><b>How to fix:</b> ' + esc(f.fix) + '</p>' : '') + '</li>';
+    }).join('') + '</ul>';
+    var P = info.P || {}, pk;
+    if (info.kind === 'pdf') h += (pk = kv([['Title', P.Title], ['Author', P.Author], ['Subject', P.Subject], ['Keywords', P.Keywords], ['Creator', P.Creator], ['Producer', P.Producer], ['Created', pdfDate(P.CreationDate)], ['Modified', pdfDate(P.ModDate)], ['PDF version', P.PDFFormatVersion]])) ? '<span class="label">Document properties</span>' + pk : '';
+    else {
+      pk = kv([['Title', P.title], ['Author', P.creator], ['Last saved by', P.lastBy], ['Company', P.company], ['Manager', P.manager], ['Created', P.created], ['Modified', P.modified], ['Last printed', P.printed], ['Revision', P.revision], ['Editing time', P.time && P.time + ' min'], ['Template', P.template], ['App', [P.app, P.ver].filter(Boolean).join(' ')], ['Keywords', P.keywords], ['Subject', P.subject], ['Comments', P.desc], ['Category', P.category], ['Status', P.status]]); if (pk) h += '<span class="label">Document properties</span>' + pk;
+      h += '<span class="label">Clean core properties</span><div class="opts"><label><input type="checkbox" id="cTitle"> <span>Also clear title, subject, keywords and comments</span></label><label><input type="checkbox" id="cCustom" checked> <span>Also empty custom properties</span></label></div>' +
+        '<div class="btns"><button class="sm pri" type="button" id="cleanP">Clean core properties and download</button></div>' +
+        '<p class="msg">This blanks the author, last saved by, company and manager, resets editing time and revision, and shortens template paths. It can\'t accept tracked changes, delete comments or remove hidden content safely. Do those in Office, as described above.</p>';
+    }
+    $('rep').innerHTML = h; $('rep').hidden = false;
+    if ($('cleanP')) $('cleanP').onclick = cleanProps;
+    if (window.innerWidth < 900 && !after) $('rep').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  function pdfDate(s) { var m = String(s || '').match(/D:(\d{4})(\d\d)?(\d\d)?(\d\d)?(\d\d)?/); return m ? m[1] + '-' + (m[2] || '01') + '-' + (m[3] || '01') + (m[4] ? ' ' + m[4] + ':' + (m[5] || '00') : '') : s; }
+  function cleanProps() {
+    var z = current.info.z, kind = current.info.kind, t = $('cTitle').checked, cu = $('cCustom').checked;
+    var blank = function (s, tags) { tags.forEach(function (tg) { s = s.replace(new RegExp('(<' + tg + '(?:\\s[^>]*)?>)[\\s\\S]*?(</' + tg + '>)', 'g'), '$1$2'); }); return s; };
+    var jobs = [];
+    if (z.file('docProps/core.xml')) jobs.push(read(z, 'docProps/core.xml').then(function (s) {
+      s = blank(s, ['dc:creator', 'cp:lastModifiedBy'].concat(t ? ['dc:title', 'dc:subject', 'cp:keywords', 'dc:description', 'cp:category'] : []));
+      s = s.replace(/<cp:lastPrinted>[\s\S]*?<\/cp:lastPrinted>/g, '').replace(/(<cp:revision>)[\s\S]*?(<\/cp:revision>)/, '$11$2');
+      z.file('docProps/core.xml', s);
+    }));
+    if (z.file('docProps/app.xml')) jobs.push(read(z, 'docProps/app.xml').then(function (s) {
+      s = blank(s, ['Company', 'Manager', 'HyperlinkBase']).replace(/(<TotalTime>)\d+(<\/TotalTime>)/, '$10$2').replace(/(<Template>)([\s\S]*?)(<\/Template>)/, function (_, a, v, b) { return a + v.split(/[\\/]/).pop() + b; });
+      z.file('docProps/app.xml', s);
+    }));
+    if (cu && z.file('docProps/custom.xml')) jobs.push(read(z, 'docProps/custom.xml').then(function (s) { z.file('docProps/custom.xml', s.replace(/<property\b[\s\S]*?<\/property>/g, '')); }));
+    if (z.file('word/_rels/settings.xml.rels')) jobs.push(read(z, 'word/_rels/settings.xml.rels').then(function (s) { z.file('word/_rels/settings.xml.rels', s.replace(/(Type="[^"]*attachedTemplate"[^>]*Target=")([^"]*)(")|(Target=")([^"]*)("[^>]*Type="[^"]*attachedTemplate")/g, function (m, a, v, b, c, v2, d) { return a ? a + 'file:///' + encodeURI(decodeURIComponent(v).split(/[\\/]/).pop()) + b : c + 'file:///' + encodeURI(decodeURIComponent(v2).split(/[\\/]/).pop()) + d; })); }));
+    Promise.all(jobs).then(function () { return z.generateAsync({ type: 'blob', compression: 'DEFLATE', mimeType: current.file.type || 'application/octet-stream' }); }).then(function (blob) {
+      var name = current.file.name.replace(/(\.\w+)$/, '-clean$1');
+      var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(function () { a.remove(); }, 1000);
+      var f = new File([blob], name, { type: blob.type });
+      findings = []; return f.arrayBuffer().then(function (b) { return ooxml(b, name); }).then(function (info) { current = { file: f, info: info }; report(f, info, 'Saved ' + name + '. Here is what is still inside. Anything listed below needs fixing in Office.'); });
+    }).catch(function (e) { $('msg').textContent = 'Could not clean: ' + e.message; });
+  }
+
+  // ---------- inputs ----------
+  $('file').onchange = function () { if (this.files[0]) analyse(this.files[0]); this.value = ''; };
+  var dr = $('drop');
+  dr.addEventListener('dragover', function (e) { e.preventDefault(); dr.classList.add('over'); });
+  dr.addEventListener('dragleave', function () { dr.classList.remove('over'); });
+  dr.addEventListener('drop', function (e) { e.preventDefault(); dr.classList.remove('over'); if (e.dataTransfer.files[0]) analyse(e.dataTransfer.files[0]); });
+
+  // ---------- samples (fictional) ----------
+  var W = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"';
+  function sampleDocx() {
+    var z = new JSZip();
+    z.file('[Content_Types].xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/comments.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml"/><Override PartName="/word/settings.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"/><Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/><Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/></Types>');
+    z.file('_rels/.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docProps/app.xml"/></Relationships>');
+    z.file('docProps/core.xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dc:title>Offer letter</dc:title><dc:creator>Sam Example</dc:creator><cp:lastModifiedBy>Alex Sample</cp:lastModifiedBy><cp:revision>14</cp:revision><cp:lastPrinted>2026-05-02T09:12:00Z</cp:lastPrinted><dcterms:created xsi:type="dcterms:W3CDTF">2026-04-28T08:00:00Z</dcterms:created><dcterms:modified xsi:type="dcterms:W3CDTF">2026-05-03T16:40:00Z</dcterms:modified></cp:coreProperties>');
+    z.file('docProps/app.xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties"><Template>Normal.dotm</Template><TotalTime>287</TotalTime><Application>Microsoft Office Word</Application><Company>Example Trading LLC</Company><Manager>Jordan Placeholder</Manager></Properties>');
+    z.file('word/_rels/document.xml.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments" Target="comments.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings" Target="settings.xml"/></Relationships>');
+    z.file('word/settings.xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:settings ' + W + ' xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><w:attachedTemplate r:id="rId1"/><w:rsids><w:rsid w:val="00A1"/><w:rsid w:val="00B2"/><w:rsid w:val="00C3"/></w:rsids></w:settings>');
+    z.file('word/_rels/settings.xml.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/attachedTemplate" Target="file:///C:\\Users\\sam.example\\Documents\\Custom%20Office%20Templates\\Letters.dotx" TargetMode="External"/></Relationships>');
+    z.file('word/document.xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document ' + W + '><w:body><w:p><w:r><w:t xml:space="preserve">We are pleased to offer you the role at a monthly salary of </w:t></w:r><w:del w:id="1" w:author="Alex Sample" w:date="2026-05-02T10:00:00Z"><w:r><w:delText>AED 18,000</w:delText></w:r></w:del><w:ins w:id="2" w:author="Alex Sample" w:date="2026-05-02T10:00:00Z"><w:r><w:t>AED 15,500</w:t></w:r></w:ins><w:r><w:t xml:space="preserve">.</w:t></w:r><w:commentRangeStart w:id="0"/><w:r><w:t xml:space="preserve"> Start date to be agreed.</w:t></w:r><w:commentRangeEnd w:id="0"/></w:p><w:p><w:r><w:rPr><w:vanish/></w:rPr><w:t>Internal: second choice candidate, first choice declined.</w:t></w:r></w:p></w:body></w:document>');
+    z.file('word/comments.xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:comments ' + W + '><w:comment w:id="0" w:author="Sam Example" w:initials="SE" w:date="2026-05-02T11:00:00Z"><w:p><w:r><w:t>Can we push this back a month? Budget is tight until Q3.</w:t></w:r></w:p></w:comment></w:comments>');
+    return z.generateAsync({ type: 'blob', mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }).then(function (b) { return new File([b], 'sample-offer-letter.docx', { type: b.type }); });
+  }
+  function samplePdf() {
+    var parts = [], offs = [], head = '%PDF-1.7\n';
+    function build(objs, prevStart, prevXref) {
+      var s = '', xo = [];
+      objs.forEach(function (o) { xo.push([o[0], prevStart + s.length]); s += o[0] + ' 0 obj\n' + o[1] + '\nendobj\n'; });
+      return { body: s, xo: xo };
+    }
+    var content = 'BT /F1 14 Tf 72 720 Td (Quarterly summary - draft) Tj ET BT /F1 11 Tf 72 690 Td (Prepared for the board. Figures not final.) Tj ET';
+    var o1 = [[1, '<< /Type /Catalog /Pages 2 0 R /OpenAction 7 0 R >>'], [2, '<< /Type /Pages /Kids [3 0 R] /Count 1 >>'], [3, '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R /Annots [6 0 R] >>'], [4, '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>'], [5, '<< /Length ' + content.length + ' >>\nstream\n' + content + '\nendstream'], [6, '<< /Type /Annot /Subtype /Text /Rect [400 680 420 700] /T (Sam Example) /Contents (Please remove the Q2 loss figure before sending.) /Open false >>'], [7, '<< /S /JavaScript /JS (app.alert\\("Hello"\\);) >>'], [8, '<< /Title (C:\\\\Users\\\\sam.example\\\\Desktop\\\\board-draft.docx) /Author (Sam Example) /Creator (Microsoft Word) /Producer (Example PDF Writer 2.1) /CreationDate (D:20260502090000+04\'00\') >>']];
+    var a = build(o1, head.length), x1 = head.length + a.body.length;
+    var xref = function (xo, size, start, prev) { var s = 'xref\n0 1\n0000000000 65535 f \n'; xo.forEach(function (e) { s += e[0] + ' 1\n' + ('000000000' + e[1]).slice(-10) + ' 00000 n \n'; }); return s + 'trailer\n<< /Size ' + size + ' /Root 1 0 R /Info 8 0 R' + (prev != null ? ' /Prev ' + prev : '') + ' >>\nstartxref\n' + start + '\n%%EOF\n'; };
+    var first = head + a.body + xref(a.xo, 9, x1);
+    // incremental update: page content changed, old content stays in the file
+    var c2 = 'BT /F1 14 Tf 72 720 Td (Quarterly summary) Tj ET BT /F1 11 Tf 72 690 Td (Final figures attached.) Tj ET';
+    var b = build([[5, '<< /Length ' + c2.length + ' >>\nstream\n' + c2 + '\nendstream']], first.length);
+    var x2 = first.length + b.body.length, all = first + b.body + xref(b.xo, 9, x2, x1);
+    var u = new Uint8Array(all.length); for (var i = 0; i < all.length; i++) u[i] = all.charCodeAt(i) & 255;
+    return new File([u], 'sample-summary.pdf', { type: 'application/pdf' });
+  }
+  $('demoDocx').onclick = function () { sampleDocx().then(analyse); };
+  $('demoPdf').onclick = function () { analyse(samplePdf()); };
+  window.DOCLEAKS = { analyse: analyse };
+})();
+</script>
+</body>
+</html>

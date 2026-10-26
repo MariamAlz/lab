@@ -156,3 +156,14 @@ LabAr.add({
  "Track the flight live and get a countdown to when you should leave home.": "تتبّع الرحلة مباشرة واحصل على عدّ تنازلي لموعد خروجك من البيت.",
  "Track a flight →": "تتبّع رحلة ←"
 });
+/* index cards for newer tools */
+LabAr.add({
+ "Privacy · Documents": "الخصوصية · المستندات",
+ "Document leak check": "فحص تسريبات المستندات",
+ "Find author names, tracked changes, comments, hidden sheets, speaker notes and earlier PDF versions before you send a file.": "اكتشف أسماء المؤلفين والتغييرات المتعقَّبة والتعليقات والأوراق المخفية وملاحظات المتحدث والنسخ السابقة من ملفات PDF قبل إرسال الملف.",
+ "Check a file →": "افحص ملفًا ←",
+ "Sky · Weather": "السماء · الطقس",
+ "Tonight's sunset": "غروب الليلة",
+ "A 0 to 100 sunset score from cloud layers, dust and the western horizon, with golden and blue hour.": "درجة من 0 إلى 100 لجمال الغروب حسب طبقات الغيوم والغبار والأفق الغربي، مع الساعة الذهبية والزرقاء.",
+ "Score tonight →": "قيّم الليلة ←"
+});

@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tonight's Sunset · Mariam's Lab</title>
+<meta name="description" content="Will tonight's sunset be worth stopping for? A 0 to 100 score from cloud layers, low cloud on the western horizon, dust and haze, with golden and blue hour times and west-facing spots in the UAE.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/sunset-quality/">
+<meta property="og:title" content="Tonight's Sunset · Mariam's Lab"><meta property="og:description" content="A sunset score for tonight and the next three evenings, with golden and blue hour."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.where { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin-top: 8px; }
+.skyview { position: relative; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); }
+.skyview svg { display: block; width: 100%; height: auto; }
+.skyview .sc { position: absolute; left: 16px; top: 14px; display: grid; gap: 2px; text-shadow: 0 1px 6px rgba(0,0,0,.6); }
+.skyview .sc b { font-family: var(--font-display); font-size: clamp(2.6rem, 10vw, 4rem); font-weight: 800; line-height: 1; color: #fff; }
+.skyview .sc span { color: #fff; font-size: 0.9rem; }
+.evs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.evs button { font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 8px 6px; cursor: pointer; display: grid; gap: 2px; text-align: center; min-width: 0; }
+.evs button[aria-pressed="true"] { border-color: var(--accent); background: rgba(255,200,87,.1); }
+.evs b { font-family: var(--font-display); font-size: 1.4rem; }
+.evs small { color: var(--muted); font-size: 0.72rem; }
+.why { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.why li { display: grid; grid-template-columns: 3.2em minmax(0, 1fr); gap: 8px; font-size: 0.9rem; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; }
+.why li b { font-family: var(--font-mono); font-weight: 500; text-align: end; }
+.times { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; }
+.times div { padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.times span { font-size: 0.75rem; color: var(--muted); display: block; }
+.times b { font-family: var(--font-display); font-size: 1.2rem; }
+.spots { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.spots li { padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; font-size: 0.88rem; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; align-items: center; }
+.spots li small { grid-column: 1 / -1; color: var(--muted); font-size: 0.8rem; }
+.spots .ok { color: var(--sat-b); font-family: var(--font-mono); font-size: 0.78rem; text-align: end; }
+.spots .no { color: var(--muted); font-family: var(--font-mono); font-size: 0.78rem; text-align: end; }
+html.ar .skyview .sc { left: auto; right: 16px; }
+html.ar .why li b { text-align: right; direction: ltr; }
+html.ar .times div:not(:nth-child(3)) b { direction: ltr; unicode-bidi: isolate; display: inline-block; }
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Sky · Weather · Live</span>
+    <h1 style="font-size:var(--step-3)">Tonight's sunset.</h1>
+    <p>Some evenings the whole sky turns pink and orange, others the sun just fades into grey. The difference is mostly cloud height, a clear gap on the western horizon, and how much dust is in the air. This scores tonight and the next three evenings from 0 to 100 and tells you when golden and blue hour start.</p>
+  </div>
+  <div class="where" id="where"><button class="sm" type="button" id="me">📍 Use my location</button></div>
+  <p class="msg" id="msg" role="status"></p>
+  <div class="game" style="margin-top:12px">
+    <div class="panel">
+      <div class="skyview"><svg id="sky" viewBox="0 0 600 260" role="img" aria-label="Preview of the sunset colours"></svg><div class="sc"><b id="score">—</b><span id="scoreWord">Loading…</span></div></div>
+      <div class="evs" id="evs"></div>
+      <div class="times" id="times"></div>
+      <span class="label">Why this score</span>
+      <ul class="why" id="why"></ul>
+      <p class="fact" style="margin:0"><b>Why clouds help, but only the right ones.</b> After the sun drops below your horizon, it still lights clouds kilometres above you from underneath. High and middle clouds (above about 2 km) catch that red light and glow. Low cloud near the western horizon does the opposite: it blocks the light before it reaches anything. That's why this checks the low cloud about 75 km out along the line to the sun, not just over your head.</p>
+    </div>
+    <div class="panel">
+      <span class="label">West-facing spots over water</span>
+      <ul class="spots" id="spots"></ul>
+      <p class="fact" style="margin:0"><b>What's approximate.</b> The score is a rule of thumb built from forecast cloud layers, humidity, visibility and modelled dust (Open-Meteo and CAMS). It isn't a measurement, and forecasts of thin high cloud are often wrong by an hour or two. Sun times and directions are computed in your browser to within about a minute and half a degree. The open-water directions for each spot are rough. The east coast (Fujairah, Khor Fakkan) faces the sunrise instead.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script src="../assets/sky.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var R = Math.PI / 180;
+  var PLACES = [['Abu Dhabi', 24.4539, 54.3773], ['Dubai', 25.2048, 55.2708], ['Sharjah', 25.3463, 55.4209], ['Ajman', 25.4052, 55.5136], ['Umm Al Quwain', 25.5647, 55.5552], ['Ras Al Khaimah', 25.7895, 55.9432], ['Al Ain', 24.2075, 55.7447]];
+  // name, lat, lon, open water from az1 to az2 (clockwise), note
+  var SPOTS = [
+    ['Umm Suqeim beach, Dubai', 25.1440, 55.1880, 215, 40, 'The Burj Al Arab sits right in front of the winter sunset.'],
+    ['Kite Beach, Dubai', 25.1580, 55.1990, 225, 45, 'Long open beach, easy parking.'],
+    ['JBR and Dubai Marina beach', 25.0790, 55.1330, 220, 45, 'Ain Dubai frames the sun in summer.'],
+    ['Abu Dhabi Corniche, west end', 24.4720, 54.3240, 230, 45, 'Breakwater and Marina Mall headland face open sea.'],
+    ['Hudayriyat Island west beach', 24.4330, 54.3640, 190, 330, 'Faces almost due west, good all year.'],
+    ['Saadiyat Beach, Abu Dhabi', 24.5450, 54.4340, 235, 50, 'Natural dunes, wide horizon.'],
+    ['Al Khan beach, Sharjah', 25.3260, 55.3640, 220, 40, 'Look back along the Dubai skyline in winter.'],
+    ['Ajman Corniche', 25.4140, 55.4440, 225, 40, 'Busy promenade with an open north-west view.'],
+    ['Umm Al Quwain corniche', 25.5800, 55.5600, 200, 350, 'Quiet, low buildings, mangroves behind.'],
+    ['Al Marjan Island, Ras Al Khaimah', 25.6800, 55.7350, 180, 360, 'The island tip juts out into open water.']
+  ];
+  var data = null, sel = 0, place = null;
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  // ---------- sun ----------
+  function sunPos(ms, lat, lon) { var d = Sky.dayNum(ms), s = Sky.sun(d), e = Sky.eclToEq(s, d); return Sky.toHoriz(e.ra, e.dec, Sky.lst(ms, lon), lat); }
+  // first time after t0 (searching t0..t1) the sun sinks through altitude h
+  function crossDown(t0, t1, h, lat, lon) {
+    var step = 120000, prev = sunPos(t0, lat, lon).alt - h;
+    for (var t = t0 + step; t <= t1; t += step) {
+      var cur = sunPos(t, lat, lon).alt - h;
+      if (prev > 0 && cur <= 0) { var a = t - step, b = t; for (var k = 0; k < 20; k++) { var m = (a + b) / 2; if (sunPos(m, lat, lon).alt - h > 0) a = m; else b = m; } return (a + b) / 2; }
+      prev = cur;
+    }
+    return null;
+  }
+  // evening events for the local date (yyyy-mm-dd) at utc offset (s)
+  function sunEvents(date, lat, lon, off) {
+    var noon = Date.parse(date + 'T12:00:00Z') - off * 1000, end = noon + 12 * 3600e3;
+    var set = crossDown(noon, end, -0.833, lat, lon);
+    return { golden: crossDown(noon, end, 6, lat, lon), set: set, az: set ? sunPos(set, lat, lon).az : null, blue: crossDown(noon, end, -4, lat, lon), blueEnd: crossDown(noon, end, -6, lat, lon) };
+  }
+  function dest(lat, lon, az, km) { var d = km / 6371, la = lat * R, b = az * R, la2 = Math.asin(Math.sin(la) * Math.cos(d) + Math.cos(la) * Math.sin(d) * Math.cos(b)), lo2 = lon * R + Math.atan2(Math.sin(b) * Math.sin(d) * Math.cos(la), Math.cos(d) - Math.sin(la) * Math.sin(la2)); return [la2 / R, lo2 / R]; }
+  // ---------- score ----------
+  // c: {mid, high, low, lowW, rh, vis (m), aod, dust}
+  function score(c) {
+    var why = [], s = 20;
+    var cov = 100 * (1 - (1 - c.mid / 100) * (1 - c.high / 100)), canvas;
+    if (cov < 30) canvas = 15 + cov / 30 * 35; else if (cov <= 70) canvas = 50; else canvas = 50 - (cov - 70) / 30 * 42;
+    s += canvas;
+    why.push([canvas - 30, cov < 10 ? 'Clear sky above, so there\'s nothing up high to catch the colour. Expect a clean orange glow at the horizon only.' : cov < 30 ? 'A little middle or high cloud (' + Math.round(cov) + '%). Some streaks may light up.' : cov <= 70 ? 'Middle and high cloud at ' + Math.round(cov) + '%, the sweet spot. There\'s plenty to light up and gaps for the light to get through.' : 'Thick middle and high cloud (' + Math.round(cov) + '%) may block the light. Look for a gap low in the west.']);
+    var lw = c.lowW == null ? c.low : c.lowW, pen = -lw * 0.4 - c.low * 0.12;
+    s += pen;
+    why.push([pen, lw > 50 ? 'Low cloud on the western horizon (' + Math.round(lw) + '% about 75 km out) will likely block the sun before it sets.' : lw > 20 ? 'Some low cloud towards the west (' + Math.round(lw) + '%), which could hide the last few minutes.' : 'The western horizon looks clear of low cloud.']);
+    if (cov >= 25 && cov <= 80 && lw < 20) { s += 10; why.push([10, 'Clear horizon under high cloud: the sun can light the clouds from below after it sets.']); }
+    if (c.aod != null) {
+      var a = c.aod, d = a < 0.1 ? 3 : a <= 0.4 ? 10 : a <= 0.7 ? -2 : a <= 1 ? -12 : -20;
+      if (c.dust != null && c.dust > 150) d -= 6;
+      s += d;
+      why.push([d, a < 0.1 ? 'Very clean air. Colours will be clear but pale.' : a <= 0.4 ? 'A little dust and haze in the air (AOD ' + a.toFixed(2) + '), which deepens the reds and oranges.' : a <= 0.7 ? 'Quite hazy (AOD ' + a.toFixed(2) + '). The sun turns red early, but the sky may look washed out.' : 'Heavy dust (AOD ' + a.toFixed(2) + '). The sun will likely fade into a brown haze before it reaches the horizon.']);
+    }
+    var h = c.rh > 85 ? -8 : c.rh > 70 ? -3 : 0;
+    if (c.vis != null) h += c.vis < 5000 ? -10 : c.vis < 10000 ? -4 : 0;
+    if (h) { s += h; why.push([h, 'Humid, hazy air' + (c.vis != null ? ' (visibility ' + (c.vis / 1000).toFixed(0) + ' km)' : '') + ' softens the colours.']); }
+    return { s: Math.max(0, Math.min(100, Math.round(s))), why: why, cov: cov, lw: lw };
+  }
+  window.SunsetMath = { sunEvents: sunEvents, score: score, sunPos: sunPos };
+  function word(s) { return s >= 75 ? 'Could be spectacular' : s >= 55 ? 'Worth a look' : s >= 35 ? 'Ordinary' : 'Probably dull'; }
+  function hm(ms, off) { if (ms == null) return '—'; var d = new Date(ms + off * 1000); return pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes()); }
+  function compass(a) { return ['north', 'north-east', 'east', 'south-east', 'south', 'south-west', 'west', 'north-west'][Math.round(a / 45) % 8]; }
+  // ---------- data ----------
+  function get(u) { return fetch(u).then(function (r) { if (!r.ok) throw 0; return r.json(); }); }
+  function at(H, key, ms, t0) { var arr = H && H[key]; if (!arr) return null; var x = (ms - t0) / 3600e3, i = Math.floor(x), f = x - i; if (i < 0 || i + 1 >= arr.length) return arr[Math.max(0, Math.min(arr.length - 1, Math.round(x)))]; var a = arr[i], b = arr[i + 1]; return a == null ? b : b == null ? a : a + (b - a) * f; }
+  function load(lat, lon, name) {
+    place = { lat: +lat, lon: +lon, name: name };
+    $('msg').textContent = 'Fetching cloud and dust forecasts for ' + name + '…';
+    var w = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon + '&hourly=cloud_cover_low,cloud_cover_mid,cloud_cover_high,relative_humidity_2m,visibility&timezone=auto&forecast_days=4';
+    var a = 'https://air-quality-api.open-meteo.com/v1/air-quality?latitude=' + lat + '&longitude=' + lon + '&hourly=dust,aerosol_optical_depth&timezone=auto&forecast_days=4';
+    get(w).then(function (W) {
+      var off = W.utc_offset_seconds || 0, H = W.hourly, t0 = Date.parse(H.time[0] + ':00Z') - off * 1000, days = [];
+      for (var k = 0; k < 4; k++) days.push(new Date(Date.parse(H.time[0].slice(0, 10) + 'T00:00:00Z') + k * 864e5).toISOString().slice(0, 10));
+      var ev = days.map(function (d) { return sunEvents(d, +lat, +lon, off); });
+      // the west sample point uses tonight's sunset azimuth (it moves under a degree a day)
+      var az = ev[0].az || 260, wp = dest(+lat, +lon, az, 75);
+      var wu = 'https://api.open-meteo.com/v1/forecast?latitude=' + wp[0].toFixed(3) + '&longitude=' + wp[1].toFixed(3) + '&hourly=cloud_cover_low&timezone=auto&forecast_days=4';
+      return Promise.all([get(wu).catch(function () { return null; }), get(a).catch(function () { return null; })]).then(function (r) {
+        var WH = r[0] && r[0].hourly, A = r[1] && r[1].hourly;
+        data = { off: off, ev: ev, days: days, rows: ev.map(function (e) {
+          var m = e.set; if (m == null) return null;
+          var c = { low: at(H, 'cloud_cover_low', m, t0), mid: at(H, 'cloud_cover_mid', m, t0), high: at(H, 'cloud_cover_high', m, t0), rh: at(H, 'relative_humidity_2m', m, t0), vis: at(H, 'visibility', m, t0), lowW: WH ? at(WH, 'cloud_cover_low', m, t0) : null, aod: A ? at(A, 'aerosol_optical_depth', m, t0) : null, dust: A ? at(A, 'dust', m, t0) : null };
+          return { c: c, r: score(c) };
+        }) };
+        var now = Date.now(); sel = ev[0].blueEnd && now > ev[0].blueEnd ? 1 : 0;
+        $('msg').textContent = name + ' · forecast from Open-Meteo' + (A ? '' : ', dust unavailable right now') + (WH ? '' : ', western horizon check unavailable');
+        render();
+      });
+    }).catch(function () { $('msg').textContent = 'Couldn\'t reach the forecast service. Check your connection and try again.'; $('scoreWord').textContent = 'No data'; });
+  }
+  function render() {
+    if (!data) return;
+    var off = data.off, labels = ['Tonight', 'Tomorrow'];
+    $('evs').innerHTML = data.rows.map(function (r, i) {
+      var lab = labels[i] || new Date(data.days[i] + 'T12:00:00Z').toLocaleDateString('en-GB', { weekday: 'short', timeZone: 'UTC' });
+      return '<button type="button" data-i="' + i + '" aria-pressed="' + (i === sel) + '"><small>' + lab + '</small><b style="color:' + col(r ? r.r.s : 0) + '">' + (r ? r.r.s : '—') + '</b><small>' + hm(data.ev[i].set, off) + '</small></button>';
+    }).join('');
+    var r = data.rows[sel], e = data.ev[sel];
+    if (!r) return;
+    $('score').textContent = r.r.s; $('scoreWord').textContent = word(r.r.s) + ' · ' + (sel === 0 ? 'tonight' : sel === 1 ? 'tomorrow' : new Date(data.days[sel] + 'T12:00:00Z').toLocaleDateString('en-GB', { weekday: 'long', timeZone: 'UTC' }));
+    $('times').innerHTML = [['Golden hour', hm(e.golden, off) + '–' + hm(e.set, off)], ['Sunset', hm(e.set, off)], ['Sun sets towards', Math.round(e.az) + '° ' + compass(e.az)], ['Blue hour', hm(e.blue, off) + '–' + hm(e.blueEnd, off)]].map(function (x) { return '<div><span>' + x[0] + '</span><b>' + x[1] + '</b></div>'; }).join('');
+    $('why').innerHTML = r.r.why.map(function (w) { var d = Math.round(w[0]); return '<li><b style="color:' + (d > 4 ? 'var(--sat-b)' : d < -4 ? 'var(--sat-c)' : 'var(--muted)') + '">' + (d > 0 ? '+' : d < 0 ? '−' : '±') + Math.abs(d) + '</b><span>' + esc(w[1]) + '</span></li>'; }).join('') + '<li><b></b><span style="color:var(--muted);font-size:.84rem">Golden hour is when the sun is between 6° high and 4° below the horizon. Blue hour runs from 4° to 6° below. Times are for a flat sea horizon.</span></li>';
+    drawSky(r);
+    $('spots').innerHTML = SPOTS.map(function (s, i) {
+      var a = e.az, inArc = s[3] <= s[4] ? a >= s[3] && a <= s[4] : a >= s[3] || a <= s[4];
+      return '<li><span><b>' + esc(s[0]) + '</b></span><span class="' + (inArc ? 'ok' : 'no') + '">' + (inArc ? 'sets over water' : 'sets over land') + '</span><small>' + esc(s[5]) + ' Open water roughly ' + s[3] + '° to ' + s[4] + '°. <button class="sm" type="button" data-s="' + i + '" style="display:block;margin-top:6px">Score this spot</button></small></li>';
+    }).join('');
+  }
+  function col(s) { return s >= 75 ? '#ff7a59' : s >= 55 ? '#ffc857' : s >= 35 ? '#c9b98f' : '#8a90a6'; }
+  function mix(a, b, k) { var p = function (h, i) { return parseInt(h.slice(1 + i * 2, 3 + i * 2), 16); }; return '#' + [0, 1, 2].map(function (i) { return pad2(Math.round(p(a, i) + (p(b, i) - p(a, i)) * k).toString(16)); }).join(''); }
+  function pad2(s) { return s.length < 2 ? '0' + s : s; }
+  function drawSky(r) {
+    var k = r.r.s / 100, c = r.c, svg = '';
+    var top = mix('#2a3550', '#1d1b4f', k), mid = mix('#7a7f8e', '#c2468a', k), low = mix('#b8ab95', '#ff6a3d', k), hor = mix('#d8cdb8', '#ffc65a', k);
+    svg += '<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + top + '"/><stop offset=".45" stop-color="' + mid + '"/><stop offset=".78" stop-color="' + low + '"/><stop offset="1" stop-color="' + hor + '"/></linearGradient><filter id="b"><feGaussianBlur stdDeviation="6"/></filter></defs>';
+    svg += '<rect width="600" height="260" fill="url(#g)"/>';
+    svg += '<circle cx="380" cy="214" r="18" fill="' + mix('#fff3d6', '#ffe08a', k) + '" opacity="' + (r.r.lw > 60 ? 0.25 : 0.9) + '" filter="url(#b)"/>';
+    // high and middle cloud streaks, lit underneath when the score is high
+    var lit = mix('#9aa0ad', '#ff8fa3', k), litMid = mix('#8c8f99', '#ff9a5c', k), seed = 7;
+    function rnd() { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; }
+    var nH = Math.round(c.high / 12), nM = Math.round(c.mid / 12);
+    for (var i = 0; i < nH; i++) svg += '<ellipse cx="' + (rnd() * 600) + '" cy="' + (30 + rnd() * 60) + '" rx="' + (70 + rnd() * 90) + '" ry="5" fill="' + lit + '" opacity=".7" filter="url(#b)"/>';
+    for (i = 0; i < nM; i++) svg += '<ellipse cx="' + (rnd() * 600) + '" cy="' + (100 + rnd() * 60) + '" rx="' + (50 + rnd() * 60) + '" ry="10" fill="' + litMid + '" opacity=".75" filter="url(#b)"/>';
+    // low cloud bank on the horizon
+    var lw = r.r.lw || 0; if (lw > 10) svg += '<rect x="-20" y="' + (236 - lw * 0.6) + '" width="640" height="' + (40 + lw * 0.6) + '" fill="#4a4e5c" opacity="' + Math.min(0.95, lw / 90) + '" filter="url(#b)"/>';
+    // dust haze
+    if (c.aod != null && c.aod > 0.5) svg += '<rect width="600" height="260" fill="#b08a5a" opacity="' + Math.min(0.5, (c.aod - 0.5) * 0.6) + '"/>';
+    svg += '<rect y="236" width="600" height="24" fill="' + mix('#2b2f3e', '#3a2440', k) + '"/>';
+    $('sky').innerHTML = svg;
+  }
+  $('evs').addEventListener('click', function (e) { var b = e.target.closest('[data-i]'); if (!b) return; sel = +b.dataset.i; render(); });
+  $('spots').addEventListener('click', function (e) { var b = e.target.closest('[data-s]'); if (!b) return; var s = SPOTS[+b.dataset.s]; pick(null); load(s[1], s[2], s[0]); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+  PLACES.forEach(function (p, i) {
+    var b = document.createElement('button'); b.className = 'sm'; b.type = 'button'; b.textContent = p[0]; b.setAttribute('aria-pressed', 'false');
+    b.onclick = function () { pick(b); load(p[1], p[2], p[0]); try { localStorage.setItem('sunsetPlace', i); } catch (e) {} };
+    $('where').appendChild(b);
+  });
+  function pick(b) { [].forEach.call(document.querySelectorAll('#where .sm'), function (x) { x.setAttribute('aria-pressed', x === b); }); }
+  $('me').onclick = function () {
+    if (!navigator.geolocation) { $('msg').textContent = 'Your browser can\'t share a location.'; return; }
+    $('msg').textContent = 'Asking for your location…';
+    navigator.geolocation.getCurrentPosition(function (p) { pick($('me')); load(p.coords.latitude.toFixed(3), p.coords.longitude.toFixed(3), 'Your location'); }, function () { $('msg').textContent = 'Location was not shared. Pick a city instead.'; }, { maximumAge: 6e5, timeout: 10000 });
+  };
+  var i0 = 1; try { var s = localStorage.getItem('sunsetPlace'); if (s != null && PLACES[+s]) i0 = +s; } catch (e) {}
+  document.querySelectorAll('#where .sm')[i0 + 1].click();
+})();
+</script>
+</body>
+</html>
