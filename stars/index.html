@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Desert Stargazing · Mariam's Lab</title>
+<meta name="description" content="Tonight's sky over Abu Dhabi or your location, with the Arabic names of the stars and what they mean, the planets, and Suhail.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/stars/">
+<meta property="og:title" content="Desert Stargazing · Mariam's Lab"><meta property="og:description" content="Tonight's sky with the Arabic names of the stars."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;600&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.board { aspect-ratio: 1 / 1; cursor: pointer; background: #03050d; }
+.ctrls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; }
+.ctrls input[type=range] { flex: 1 1 180px; accent-color: var(--accent); min-width: 0; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm:hover { border-color: var(--muted); }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.when { font-family: var(--font-mono); font-size: 0.85rem; color: var(--muted); width: 100%; }
+.ar { font-family: 'IBM Plex Sans Arabic', sans-serif; }
+.pick { display: grid; gap: 6px; padding: 14px; border-radius: 12px; border: 1px solid var(--accent); background: var(--surface); }
+.pick h3 { font-size: 1.2rem; font-weight: 800; display: flex; justify-content: space-between; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.pick h3 .ar { font-size: 1.35rem; font-weight: 600; color: var(--accent); }
+.pick p { color: var(--muted); font-size: 0.9rem; }
+.up { display: grid; gap: 4px; padding: 0; margin: 0; list-style: none; }
+.up li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 10px; align-items: baseline; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line); font-size: 0.88rem; cursor: pointer; }
+.up li:hover, .up li:focus-visible { border-color: var(--accent); outline: none; }
+.up li .ar { color: var(--accent); }
+.up li span:last-child { font-family: var(--font-mono); font-size: 0.78rem; color: var(--muted); }
+.suhail { padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); font-size: 0.9rem; }
+.suhail b { color: var(--accent); }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Experiment · Space · Arabic</span>
+    <h1 style="font-size:var(--step-3)">Desert stargazing.</h1>
+    <p>Tonight's sky over Abu Dhabi, as if you were lying on your back in the dunes, with your head to the north. Many star names we use today are Arabic. Tap a star to see its name and what it means.</p>
+  </div>
+  <div class="game">
+    <div>
+      <div class="board"><canvas id="cv" role="img" aria-label="Map of the sky. The list beside it names the brightest stars and planets that are up."></canvas></div>
+      <div class="ctrls">
+        <label for="t" class="label">Time</label>
+        <input type="range" id="t" min="-12" max="24" step="0.25" value="0">
+        <button class="sm" type="button" id="now">Now</button>
+        <button class="sm" type="button" id="tonight">Tonight 9 pm</button>
+        <span class="when" id="when"></span>
+      </div>
+      <div class="ctrls">
+        <span class="label">Names</span>
+        <button class="sm" type="button" data-n="ar" aria-pressed="true">العربية</button>
+        <button class="sm" type="button" data-n="en" aria-pressed="false">English</button>
+        <button class="sm" type="button" id="lines" aria-pressed="true">Shapes</button>
+        <button class="sm" type="button" id="dark" aria-pressed="true">Desert sky</button>
+      </div>
+      <div class="ctrls">
+        <span class="label">From</span>
+        <button class="sm" type="button" id="locAD" aria-pressed="true">Abu Dhabi</button>
+        <button class="sm" type="button" id="locMe" aria-pressed="false">My location</button>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="pick" id="pick"><h3>Tap a star</h3><p>Or pick one from the list below.</p></div>
+      <div class="suhail" id="suhail"></div>
+      <div><span class="label">Brightest things up now</span><ul class="up" id="up" style="margin-top:8px"></ul></div>
+      <p class="fact">Arab astronomers and navigators named hundreds of stars, and many of those names came into European star atlases almost unchanged: Aldebaran is الدبران, Altair is الطائر. "Desert sky" adds a sprinkle of faint stars and the Milky Way as an illustration; the named stars are real positions.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script src="../assets/sky.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var R = Math.PI / 180;
+  var loc = { lat: 24.4539, lon: 54.3773, tz: 'Asia/Dubai', name: 'Abu Dhabi' };
+  var base = Date.now(), off = 0, names = 'ar', showLines = true, dark = true, picked = null, placed = [];
+  var cv = $('cv'), g = cv.getContext('2d'), W = 0, dpr = 1;
+
+  // illustrative faint stars, concentrated along the Milky Way (fixed seed so they stay put)
+  var faint = (function () {
+    var s = 7, out = []; function rnd() { s = (s * 16807) % 2147483647; return s / 2147483647; }
+    var aG = 192.85948, dG = 27.12825, lN = 122.93192;
+    for (var i = 0; i < 2600; i++) {
+      var band = i < 1700, l = rnd() * 360, b = band ? (rnd() + rnd() + rnd() - 1.5) * 9 : Math.asin(rnd() * 2 - 1) / R;
+      var sd = Math.sin(b * R) * Math.sin(dG * R) + Math.cos(b * R) * Math.cos(dG * R) * Math.cos((lN - l) * R), dec = Math.asin(sd) / R;
+      var ra = aG + Math.atan2(Math.cos(b * R) * Math.sin((lN - l) * R), Math.sin(b * R) * Math.cos(dG * R) - Math.cos(b * R) * Math.sin(dG * R) * Math.cos((lN - l) * R)) / R;
+      out.push({ ra: Sky.rev(ra), dec: dec, a: 0.15 + rnd() * (band ? 0.35 : 0.45), band: band });
+    }
+    return out;
+  })();
+
+  function fit() { var r = cv.getBoundingClientRect(); dpr = Math.min(window.devicePixelRatio || 1, 2); W = r.width; cv.width = Math.round(W * dpr); cv.height = Math.round(W * dpr); }
+  function proj(h) { // zenith in the middle, north up, east on the left (you're looking up)
+    var rr = (90 - h.alt) / 90 * (W / 2 - 22), a = h.az * R;
+    return [W / 2 - Math.sin(a) * rr, W / 2 - Math.cos(a) * rr];
+  }
+  function fmt(ms) { try { return new Intl.DateTimeFormat('en-GB', { timeZone: loc.tz, weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(ms); } catch (e) { return new Date(ms).toString(); } }
+  function compass(az) { return ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'][Math.round(az / 45) % 8]; }
+  function label(o) { return names === 'ar' ? (o.ar || '') : o.en; }
+
+  var state = null;
+  function compute() {
+    var ms = base + off * 3600000, l = Sky.lst(ms, loc.lon);
+    var stars = Sky.STARS.map(function (s) { return { o: s, h: Sky.toHoriz(s.ra, s.dec, l, loc.lat) }; });
+    var bodies = Sky.bodies(ms).map(function (b) { return { o: b, h: Sky.toHoriz(b.ra, b.dec, l, loc.lat) }; });
+    var sunAlt = bodies[0].h.alt;
+    state = { ms: ms, lst: l, stars: stars, bodies: bodies, sunAlt: sunAlt };
+  }
+  function draw() {
+    var c = g, st = state; c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, W, W);
+    var rad = W / 2 - 22, day = Math.max(0, Math.min(1, (st.sunAlt + 12) / 12));
+    // sky disc
+    var gr = c.createRadialGradient(W / 2, W / 2, 0, W / 2, W / 2, rad);
+    gr.addColorStop(0, day > 0.5 ? 'rgb(' + [40, 80, 150].map(function (v) { return Math.round(v * day); }).join(',') + ')' : '#060a1c');
+    gr.addColorStop(1, day > 0 ? 'rgba(' + [90, 130, 190].map(function (v) { return Math.round(v * day + 20 * (1 - day)); }).join(',') + ',1)' : '#0d1430');
+    c.fillStyle = gr; c.beginPath(); c.arc(W / 2, W / 2, rad, 0, 7); c.fill();
+    c.save(); c.beginPath(); c.arc(W / 2, W / 2, rad, 0, 7); c.clip();
+    var vis = 1 - day; // how much of the night sky shows
+    if (dark && vis > 0) faint.forEach(function (f) {
+      var h = Sky.toHoriz(f.ra, f.dec, st.lst, loc.lat); if (h.alt < 0) return; var p = proj(h);
+      c.fillStyle = f.band ? 'rgba(200,210,255,' + (f.a * vis * 0.55) + ')' : 'rgba(230,235,255,' + (f.a * vis) + ')';
+      c.fillRect(p[0], p[1], f.band ? 2 : 1.1, f.band ? 2 : 1.1);
+    });
+    // altitude rings
+    c.strokeStyle = 'rgba(167,173,203,0.12)'; c.lineWidth = 1;
+    [30, 60].forEach(function (a) { c.beginPath(); c.arc(W / 2, W / 2, (90 - a) / 90 * rad, 0, 7); c.stroke(); });
+    var lim = dark ? 6 : 2.2;
+    if (showLines && vis > 0.2) {
+      c.strokeStyle = 'rgba(132,160,255,' + (0.35 * vis) + ')'; c.lineWidth = 1;
+      var hz = {}; st.stars.forEach(function (s) { hz[s.o.id] = s.h; });
+      Sky.LINES.forEach(function (L) { L[2].forEach(function (seg) { var a = hz[seg[0]], b = hz[seg[1]]; if (!a || !b || (a.alt < 0 && b.alt < 0)) return; var p = proj(a), q = proj(b); c.beginPath(); c.moveTo(p[0], p[1]); c.lineTo(q[0], q[1]); c.stroke(); }); });
+    }
+    placed = [];
+    st.stars.forEach(function (s) {
+      if (s.h.alt < 0 || s.o.mag > lim) return; var p = proj(s.h), r = Math.max(0.8, 3.6 - s.o.mag * 0.75), a = Math.min(1, (lim + 1 - s.o.mag) / 3) * Math.max(vis, s.o.mag < 1 ? 0.35 * (1 - day * 0.8) : 0);
+      if (a <= 0.02) return;
+      c.fillStyle = 'rgba(245,247,255,' + a + ')'; c.beginPath(); c.arc(p[0], p[1], r, 0, 7); c.fill();
+      placed.push({ x: p[0], y: p[1], it: s });
+    });
+    st.bodies.forEach(function (b, i) {
+      if (b.h.alt < -0.5) return; var p = proj(b.h);
+      if (b.o.id === 'sun') { c.fillStyle = '#FFD27A'; c.beginPath(); c.arc(p[0], p[1], 9, 0, 7); c.fill(); }
+      else if (b.o.id === 'moon') {
+        c.fillStyle = '#2a3050'; c.beginPath(); c.arc(p[0], p[1], 8, 0, 7); c.fill();
+        c.fillStyle = '#fbf3df'; c.beginPath(); c.arc(p[0], p[1], 8, -Math.PI / 2, Math.PI / 2, b.o.dl > 180);
+        var kx = 8 * (1 - 2 * b.o.lit) * (b.o.dl > 180 ? -1 : 1); for (var t = Math.PI / 2; t >= -Math.PI / 2; t -= 0.1) c.lineTo(p[0] + kx * Math.cos(t), p[1] + 8 * Math.sin(t)); c.fill();
+      } else { c.fillStyle = { venus: '#fff6d8', mars: '#ff9a70', jupiter: '#ffe7b8', saturn: '#f0d79a' }[b.o.id]; c.beginPath(); c.arc(p[0], p[1], 3.4, 0, 7); c.fill(); }
+      placed.push({ x: p[0], y: p[1], it: b, body: true });
+    });
+    // labels: bodies, then named stars brighter than 1.7, avoiding overlaps
+    var boxes = [], fs = W < 420 ? 11 : 12;
+    function tryLabel(x, y, t, col, ar) {
+      if (!t) return; c.font = (ar ? '600 ' + (fs + 1) + 'px "IBM Plex Sans Arabic"' : fs + 'px "Instrument Sans"') + ', sans-serif';
+      var w = c.measureText(t).width, bx = x + 7, by = y - 6, box = [bx, by - fs, bx + w, by + 3];
+      if (box[2] > W - 4) { bx = x - 7 - w; box = [bx, by - fs, bx + w, by + 3]; }
+      for (var i = 0; i < boxes.length; i++) { var o = boxes[i]; if (box[0] < o[2] && box[2] > o[0] && box[1] < o[3] && box[3] > o[1]) return; }
+      boxes.push(box); c.fillStyle = col; c.fillText(t, bx, by);
+    }
+    placed.filter(function (p) { return p.body; }).forEach(function (p) { tryLabel(p.x, p.y, label(p.it.o), '#E9B467', names === 'ar'); });
+    placed.filter(function (p) { return !p.body && p.it.o.mag < 1.7 + (names === 'ar' ? 1.2 : 0) && (names !== 'ar' || p.it.o.ar); }).sort(function (a, b) { return a.it.o.mag - b.it.o.mag; })
+      .forEach(function (p) { tryLabel(p.x, p.y, label(p.it.o), 'rgba(238,240,250,' + (0.55 + 0.4 * vis) + ')', names === 'ar'); });
+    if (picked) { var pp = placed.filter(function (p) { return p.it.o === picked; })[0]; if (pp) { c.strokeStyle = '#E9B467'; c.lineWidth = 1.5; c.beginPath(); c.arc(pp.x, pp.y, 10, 0, 7); c.stroke(); } }
+    c.restore();
+    // horizon ring and compass (east on the left)
+    c.strokeStyle = 'rgba(79,211,189,0.5)'; c.lineWidth = 1.5; c.beginPath(); c.arc(W / 2, W / 2, rad, 0, 7); c.stroke();
+    c.fillStyle = '#4FD3BD'; c.font = '600 12px "JetBrains Mono", monospace'; c.textAlign = 'center'; c.textBaseline = 'middle';
+    [['N', 0], ['E', 90], ['S', 180], ['W', 270]].forEach(function (d) { var a = d[1] * R; c.fillText(d[0], W / 2 - Math.sin(a) * (rad + 12), W / 2 - Math.cos(a) * (rad + 12)); });
+    c.textAlign = 'start'; c.textBaseline = 'alphabetic';
+    if (day > 0.6) { c.fillStyle = 'rgba(7,10,24,0.65)'; c.fillRect(W / 2 - 120, W / 2 - 18, 240, 32); c.fillStyle = '#EEF0FA'; c.font = '14px "Instrument Sans", sans-serif'; c.textAlign = 'center'; c.fillText('Daytime. Try "Tonight 9 pm".', W / 2, W / 2 + 3); c.textAlign = 'start'; }
+  }
+  function showPick(o, h) {
+    picked = o; var ar = o.ar ? '<span class="ar" lang="ar">' + o.ar + '</span>' : '';
+    var where = h.alt > 0 ? Math.round(h.alt) + '° up in the ' + compass(h.az) : 'below the horizon right now';
+    var extra = o.mean ? '<p>' + (o.ar ? 'Arabic name means <b>' + o.mean + '</b>.' : '') + '</p>' : (o.planet ? '<p>A planet: it wanders against the stars from night to night, which is what "planet" means.</p>' : '');
+    if (o.id === 'moon') extra = '<p>' + Math.round(o.lit * 100) + '% lit.</p>';
+    if (o.mean && o.mean.indexOf('.') > 0) extra = '<p>' + o.mean.replace(/^([^.]+)\./, '<b>$1</b>.') + '</p>';
+    $('pick').innerHTML = '<h3><span>' + o.en + '</span>' + ar + '</h3>' + extra + '<p>' + where + (o.mag !== undefined && o.mag > -5 ? ' · magnitude ' + o.mag.toFixed(1) : '') + '</p>';
+  }
+  function upList() {
+    var st = state, list = st.bodies.filter(function (b) { return b.h.alt > 0 && b.o.id !== 'sun'; }).concat(st.stars.filter(function (s) { return s.h.alt > 5 && s.o.ar; }).sort(function (a, b) { return a.o.mag - b.o.mag; }).slice(0, 10));
+    $('up').innerHTML = list.map(function (x, i) { return '<li tabindex="0" data-i="' + i + '"><span>' + x.o.en + '</span><span class="ar" lang="ar">' + (x.o.ar || '') + '</span><span>' + Math.round(x.h.alt) + '° ' + compass(x.h.az) + '</span></li>'; }).join('') || '<li>Nothing bright is up. Try another time.</li>';
+    $('up').onclick = $('up').onkeydown = function (e) { if (e.type === 'keydown' && e.key !== 'Enter' && e.key !== ' ') return; var li = e.target.closest('li[data-i]'); if (!li) return; e.preventDefault(); var x = list[+li.dataset.i]; showPick(x.o, x.h); draw(); };
+    var can = st.stars.filter(function (s) { return s.o.id === 'canopus'; })[0];
+    $('suhail').innerHTML = can.h.alt > 0 ? '<b class="ar" lang="ar">سهيل</b> (Canopus) is up, ' + can.h.alt.toFixed(1) + '° above the southern horizon. From the UAE it never climbs high, so it hugs the horizon.'
+      : '<b class="ar" lang="ar">سهيل</b> (Canopus) is below the horizon now. From the UAE it only just clears the south, and its first dawn appearance in late August is the old sign that the hottest days are ending.';
+    if (loc.lat > 37.5) $('suhail').innerHTML = '<b class="ar" lang="ar">سهيل</b> (Canopus) never rises where you are. You need to be south of about 37°N to see it.';
+  }
+  function update() {
+    compute(); $('when').textContent = fmt(state.ms) + ' · ' + loc.name; draw(); upList();
+    if (picked) { var all = state.stars.concat(state.bodies), f = all.filter(function (x) { return x.o === picked || x.o.id === picked.id; })[0]; if (f) showPick(f.o, f.h); }
+  }
+  cv.addEventListener('click', function (e) {
+    var r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top, best = null, bd = 22;
+    placed.forEach(function (p) { var d = Math.hypot(p.x - x, p.y - y) - (p.body ? 4 : 0); if (d < bd) { bd = d; best = p; } });
+    if (best) { showPick(best.it.o, best.it.h); draw(); }
+  });
+  $('t').addEventListener('input', function () { off = +this.value; update(); });
+  $('now').onclick = function () { base = Date.now(); off = 0; $('t').value = 0; update(); };
+  $('tonight').onclick = function () {
+    var now = Date.now(), h = +new Intl.DateTimeFormat('en-GB', { timeZone: loc.tz, hour: 'numeric', hourCycle: 'h23' }).format(now), m = +new Intl.DateTimeFormat('en-GB', { timeZone: loc.tz, minute: 'numeric' }).format(now);
+    var target = 21 - h - m / 60; if (target < -3) target += 24; base = now; off = Math.max(-12, Math.min(24, Math.round(target * 4) / 4)); $('t').value = off; update();
+  };
+  [].forEach.call(document.querySelectorAll('[data-n]'), function (b) { b.onclick = function () { names = b.dataset.n; [].forEach.call(document.querySelectorAll('[data-n]'), function (x) { x.setAttribute('aria-pressed', x === b); }); draw(); }; });
+  $('lines').onclick = function () { showLines = !showLines; this.setAttribute('aria-pressed', showLines); draw(); };
+  $('dark').onclick = function () { dark = !dark; this.setAttribute('aria-pressed', dark); this.textContent = dark ? 'Desert sky' : 'City sky'; draw(); };
+  function setLoc(id) { ['locAD', 'locMe'].forEach(function (x) { $(x).setAttribute('aria-pressed', x === id); }); update(); }
+  $('locAD').onclick = function () { loc = { lat: 24.4539, lon: 54.3773, tz: 'Asia/Dubai', name: 'Abu Dhabi' }; setLoc('locAD'); };
+  $('locMe').onclick = function () {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(function (p) { var tz; try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone; } catch (e) {} loc = { lat: p.coords.latitude, lon: p.coords.longitude, tz: tz || 'UTC', name: 'your location' }; setLoc('locMe'); },
+      function () { $('when').textContent = 'Location not available, still showing Abu Dhabi.'; }, { timeout: 10000, maximumAge: 600000 });
+  };
+  window.addEventListener('resize', function () { fit(); draw(); });
+  fit(); update();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(draw);
+  setInterval(function () { if (off === 0) { base = Date.now(); update(); } }, 60000);
+})();
+</script>
+</body>
+</html>
