@@ -149,3 +149,10 @@ LabAr.add({
  "Map which email or phone number can reset your other accounts, simulate a SIM swap and get a fix list in order.": "اكتشف أي بريد أو رقم هاتف يستطيع إعادة تعيين حساباتك الأخرى، وحاكِ استبدال الشريحة، واحصل على قائمة إصلاحات مرتبة.",
  "Map it →": "ارسم خريطتك ←"
 });
+/* index cards for newer tools */
+LabAr.add({
+ "Tool · Flights": "أداة · رحلات",
+ "Airport pickup timer": "مؤقت الاستقبال في المطار",
+ "Track the flight live and get a countdown to when you should leave home.": "تتبّع الرحلة مباشرة واحصل على عدّ تنازلي لموعد خروجك من البيت.",
+ "Track a flight →": "تتبّع رحلة ←"
+});

@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Airport Pickup Timer · Mariam's Lab</title>
+<meta name="description" content="Picking someone up from DXB, DWC, AUH, Sharjah or Ras Al Khaimah? Track the flight live and get one clear answer: when to leave home so you arrive as they walk out.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/airport-pickup/">
+<meta property="og:title" content="Airport Pickup Timer · Mariam's Lab"><meta property="og:description" content="Track the flight live and know exactly when to leave home."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="stylesheet" href="../assets/vendor/leaflet/leaflet.css">
+<style>
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 13px; cursor: pointer; }
+.sm[aria-pressed="true"], .sm.pri { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.sm:disabled { opacity: .5; cursor: default; }
+.aps { display: flex; gap: 6px; flex-wrap: wrap; }
+.frm { display: grid; gap: 12px; }
+.fl { display: grid; gap: 5px; min-width: 0; }
+.fl > span { font-size: 0.84rem; color: var(--muted); }
+.fl input { font: inherit; color: var(--ink); background: rgba(7,10,24,.6); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; min-width: 0; width: 100%; }
+.fl input[type=number], .fl input[type=time] { font-family: var(--font-mono); }
+.fl input.big { font-family: var(--font-display); font-size: 1.4rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
+.duo { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.hint { font-size: 0.76rem; color: var(--muted); margin: 0; }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 8px 0 0; }
+.leave { padding: 20px; border-radius: var(--radius); border: 1px solid var(--line); background: rgba(7,10,24,.82); display: grid; gap: 6px; }
+.leave b.when { font-family: var(--font-display); font-size: clamp(1.8rem, 7vw, 3rem); font-weight: 800; line-height: 1.05; color: var(--accent); }
+.leave .cd { font-family: var(--font-mono); font-size: clamp(1.1rem, 4vw, 1.5rem); color: var(--ink); }
+.leave p { margin: 0; color: var(--muted); font-size: 0.92rem; }
+.leave.go { border-color: var(--sat-c); }
+.leave.go b.when { color: var(--sat-c); }
+.tl { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.tl li { display: grid; grid-template-columns: 4.2em minmax(0, 1fr); gap: 10px; font-size: 0.9rem; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.tl li b { font-family: var(--font-mono); font-weight: 500; }
+.tl li small { color: var(--muted); display: block; font-size: 0.78rem; }
+.fstrip { display: grid; grid-template-columns: repeat(auto-fit, minmax(105px, 1fr)); gap: 8px; }
+.fstrip div { padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); min-width: 0; }
+.fstrip span { font-size: 0.74rem; color: var(--muted); display: block; }
+.fstrip b { font-family: var(--font-display); font-size: 1.05rem; display: block; overflow-wrap: anywhere; }
+@media (max-width: 860px) { #frm { order: -1; } }
+#map { height: 340px; border-radius: var(--radius); border: 1px solid var(--line); background: #0b1020; }
+.leaflet-container { font-family: 'Instrument Sans', sans-serif; }
+.pl-ico svg { display: block; filter: drop-shadow(0 0 3px rgba(0,0,0,.8)); }
+.flt { font-size: 0.9rem; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.flt b { font-family: var(--font-display); font-size: 1.1rem; }
+.flt small { display: block; color: var(--muted); font-size: 0.8rem; margin-top: 2px; }
+[hidden] { display: none !important; }
+html.ar .tl li { grid-template-columns: 4.2em minmax(0, 1fr); }
+html.ar .leave .cd, html.ar .tl li b { direction: ltr; unicode-bidi: isolate; }
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Flights · UAE · Live</span>
+    <h1 style="font-size:var(--step-3)">Airport pickup timer.</h1>
+    <p>Type the flight number of the person you're collecting. This finds the plane live, works out when it lands and when they'll walk out of arrivals, then counts down to the moment you should leave home. No more circling the terminal or paying for an hour of parking.</p>
+  </div>
+  <div class="game">
+    <div class="panel" style="min-width:0">
+      <div class="leave" id="leave"><span class="label">Leave home at</span><b class="when">—</b><span class="cd" id="cd"></span><p id="leaveWhy">Enter a flight to start.</p></div>
+      <div class="fstrip" id="fstrip" hidden></div>
+      <div id="map" role="img" aria-label="Map of the flight and the airport"></div>
+      <div class="flt" id="flt" hidden></div>
+      <span class="label">Timeline</span>
+      <ul class="tl" id="tl"><li><b>—</b><span>Waiting for a flight</span></li></ul>
+    </div>
+    <div class="panel frm" id="frm">
+      <label class="fl"><span>Flight number or callsign</span><input class="big" id="fno" placeholder="EK202" autocomplete="off" spellcheck="false" maxlength="10"></label>
+      <div><span class="label" style="display:block;margin-bottom:6px">Arriving at</span><div class="aps" id="aps"></div></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="sm pri" type="button" id="go">Track this flight</button><button class="sm" type="button" id="notify">🔔 Remind me when to leave</button></div>
+      <p class="msg" id="msg" role="status"></p>
+      <div class="duo">
+        <label class="fl"><span>Walk-out time after landing (min)</span><input type="number" id="hall" min="5" max="120" step="5" value="35"></label>
+        <label class="fl"><span>Your drive to the airport (min)</span><input type="number" id="drive" min="0" max="240" step="5" value="30"></label>
+      </div>
+      <p class="hint">Walk-out time covers taxiing to the gate, passport control and bags. 30 to 45 minutes is typical; hand luggage only on an e-gate passport can be 20, a full long-haul arrival at peak time can be over an hour.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button class="sm" type="button" id="geo">📍 Estimate my drive</button><span class="hint" id="geoOut"></span></div>
+      <label class="fl"><span>Scheduled arrival (UAE time), used if the plane isn't in the air yet</span><input type="time" id="sched"></label>
+      <p class="fact" style="margin:0"><b>How the landing time is worked out.</b> Planes broadcast their position, height and speed over ADS-B. This takes the straight-line (great-circle) distance to the runway and splits it into cruise and descent. Pilots plan to descend about 3 nautical miles for every 1,000 ft of height, slowing as they go, so a plane at 38,000 ft starts down roughly 200 km out. The last 30 km of approach and landing are counted as a flat 15 minutes.</p>
+      <p class="fact" style="margin:0"><b>What's approximate.</b> The landing time is an estimate that can be off by 10 minutes or more: holding patterns, runway changes and headwinds aren't known. The walk-out and drive times are your guesses. Some airlines fly under a callsign that doesn't match the flight number, and volunteer receivers don't cover every route, so if nothing shows up, use the scheduled time. Flight data comes from adsb.lol, airplanes.live or adsb.fi, and routes from adsbdb. Your location is only used in your browser to estimate the drive.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script src="../assets/vendor/leaflet/leaflet.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var T = function (s) { return window.LabAr ? LabAr.t(s) : s; };
+  var KEY = 'pickup1', R = Math.PI / 180;
+  var AP = { DXB: ['Dubai International', 25.2532, 55.3657], DWC: ['Al Maktoum, Dubai World Central', 24.8962, 55.1614], AUH: ['Zayed International, Abu Dhabi', 24.4330, 54.6511], SHJ: ['Sharjah International', 25.3286, 55.5172], RKT: ['Ras Al Khaimah International', 25.6135, 55.9388] };
+  // IATA airline code → ICAO callsign prefix
+  var IATA = { EK: 'UAE', EY: 'ETD', FZ: 'FDB', G9: 'ABY', '3L': 'ADY', '5W': 'WAZ', QR: 'QTR', SV: 'SVA', XY: 'KNE', F3: 'FAD', GF: 'GFA', WY: 'OMA', OV: 'OMS', KU: 'KAC', J9: 'JZR', RJ: 'RJA', ME: 'MEA', MS: 'MSR', SM: 'MSC', NP: 'NIA', IA: 'IAW', IR: 'IRA', W5: 'IRM', '6E': 'IGO', AI: 'AIC', IX: 'AXB', SG: 'SEJ', QP: 'AKJ', UK: 'VTI', PK: 'PIA', PA: 'ABQ', ER: 'SEP', UL: 'ALK', BG: 'BBC', BS: 'UBG', '2A': 'KMV', KB: 'DRK', RA: 'RNA', TK: 'THY', PC: 'PGT', XQ: 'SXS', BA: 'BAW', VS: 'VIR', LH: 'DLH', AF: 'AFR', KL: 'KLM', LX: 'SWR', OS: 'AUA', AZ: 'ITY', LO: 'LOT', SU: 'AFL', W6: 'WZZ', W9: 'WUK', FR: 'RYR', U2: 'EZY', ET: 'ETH', KQ: 'KQA', SA: 'SAA', SQ: 'SIA', CX: 'CPA', MH: 'MAS', TG: 'THA', PR: 'PAL', '5J': 'CEB', GA: 'GIA', VN: 'HVN', CA: 'CCA', MU: 'CES', CZ: 'CSN', KE: 'KAL', OZ: 'AAR', JL: 'JAL', NH: 'ANA', QF: 'QFA', NZ: 'ANZ', AA: 'AAL', UA: 'UAL', DL: 'DAL', AC: 'ACA', HY: 'UZB', KC: 'KZR', J2: 'AHY', PS: 'AUI', A3: 'AEE', FB: 'LZB', '4Z': 'LNK' };
+  var ap = 'DXB', track = null, plane = null, route = null, timer = null, srcI = 0, fired = 0, notifyOn = false, M = null, mk = {};
+
+  // ---------- maths (also exposed for testing) ----------
+  function gc(la1, lo1, la2, lo2) { // great-circle distance in km (haversine)
+    var a = Math.sin((la2 - la1) * R / 2), b = Math.sin((lo2 - lo1) * R / 2), h = a * a + Math.cos(la1 * R) * Math.cos(la2 * R) * b * b;
+    return 2 * 6371 * Math.asin(Math.min(1, Math.sqrt(h)));
+  }
+  function bearing(la1, lo1, la2, lo2) { var y = Math.sin((lo2 - lo1) * R) * Math.cos(la2 * R), x = Math.cos(la1 * R) * Math.sin(la2 * R) - Math.sin(la1 * R) * Math.cos(la2 * R) * Math.cos((lo2 - lo1) * R); return (Math.atan2(y, x) / R + 360) % 360; }
+  // minutes from now until touchdown
+  var APPROACH_KM = 30, APPROACH_MIN = 15;
+  function etaMinutes(distKm, gsKt, altFt) {
+    if (distKm <= APPROACH_KM) return Math.max(2, APPROACH_MIN * distKm / APPROACH_KM);
+    var gs = Math.max(150, gsKt || 450) * 1.852, D = distKm - APPROACH_KM;
+    var des = Math.min(D, Math.max(0, ((altFt || 0) - 3000) / 1000 * 3 * 1.852)); // 3 nm per 1,000 ft above the approach gate
+    var vd = gs > 420 ? (gs + 420) / 2 : gs; // average speed while slowing to ~230 kt
+    return ((D - des) / gs + des / vd) * 60 + APPROACH_MIN;
+  }
+  window.PickupMath = { gc: gc, etaMinutes: etaMinutes, toCallsign: toCallsign };
+
+  function toCallsign(raw) {
+    var s = String(raw || '').toUpperCase().replace(/[^A-Z0-9]/g, ''), m = s.match(/^([A-Z0-9]{2})(\d{1,4})([A-Z]?)$/);
+    if (m && IATA[m[1]] && !/^\d\d$/.test(m[1])) return { cs: IATA[m[1]] + parseInt(m[2], 10) + m[3], from: m[1] };
+    if (/^[A-Z]{3}[A-Z0-9]{1,5}$/.test(s)) return { cs: s, from: null };
+    if (m) return { cs: null, err: 'I don\'t know the airline code ' + m[1] + '. Type the callsign instead (three letters and a number, like UAE202).' };
+    return { cs: null, err: 'That doesn\'t look like a flight number. Try something like EK202 or FZ1234.' };
+  }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function hhmm(ms) { var d = new Date(ms + 4 * 3600e3); return pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes()); } // UAE time, UTC+4 all year
+  function dur(min) { min = Math.round(min); if (min < 60) return min + ' min'; return Math.floor(min / 60) + ' h ' + pad(min % 60) + ' min'; }
+  function n(id, d) { var v = parseFloat($(id).value); return isFinite(v) ? v : d; }
+  function get(u, ms) { var c = new AbortController(); setTimeout(function () { c.abort(); }, ms || 8000); return fetch(u, { signal: c.signal }).then(function (r) { if (!r.ok) throw r.status; return r.json(); }); }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify({ f: $('fno').value, ap: ap, hall: $('hall').value, drive: $('drive').value, sched: $('sched').value })); } catch (e) {} }
+
+  var SRC = [
+    function (cs) { return get('https://api.adsb.lol/v2/callsign/' + cs); },
+    function (cs) { return get('https://api.airplanes.live/v2/callsign/' + cs); },
+    function (cs) { return get('https://opendata.adsb.fi/api/v2/callsign/' + cs); }
+  ];
+  // ask each network in turn until one has the plane; null = nobody has it, throw = nobody answered
+  function findPlane(cs) {
+    var tried = 0, answered = 0;
+    function next() {
+      if (tried >= SRC.length) { if (!answered) throw 0; return null; }
+      var i = (srcI + tried++) % SRC.length;
+      return SRC[i](cs).then(function (j) {
+        answered++; var ac = (j.ac || j.aircraft || []).filter(function (a) { return a.lat != null && (a.flight || '').trim().toUpperCase() === cs; });
+        if (!ac.length) return next();
+        srcI = i; return ac;
+      }, function () { return next(); });
+    }
+    return next();
+  }
+  function lookupRoute(cs) {
+    if (route && route.cs === cs) return;
+    route = { cs: cs };
+    get('https://api.adsbdb.com/v0/callsign/' + encodeURIComponent(cs)).then(function (j) {
+      var f = j.response && j.response.flightroute; if (!f || route.cs !== cs) return;
+      route = { cs: cs, from: f.origin, to: f.destination, airline: f.airline && f.airline.name }; render();
+    }).catch(function () {});
+  }
+
+  function start() {
+    var c = toCallsign($('fno').value);
+    if (!c.cs) { $('msg').textContent = c.err; return; }
+    track = c; plane = null; save();
+    $('msg').textContent = 'Looking for ' + c.cs + (c.from ? ' (' + $('fno').value.toUpperCase().replace(/\s/g, '') + ')' : '') + '…';
+    lookupRoute(c.cs); poll();
+    clearInterval(timer); timer = setInterval(function () { if (!document.hidden) poll(); }, 30000);
+  }
+  function poll() {
+    if (!track) return;
+    var cs = track.cs;
+    findPlane(cs).then(function (ac) {
+      if (!track || track.cs !== cs) return;
+      if (!ac) { plane = { missing: true }; $('msg').textContent = 'No live signal from ' + cs + '. It may not have taken off yet, or it\'s out of receiver range. Checking again every 30 seconds.'; render(); return; }
+      var A = AP[ap];
+      ac.forEach(function (a) { a._d = gc(a.lat, a.lon, A[1], A[2]); });
+      ac.sort(function (a, b) { return a._d - b._d; });
+      var a = ac[0], ground = a.alt_baro === 'ground', ft = ground ? 0 : +(a.alt_baro || a.alt_geom || 0);
+      plane = { lat: a.lat, lon: a.lon, ft: ft, gs: a.gs, track: a.track, rate: a.baro_rate != null ? a.baro_rate : a.geom_rate, ground: ground || (ft < 300 && (a.gs || 0) < 60), dist: a._d, type: a.desc || a.t, reg: a.r, at: Date.now() - (a.seen_pos || a.seen || 0) * 1000 };
+      $('msg').textContent = cs + ' found. Updated ' + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ', next check in 30 seconds.';
+      render();
+    }).catch(function () { $('msg').textContent = 'None of the flight networks answered. They limit how often they can be asked; trying again in 30 seconds.'; if (!plane) plane = { missing: true }; render(); });
+  }
+
+  // landing time in ms, plus how we got it
+  function landing() {
+    var A = AP[ap];
+    if (plane && !plane.missing) {
+      if (plane.ground && plane.dist < 6) return { ms: plane.at, how: 'landed' };
+      if (plane.ground) return schedOr('on the ground ' + Math.round(plane.dist) + ' km away, not departed yet');
+      var away = Math.abs(((bearing(plane.lat, plane.lon, A[1], A[2]) - (plane.track || 0)) + 540) % 360 - 180) > 100 && plane.dist > 60;
+      var eta = etaMinutes(plane.dist, plane.gs, plane.ft);
+      return { ms: plane.at + eta * 60000, how: 'live', away: away };
+    }
+    return schedOr(plane && plane.missing ? 'not found live' : 'not tracking');
+  }
+  function schedOr(why) {
+    var v = $('sched').value; if (!v) return { ms: null, how: 'none', why: why };
+    var p = v.split(':'), now = Date.now(), d = new Date(now + 4 * 3600e3), base = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), +p[0], +p[1]) - 4 * 3600e3;
+    if (base < now - 3 * 3600e3) base += 864e5; // a time well in the past means tomorrow
+    return { ms: base, how: 'sched', why: why };
+  }
+  function render() {
+    var L = landing(), A = AP[ap], hall = n('hall', 35), drive = n('drive', 30);
+    // flight strip
+    if (plane && !plane.missing) {
+      var ph = plane.ground ? (plane.dist < 6 ? 'Landed' : 'On ground') : plane.dist < APPROACH_KM ? 'Final approach' : plane.rate < -500 ? 'Descending' : plane.rate > 500 ? 'Climbing' : 'Cruising';
+      $('fstrip').hidden = false;
+      $('fstrip').innerHTML = [['Height', plane.ground ? 'Ground' : Math.round(plane.ft).toLocaleString('en') + ' ft'], ['Speed', plane.gs ? Math.round(plane.gs * 1.852) + ' km/h' : '—'], ['Climb / sink', plane.rate == null ? '—' : (plane.rate > 0 ? '+' : '') + Math.round(plane.rate).toLocaleString('en') + ' ft/min'], ['To ' + ap, Math.round(plane.dist).toLocaleString('en') + ' km'], ['Phase', ph]].map(function (x) { return '<div><span>' + x[0] + '</span><b>' + x[1] + '</b></div>'; }).join('');
+    } else $('fstrip').hidden = true;
+    // flight card
+    var r = route && route.to ? route : null;
+    if (track) {
+      var h = '<b data-noar>' + esc(track.cs) + (r && r.airline ? ' · ' + esc(r.airline) : '') + '</b>';
+      if (r) h += '<small data-noar>' + esc(r.from.municipality || r.from.name) + ' (' + esc(r.from.iata_code) + ') → ' + esc(r.to.municipality || r.to.name) + ' (' + esc(r.to.iata_code) + ')</small>';
+      if (r && r.to.iata_code && r.to.iata_code !== ap) h += '<small style="color:var(--sat-c)">The route database says this flight goes to ' + esc(r.to.iata_code) + ', not ' + ap + '. Check the airport.</small>';
+      if (L.away) h += '<small style="color:var(--sat-c)">This plane is flying away from ' + ap + '. It may be the outbound flight with the same number.</small>';
+      if (plane && !plane.missing && plane.type) h += '<small data-noar>' + esc(plane.type) + (plane.reg ? ' · ' + esc(plane.reg) : '') + '</small>';
+      $('flt').innerHTML = h; $('flt').hidden = false;
+    }
+    // timeline
+    if (L.ms == null) {
+      $('tl').innerHTML = '<li><b>—</b><span>' + (track ? 'No live position yet' : 'Waiting for a flight') + '<small>' + (track ? 'Add the scheduled arrival time and the countdown will use it until the plane appears.' : 'Type a flight number and press Track.') + '</small></span></li>';
+      tgt = null; tick(); drawMap(); return;
+    }
+    var out = L.ms + hall * 60000, leave = out - drive * 60000;
+    var how = L.how === 'live' ? 'estimated from the live position' : L.how === 'landed' ? 'already on the ground' : 'scheduled time (' + L.why + ')';
+    $('tl').innerHTML = [[leave, 'Leave home', dur(drive) + ' drive'], [L.ms, L.how === 'landed' ? 'Landed' : 'Lands at ' + ap, how], [out, 'Walks out of arrivals', dur(hall) + ' after landing'], [out, 'You pull up at the kerb', 'if you leave on time']].sort(function (a, b) { return a[0] - b[0]; }).map(function (x) { return '<li><b>' + hhmm(x[0]) + '</b><span>' + x[1] + '<small>' + x[2] + '</small></span></li>'; }).join('');
+    tgt = { leave: leave, land: L.ms, out: out, how: L.how };
+    tick(); drawMap();
+  }
+  var tgt = null;
+  function tick() {
+    var box = $('leave');
+    if (!tgt) { box.className = 'leave'; box.querySelector('.when').textContent = '—'; $('cd').textContent = ''; $('leaveWhy').textContent = track ? 'Waiting for the plane or a scheduled time.' : 'Enter a flight to start.'; return; }
+    var left = (tgt.leave - Date.now()) / 60000;
+    box.querySelector('.when').textContent = left <= 0 ? 'Leave now' : hhmm(tgt.leave);
+    box.className = 'leave' + (left <= 0 ? ' go' : '');
+    var s = Math.max(0, Math.round((tgt.leave - Date.now()) / 1000));
+    $('cd').textContent = left <= 0 ? (left > -60 ? Math.round(-left) + ' min late' : '') : (s >= 3600 ? Math.floor(s / 3600) + 'h ' : '') + pad(Math.floor(s % 3600 / 60)) + 'm ' + pad(s % 60) + 's';
+    $('leaveWhy').textContent = (tgt.how === 'live' ? 'Based on the live flight. ' : tgt.how === 'landed' ? 'The plane has landed. ' : 'Based on the scheduled time, so it will update once the plane is tracked. ') + 'They should walk out around ' + hhmm(tgt.out) + ' UAE time.';
+    if (left <= 0 && notifyOn && fired !== Math.round(tgt.leave / 3e5)) {
+      fired = Math.round(tgt.leave / 3e5);
+      try { if (window.Notification && Notification.permission === 'granted') new Notification(T('Time to leave for ' + ap), { body: (track ? track.cs + ' · ' : '') + T('They walk out around ' + hhmm(tgt.out) + '.'), icon: 'https://mariamalzaabi.ae/assets/favicon.svg' }); } catch (e) {}
+      try { if (navigator.vibrate) navigator.vibrate([400, 150, 400, 150, 400]); } catch (e) {}
+    }
+  }
+  setInterval(tick, 1000);
+
+  // ---------- map ----------
+  function planeIcon(deg) { return L.divIcon({ className: 'pl-ico', iconSize: [28, 28], iconAnchor: [14, 14], html: '<svg width="28" height="28" viewBox="-14 -14 28 28" style="transform:rotate(' + (deg || 0) + 'deg)"><path d="M0-12 2.4-3 12 2v2.4L2.4 1.6 1.6 8 4.8 10.4V12L0 10.8-4.8 12v-1.6L-1.6 8-2.4 1.6-12 4.4V2l9.6-5z" fill="#ffc857" stroke="#050913" stroke-width="1"/></svg>' }); }
+  function drawMap() {
+    if (!window.L) return;
+    var A = AP[ap];
+    if (!M) {
+      try { M = L.map('map', { zoomControl: true, scrollWheelZoom: false, attributionControl: true }).setView([A[1], A[2]], 8); } catch (e) { return; }
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', { subdomains: 'abcd', maxZoom: 12, attribution: '© OpenStreetMap, © CARTO' }).addTo(M);
+    }
+    if (!mk.ap) mk.ap = L.circleMarker([A[1], A[2]], { radius: 7, color: '#4fd3bd', fillColor: '#4fd3bd', fillOpacity: 0.8 }).addTo(M);
+    mk.ap.setLatLng([A[1], A[2]]).bindTooltip(ap + ' · ' + A[0]);
+    if (plane && !plane.missing) {
+      var p = [plane.lat, plane.lon];
+      if (!mk.pl) mk.pl = L.marker(p, { icon: planeIcon(plane.track) }).addTo(M); else { mk.pl.setLatLng(p); mk.pl.setIcon(planeIcon(plane.track)); }
+      if (!mk.ln) mk.ln = L.polyline([p, [A[1], A[2]]], { color: '#ffc857', weight: 2, dashArray: '5 6', opacity: 0.8 }).addTo(M); else mk.ln.setLatLngs([p, [A[1], A[2]]]);
+      if (!mk.fit || mk.fit !== track.cs + ap) { mk.fit = track.cs + ap; M.fitBounds(L.latLngBounds([p, [A[1], A[2]]]).pad(0.25), { maxZoom: 10 }); }
+    } else {
+      ['pl', 'ln'].forEach(function (k) { if (mk[k]) { M.removeLayer(mk[k]); mk[k] = null; } });
+      if (mk.fit !== 'ap' + ap) { mk.fit = 'ap' + ap; M.setView([A[1], A[2]], 8); }
+    }
+  }
+
+  // ---------- controls ----------
+  Object.keys(AP).forEach(function (k) {
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'sm'; b.textContent = k; b.title = AP[k][0]; b.dataset.ap = k;
+    b.onclick = function () { ap = k; [].forEach.call(document.querySelectorAll('#aps .sm'), function (x) { x.setAttribute('aria-pressed', x.dataset.ap === k); }); save(); if (mk.fit && mk.fit.indexOf('ap') === 0) mk.fit = null; if (track) mk.fit = null; render(); };
+    $('aps').appendChild(b);
+  });
+  $('go').onclick = start;
+  $('fno').addEventListener('keydown', function (e) { if (e.key === 'Enter') start(); });
+  ['hall', 'drive', 'sched'].forEach(function (id) { $(id).addEventListener('input', function () { save(); render(); }); });
+  $('notify').onclick = function () {
+    notifyOn = !notifyOn; $('notify').setAttribute('aria-pressed', notifyOn);
+    if (notifyOn && window.Notification && Notification.permission === 'default') Notification.requestPermission().catch(function () {});
+    $('msg').textContent = notifyOn ? 'You\'ll get an alert' + (window.Notification ? '' : ' on this page') + ' when it\'s time to leave. Keep this tab open.' : 'Reminder off.';
+  };
+  $('geo').onclick = function () {
+    if (!navigator.geolocation) { $('geoOut').textContent = 'Your browser can\'t share a location.'; return; }
+    $('geoOut').textContent = 'Asking for your location…';
+    navigator.geolocation.getCurrentPosition(function (p) {
+      var A = AP[ap], km = gc(p.coords.latitude, p.coords.longitude, A[1], A[2]), road = km * 1.3, min = Math.round((road / 65 * 60 + 10) / 5) * 5;
+      $('drive').value = min; save(); render();
+      $('geoOut').textContent = 'About ' + Math.round(road) + ' km by road (straight line × 1.3) at an average 65 km/h, plus 10 min to park. Edit it if you know your usual time.';
+    }, function () { $('geoOut').textContent = 'Location not shared. Type your drive time instead.'; }, { maximumAge: 6e5, timeout: 10000 });
+  };
+  try { var s = JSON.parse(localStorage.getItem(KEY) || 'null'); if (s) { $('fno').value = s.f || ''; if (AP[s.ap]) ap = s.ap; if (s.hall) $('hall').value = s.hall; if (s.drive) $('drive').value = s.drive; if (s.sched) $('sched').value = s.sched; } } catch (e) {}
+  document.querySelector('#aps [data-ap="' + ap + '"]').setAttribute('aria-pressed', 'true');
+  [].forEach.call(document.querySelectorAll('#aps .sm'), function (x) { if (x.dataset.ap !== ap) x.setAttribute('aria-pressed', 'false'); });
+  var q = new URLSearchParams(location.search).get('flight'); if (q) $('fno').value = q;
+  render();
+  if ($('fno').value) start();
+})();
+</script>
+</body>
+</html>
