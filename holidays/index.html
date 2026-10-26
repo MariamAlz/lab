@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>UAE Holiday Planner · Mariam's Lab</title>
+<meta name="description" content="Turn your annual leave into the longest possible breaks around UAE public holidays. Pick your leave days and weekend; get a plan and a calendar.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/holidays/">
+<meta property="og:title" content="UAE Holiday Planner · Mariam's Lab"><meta property="og:description" content="The fewest leave days for the longest breaks around UAE holidays."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.ctrls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.ctrls label { display: flex; gap: 6px; align-items: center; font-size: 0.88rem; color: var(--muted); }
+.ctrls select, .ctrls input { font: inherit; color: var(--ink); background: rgba(7,10,24,.6); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; }
+.ctrls input[type=number] { width: 4.5em; font-family: var(--font-mono); }
+.plans { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.plans li { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.plans .n { font-family: var(--font-display); font-size: 1.8rem; font-weight: 800; color: var(--accent); line-height: 1; text-align: center; min-width: 2.2ch; }
+.plans .n small { display: block; font-family: var(--font-body, inherit); font-size: 0.68rem; font-weight: 400; color: var(--muted); }
+.plans b { display: block; }
+.plans p { font-size: 0.84rem; color: var(--muted); }
+.plans .ratio { font-family: var(--font-mono); font-size: 0.8rem; color: var(--sat-b); white-space: nowrap; text-align: end; }
+.cal { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; margin-top: 22px; }
+.mon h3 { font-size: 0.9rem; font-weight: 700; margin-bottom: 6px; }
+.mon .g { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.mon .g span { aspect-ratio: 1; display: grid; place-items: center; font-family: var(--font-mono); font-size: 0.68rem; border-radius: 4px; color: var(--muted); }
+.mon .g .h { color: var(--muted); font-size: 0.6rem; }
+.mon .g .we { background: rgba(120,132,190,.16); color: var(--ink); }
+.mon .g .ph { background: var(--accent); color: var(--bg); font-weight: 600; }
+.mon .g .lv { background: var(--sat-b); color: var(--bg); font-weight: 600; }
+.mon .g .td { outline: 1.5px solid var(--ink); }
+.key { display: flex; flex-wrap: wrap; gap: 14px; font-size: 0.8rem; color: var(--muted); margin-top: 12px; }
+.key i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -2px; margin-inline-end: 6px; }
+.hl { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 0.86rem; }
+.hl li { display: flex; justify-content: space-between; gap: 10px; }
+.hl li span:last-child { font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted); white-space: nowrap; }
+.acts { display: flex; gap: 10px; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · UAE</span>
+    <h1 style="font-size:var(--step-3)">Holiday planner.</h1>
+    <p>Put a leave day or two next to a public holiday and a weekend, and a short break becomes a proper trip. Tell it how many leave days you have, and it finds the plan that gives you the most days off.</p>
+  </div>
+  <div class="ctrls">
+    <label>Year <select id="yr"></select></label>
+    <label>Leave days to use <input type="number" id="budget" min="1" max="60" value="10"></label>
+    <label>Weekend <select id="we"><option value="6,0">Saturday and Sunday</option><option value="5,6">Friday and Saturday</option><option value="5">Friday only</option></select></label>
+    <label>Plan from <select id="from"><option value="today">today</option><option value="jan">1 January</option></select></label>
+  </div>
+  <div class="game" style="margin-top:18px">
+    <div style="display:grid;gap:10px">
+      <span class="label">Your best breaks</span>
+      <ul class="plans" id="plans"></ul>
+      <div class="acts"><button class="btn primary" type="button" id="ics">Add the plan to my calendar</button></div>
+    </div>
+    <div class="panel" style="display:grid;gap:12px">
+      <div class="stats">
+        <div><span class="label">Leave used</span><b id="sL">—</b></div>
+        <div><span class="label">Days off</span><b id="sO">—</b></div>
+        <div><span class="label">Multiplier</span><b id="sM">—</b></div>
+      </div>
+      <span class="label">Public holidays</span>
+      <ul class="hl" id="hl"></ul>
+      <p class="fact">Islamic holidays follow the moon and are estimated from the Umm al-Qura calendar, so they can shift by a day once the moon is sighted. The government sometimes also moves a holiday to make a long weekend. Check the official announcement before booking flights.</p>
+    </div>
+  </div>
+  <div class="key"><span><i style="background:var(--accent)"></i>public holiday</span><span><i style="background:var(--sat-b)"></i>suggested leave</span><span><i style="background:rgba(120,132,190,.3)"></i>weekend</span></div>
+  <div class="cal" id="cal"></div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var DAY = 864e5, MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  var hijri = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura-nu-latn', { day: 'numeric', month: 'numeric', year: 'numeric', timeZone: 'UTC' });
+  function h(d) { var p = {}; hijri.formatToParts(d).forEach(function (x) { p[x.type] = +x.value; }); return p; }
+  function utc(y, m, d) { return new Date(Date.UTC(y, m, d)); }
+  function key(d) { return d.toISOString().slice(0, 10); }
+  function holidays(y) {
+    var out = [];
+    function add(d, name, est) { out.push({ d: d, k: key(d), name: name, est: est }); }
+    add(utc(y, 0, 1), 'New Year\'s Day');
+    for (var t = utc(y, 0, 1); t.getUTCFullYear() === y; t = new Date(+t + DAY)) {
+      var x = h(t);
+      if (x.month === 10 && x.day <= 3) add(t, 'Eid al-Fitr', 1);
+      if (x.month === 9 && x.day === 29) add(t, 'Eid al-Fitr (eve)', 1);
+      if (x.month === 12 && x.day === 9) add(t, 'Arafat Day', 1);
+      if (x.month === 12 && x.day >= 10 && x.day <= 12) add(t, 'Eid al-Adha', 1);
+      if (x.month === 1 && x.day === 1) add(t, 'Islamic New Year', 1);
+      if (x.month === 3 && x.day === 12) add(t, 'Prophet\'s Birthday', 1);
+    }
+    add(utc(y, 11, 1), 'Commemoration Day'); add(utc(y, 11, 2), 'National Day'); add(utc(y, 11, 3), 'National Day');
+    out.sort(function (a, b) { return a.d - b.d; });
+    return out;
+  }
+  function plan() {
+    var y = +$('yr').value, budget = Math.max(1, Math.min(60, +$('budget').value || 1)), we = $('we').value.split(',').map(Number);
+    var hs = holidays(y), H = {}; hs.forEach(function (x) { H[x.k] = x.name; });
+    var start = utc(y, 0, 1), end = utc(y, 11, 31), now = new Date(), t0 = utc(now.getFullYear(), now.getMonth(), now.getDate());
+    var from = $('from').value === 'today' && y === now.getFullYear() ? t0 : start;
+    var days = []; for (var t = new Date(start); t <= end; t = new Date(+t + DAY)) days.push({ d: t, k: key(t), off: we.indexOf(t.getUTCDay()) >= 0 || !!H[key(t)], we: we.indexOf(t.getUTCDay()) >= 0, ph: H[key(t)], past: t < from });
+    // every window that starts after a working day and ends before one, needing L leave days (L ≤ 9)
+    var cands = [];
+    for (var i = 0; i < days.length; i++) {
+      if (days[i].past) continue;
+      var leave = 0, hasPH = false;
+      for (var j = i; j < days.length && j - i < 23; j++) {
+        if (!days[j].off) leave++;
+        if (days[j].ph && !days[j].we) hasPH = true;
+        if (leave > 9) break;
+        var startsRight = i === 0 || !days[i - 1].off, endsRight = j === days.length - 1 || !days[j + 1].off;
+        var len = j - i + 1, firstOff = days[i].off || leave, lastOff = days[j].off || leave;
+        if (leave >= 1 && startsRight && endsRight && hasPH && len >= 4) cands.push({ i: i, j: j, leave: leave, len: len, r: len / leave });
+      }
+    }
+    // knapsack over non-overlapping windows: maximise days off within the budget
+    cands.sort(function (a, b) { return a.j - b.j; });
+    var n = cands.length, best = [], choice = [];
+    function prevIdx(c) { var lo = -1; for (var k = 0; k < n; k++) if (cands[k].j < c.i - 0) lo = k; else break; return lo; }
+    var P = cands.map(prevIdx);
+    for (var c = 0; c <= n; c++) { best.push(new Array(budget + 1).fill(0)); choice.push(new Array(budget + 1).fill(false)); }
+    for (c = 1; c <= n; c++) for (var b = 0; b <= budget; b++) {
+      best[c][b] = best[c - 1][b];
+      var w = cands[c - 1];
+      if (w.leave <= b) { var v = best[P[c - 1] + 1][b - w.leave] + w.len + 0.001 * w.r; if (v > best[c][b]) { best[c][b] = v; choice[c][b] = true; } }
+    }
+    var picked = []; b = budget;
+    for (c = n; c > 0;) { if (choice[c][b]) { picked.push(cands[c - 1]); b -= cands[c - 1].leave; c = P[c - 1] + 1; } else c--; }
+    picked.reverse();
+    var LV = {}; picked.forEach(function (p) { for (var q = p.i; q <= p.j; q++) if (!days[q].off) LV[days[q].k] = 1; });
+    var used = picked.reduce(function (s, p) { return s + p.leave; }, 0), off = picked.reduce(function (s, p) { return s + p.len; }, 0);
+    $('sL').textContent = used; $('sO').textContent = off; $('sM').textContent = used ? (off / used).toFixed(1) + '×' : '—';
+    function fmt(d) { return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }); }
+    $('plans').innerHTML = picked.length ? picked.map(function (p) {
+      var why = []; for (var q = p.i; q <= p.j; q++) if (days[q].ph && why.indexOf(days[q].ph) < 0) why.push(days[q].ph.replace(' (eve)', ''));
+      var lv = []; for (q = p.i; q <= p.j; q++) if (!days[q].off) lv.push(days[q].d);
+      return '<li><span class="n">' + p.len + '<small>days off</small></span><span><b>' + fmt(days[p.i].d) + ' – ' + fmt(days[p.j].d) + '</b><p>' + why.join(' + ') + '. Take ' + lv.map(function (d) { return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' }); }).join(', ') + '.</p></span><span class="ratio">' + p.leave + ' leave</span></li>';
+    }).join('') : '<li><span></span><span>No holiday breaks left to stretch this year. Try next year.</span><span></span></li>';
+    var groups = []; hs.forEach(function (x) { var nm = x.name.replace(' (eve)', ''), g = groups[groups.length - 1]; if (g && g.name === nm && (x.d - g.to) <= DAY) g.to = x.d; else groups.push({ name: nm, from: x.d, to: x.d, est: x.est }); });
+    $('hl').innerHTML = groups.map(function (g) { return '<li><span>' + g.name + (g.est ? ' *' : '') + '</span><span>' + fmt(g.from) + (g.to > g.from ? ' – ' + fmt(g.to) : '') + '</span></li>'; }).join('');
+    var tk = key(t0), html = '';
+    for (var m = 0; m < 12; m++) {
+      var first = utc(y, m, 1), pad = first.getUTCDay(), dim = new Date(Date.UTC(y, m + 1, 0)).getUTCDate();
+      html += '<div class="mon"><h3>' + MONTHS[m] + '</h3><div class="g">' + ['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(function (x) { return '<span class="h">' + x + '</span>'; }).join('') + new Array(pad + 1).join('<span></span>');
+      for (var dd = 1; dd <= dim; dd++) { var k2 = key(utc(y, m, dd)), dy = days.filter(function (z) { return z.k === k2; })[0]; html += '<span class="' + (dy.ph ? 'ph' : LV[k2] ? 'lv' : dy.we ? 'we' : '') + (k2 === tk ? ' td' : '') + '" title="' + (dy.ph || (LV[k2] ? 'take leave' : '')) + '">' + dd + '</span>'; }
+      html += '</div></div>';
+    }
+    $('cal').innerHTML = html;
+    $('ics').onclick = function () {
+      var ev = picked.map(function (p, n) { var e = new Date(+days[p.j].d + DAY); return ['BEGIN:VEVENT', 'UID:hol' + y + n + '@lab.mariamalzaabi.ae', 'DTSTAMP:' + new Date().toISOString().replace(/[-:]/g, '').slice(0, 15) + 'Z', 'DTSTART;VALUE=DATE:' + days[p.i].k.replace(/-/g, ''), 'DTEND;VALUE=DATE:' + key(e).replace(/-/g, ''), 'SUMMARY:Break: ' + p.len + ' days off (' + p.leave + ' leave)', 'END:VEVENT'].join('\r\n'); });
+      var ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Mariam\'s Lab//Holiday planner//EN'].concat(ev, ['END:VCALENDAR']).join('\r\n');
+      var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([ics], { type: 'text/calendar' })); a.download = 'holiday-plan-' + y + '.ics'; a.click();
+    };
+  }
+  var cy = new Date().getFullYear(); [cy, cy + 1].forEach(function (y) { var o = document.createElement('option'); o.value = y; o.textContent = y; $('yr').appendChild(o); });
+  if (new Date().getMonth() >= 10) $('yr').value = cy + 1;
+  ['yr', 'budget', 'we', 'from'].forEach(function (k) { $(k).addEventListener('input', plan); $(k).addEventListener('change', plan); });
+  plan();
+})();
+</script>
+</body>
+</html>
