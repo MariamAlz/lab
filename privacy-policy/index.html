@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Privacy Policy Reader · Mariam's Lab</title>
+<meta name="description" content="Paste a privacy policy or terms of service in English or Arabic and see what it says about selling your data, ads, AI training, retention, deletion and more, with the exact quotes highlighted.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/privacy-policy/">
+<meta property="og:title" content="Privacy Policy Reader · Mariam's Lab"><meta property="og:description" content="What a privacy policy really says about your data, highlighted in English or Arabic."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; text-decoration: none; display: inline-block; }
+.sm.pri { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.pills { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 0; }
+#src { font: inherit; font-size: 0.9rem; color: var(--ink); background: rgba(7, 10, 24, 0.6); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; width: 100%; min-height: 14em; resize: vertical; unicode-bidi: plaintext; }
+.grade { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 16px; align-items: center; padding: 16px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+.grade .g { font-family: var(--font-display); font-weight: 800; font-size: 3.6rem; line-height: 1; width: 1.4em; height: 1.4em; display: grid; place-items: center; border-radius: 16px; color: #0b0f1f; background: var(--gc, var(--line)); }
+.grade p { margin: 0; color: var(--muted); font-size: 0.9rem; }
+.grade b { font-size: 1.1rem; }
+.cats { display: grid; gap: 10px; }
+.cat { border: 1px solid var(--line); border-inline-start: 5px solid var(--sc); border-radius: 12px; padding: 12px 14px; background: var(--surface); display: grid; gap: 6px; scroll-margin-top: 90px; }
+.cat h3 { margin: 0; font-size: 1rem; display: flex; gap: 8px; flex-wrap: wrap; align-items: baseline; justify-content: space-between; }
+.cat .sev { font-family: var(--font-mono); font-size: 0.7rem; padding: 2px 8px; border-radius: 99px; background: var(--sc); color: #0b0f1f; white-space: nowrap; }
+.cat p { margin: 0; font-size: 0.88rem; color: var(--muted); }
+.cat blockquote { margin: 0; font-size: 0.84rem; padding: 6px 10px; border-radius: 8px; background: rgba(7, 10, 24, 0.45); unicode-bidi: plaintext; overflow-wrap: anywhere; }
+.cat blockquote mark { background: color-mix(in srgb, var(--sc) 40%, transparent); color: inherit; border-radius: 3px; }
+.cat .dur { display: flex; gap: 5px; flex-wrap: wrap; }
+.cat .dur span { font-family: var(--font-mono); font-size: 0.76rem; padding: 2px 8px; border-radius: 6px; border: 1px solid var(--sc); }
+.cat .cnt { font-size: 0.76rem; color: var(--muted); }
+.hl { font-size: 0.88rem; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; max-height: 34em; overflow: auto; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: rgba(7, 10, 24, 0.45); unicode-bidi: plaintext; }
+.hl mark { color: inherit; border-radius: 3px; padding: 0 1px; cursor: pointer; background: color-mix(in srgb, var(--sc) 38%, transparent); border-bottom: 2px solid var(--sc); }
+.legend2 { display: flex; gap: 10px; flex-wrap: wrap; font-size: 0.76rem; color: var(--muted); }
+.legend2 span::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-inline-end: 4px; vertical-align: -1px; background: var(--c); }
+.todo { margin: 0; padding-inline-start: 1.2em; display: grid; gap: 6px; font-size: 0.9rem; }
+.found { display: grid; gap: 4px; font-size: 0.86rem; }
+.found a { font-family: var(--font-mono); font-size: 0.8rem; overflow-wrap: anywhere; color: var(--sat-b); }
+.missing { display: flex; gap: 6px; flex-wrap: wrap; }
+.missing span { font-size: 0.78rem; padding: 3px 9px; border-radius: 99px; border: 1px dashed var(--sat-c); color: var(--sat-c); }
+.warnbox { padding: 10px 12px; border: 1px solid var(--accent); border-radius: 10px; font-size: 0.85rem; background: color-mix(in srgb, var(--accent) 10%, transparent); }
+[hidden] { display: none !important; }
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Security · Privacy</span>
+    <h1 style="font-size:var(--step-3)">Privacy policy reader.</h1>
+    <p>Nobody reads the whole privacy policy. Paste one here, in English or Arabic, and see the parts that matter: whether your data is sold or shared, used for ads or AI training, how long it's kept, and how to get it deleted. Each finding comes with the exact quote.</p>
+  </div>
+  <div class="game">
+    <div class="panel">
+      <span class="label">Paste the policy or terms</span>
+      <textarea id="src" placeholder="Paste the text of a privacy policy or terms of service here" spellcheck="false" dir="auto"></textarea>
+      <div class="pills"><button class="sm pri" type="button" id="go">Read it</button><button class="sm" type="button" id="sEn">English sample</button><button class="sm" type="button" id="sAr">Arabic sample</button><button class="sm" type="button" id="clr">Clear</button></div>
+      <p class="msg" id="msg" role="status">The text stays on your device. Nothing is uploaded.</p>
+      <div id="out" hidden style="display:grid;gap:14px">
+        <div class="grade" id="grade"></div>
+        <span class="label">Highlighted text</span>
+        <div class="legend2"><span style="--c:#ff4f6d">High concern</span><span style="--c:#ffc857">Some concern</span><span style="--c:#84a0ff">Worth knowing</span><span style="--c:#4fd3bd">Good sign</span></div>
+        <div class="hl" id="hl" data-noar></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div id="side" hidden style="display:grid;gap:14px">
+        <span class="label">What you can do</span>
+        <ol class="todo" id="todo"></ol>
+        <div class="found" id="contacts"></div>
+        <div id="missWrap" style="display:grid;gap:6px"><span class="label">Not found in the text</span><div class="missing" id="miss"></div></div>
+        <span class="label">What it says</span>
+        <div class="cats" id="cats"></div>
+      </div>
+      <p class="fact" style="margin:0">This works by matching about 30 kinds of phrases, like "share with our partners" or "مقابل ذي قيمة", in both languages. It doesn't understand the text the way a lawyer does, so it can miss clauses written in unusual words, and a sentence like "we never sell your data" is shown as a good sign rather than a warning.</p>
+      <p class="fact" style="margin:0">In the UAE, the Personal Data Protection Law (Federal Decree-Law No. 45 of 2021) gives people rights over their personal data, such as access and correction, and sets rules for sending it outside the country. Free zones like DIFC and ADGM have their own data protection laws.</p>
+      <p class="warnbox">This is a reading aid, not legal advice. For anything important, read the full policy and ask a qualified adviser.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var SEV = { high: ['High concern', '#ff4f6d', 12], med: ['Some concern', '#ffc857', 6], info: ['Worth knowing', '#84a0ff', 0], good: ['Good sign', '#4fd3bd', -4], neg: ['Says it does not', '#4fd3bd', -3] };
+  // [id, name, severity, neg-check, english patterns, arabic patterns, what it means]
+  var CATS = [
+    ['sell', 'Selling your data', 'high', 1, ['\\bsell(s|ing)?\\b[^.]{0,60}(personal|your|data|information)', '\\bsale of (your )?(personal )?(data|information)', 'valuable consideration', 'monetary or other valuable'], ['نبيع', 'بيع (بيانات|معلومات|البيانات|المعلومات)', 'مقابل (مادي|مالي|ذي قيمه)', 'قيمه ماليه'], 'Your data may be sold, or traded for something of value, which many laws treat the same as selling.'],
+    ['share', 'Sharing with third parties', 'med', 1, ['shar(e|es|ing)\\b[^.]{0,80}(third[- ]part|partners|affiliates|service providers|group companies)', 'disclos(e|ure)[^.]{0,60}third[- ]part'], ['(نشارك|مشاركه|نفصح|الافصاح)[^.]{0,80}(اطراف ثالثه|طرف ثالث|شركائنا|الشركاء|الشركات التابعه)'], 'Your data goes to other companies. Check who they are and what they may do with it.'],
+    ['advertisers', 'Sharing with advertisers', 'high', 1, ['advertis(ers|ing partners)', '\\bad networks?', 'marketing partners'], ['المعلنين', 'شركاء (الاعلان|التسويق)', 'شبكات الاعلان'], 'Advertising companies receive data about you, which can follow you across other apps and sites.'],
+    ['targeted', 'Targeted advertising', 'med', 1, ['targeted (ads|advertising)', 'interest[- ]based', 'personali[sz]ed (ads|advertising|advertisements)', 'behaviou?ral advertising', 'cross[- ]context', 'retarget'], ['اعلانات (مخصصه|موجهه|مستهدفه)', 'الاعلانات (المخصصه|الموجهه)', 'حسب اهتماماتك'], 'Ads are chosen based on a profile of what you do and like.'],
+    ['brokers', 'Data from brokers or other sources', 'high', 1, ['data brokers?', 'data providers', 'publicly available sources', 'third[- ]party sources', 'from other sources'], ['وسطاء البيانات', 'مزودي البيانات', 'مصادر (اخرى|خارجيه|متاحه للعامه)'], 'They also collect information about you from outside companies, not only from what you give them.'],
+    ['ai', 'AI and model training', 'high', 1, ['train(ing)?\\b[^.]{0,40}(models?|artificial intelligence|machine learning|\\bai\\b|algorithms)', '(develop|improve)[^.]{0,30}(\\bai\\b|artificial intelligence|machine learning|models)', 'generative'], ['(تدريب|لتدريب)[^.]{0,40}(نماذج|النماذج|الذكاء الاصطناعي|التعلم الالي)', 'الذكاء الاصطناعي'], 'What you write, upload or say may be used to train AI systems.'],
+    ['retention', 'How long data is kept', 'info', 0, ['\\bretain', 'retention', 'keep (your|personal)', '\\bkept\\b', 'stored? [^.]{0,40}\\bfor\\b', 'deleted (within|after)'], ['نحتفظ', 'الاحتفاظ', 'مده التخزين', 'نخزن', 'نحذف[^.]{0,30}(خلال|بعد)'], 'The policy says how long your data is stored. Shorter is better.'],
+    ['indef', 'Kept as long as they like', 'med', 0, ['as long as (it is |is )?(necessary|needed|required|we need)', 'indefinitely', 'for as long as'], ['طالما (كان )?(ذلك )?(ضروريا|ضروري|لازما)', 'الى اجل غير مسمى', 'المده اللازمه', 'طالما لزم'], 'No fixed time limit, so your data may be kept for years.'],
+    ['delete', 'Right to delete', 'good', 0, ['right to (delete|deletion|erasure|be forgotten)', 'request (the )?(deletion|erasure)', 'delete (your|the) (personal )?(data|information)', '\\berase'], ['الحق في (حذف|الحذف|محو|المحو)', 'طلب (حذف|محو)', 'حذف بياناتك'], 'You can ask for your data to be deleted.'],
+    ['access', 'Access and correction', 'good', 0, ['right to (access|correct|rectif|portab|obtain a copy)', 'copy of (your|the) (personal )?(data|information)', 'data portability'], ['الحق في (الوصول|الاطلاع|تصحيح|التصحيح|نقل)', 'نسخه من بياناتك'], 'You can see a copy of your data and fix mistakes.'],
+    ['optout', 'Opt-out options', 'good', 0, ['opt[- ]out', 'unsubscribe', 'do not sell', 'withdraw (your )?consent', 'manage (your )?preferences'], ['الانسحاب من', 'الغاء الاشتراك', 'سحب (موافقتك|الموافقه)', 'ايقاف (تلقي|الاعلانات)'], 'There is a way to say no to some uses of your data.'],
+    ['location', 'Location', 'med', 1, ['precise location', 'geolocation', '\\bgps\\b', 'location (data|information)', 'your location'], ['الموقع الجغرافي', 'موقعك', 'بيانات الموقع', 'نظام تحديد المواقع'], 'Where you are and where you go. This can reveal home, work and habits.'],
+    ['biometric', 'Biometrics (face, fingerprint, voice)', 'high', 1, ['biometric', 'face ?prints?', 'facial (recognition|geometry)', 'fingerprints?', 'voice ?prints?', '\\biris'], ['البيومتري', 'الحيويه', 'بصمه (الوجه|الاصبع|الصوت)', 'التعرف على الوجه', 'بصمات'], 'Body data like your face or fingerprint. You can change a password, but not your face.'],
+    ['contacts', 'Your contacts', 'med', 1, ['address book', 'contact list', 'your contacts', 'phone contacts', 'access (to )?your contacts'], ['جهات الاتصال', 'دفتر العناوين'], 'Names and numbers of people who never agreed to share them.'],
+    ['media', 'Camera, microphone and photos', 'med', 1, ['microphone', '\\bcamera', 'photo (library|gallery)', 'your photos', 'media files', 'voice recordings'], ['الميكروفون', 'الكاميرا', 'معرض الصور', 'صورك', 'التسجيلات الصوتيه'], 'Access to what your phone sees and hears.'],
+    ['children', 'Children', 'info', 0, ['children', "child's", 'under (the age of )?1[3-8]', '\\bminors\\b', 'parental consent'], ['الاطفال', 'القاصرين', 'دون سن', 'موافقه (الوالدين|ولي الامر)'], 'Rules for kids. Check the minimum age if your children use it.'],
+    ['sensitive', 'Health or financial data', 'med', 1, ['health (data|information)', '\\bmedical', 'financial information', 'credit card', 'bank (account|details)', 'religio', 'ethnic', 'political opinions'], ['بيانات صحيه', 'الصحيه', 'الطبيه', 'المعلومات الماليه', 'بطاقه الائتمان', 'الحساب المصرفي', 'البنكي', 'المعتقدات الدينيه'], 'Sensitive kinds of data that deserve extra care.'],
+    ['transfer', 'Sending data abroad', 'med', 0, ['transfer(red|s)?\\b[^.]{0,60}(outside|other countries|abroad|international|another country)', 'cross[- ]border', 'international (data )?transfers?', 'servers? (located )?(in|outside) '], ['نقل[^.]{0,60}(خارج|دول اخرى|الخارج)', 'عبر الحدود', 'خوادم (موجوده|تقع)'], 'Your data may be stored or processed in other countries. Under the UAE PDPL, transfers abroad generally need adequate protection or other safeguards.'],
+    ['law', 'Sharing with authorities', 'info', 0, ['law enforcement', 'government (authorities|agencies|requests)', 'legal process', 'subpoena', 'court order', 'comply with (the )?(law|legal|applicable)', 'public authorities'], ['جهات انفاذ القانون', 'السلطات (المختصه|الحكوميه)', 'امر (قضائي|محكمه)', 'الامتثال (للقانون|للقوانين)', 'الجهات الحكوميه'], 'Data is handed over when the law requires it. Normal, but good policies say they check each request.'],
+    ['notify', 'Tells you about changes', 'good', 0, ['(notify|inform|tell|email) you\\b[^.]{0,60}(change|update)', '(changes?|updates?) to (this|our|these) (policy|terms)[^.]{0,80}(notify|email|notice)'], ['(نخطرك|سنخطرك|سنبلغك|نبلغك|اشعارك|سنرسل)[^.]{0,60}(تغيير|تعديل|تحديث|تغييرات|تعديلات)'], 'You will be told before the rules change.'],
+    ['silent', 'Can change without telling you', 'high', 0, ['without (prior |further )?notice', 'continued use[^.]{0,80}(accept|agree|consent|constitutes)', 'sole discretion'], ['دون (اشعار|اخطار)', 'استمرار(ك)? في استخدام[^.]{0,60}(موافقه|قبول)', 'وفق تقديرنا'], 'The rules can change, and just keeping the app counts as agreeing.'],
+    ['arbitration', 'Arbitration instead of court', 'high', 0, ['arbitrat'], ['التحكيم', 'تحكيم'], 'Disputes go to a private arbitrator instead of a court, which usually favours the company.'],
+    ['classaction', 'Class-action waiver', 'high', 0, ['class[- ]action', 'representative (action|proceeding)', 'waive[^.]{0,40}(jury|class)'], ['دعوى جماعيه', 'الدعاوى الجماعيه', 'التنازل عن[^.]{0,30}(الدعوى|المحاكمه|حق)'], 'You give up the right to join with other users in one case.'],
+    ['cookies', 'Cookies', 'info', 0, ['cookies?', 'web beacons?', 'pixel tags?', 'tracking pixels?'], ['ملفات تعريف الارتباط', 'الكوكيز', 'ملفات الارتباط'], 'Small files and pixels that remember you between visits.'],
+    ['tracking', 'Tracking across apps and devices', 'med', 1, ['device (identifiers?|ids?)\\b', 'advertising (ids?|identifiers?)\\b', '\\bidfa\\b', 'fingerprinting', '\\bsdks?\\b', 'tracking technologies', 'across (other )?(websites|apps|services|devices)'], ['معرفات (الجهاز|الاعلان)', 'معرف الجهاز', 'تقنيات التتبع', 'عبر (مواقع|تطبيقات) اخرى', 'التتبع'], 'Identifiers that link what you do here with what you do elsewhere.'],
+    ['combine', 'Combining data', 'med', 0, ['combine[^.]{0,80}(information|data)', 'merge[^.]{0,40}(data|information)'], ['(ندمج|دمج)[^.]{0,60}(البيانات|المعلومات|معلومات)'], 'Data from different places is joined into one profile.'],
+    ['account', 'Account deletion', 'good', 0, ['delete your account', 'close your account', 'account deletion', 'deactivate (your )?account', 'terminate your account'], ['حذف حسابك', 'اغلاق حسابك', 'حذف الحساب', 'الغاء (تفعيل )?الحساب'], 'There is a way to close your account.'],
+    ['breach', 'Breach notification', 'good', 0, ['(data|security|personal data) breach', 'unauthori[sz]ed access[^.]{0,80}notify', 'notify you[^.]{0,60}(breach|incident)'], ['اختراق', 'خرق (البيانات|امني)', 'حادث امني', 'وصول غير مصرح'], 'They mention what happens if your data is leaked or stolen.'],
+    ['security', 'Security measures', 'info', 0, ['encrypt', 'safeguards', 'security measures', 'industry[- ]standard'], ['التشفير', 'مشفره', 'تدابير (امنيه|الحمايه)', 'اجراءات امنيه'], 'How they say they protect your data. Vague promises are common.'],
+    ['license', 'Licence to your content', 'high', 0, ['(worldwide|perpetual|irrevocable|royalty[- ]free)[^.]{0,80}licen[cs]e', 'licen[cs]e to (use|reproduce|modify)'], ['ترخيص[^.]{0,60}(عالمي|دائم|غير قابل للالغاء|مجاني)', 'حق استخدام (المحتوى|محتواك)'], 'They can use, copy or change what you post, sometimes forever.'],
+    ['contact', 'Privacy contact', 'good', 0, ['data protection officer', '\\bdpo\\b', 'privacy (team|office)', 'contact us'], ['مسؤول حمايه البيانات', 'اتصل بنا', 'تواصل معنا', 'راسلنا'], 'There is a named contact for privacy questions.'],
+    ['lawref', 'Mentions data protection law', 'info', 0, ['\\bpdpl\\b', 'federal decree[- ]law', '45 of 2021', '\\bgdpr\\b', 'data protection law'], ['قانون حمايه البيانات', 'مرسوم بقانون اتحادي', '45 لسنه 2021'], 'The policy refers to a data protection law, which can give you extra rights.']
+  ];
+  var IMPORTANT = ['delete', 'retention', 'optout', 'contact', 'breach'];
+  var NEG_EN = /\b(do not|don't|does not|doesn't|never|will not|won't|not|no)\b/i, NEG_AR = /(^|\s)و?(لا|لن|لم|ليس|ليست|ابدا)(\s|$)/;
+  function normAr(s) { return s.replace(/[أإآٱ]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه'); }
+  function compile(src) { return new RegExp(normAr(src).replace(/\[\^\.\]/g, '[^.!?؟\\n]'), 'gi'); }
+  CATS.forEach(function (c) { c.re = c[4].concat(c[5]).map(compile); });
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function sentenceAt(text, i) {
+    var a = i, b = i, stop = function (k) { var c = text[k]; return /[!?؟\n]/.test(c) || (c === '.' && (k + 1 >= text.length || /\s/.test(text[k + 1]))); };
+    while (a > 0 && !stop(a - 1)) a--;
+    while (b < text.length && !stop(b)) b++;
+    return [a, Math.min(text.length, b + 1)];
+  }
+  var DUR = /\b(\d+|one|two|three|four|five|six|seven|eight|ten|twelve|eighteen|twenty[- ]four|thirty|sixty|ninety)\s*(\(\d+\)\s*)?(days?|weeks?|months?|years?)\b|(\d+)\s*(يوم|ايام|اسبوع|اسابيع|شهر|اشهر|سنه|سنوات|عام|اعوام)[\u064B\u064Eا]*|(سنتين|عامين|شهرين|يومين|ثلاث|خمس|سبع|عشر)\s*(سنوات|اعوام|اشهر|ايام)?/gi;
+  function analyse(text) {
+    var low = normAr(text.toLowerCase()), spans = [], res = {};
+    CATS.forEach(function (c, ci) {
+      var hits = [];
+      c.re.forEach(function (re) { re.lastIndex = 0; var m; while ((m = re.exec(low))) { if (!m[0].length) { re.lastIndex++; continue; } hits.push([m.index, m.index + m[0].length]); } });
+      if (!hits.length) return;
+      hits.sort(function (a, b) { return a[0] - b[0]; });
+      var neg = 0, pos = 0, sents = [], seen = {};
+      hits.forEach(function (h) {
+        var s = sentenceAt(text, h[0]), before = low.slice(s[0], h[0]), isNeg = c[3] && (NEG_EN.test(before) || NEG_AR.test(before));
+        if (isNeg) neg++; else pos++;
+        h.push(ci, isNeg);
+        spans.push(h);
+        if (!seen[s[0]] && sents.length < 3) { seen[s[0]] = 1; sents.push([s[0], s[1], h[0], h[1]]); }
+      });
+      res[c[0]] = { c: c, n: hits.length, neg: neg, pos: pos, sev: pos ? c[2] : 'neg', sents: sents };
+      if (c[0] === 'retention' || c[0] === 'indef' || c[0] === 'delete') {
+        var host = res.retention || res.indef || res.delete || res[c[0]], durs = host.durs || (host.durs = []); hits.forEach(function (h) { var s = sentenceAt(text, h[0]), part = low.slice(s[0], s[1]), m; DUR.lastIndex = 0; while ((m = DUR.exec(part))) { var d = text.substr(s[0] + m.index, m[0].length).trim(); if (durs.indexOf(d) < 0) durs.push(d); } });
+      }
+    });
+    return { res: res, spans: spans };
+  }
+  function quoteHtml(text, q) {
+    var a = q[0], b = q[1], s = text.slice(a, b).trim(), off = text.slice(a, b).search(/\S/);
+    var ms = q[2] - a - off, me = q[3] - a - off;
+    var cut = 0; if (s.length > 280) { cut = Math.max(0, Math.min(ms - 60, s.length - 280)); s = s.slice(cut, cut + 280); ms -= cut; me -= cut; }
+    return (cut ? '…' : '') + esc(s.slice(0, ms)) + '<mark>' + esc(s.slice(ms, me)) + '</mark>' + esc(s.slice(me)) + (cut + 280 < text.slice(a, b).trim().length ? '…' : '');
+  }
+  function highlight(text, spans) {
+    spans.sort(function (a, b) { return a[0] - b[0] || (b[1] - b[0]) - (a[1] - a[0]); });
+    var out = '', pos = 0;
+    spans.forEach(function (s) {
+      if (s[0] < pos) return;
+      var c = CATS[s[2]], col = SEV[s[3] ? 'neg' : c[2]][1];
+      out += esc(text.slice(pos, s[0])) + '<mark data-c="' + c[0] + '" style="--sc:' + col + '">' + esc(text.slice(s[0], s[1])) + '</mark>';
+      pos = s[1];
+    });
+    return out + esc(text.slice(pos));
+  }
+  var TODO = {
+    sell: 'Look for a "Do not sell or share my data" link or setting and use it.',
+    advertisers: 'Turn off ad personalisation in your phone settings, and reset your advertising ID now and then.',
+    targeted: 'Turn off ad personalisation in your account settings if there is an option.',
+    tracking: 'On iPhone, choose "Ask App Not to Track". On Android, delete your advertising ID in privacy settings.',
+    ai: 'Look for a setting to opt out of AI training, and avoid uploading anything you wouldn\'t want reused.',
+    location: 'Set location access to "While using the app" or "Never" in your phone settings.',
+    contacts: 'Deny access to contacts unless a feature you really use needs it.',
+    media: 'Only allow camera, microphone and photo access when you use those features. Choose "Selected photos" where you can.',
+    biometric: 'Avoid face or fingerprint features in this service if you can use a password or PIN instead.',
+    indef: 'Delete old content and close the account when you stop using it, since there is no fixed time limit.',
+    delete: 'You can ask for your data to be deleted. Send a written request and keep a copy.',
+    access: 'You can ask for a copy of your data. It\'s a good way to see what they hold.',
+    account: 'Delete the account when you stop using the service. Uninstalling the app is not enough.',
+    arbitration: 'Read the arbitration section closely. Some services let you opt out of it by writing to them within a short time.',
+    classaction: 'If this matters to you, look for an opt-out from the waiver, usually within 30 days of signing up.',
+    silent: 'Check the policy again now and then, since it can change without a direct notice.',
+    cookies: 'Choose "Reject" or "Necessary only" in the cookie banner, and clear cookies regularly.',
+    children: 'If children use the service, check the minimum age and the parental controls.',
+    transfer: 'If it matters to you where your data is stored, ask the company which countries it goes to.',
+    sensitive: 'Share health or financial details only when needed, and use separate apps for them where possible.'
+  };
+  var ORDER = ['sell', 'advertisers', 'ai', 'biometric', 'tracking', 'targeted', 'location', 'contacts', 'media', 'sensitive', 'indef', 'silent', 'arbitration', 'classaction', 'delete', 'access', 'account', 'cookies', 'children', 'transfer'];
+  function gradeOf(r) {
+    var s = 100;
+    Object.keys(r).forEach(function (k) { s -= SEV[r[k].sev][2]; });
+    IMPORTANT.forEach(function (k) { if (!r[k]) s -= 5; });
+    s = Math.max(0, Math.min(100, s));
+    return s >= 85 ? ['A', '#4fd3bd', 'Fairly privacy-friendly.'] : s >= 70 ? ['B', '#c9e264', 'Mostly fine, with a few things to watch.'] : s >= 55 ? ['C', '#ffc857', 'Some real trade-offs. Read the flagged parts.'] : s >= 40 ? ['D', '#ff8a4c', 'Collects and shares a lot. Change your settings.'] : ['E', '#ff4f6d', 'Very data-hungry. Think twice before using it.'];
+  }
+  function run() {
+    var text = $('src').value;
+    if (text.trim().length < 80) { $('msg').textContent = 'Paste a bit more text: at least a few sentences.'; $('out').hidden = true; $('side').hidden = true; return; }
+    var A = analyse(text), r = A.res, keys = Object.keys(r);
+    var g = gradeOf(r), counts = { high: 0, med: 0, good: 0 };
+    keys.forEach(function (k) { var s = r[k].sev; if (s === 'neg') s = 'good'; if (counts[s] != null) counts[s]++; });
+    $('grade').style.setProperty('--gc', g[1]);
+    $('grade').innerHTML = '<div class="g" data-noar>' + g[0] + '</div><div><b>' + g[2] + '</b><p>' + counts.high + ' high concerns, ' + counts.med + ' smaller concerns, ' + counts.good + ' good signs.</p><p>A rough grade from the phrases found. It is not a legal rating.</p></div>';
+    $('hl').innerHTML = highlight(text, A.spans);
+    var rank = { high: 0, med: 1, neg: 2, good: 3, info: 4 };
+    keys.sort(function (a, b) { return rank[r[a].sev] - rank[r[b].sev] || CATS.indexOf(r[a].c) - CATS.indexOf(r[b].c); });
+    $('cats').innerHTML = keys.map(function (k) {
+      var x = r[k], c = x.c, sv = SEV[x.sev];
+      var h = '<div class="cat" id="cat-' + k + '" style="--sc:' + sv[1] + '"><h3><span>' + c[1] + '</span><span class="sev">' + sv[0] + '</span></h3>';
+      h += '<p>' + (x.sev === 'neg' ? 'The text says it does not do this. Check the wording.' : c[6]) + '</p>';
+      if (x.durs && x.durs.length) h += '<div class="dur" data-noar>' + x.durs.map(function (d) { return '<span>' + esc(d) + '</span>'; }).join('') + '</div>';
+      h += x.sents.map(function (q) { return '<blockquote data-noar dir="auto">' + quoteHtml(text, q) + '</blockquote>'; }).join('');
+      h += '<span class="cnt">' + (x.n === 1 ? 'Found once' : 'Found ' + x.n + ' times') + '</span></div>';
+      return h;
+    }).join('');
+    var miss = IMPORTANT.filter(function (k) { return !r[k]; });
+    $('missWrap').hidden = !miss.length;
+    $('miss').innerHTML = miss.map(function (k) { var c = CATS.filter(function (c) { return c[0] === k; })[0]; return '<span>' + c[1] + '</span>'; }).join('');
+    var todo = ORDER.filter(function (k) { return r[k] && TODO[k] && !(r[k].sev === 'neg'); }).map(function (k) { return TODO[k]; });
+    if (!r.delete && !r.account) todo.push('The text doesn\'t say how to delete your data. Under the UAE PDPL you can still ask the company in writing.');
+    if (!todo.length) todo.push('Nothing stands out. Still, give apps only the permissions they need.');
+    $('todo').innerHTML = todo.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('');
+    var emails = [], urls = [];
+    (text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi) || []).forEach(function (e) { e = e.replace(/\.$/, ''); if (emails.indexOf(e) < 0) emails.push(e); });
+    (text.match(/\b(?:https?:\/\/|www\.)[^\s<>"'()\[\]،]+/gi) || []).forEach(function (u) { u = u.replace(/[.,;:!?؟]+$/, ''); if (urls.indexOf(u) < 0) urls.push(u); });
+    var ch = '';
+    if (emails.length) ch += '<span class="label">Emails in the text</span>' + emails.map(function (e) { return '<a href="mailto:' + esc(e) + '" data-noar>' + esc(e) + '</a>'; }).join('');
+    if (urls.length) ch += '<span class="label">Links in the text</span>' + urls.slice(0, 12).map(function (u) { var href = /^www\./i.test(u) ? 'https://' + u : u; return '<a href="' + esc(href) + '" target="_blank" rel="noopener noreferrer" data-noar>' + esc(u) + '</a>'; }).join('');
+    if (!ch) ch = '<p class="msg">No email addresses or links were found in the text.</p>';
+    $('contacts').innerHTML = ch;
+    $('out').hidden = false; $('side').hidden = false;
+    $('msg').textContent = keys.length + ' topics found in ' + text.trim().split(/\s+/).length + ' words. The text stays on your device.';
+  }
+  $('hl').addEventListener('click', function (e) { var m = e.target.closest('mark'); if (!m) return; var c = $('cat-' + m.getAttribute('data-c')); if (c) c.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+  $('go').addEventListener('click', run);
+  $('clr').addEventListener('click', function () { $('src').value = ''; $('out').hidden = true; $('side').hidden = true; $('msg').textContent = 'The text stays on your device. Nothing is uploaded.'; });
+  var SAMPLE_EN = 'Privacy Policy for Falcon Notes (a fictional app)\nLast updated: 1 March 2026\n\n' +
+    '1. What we collect. We collect your name, email address, phone number, your contacts if you choose to invite friends, and your precise location when the app is open. If you turn on Face Unlock, we process facial geometry on your device. We may also receive information about you from data brokers and other third-party sources and combine it with the information you give us.\n\n' +
+    '2. How we use it. We use your notes and voice recordings to provide the service, and to train and improve our artificial intelligence models. We use cookies, pixel tags and device identifiers to understand how you use our app and to show you personalised advertising across other apps and websites.\n\n' +
+    '3. Sharing. We share personal information with our affiliates, service providers and advertising partners. We may disclose your information to third parties for monetary or other valuable consideration. We may also disclose information to law enforcement or government authorities when we believe in good faith it is required by law.\n\n' +
+    '4. International transfers. Your data may be transferred to and stored on servers located outside the UAE, including in countries that may not have the same data protection laws.\n\n' +
+    '5. Retention. We retain your personal data for as long as necessary for our business purposes. Server logs are kept for 18 months. Backups are deleted within 90 days.\n\n' +
+    '6. Your rights. Depending on where you live, you may have the right to access, correct or request the deletion of your personal data. To make a request, email privacy@falconnotes.example or visit https://falconnotes.example/privacy/requests. You can opt out of personalised ads at https://falconnotes.example/ad-choices. You can delete your account from Settings at any time.\n\n' +
+    '7. Children. Falcon Notes is not intended for children under 13.\n\n' +
+    '8. Security. We use industry-standard encryption. If a data breach affects you, we will notify you without undue delay.\n\n' +
+    '9. Disputes. Any dispute will be resolved by binding arbitration, and you waive your right to participate in a class action.\n\n' +
+    '10. Changes. We may update this policy at any time without notice. Your continued use of the app constitutes acceptance of the updated policy. Questions? Contact our Data Protection Officer at dpo@falconnotes.example.';
+  var SAMPLE_AR = 'سياسة الخصوصية لتطبيق «دفتر الصقر» (تطبيق خيالي)\nآخر تحديث: 1 مارس 2026\n\n' +
+    '1. البيانات التي نجمعها. نجمع اسمك وبريدك الإلكتروني ورقم هاتفك، وجهات الاتصال إذا اخترت دعوة أصدقائك، وموقعك الجغرافي الدقيق أثناء استخدام التطبيق. وقد نحصل على معلومات عنك من مزودي البيانات ومصادر خارجية أخرى وندمج هذه المعلومات مع البيانات التي تقدمها لنا.\n\n' +
+    '2. كيف نستخدمها. نستخدم ملاحظاتك وتسجيلاتك الصوتية لتقديم الخدمة ولتدريب نماذج الذكاء الاصطناعي وتحسينها. ونستخدم ملفات تعريف الارتباط ومعرفات الجهاز لعرض إعلانات مخصصة لك عبر تطبيقات أخرى.\n\n' +
+    '3. المشاركة. نشارك بياناتك الشخصية مع شركائنا والشركات التابعة لنا والمعلنين. ولا نبيع بياناتك الشخصية. وقد نفصح عن المعلومات للسلطات المختصة عند الامتثال للقانون.\n\n' +
+    '4. النقل خارج الدولة. قد يتم نقل بياناتك وتخزينها على خوادم تقع خارج الإمارات.\n\n' +
+    '5. الاحتفاظ بالبيانات. نحتفظ ببياناتك طالما كان ذلك ضروريًا لأغراض أعمالنا، ونحتفظ بسجلات الخادم لمدة 12 شهرًا.\n\n' +
+    '6. حقوقك. لك الحق في الوصول إلى بياناتك وتصحيحها وطلب حذف بياناتك. راسلنا على privacy@falconnotes.example أو زر https://falconnotes.example/ar/privacy. ويمكنك إلغاء الاشتراك في الرسائل التسويقية في أي وقت، أو حذف حسابك من الإعدادات.\n\n' +
+    '7. الأطفال. التطبيق غير موجه للأطفال دون سن 13 عامًا.\n\n' +
+    '8. الأمان. نستخدم التشفير، وسنخطرك في حال وقوع اختراق يمس بياناتك.\n\n' +
+    '9. النزاعات. تُحل أي نزاعات عن طريق التحكيم.\n\n' +
+    '10. التعديلات. يجوز لنا تعديل هذه السياسة في أي وقت دون إشعار مسبق، ويُعد استمرارك في استخدام التطبيق موافقة على التعديلات.';
+  $('sEn').addEventListener('click', function () { $('src').value = SAMPLE_EN; run(); });
+  $('sAr').addEventListener('click', function () { $('src').value = SAMPLE_AR; run(); });
+})();
+</script>
+</body>
+</html>

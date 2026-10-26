@@ -174,3 +174,10 @@ LabAr.add({
  "Pull key frames from a video for reverse image search, read its hidden creation date, and work through a fact-check list.": "استخرج الإطارات الرئيسية من فيديو للبحث العكسي عن الصور، واقرأ تاريخ إنشائه المخفي، واتبع قائمة للتحقق من صحته.",
  "Check a video →": "افحص فيديو ←"
 });
+/* index cards for newer tools */
+LabAr.add({
+ "Tool · Privacy": "أداة · خصوصية",
+ "Privacy policy reader": "قارئ سياسات الخصوصية",
+ "Paste a privacy policy in English or Arabic and see what it says about selling your data, ads, AI training, retention and deletion, with quotes.": "الصق سياسة خصوصية بالعربية أو الإنجليزية واعرف ما تقوله عن بيع بياناتك والإعلانات وتدريب الذكاء الاصطناعي ومدة الاحتفاظ والحذف، مع الاقتباسات.",
+ "Read a policy →": "اقرأ سياسة ←"
+});
