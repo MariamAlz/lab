@@ -83,7 +83,7 @@
   var QUESTS = [
     { q: 'Tap a mangrove or a park.', hint: 'Try the Infrared view: plants glow red.', ok: function (v) { return !isWater(v) && ndvi(v) > 0.3; } },
     { q: 'Tap the open sea.', hint: 'In the Land and water view, water is black.', ok: function (v) { return isWater(v); } },
-    { q: 'Tap somewhere built-up: roads or buildings.', hint: 'In the Urban view, the city looks purple and grey.', ok: function (v) { return !isWater(v) && ndwi(v) < 0 && ndvi(v) < 0.15 && (v.swir16 - v.nir) / (v.swir16 + v.nir + 1e-6) > -0.05 && v.blue > 0.08 && v.swir16 < 0.32; } },
+    { q: 'Tap somewhere built-up: roads or buildings.', hint: 'In the Urban view, the city looks purple and grey.', ok: function (v) { return !isWater(v) && ndwi(v) < 0 && ndvi(v) < 0.15 && (v.swir16 - v.nir) / (v.swir16 + v.nir + 1e-6) > -0.05 && v.blue > 0.1 && v.swir16 < 0.45; } },
     { q: 'Tap bare sand.', hint: 'Sand is bright in every band, with no plant or water signal.', ok: function (v) { return ndvi(v) < 0.15 && ndwi(v) < -0.1 && v.swir16 > 0.3; } }
   ];
   var qi = 0, found = 0;
@@ -160,8 +160,8 @@
     } else {
       var rgb = mixRGB || p.rgb, ch = rgb.map(function (k) { return px[k]; }), st = ch.map(stretch);
       // natural colour keeps one shared scale, so the sea stays blue instead of being stretched to black
-      if (cur === 'true') st = [[0, 0.26], [0, 0.26], [0, 0.26]];
-      for (i = 0; i < n; i++) for (var c2 = 0; c2 < 3; c2++) d[i * 4 + c2] = Math.max(0, Math.min(255, Math.pow(Math.max(0, (ch[c2][i] - st[c2][0]) / (st[c2][1] - st[c2][0])), cur === 'true' ? 0.65 : 1) * 255));
+      if (cur === 'true') st = [[0.01, 0.36], [0.01, 0.36], [0.01, 0.36]];
+      for (i = 0; i < n; i++) for (var c2 = 0; c2 < 3; c2++) d[i * 4 + c2] = Math.max(0, Math.min(255, Math.pow(Math.max(0, (ch[c2][i] - st[c2][0]) / (st[c2][1] - st[c2][0])), cur === 'true' ? 0.8 : 1) * 255));
       for (i = 0; i < n; i++) d[i * 4 + 3] = 255;
     }
     g.putImageData(img, 0, 0);
@@ -175,7 +175,7 @@
     var bw = (SW - 40) / 6;
     s2.font = '500 11px "JetBrains Mono", monospace'; s2.textAlign = 'center'; s2.fillStyle = muted;
     BANDS.forEach(function (b, i) {
-      var h = Math.min(1, v[b.k] / 0.4) * (SH - 46), x = 20 + i * bw;
+      var h = Math.min(1, v[b.k] / 0.6) * (SH - 46), x = 20 + i * bw;
       s2.fillStyle = ['#5C7CFF', '#4FD3BD', '#F06B6B', '#E9B467', '#C08AF0', '#8A6BD9'][i];
       s2.fillRect(x + 6, SH - 30 - h, bw - 12, h);
       s2.fillStyle = muted; s2.fillText(['Blue', 'Green', 'Red', 'NIR', 'SWIR1', 'SWIR2'][i], x + bw / 2, SH - 14);
