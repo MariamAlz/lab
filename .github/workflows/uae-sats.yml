@@ -1,0 +1,23 @@
+name: UAE satellites
+on:
+  schedule:
+    - cron: "41 */6 * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency: uae-sats
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 .github/scripts/uae_sats.py
+      - name: Commit if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add assets/uae-sats.json assets/land110.json
+          git diff --cached --quiet && exit 0
+          git commit -m "Update UAE satellite elements"
+          git pull --rebase origin main
+          git push
