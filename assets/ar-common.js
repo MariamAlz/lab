@@ -188,3 +188,10 @@ LabAr.add({
  "Spot the warning signs, close the gaps on your number and accounts, and know what to do in the first minutes.": "تعرّف على علامات التحذير، وسدّ الثغرات في رقمك وحساباتك، واعرف ما تفعله في الدقائق الأولى.",
  "Protect my number →": "احمِ رقمي ←"
 });
+/* index cards for newer tools */
+LabAr.add({
+ "Tool · Investigation": "أداة · تحقيق",
+ "Post time decoder": "كاشف وقت المنشورات",
+ "Paste a link from X, Discord, Instagram, TikTok, LinkedIn or Mastodon and read the exact creation time hidden in its ID.": "الصق رابطًا من X أو Discord أو Instagram أو TikTok أو LinkedIn أو Mastodon لتعرف وقت إنشائه الدقيق المخبأ في رقمه.",
+ "Decode a post →": "اكشف منشورًا ←"
+});

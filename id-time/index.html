@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Post Time Decoder · Mariam's Lab</title>
+<meta name="description" content="Paste a link to a post on X, Discord, Instagram, TikTok, LinkedIn or Mastodon and see the exact second it was created, in UTC and UAE time. Works even when the date is hidden.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/id-time/">
+<meta property="og:title" content="Post Time Decoder · Mariam's Lab"><meta property="og:description" content="The exact time hidden inside a post's ID."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.85rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 7px 14px; cursor: pointer; }
+.sm.pri { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 600; }
+.sm[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
+.it-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+.it-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.it-in { font: inherit; font-family: var(--font-mono); font-size: 0.9rem; color: var(--ink); background: rgba(7,10,24,.7); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; min-width: 0; }
+.it-row .it-in { flex: 1 1 260px; }
+select.it-in { font-family: var(--font-body); flex: 0 1 auto !important; }
+textarea.it-in { width: 100%; min-height: 150px; resize: vertical; }
+.it-tries { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; align-items: center; font-size: 0.78rem; color: var(--muted); }
+.it-tries .sm { font-size: 0.78rem; padding: 4px 10px; }
+.it-out { margin-top: 18px; display: grid; gap: 14px; }
+.it-box { padding: 18px; border-radius: var(--radius); border: 1px solid var(--line); background: rgba(7,10,24,.82); display: grid; gap: 12px; min-width: 0; }
+.it-big { font-family: var(--font-display); font-size: clamp(1.5rem, 5vw, 2.4rem); font-weight: 800; line-height: 1.1; }
+.it-kv { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 16px; margin: 0; font-size: 0.92rem; }
+.it-kv dt { color: var(--muted); }
+.it-kv dd { margin: 0; font-family: var(--font-mono); font-size: 0.86rem; word-break: break-all; }
+.it-bits { font-family: var(--font-mono); font-size: 0.7rem; word-break: break-all; line-height: 1.7; direction: ltr; text-align: left; }
+.it-bits i { font-style: normal; border-radius: 3px; padding: 1px 0; }
+.it-leg { display: flex; flex-wrap: wrap; gap: 10px; font-size: 0.76rem; color: var(--muted); }
+.it-leg span::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-inline-end: 4px; vertical-align: -1px; background: var(--c); }
+.it-msg { font-size: 0.88rem; color: var(--muted); min-height: 1.2em; }
+.it-bad { color: var(--sat-c); } .it-ok { color: var(--sat-b); }
+.it-tbl { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+.it-tbl th, .it-tbl td { text-align: start; padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.it-tbl th { color: var(--muted); font-weight: 500; font-size: 0.78rem; }
+.it-tbl td { font-family: var(--font-mono); font-size: 0.8rem; word-break: break-all; }
+.it-scroll { overflow-x: auto; max-width: 100%; }
+.it-alt { display: grid; gap: 6px; }
+.it-alt button { text-align: start; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; border-radius: 10px; }
+.it-alt b { font-weight: 600; }
+.it-alt span { font-family: var(--font-mono); font-size: 0.78rem; color: var(--muted); }
+[hidden] { display: none !important; }
+html.ar .it-kv dd, html.ar .it-big [data-noar], html.ar .it-tbl td, html.ar .it-alt span { unicode-bidi: plaintext; text-align: right; }
+@media (max-width: 600px) { .it-kv { grid-template-columns: minmax(0, 1fr); gap: 0 0; } .it-kv dd { margin-bottom: 8px; } }
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Security · Investigation</span>
+    <h1 style="font-size:var(--step-3)">Post time decoder.</h1>
+    <p>Most big platforms hide the exact creation time inside every post's ID number. Paste a link and you get the time to the millisecond, in UTC and UAE time, even if the post was deleted, edited or screenshotted with the date cropped out. Fact-checkers use this to test when a "breaking" post really appeared.</p>
+  </div>
+
+  <div class="it-tabs" role="tablist">
+    <button class="sm" type="button" data-tab="one" aria-pressed="true">One link</button>
+    <button class="sm" type="button" data-tab="batch" aria-pressed="false">Many at once</button>
+    <button class="sm" type="button" data-tab="rev" aria-pressed="false">Time to ID range</button>
+  </div>
+
+  <section id="tab-one">
+    <form class="it-row" id="f1">
+      <input class="it-in" id="q" placeholder="Paste a post link or an ID" autocomplete="off" spellcheck="false" aria-label="Post link or ID" dir="ltr">
+      <select class="it-in" id="plat" aria-label="Platform"></select>
+      <button class="sm pri" type="submit">Decode</button>
+    </form>
+    <div class="it-tries"><span>Try</span>
+      <button class="sm" type="button" data-try="https://x.com/XDevelopers/status/1050118621198921728">an X post</button>
+      <button class="sm" type="button" data-try="https://discord.com/channels/@me/175928847299117063/175928847299117063">a Discord message</button>
+      <button class="sm" type="button" data-try="https://twitter.com/jack/status/20">the first tweet</button>
+      <button class="sm" type="button" data-try="https://www.tiktok.com/@someone/video/7106594312292453675">a TikTok video</button>
+    </div>
+    <div class="it-out" id="out1"></div>
+  </section>
+
+  <section id="tab-batch" hidden>
+    <p class="it-msg" style="margin-bottom:10px">One link or ID per line. Bare numbers use the platform you pick here.</p>
+    <textarea class="it-in" id="bq" dir="ltr" spellcheck="false" aria-label="Links or IDs, one per line" placeholder="https://x.com/user/status/1050118621198921728&#10;175928847299117063"></textarea>
+    <div class="it-row" style="margin-top:10px"><select class="it-in" id="bplat" aria-label="Platform for bare numbers"></select><button class="sm pri" type="button" id="bgo">Decode all</button><button class="sm" type="button" id="bcsv" hidden>Copy as CSV</button><button class="sm" type="button" id="bsort" hidden>Sort by time</button></div>
+    <div class="it-out" id="out2"></div>
+  </section>
+
+  <section id="tab-rev" hidden>
+    <p class="it-msg" style="margin-bottom:10px">Turn a time window into the lowest and highest possible IDs. On X you can then search with <code>since_id:</code> and <code>max_id:</code> to find posts from exactly that window.</p>
+    <div class="it-row">
+      <select class="it-in" id="rplat" aria-label="Platform"></select>
+      <select class="it-in" id="rtz" aria-label="Time zone"><option value="uae">UAE time (UTC+4)</option><option value="utc">UTC</option><option value="local">My device's time</option></select>
+    </div>
+    <div class="it-row" style="margin-top:10px">
+      <label class="it-msg" style="display:grid;gap:4px;flex:1 1 220px">From<input class="it-in" id="r1" type="datetime-local" step="1"></label>
+      <label class="it-msg" style="display:grid;gap:4px;flex:1 1 220px">To<input class="it-in" id="r2" type="datetime-local" step="1"></label>
+    </div>
+    <div class="it-row" style="margin-top:10px"><button class="sm pri" type="button" id="rgo">Work out the range</button></div>
+    <div class="it-out" id="out3"></div>
+  </section>
+
+  <div class="game" style="margin-top:26px">
+    <div class="panel" style="display:grid;gap:10px">
+      <span class="label">How the time hides in the number</span>
+      <p class="fact" style="margin:0">Big services make IDs on thousands of machines at once, so they can't just count 1, 2, 3. Twitter's 2010 answer, called <b>Snowflake</b>, puts the time in the first 41 bits of a 64-bit number, then the machine number, then a counter. Shift the ID right by 22 bits and you get milliseconds since Twitter's own start date, 4 November 2010. Discord, Instagram and LinkedIn copied the idea with their own start dates. Mastodon keeps the time in the top 48 bits, and TikTok keeps whole seconds in the top 32.</p>
+      <p class="fact" style="margin:0">Before November 2010, tweets were numbered in order, so an ID like 20 (the first public tweet, March 2006) has no time inside it.</p>
+    </div>
+    <div class="panel" style="display:grid;gap:10px">
+      <span class="label">Good to know</span>
+      <ul class="it-msg" style="margin:0;padding-inline-start:1.1em;display:grid;gap:6px">
+        <li>The time is when the platform's server made the ID, which is when the post was published. Scheduled posts show the publish time, not when they were written.</li>
+        <li>Instagram links use a short code. It is decoded back into the media ID first.</li>
+        <li>Short links (vm.tiktok.com, t.co, lnkd.in) hide the ID. Open them first and copy the full address.</li>
+        <li>Nothing you paste leaves this page. All the maths runs in your browser.</li>
+      </ul>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var B = BigInt;
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  // each platform: ms(id) -> unix ms, fromMs(ms) -> lowest id at that ms, low = number of non-time bits, fields(id)
+  var P = {
+    x: { name: 'X / Twitter', epoch: 1288834974657, shift: 22, fields: function (id) { return [['Data centre', (id >> 17n) & 31n], ['Worker', (id >> 12n) & 31n], ['Sequence', id & 4095n]]; }, segs: [[41, 'time'], [5, 'Data centre'], [5, 'Worker'], [12, 'Sequence']] },
+    discord: { name: 'Discord', epoch: 1420070400000, shift: 22, fields: function (id) { return [['Worker', (id & 0x3E0000n) >> 17n], ['Process', (id & 0x1F000n) >> 12n], ['Increment', id & 0xFFFn]]; }, segs: [[42, 'time'], [5, 'Worker'], [5, 'Process'], [12, 'Increment']] },
+    instagram: { name: 'Instagram', epoch: 1314220021721, shift: 23, fields: function (id) { return [['Shard', (id >> 10n) & 8191n], ['Sequence', id & 1023n]]; }, segs: [[41, 'time'], [13, 'Shard'], [10, 'Sequence']] },
+    linkedin: { name: 'LinkedIn', epoch: 0, shift: 22, fields: function (id) { return [['Other bits', id & 0x3FFFFFn]]; }, segs: [[41, 'time'], [22, 'Other bits']] },
+    mastodon: { name: 'Mastodon', epoch: 0, shift: 16, fields: function (id) { return [['Sequence and hash', id & 0xFFFFn]]; }, segs: [[48, 'time'], [16, 'Sequence and hash']] },
+    tiktok: { name: 'TikTok', epoch: 0, shift: 32, sec: true, fields: function (id) { return [['Lower 32 bits', id & 0xFFFFFFFFn]]; }, segs: [[32, 'time'], [32, 'Lower 32 bits']] }
+  };
+  var ORDER = ['x', 'discord', 'instagram', 'tiktok', 'linkedin', 'mastodon'];
+  var IG = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+  var X_LEGACY = 1n << 37n; // sequential tweet IDs ran out at about 3e10 in Nov 2010
+
+  function toMs(plat, id) {
+    var p = P[plat], t = id >> B(p.shift);
+    return p.sec ? Number(t) * 1000 : Number(t) + p.epoch;
+  }
+  function fromMs(plat, ms, top) {
+    var p = P[plat], t = p.sec ? Math.floor(ms / 1000) : Math.floor(ms) - p.epoch;
+    if (t < 0) t = 0;
+    var id = B(t) << B(p.shift);
+    return top ? id | ((1n << B(p.shift)) - 1n) : id;
+  }
+  function igDecode(code) { code = code.slice(0, 11); var n = 0n; for (var i = 0; i < code.length; i++) { var v = IG.indexOf(code[i]); if (v < 0) return null; n = n * 64n + B(v); } return n; }
+  function igEncode(id) { var s = ''; while (id > 0n) { s = IG[Number(id % 64n)] + s; id /= 64n; } return s; }
+  function decode(plat, idStr) {
+    var id; try { id = B(String(idStr)); } catch (e) { return { error: 'notnum' }; }
+    if (id < 0n || id >= (1n << 64n)) return { error: 'range' };
+    var r = { plat: plat, id: id };
+    if (plat === 'x' && id < X_LEGACY) { r.legacy = true; return r; }
+    r.ms = toMs(plat, id); r.fields = P[plat].fields(id);
+    r.plausible = r.ms >= Date.UTC(2006, 0, 1) && r.ms <= Date.now() + 864e5;
+    return r;
+  }
+  // link or ID -> {plat, id, note}
+  function parseInput(s, fallback) {
+    s = String(s).trim(); var m;
+    if (!s) return null;
+    if ((m = s.match(/(?:twitter|x)\.com\/(?:[^/?#]+\/status(?:es)?|i\/web\/status|i\/status)\/(\d+)/i))) return { plat: 'x', id: m[1] };
+    if ((m = s.match(/discord(?:app)?\.com\/channels\/(?:\d+|@me)\/(\d+)(?:\/(\d+))?/i))) return { plat: 'discord', id: m[2] || m[1], note: m[2] ? 'message' : 'channel' };
+    if ((m = s.match(/instagram\.com\/(?:[^/?#]+\/)?(?:p|reel|reels|tv)\/([A-Za-z0-9_-]+)/i))) { var ig = igDecode(m[1]); return ig == null ? null : { plat: 'instagram', id: ig.toString(), code: m[1] }; }
+    if ((m = s.match(/tiktok\.com\/@[^/?#]*\/(?:video|photo)\/(\d+)/i))) return { plat: 'tiktok', id: m[1] };
+    if ((m = s.match(/linkedin\.com\/.*?(?:activity|ugcPost|share)[:-](\d{16,20})/i))) return { plat: 'linkedin', id: m[1] };
+    if ((m = s.match(/^https?:\/\/[^/]+\/(?:@[^/?#]+|web\/statuses|users\/[^/]+\/statuses)\/(\d{15,20})/i))) return { plat: 'mastodon', id: m[1] };
+    if (/^(https?:\/\/)?(vm\.tiktok\.com|vt\.tiktok\.com|t\.co|lnkd\.in)\//i.test(s)) return { short: true };
+    if ((m = s.match(/^(\d{1,20})_\d+$/))) return { plat: 'instagram', id: m[1] };
+    if (/^\d{1,20}$/.test(s)) return { plat: fallback || 'auto', id: s };
+    if (/^[A-Za-z0-9_-]{10,11}$/.test(s) && fallback === 'instagram') { var g = igDecode(s); return { plat: 'instagram', id: g.toString(), code: s }; }
+    return null;
+  }
+
+  // ---- formatting (numbers only, so it reads the same in any language)
+  function p2(n, w) { n = String(n); while (n.length < (w || 2)) n = '0' + n; return n; }
+  function stamp(d, utc) {
+    return utc ? d.getUTCFullYear() + '-' + p2(d.getUTCMonth() + 1) + '-' + p2(d.getUTCDate()) + ' ' + p2(d.getUTCHours()) + ':' + p2(d.getUTCMinutes()) + ':' + p2(d.getUTCSeconds()) + '.' + p2(d.getUTCMilliseconds(), 3)
+      : d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate()) + ' ' + p2(d.getHours()) + ':' + p2(d.getMinutes()) + ':' + p2(d.getSeconds()) + '.' + p2(d.getMilliseconds(), 3);
+  }
+  function utc(ms) { return stamp(new Date(ms), true); }
+  function uae(ms) { return stamp(new Date(ms + 4 * 3600e3), true); }
+  function local(ms) { var d = new Date(ms), o = -d.getTimezoneOffset(); return stamp(d, false) + ' (UTC' + (o >= 0 ? '+' : '-') + Math.floor(Math.abs(o) / 60) + (Math.abs(o) % 60 ? ':' + p2(Math.abs(o) % 60) : '') + ')'; }
+  function ago(ms) {
+    var s = (Date.now() - ms) / 1000, fut = s < 0; s = Math.abs(s);
+    var u = s < 60 ? [Math.round(s), 'second'] : s < 3600 ? [Math.round(s / 60), 'minute'] : s < 86400 ? [Math.round(s / 3600), 'hour'] : s < 86400 * 365.25 * 2 ? [Math.round(s / 86400), 'day'] : [+(s / 86400 / 365.25).toFixed(1), 'year'];
+    var t = u[0] + ' ' + u[1] + (u[0] === 1 ? '' : 's');
+    return fut ? 'in ' + t : t + ' ago';
+  }
+  function bits(r) {
+    var p = P[r.plat], b = r.id.toString(2); while (b.length < 64) b = '0' + b;
+    var cols = ['var(--accent)', 'var(--sat-b)', 'var(--sat-a)', 'var(--sat-c)'], pos = 64, segs = p.segs.slice().reverse(), out = [], leg = [];
+    // segments are listed from the top bit; lay them out from the low end so any spare top bits stay grey
+    var parts = [];
+    segs.forEach(function (sg, i) { parts.unshift([b.slice(pos - sg[0], pos), sg[1], cols[(segs.length - 1 - i) % 4]]); pos -= sg[0]; });
+    if (pos > 0) parts.unshift([b.slice(0, pos), 'unused', 'var(--line)']);
+    parts.forEach(function (pt) { out.push('<i style="background:color-mix(in srgb, ' + pt[2] + ' 28%, transparent)">' + pt[0] + '</i>'); if (pt[1] !== 'unused') leg.push('<span style="--c:' + pt[2] + '">' + esc(pt[1] === 'time' ? 'Time' : pt[1]) + '</span>'); });
+    return '<div class="it-bits" data-noar>' + out.join('') + '</div><div class="it-leg">' + leg.join('') + '</div>';
+  }
+  function kv(rows) { return '<dl class="it-kv">' + rows.map(function (r) { return '<dt>' + esc(r[0]) + '</dt><dd' + (/^<span>/.test(r[1]) ? '' : ' data-noar') + '>' + r[1] + '</dd>'; }).join('') + '</dl>'; }
+
+  // ---- one link
+  function fillSelect(sel, auto) { sel.innerHTML = (auto ? '<option value="auto">Platform: guess</option>' : '') + ORDER.map(function (k) { return '<option value="' + k + '">' + P[k].name + '</option>'; }).join(''); }
+  fillSelect($('plat'), true); fillSelect($('bplat')); fillSelect($('rplat'));
+  function show1(r, src) {
+    var p = P[r.plat], h = '';
+    if (r.legacy) {
+      h = '<div class="it-box"><span class="label">' + esc(p.name) + ' · ID ' + esc(r.id) + '</span><div class="it-big">Pre-2010 ID, no time encoded</div><p class="it-msg">X (Twitter) numbered posts one after another until November 2010, so this ID only tells you it is older than that. ID 20 is the famous first tweet from 21 March 2006.</p></div>';
+    } else {
+      h = '<div class="it-box"><span class="label">' + esc(p.name) + ' · ID ' + esc(r.id) + '</span>' +
+        '<div class="it-big"><span data-noar>' + uae(r.ms).slice(0, 19) + '</span> <small style="font-size:.5em;color:var(--muted)">UAE</small></div>' +
+        (r.plausible ? '' : '<p class="it-bad" style="margin:0">That date doesn\'t fit this platform. Check you picked the right one.</p>') +
+        kv([['UTC', utc(r.ms)], ['UAE (UTC+4)', uae(r.ms)], ['Your device', local(r.ms)], ['Unix ms', String(r.ms)], ['How long ago', '<span>' + esc(ago(r.ms)) + '</span>']].concat(r.fields.map(function (f) { return [f[0], String(f[1])]; })).concat(src && src.code ? [['Instagram code', esc(src.code)]] : []).concat(src && src.note === 'channel' ? [['Note', '<span>This is the channel ID. Copy a message link to date the message.</span>']] : [])) +
+        bits(r) + '</div>';
+    }
+    $('out1').innerHTML = h;
+  }
+  function guessAll(id) {
+    var list = ORDER.map(function (k) { return decode(k, id); }).filter(function (r) { return !r.error && !r.legacy && r.plausible; });
+    return list;
+  }
+  function go1() {
+    var q = $('q').value, plat = $('plat').value, src = parseInput(q, plat);
+    if (!q.trim()) { $('out1').innerHTML = ''; return; }
+    if (!src) { $('out1').innerHTML = '<p class="it-msg it-bad">I couldn\'t find a post ID in that. Paste the full link from the address bar or the share menu.</p>'; return; }
+    if (src.short) { $('out1').innerHTML = '<p class="it-msg it-bad">Short links hide the ID. Open it in your browser first, then copy the full address.</p>'; return; }
+        if (src.plat === 'auto') {
+      var g = guessAll(src.id), xr = decode('x', src.id);
+      if (xr.legacy && src.id.length < 12) { show1(xr); return; }
+      if (!g.length) { $('out1').innerHTML = '<p class="it-msg it-bad">That number doesn\'t decode to a sensible date on any platform here. It may be an old-style ID or a user ID.</p>'; return; }
+      if (g.length === 1) { show1(g[0]); return; }
+      $('out1').innerHTML = '<div class="it-box"><span class="label">Which platform is it from?</span><p class="it-msg">This number gives a believable date on several platforms. Pick the right one.</p><div class="it-alt">' + g.map(function (r) { return '<button class="sm" type="button" data-pick="' + r.plat + '"><b>' + esc(P[r.plat].name) + '</b><span data-noar>' + uae(r.ms).slice(0, 16) + ' UAE</span></button>'; }).join('') + '</div></div>';
+      [].forEach.call(document.querySelectorAll('[data-pick]'), function (b) { b.onclick = function () { $('plat').value = b.getAttribute('data-pick'); show1(decode(b.getAttribute('data-pick'), src.id)); }; });
+      return;
+    }
+    var r = decode(src.plat, src.id);
+    if (r.error) { $('out1').innerHTML = '<p class="it-msg it-bad">That number is too big to be a 64-bit ID.</p>'; return; }
+    if (/^https?:|\.com\//i.test(q)) $('plat').value = src.plat;
+    show1(r, src);
+  }
+  $('f1').addEventListener('submit', function (e) { e.preventDefault(); go1(); });
+  $('q').addEventListener('input', function () { if (/^https?:\/\/\S+$/.test($('q').value.trim())) { $('plat').value = 'auto'; go1(); } });
+  [].forEach.call(document.querySelectorAll('[data-try]'), function (b) { b.onclick = function () { $('q').value = b.getAttribute('data-try'); $('plat').value = 'auto'; go1(); }; });
+
+  // ---- tabs
+  [].forEach.call(document.querySelectorAll('[data-tab]'), function (b) {
+    b.onclick = function () {
+      [].forEach.call(document.querySelectorAll('[data-tab]'), function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); $('tab-' + x.getAttribute('data-tab')).hidden = x !== b; });
+    };
+  });
+
+  // ---- batch
+  var rows = [];
+  function drawBatch() {
+    if (!rows.length) { $('out2').innerHTML = ''; return; }
+    $('out2').innerHTML = '<div class="it-scroll"><table class="it-tbl"><thead><tr><th>Input</th><th>Platform</th><th>UTC</th><th>UAE</th><th>Age</th></tr></thead><tbody>' + rows.map(function (r) {
+      return '<tr><td data-noar>' + esc(r.in.length > 48 ? r.in.slice(0, 45) + '…' : r.in) + '</td><td>' + (r.plat ? esc(P[r.plat].name) : '') + '</td>' +
+        (r.ms != null ? '<td>' + utc(r.ms) + '</td><td>' + uae(r.ms) + '</td><td><span>' + esc(ago(r.ms)) + '</span></td>' : '<td colspan="3" class="it-bad">' + esc(r.err) + '</td>') + '</tr>';
+    }).join('') + '</tbody></table></div>';
+  }
+  $('bgo').onclick = function () {
+    rows = $('bq').value.split(/\n/).map(function (l) { return l.trim(); }).filter(Boolean).slice(0, 500).map(function (l) {
+      var s = parseInput(l, $('bplat').value), o = { in: l };
+      if (!s || s.short) { o.err = s && s.short ? 'Short link, open it first' : 'No ID found'; return o; }
+      var r = decode(s.plat, s.id); o.plat = s.plat;
+      if (r.error) o.err = 'Not a valid ID'; else if (r.legacy) o.err = 'Pre-2010 ID, no time encoded'; else o.ms = r.ms;
+      return o;
+    });
+    $('bcsv').hidden = $('bsort').hidden = !rows.length; drawBatch();
+  };
+  $('bsort').onclick = function () { rows.sort(function (a, b) { return (a.ms == null) - (b.ms == null) || a.ms - b.ms; }); drawBatch(); };
+  $('bcsv').onclick = function () {
+    var csv = 'input,platform,utc,uae,unix_ms\n' + rows.map(function (r) { return ['"' + r.in.replace(/"/g, '""') + '"', r.plat || '', r.ms != null ? utc(r.ms) : r.err, r.ms != null ? uae(r.ms) : '', r.ms != null ? r.ms : ''].join(','); }).join('\n');
+    var b = this, o = b.textContent;
+    (navigator.clipboard ? navigator.clipboard.writeText(csv) : Promise.reject()).then(function () { b.textContent = 'Copied'; setTimeout(function () { b.textContent = o; }, 1500); }, function () {});
+  };
+
+  // ---- reverse
+  function readTime(v, tz) {
+    if (!v) return null; var m = v.match(/^(\d+)-(\d+)-(\d+)T(\d+):(\d+)(?::(\d+))?/); if (!m) return null;
+    if (tz === 'local') return new Date(+m[1], m[2] - 1, +m[3], +m[4], +m[5], +(m[6] || 0)).getTime();
+    return Date.UTC(+m[1], m[2] - 1, +m[3], +m[4], +m[5], +(m[6] || 0)) - (tz === 'uae' ? 4 * 3600e3 : 0);
+  }
+  (function () { var d = new Date(Date.now() + 4 * 3600e3), s = d.toISOString().slice(0, 11); $('r1').value = s + '00:00:00'; $('r2').value = s + '23:59:59'; $('rtz').value = 'uae'; })();
+  $('rgo').onclick = function () {
+    var plat = $('rplat').value, tz = $('rtz').value, a = readTime($('r1').value, tz), b = readTime($('r2').value, tz);
+    if (a == null || b == null) { $('out3').innerHTML = '<p class="it-msg it-bad">Fill in both times.</p>'; return; }
+    if (b < a) { var t = a; a = b; b = t; }
+    var p = P[plat], startOk = p.sec ? true : a >= p.epoch;
+    if (!startOk) { $('out3').innerHTML = '<p class="it-msg it-bad">That is before ' + esc(p.name) + ' started using time-based IDs.</p>'; return; }
+    var lo = fromMs(plat, a, false), hi = fromMs(plat, b + (p.sec ? 999 : 0), true);
+    var h = '<div class="it-box"><span class="label">' + esc(p.name) + ' IDs in this window</span>' + kv([['Lowest ID', lo.toString()], ['Highest ID', hi.toString()], ['From (UTC)', utc(a)], ['To (UTC)', utc(b)]]);
+    if (plat === 'x') h += '<p class="it-msg" style="margin:0">Search on X:</p><div class="it-in" style="word-break:break-all" dir="ltr" data-noar>from:username since_id:' + (lo - 1n) + ' max_id:' + hi + '</div>';
+    if (plat === 'discord') h += '<p class="it-msg" style="margin:0">Discord\'s API accepts these as the <code>after</code> and <code>before</code> message IDs.</p>';
+    if (plat === 'instagram') h += '<p class="it-msg" style="margin:0">As short codes: <code>' + igEncode(lo) + '</code> to <code>' + igEncode(hi) + '</code></p>';
+    $('out3').innerHTML = h + '</div>';
+  };
+
+  window.__idt = { decode: decode, parseInput: parseInput, fromMs: fromMs, toMs: toMs, igEncode: igEncode, igDecode: igDecode, utc: utc, uae: uae };
+  var qs = new URLSearchParams(location.search).get('q'); if (qs) { $('q').value = qs; go1(); }
+})();
+</script>
+</body>
+</html>
