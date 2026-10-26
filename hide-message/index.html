@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hide a Message in a Picture · Mariam's Lab</title>
+<meta name="description" content="Steganography in your browser: hide secret text inside a photo, lock it with a password, reveal it again, and see exactly which pixels changed.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/hide-message/">
+<meta property="og:title" content="Hide a Message in a Picture · Mariam's Lab"><meta property="og:description" content="Secret text hidden in the pixels of a photo."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+.sm { font: inherit; font-size: 0.85rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; cursor: pointer; }
+.sm:hover { border-color: var(--muted); }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.drop { border: 1.5px dashed var(--line); border-radius: 12px; padding: 14px; text-align: center; color: var(--muted); font-size: 0.88rem; cursor: pointer; display: block; }
+.drop.on { border-color: var(--accent); color: var(--ink); }
+.form { display: grid; gap: 12px; }
+textarea, .pw { width: 100%; font: inherit; font-family: 'Instrument Sans', 'IBM Plex Sans Arabic', sans-serif; color: var(--ink); background: rgba(7,10,24,.6); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+textarea { min-height: 120px; resize: vertical; }
+.cap { font-family: var(--font-mono); font-size: 0.76rem; color: var(--muted); }
+.views { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.views figure { margin: 0; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: #0a1020; }
+.views canvas { width: 100%; display: block; image-rendering: pixelated; }
+.views figcaption { font-size: 0.78rem; color: var(--muted); padding: 6px 8px; }
+.out { padding: 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); font-family: 'Instrument Sans', 'IBM Plex Sans Arabic', sans-serif; white-space: pre-wrap; word-break: break-word; min-height: 3em; }
+.msg { font-size: 0.85rem; min-height: 1.2em; color: var(--muted); }
+.bad { color: var(--sat-c); } .ok { color: var(--sat-b); }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Security · Fun</span>
+    <h1 style="font-size:var(--step-3)">Hide a message in a picture.</h1>
+    <p>Every pixel's colour is three numbers from 0 to 255. Change the last bit of each and the picture looks identical, but those bits can spell out a secret. Hide text in a photo, lock it with a password if you like, and send the picture. Only someone who knows to look can read it.</p>
+  </div>
+  <div class="tabs" role="group" aria-label="Mode"><button class="sm" type="button" data-t="hide" aria-pressed="true">Hide a message</button><button class="sm" type="button" data-t="reveal" aria-pressed="false">Reveal a message</button></div>
+  <div class="game">
+    <div>
+      <div id="hide" class="panel form">
+        <label class="drop" id="drop1"><input type="file" accept="image/*" id="f1" hidden>Drop a photo, or tap to choose (a sample satellite photo is loaded)</label>
+        <textarea id="text" dir="auto" maxlength="20000" placeholder="Your secret message (Arabic works too)">Meet me at the dhow harbour at sunset. 🌅</textarea>
+        <input class="pw" id="pw1" type="password" placeholder="Password (optional, locks the message with AES)" autocomplete="new-password">
+        <span class="cap" id="cap"></span>
+        <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn primary" type="button" id="go">Hide it and download</button></div>
+        <p class="msg" id="m1" role="status"></p>
+      </div>
+      <div id="reveal" class="panel form" hidden>
+        <label class="drop" id="drop2"><input type="file" accept="image/png,image/*" id="f2" hidden>Drop a picture that might hide a message</label>
+        <input class="pw" id="pw2" type="password" placeholder="Password, if it was locked" autocomplete="off">
+        <button class="btn primary" type="button" id="rv">Reveal</button>
+        <div class="out" id="out" dir="auto"></div>
+        <p class="msg" id="m2" role="status"></p>
+      </div>
+    </div>
+    <div class="panel" style="display:grid;gap:12px">
+      <div class="views">
+        <figure><canvas id="cA"></canvas><figcaption>Original</figcaption></figure>
+        <figure><canvas id="cB"></canvas><figcaption>With the message</figcaption></figure>
+        <figure><canvas id="cD"></canvas><figcaption>Pixels that changed (white), enlarged</figcaption></figure>
+        <figure><canvas id="cL"></canvas><figcaption>Last bits only: where the secret lives</figcaption></figure>
+      </div>
+      <p class="fact">Send the result as a <b>file or document</b>, not as a photo. WhatsApp, Instagram and most chat apps re-compress photos, which wipes the hidden bits. This hides a message from casual eyes; forensic tools can still tell that something is there. With a password the text itself stays unreadable even then.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var MAGIC = [0x4d, 0x4c, 0x41, 0x42]; // "MLAB"
+  var cover = null, coverName = 'photo';
+  function canvasFrom(img, max) { var k = Math.min(1, (max || 1600) / Math.max(img.width, img.height)), c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); return c; }
+  function loadImg(f) { return new Promise(function (res, rej) { var i = new Image(); i.onload = function () { res(i); }; i.onerror = rej; i.src = typeof f === 'string' ? f : URL.createObjectURL(f); }); }
+  function capacity() { return cover ? Math.floor(cover.width * cover.height * 3 / 8) - 4 - 1 - 4 - 28 : 0; }
+  function payloadBytes(text) { return new TextEncoder().encode(text).length + (($('pw1').value) ? 28 : 0) + 9; }
+  function showCap() { var c = capacity(), u = payloadBytes($('text').value); $('cap').innerHTML = cover ? 'Room for ' + c.toLocaleString('en') + ' bytes in this picture · your message uses ' + u.toLocaleString('en') + (u > c ? ' <span class="bad">(too long)</span>' : '') : ''; }
+  function setCover(img, name) { cover = canvasFrom(img); coverName = name || 'photo'; preview(cover, null); showCap(); }
+  function preview(a, b) {
+    function put(id, src) { var c = $(id); c.width = src.width; c.height = src.height; c.getContext('2d').drawImage(src, 0, 0); }
+    put('cA', a); if (b) put('cB', b); else { var x = $('cB'); x.width = a.width; x.height = a.height; x.getContext('2d').drawImage(a, 0, 0); }
+    // enlarge a corner so single-bit changes are visible
+    var A = a.getContext('2d').getImageData(0, 0, a.width, a.height).data, B = (b || a).getContext('2d').getImageData(0, 0, a.width, a.height).data;
+    var zw = Math.min(160, a.width), zh = Math.min(100, a.height), d = $('cD'), l = $('cL'); d.width = l.width = zw; d.height = l.height = zh;
+    var di = d.getContext('2d').createImageData(zw, zh), li = l.getContext('2d').createImageData(zw, zh);
+    for (var y = 0; y < zh; y++) for (var x = 0; x < zw; x++) {
+      var p = (y * a.width + x) * 4, q = (y * zw + x) * 4, ch = (A[p] !== B[p]) || (A[p + 1] !== B[p + 1]) || (A[p + 2] !== B[p + 2]);
+      di.data[q] = di.data[q + 1] = di.data[q + 2] = ch ? 255 : 20; di.data[q + 3] = 255;
+      li.data[q] = (B[p] & 1) * 255; li.data[q + 1] = (B[p + 1] & 1) * 255; li.data[q + 2] = (B[p + 2] & 1) * 255; li.data[q + 3] = 255;
+    }
+    d.getContext('2d').putImageData(di, 0, 0); l.getContext('2d').putImageData(li, 0, 0);
+  }
+  // password lock: PBKDF2 → AES-GCM. Layout: salt(16) iv(12) ciphertext
+  function key(pw, salt) { return crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveKey']).then(function (k) { return crypto.subtle.deriveKey({ name: 'PBKDF2', salt: salt, iterations: 200000, hash: 'SHA-256' }, k, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']); }); }
+  function lock(bytes, pw) { var salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12)); return key(pw, salt).then(function (k) { return crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv }, k, bytes); }).then(function (ct) { var o = new Uint8Array(28 + ct.byteLength); o.set(salt); o.set(iv, 16); o.set(new Uint8Array(ct), 28); return o; }); }
+  function unlock(bytes, pw) { return key(pw, bytes.slice(0, 16)).then(function (k) { return crypto.subtle.decrypt({ name: 'AES-GCM', iv: bytes.slice(16, 28) }, k, bytes.slice(28)); }).then(function (b) { return new Uint8Array(b); }); }
+  function writeBits(data, bytes) { var bit = 0; for (var i = 0; i < bytes.length; i++) for (var k = 7; k >= 0; k--) { var px = Math.floor(bit / 3) * 4 + bit % 3; data[px] = (data[px] & 0xfe) | ((bytes[i] >> k) & 1); bit++; } }
+  function readBytes(data, from, n) { var out = new Uint8Array(n), bit = from * 8; for (var i = 0; i < n; i++) { var v = 0; for (var k = 0; k < 8; k++) { var px = Math.floor(bit / 3) * 4 + bit % 3; if (px >= data.length) return null; v = (v << 1) | (data[px] & 1); bit++; } out[i] = v; } return out; }
+  $('go').onclick = function () {
+    if (!cover) return;
+    var text = $('text').value, pw = $('pw1').value, raw = new TextEncoder().encode(text);
+    if (!text) { $('m1').textContent = 'Type a message first.'; return; }
+    (pw ? lock(raw, pw) : Promise.resolve(raw)).then(function (body) {
+      var total = 4 + 1 + 4 + body.length;
+      if (total > capacity() + 37) { $('m1').innerHTML = '<span class="bad">Too long for this picture. Use a bigger photo or a shorter message.</span>'; return; }
+      var head = new Uint8Array(9); head.set(MAGIC); head[4] = pw ? 1 : 0; new DataView(head.buffer).setUint32(5, body.length);
+      var all = new Uint8Array(total); all.set(head); all.set(body, 9);
+      var out = document.createElement('canvas'); out.width = cover.width; out.height = cover.height; var g = out.getContext('2d'); g.drawImage(cover, 0, 0);
+      var im = g.getImageData(0, 0, out.width, out.height); for (var i = 3; i < im.data.length; i += 4) im.data[i] = 255;
+      writeBits(im.data, all); g.putImageData(im, 0, 0);
+      preview(cover, out);
+      out.toBlob(function (b) { var a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = coverName.replace(/\.[^.]+$/, '') + '-secret.png'; a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 3000); });
+      $('m1').innerHTML = '<span class="ok">Done.</span> ' + (all.length * 8).toLocaleString('en') + ' hidden bits written (about half of them actually flip) among ' + (cover.width * cover.height * 3).toLocaleString('en') + ' colour values. Saved as PNG' + (pw ? ', locked with your password.' : '.');
+    });
+  };
+  function reveal(img) {
+    var c = canvasFrom(img, 1e6), d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data, h = readBytes(d, 0, 9);
+    if (!h || h[0] !== MAGIC[0] || h[1] !== MAGIC[1] || h[2] !== MAGIC[2] || h[3] !== MAGIC[3]) { $('out').textContent = ''; $('m2').innerHTML = '<span class="bad">No message from this tool found.</span> If it was sent through a chat app as a photo, compression has erased it.'; return; }
+    var n = new DataView(h.buffer).getUint32(5), body = readBytes(d, 9, n);
+    if (!body) { $('m2').innerHTML = '<span class="bad">The message is damaged.</span>'; return; }
+    var p = h[4] ? unlock(body, $('pw2').value) : Promise.resolve(body);
+    p.then(function (b) { $('out').textContent = new TextDecoder().decode(b); $('m2').innerHTML = '<span class="ok">Found it.</span>' + (h[4] ? ' Unlocked with your password.' : ''); })
+     .catch(function () { $('out').textContent = ''; $('m2').innerHTML = '<span class="bad">This message is locked.</span> ' + ($('pw2').value ? 'That password is wrong.' : 'Type the password and press Reveal.'); });
+  }
+  var lastReveal = null;
+  $('rv').onclick = function () { if (lastReveal) reveal(lastReveal); };
+  function hook(dropId, inputId, fn) {
+    var dz = $(dropId);
+    $(inputId).onchange = function () { if (this.files[0]) fn(this.files[0]); };
+    ['dragenter', 'dragover'].forEach(function (ev) { dz.addEventListener(ev, function (e) { e.preventDefault(); dz.classList.add('on'); }); });
+    ['dragleave', 'drop'].forEach(function (ev) { dz.addEventListener(ev, function (e) { e.preventDefault(); dz.classList.remove('on'); }); });
+    dz.addEventListener('drop', function (e) { if (e.dataTransfer.files[0]) fn(e.dataTransfer.files[0]); });
+  }
+  hook('drop1', 'f1', function (f) { loadImg(f).then(function (i) { setCover(i, f.name); $('m1').textContent = ''; }); });
+  hook('drop2', 'f2', function (f) { if (/jpe?g$/i.test(f.name)) $('m2').textContent = 'JPEG files lose hidden bits; trying anyway…'; loadImg(f).then(function (i) { lastReveal = i; preview(canvasFrom(i, 1e6), null); reveal(i); }); });
+  [].forEach.call(document.querySelectorAll('[data-t]'), function (b) { b.onclick = function () { [].forEach.call(document.querySelectorAll('[data-t]'), function (x) { x.setAttribute('aria-pressed', x === b); }); $('hide').hidden = b.dataset.t !== 'hide'; $('reveal').hidden = b.dataset.t !== 'reveal'; }; });
+  $('text').addEventListener('input', showCap); $('pw1').addEventListener('input', showCap);
+  loadImg('../assets/eo/spot/burj.jpg').then(function (i) { setCover(i, 'burj'); });
+})();
+</script>
+</body>
+</html>
