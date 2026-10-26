@@ -85,7 +85,7 @@
     var p = n.parentNode; if (!p || SKIP[p.nodeName] || (p.closest && skip(p))) return;
     var t = tr(v); if (t !== v) n.nodeValue = t;
   }
-  function run(node) { if (node) { if (node.nodeType === 3) doText(node); else doEl(node); } }
+  function run(node) { if (node && node.isConnected !== false) { if (node.nodeType === 3) doText(node); else doEl(node); } }
 
   // canvas charts and dialogs
   ['fillText', 'strokeText'].forEach(function (m) {

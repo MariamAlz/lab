@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>From DNA to Protein · Mariam's Lab</title>
+<meta name="description" content="Paste DNA or use a piece of the human beta-globin gene, then watch it become mRNA and a protein, codon by codon. Make mutations, see if they are silent, missense, nonsense or frameshift, and try the sickle cell change.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/dna-protein/">
+<meta property="og:title" content="From DNA to Protein · Mariam's Lab"><meta property="og:description" content="Transcribe, translate and mutate DNA. A ribosome walks codon by codon."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm[aria-pressed="true"], .sm.go { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.sm:disabled { opacity: .4; cursor: default; }
+.picks { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 0.86rem; color: var(--muted); }
+.seqin { width: 100%; box-sizing: border-box; min-height: 84px; font: 0.85rem/1.5 var(--font-mono); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px; resize: vertical; word-break: break-all; }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 0; }
+.lanewrap { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px; align-items: start; }
+.lanelab { display: grid; grid-template-rows: 18px 22px 22px 22px 30px; gap: 4px; font: 500 0.66rem var(--font-mono); color: var(--muted); text-transform: uppercase; letter-spacing: .04em; padding-top: 2px; }
+.lanelab span { display: flex; align-items: center; white-space: nowrap; }
+.lane { overflow-x: auto; padding-bottom: 8px; position: relative; direction: ltr; }
+.lanein { display: flex; gap: 4px; width: max-content; position: relative; }
+.cod { display: grid; grid-template-rows: 18px 22px 22px 22px 30px; gap: 4px; padding: 2px 3px; border-radius: 8px; border: 1px solid transparent; }
+.cod.cur { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
+.cod.part { opacity: .45; }
+.cod .n { font: 500 0.6rem var(--font-mono); color: var(--muted); text-align: center; }
+.cod .b { display: flex; justify-content: center; }
+.cod .b i { font: 500 0.86rem var(--font-mono); font-style: normal; width: 14px; text-align: center; border-radius: 4px; cursor: default; }
+.cod .b.dna i { cursor: pointer; }
+.cod .b.dna i:hover { background: rgba(255,255,255,.08); }
+.cod .b i.sel { background: var(--accent); color: var(--bg); }
+.cod .b i.mut { color: var(--sat-c); font-weight: 700; }
+.cod .b.tpl i { color: var(--muted); }
+.cod .b.rna i { color: var(--sat-b); }
+.aa { display: flex; align-items: center; justify-content: center; border-radius: 999px; font: 600 0.72rem var(--font-mono); color: #0b0f22; padding: 0 6px; transition: opacity .2s, transform .2s; }
+.aa.off { opacity: .14; }
+.aa.hide { opacity: 0; transform: translateY(6px); }
+.p-np { background: #E9B467; } .p-po { background: #4FD3BD; } .p-ac { background: #F08AB3; } .p-ba { background: #84A0FF; } .p-st { background: #3a3f5c; color: var(--ink); } .p-no { background: transparent; color: var(--muted); border: 1px dashed var(--line); }
+.legend { display: flex; gap: 10px; flex-wrap: wrap; font-size: 0.75rem; color: var(--muted); }
+.legend span::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-inline-end: 4px; vertical-align: -1px; background: var(--c); }
+.ribo { position: absolute; top: -4px; height: calc(100% + 4px); border-radius: 14px; border: 2px solid var(--accent); pointer-events: none; transition: left .25s ease, width .25s; box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent); display: none; }
+.verdict { padding: 14px 16px; border-radius: var(--radius); border: 1px solid var(--line); background: rgba(7,10,24,.82); display: grid; gap: 6px; }
+.verdict b.big { font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; }
+.verdict p { margin: 0; color: var(--muted); font-size: 0.9rem; }
+.frames { display: grid; gap: 6px; }
+.frames button { font: inherit; text-align: start; display: grid; grid-template-columns: 74px minmax(0, 1fr); gap: 8px; align-items: center; padding: 6px 8px; border: 1px solid var(--line); border-radius: 10px; background: transparent; color: var(--ink); cursor: pointer; }
+.frames button[aria-pressed="true"] { border-color: var(--accent); }
+.frames button span { font-size: 0.78rem; color: var(--muted); }
+.frames code { font: 0.74rem var(--font-mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink); direction: ltr; text-align: left; }
+.frames code em { color: var(--sat-c); font-style: normal; }
+.wheel { width: 100%; max-width: 380px; margin: 0 auto; display: block; }
+.wheel text { font-family: var(--font-mono); fill: var(--ink); pointer-events: none; }
+.wheel path { stroke: var(--bg); stroke-width: 1; }
+.wheel path.hot { fill: var(--accent) !important; }
+.game-box { border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; display: grid; gap: 10px; }
+.game-box .task { font-size: 1.02rem; }
+.score { font: 500 0.8rem var(--font-mono); color: var(--muted); }
+.ok { color: var(--sat-b); } .bad { color: var(--sat-c); }
+html.ar .frames button { text-align: right; }
+html.ar .seqin { direction: ltr; text-align: left; }
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Learn · Biology · Game</span>
+    <h1 style="font-size:var(--step-3)">From DNA to protein.</h1>
+    <p>Every protein in your body is spelled out in DNA, three letters at a time. Paste a sequence or start with the first 150 letters of the human beta-globin gene, the one behind sickle cell disease. Watch a ribosome read it, then change a single letter and see what happens to the protein.</p>
+  </div>
+  <div class="panel">
+    <div class="row">
+      <button class="sm go" type="button" id="hbb">Beta-globin (HBB) sample</button>
+      <button class="sm" type="button" id="rnd">Random made-up gene</button>
+      <span id="len" class="mono"></span>
+    </div>
+    <textarea class="seqin" id="seq" spellcheck="false" aria-label="DNA sequence" placeholder="Paste DNA here: A, C, G, T"></textarea>
+    <p class="msg" id="inMsg"></p>
+    <div class="row">
+      <span>Reading frame</span>
+      <span class="picks" id="frm" role="group" aria-label="Reading frame"></span>
+      <span class="picks" role="group" aria-label="Strand"><button class="sm" type="button" id="fwd" aria-pressed="true">Given strand</button><button class="sm" type="button" id="rev" aria-pressed="false">Reverse complement</button></span>
+    </div>
+    <div class="row">
+      <button class="sm go" type="button" id="play">▶ Translate</button>
+      <button class="sm" type="button" id="step">Step</button>
+      <button class="sm" type="button" id="all">Show all</button>
+      <label>Speed <input type="range" id="speed" min="1" max="10" value="5"></label>
+    </div>
+    <div class="lanewrap">
+      <div class="lanelab" aria-hidden="true"><span>#</span><span>DNA</span><span>Template</span><span>mRNA</span><span>Protein</span></div>
+      <div class="lane" id="lane" data-noar><div class="lanein" id="lanein"></div></div>
+    </div>
+    <p class="msg" id="status" role="status"></p>
+    <div class="legend"><span style="--c:#E9B467">Nonpolar</span><span style="--c:#4FD3BD">Polar</span><span style="--c:#F08AB3">Acidic (−)</span><span style="--c:#84A0FF">Basic (+)</span><span style="--c:#3a3f5c">Stop</span></div>
+  </div>
+  <div class="game" style="margin-top:24px">
+    <div class="panel">
+      <span class="label">Mutate · tap a DNA letter first</span>
+      <p class="msg" id="selTxt">No letter picked yet.</p>
+      <div class="row"><span>Change to</span><span class="picks" id="sub"></span></div>
+      <div class="row"><span>Insert after</span><span class="picks" id="ins"></span></div>
+      <div class="row"><button class="sm" type="button" id="del">Delete this letter</button><button class="sm" type="button" id="undo">Undo all changes</button><button class="sm go" type="button" id="sickle">Sickle cell change</button></div>
+      <div class="verdict" id="verdict"><b class="big">No change yet</b><p>Pick a letter in the DNA row and change it.</p></div>
+      <div class="game-box">
+        <span class="label">Challenge · smallest change</span>
+        <p class="task" id="task" style="margin:0">Press New challenge.</p>
+        <div class="row"><button class="sm go" type="button" id="newT">New challenge</button><button class="sm" type="button" id="check">Check</button><span class="score" id="score"></span></div>
+        <p class="msg" id="gMsg"></p>
+      </div>
+      <span class="label">All six reading frames</span>
+      <div class="frames" id="frames"></div>
+      <p class="msg">One letter per amino acid. <span style="color:var(--sat-c)">*</span> is a stop codon. The longest run without a stop is usually the real gene.</p>
+    </div>
+    <div class="panel">
+      <span class="label">The codon wheel</span>
+      <svg class="wheel" id="wheel" viewBox="-200 -200 400 400" role="img" aria-label="Codon wheel" data-noar></svg>
+      <p class="msg">Read from the middle out: first letter, second, third. The current codon lights up as the ribosome reads it.</p>
+      <p class="fact"><b>Why sickle cell happens.</b> In the HBB sample, codon 7 is GAG, which codes for glutamic acid. Change the middle A to T and it reads GTG, valine. One letter out of more than 400 in the gene. Glutamic acid carries a charge and likes water; valine doesn't. The changed haemoglobin sticks together when oxygen is low, and red blood cells bend into a sickle shape. It's often written Glu6Val, because the first methionine is cut off the finished protein.</p>
+      <p class="fact"><b>Four kinds of point change.</b> Silent: the codon changes but the amino acid doesn't, since most amino acids have several codons. Missense: one amino acid swaps for another. Nonsense: the codon becomes a stop, so the protein ends early. Frameshift: adding or removing letters (not in threes) shifts every codon after it, which usually scrambles the rest.</p>
+      <p class="fact">The HBB sample is the start of the coding sequence from the reference record NM_000518, the same in every human reference. Real genes also have introns that are cut out of the mRNA before translation. Here the sample already has them removed. Classifications are a teaching model, not a genetic test.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  // HBB coding sequence c.1-c.150 (NM_000518.4, exons joined)
+  var HBB = 'ATGGTGCATCTGACTCCTGAGGAGAAGTCTGCCGTTACTGCCCTGTGGGGCAAGGTGAACGTGGATGAAGTTGGTGGTGAGGCCCTGGGCAGGCTGCTGGTGGTCTACCCTTGGACCCAGAGGTTCTTTGAGTCCTTTGGGGATCTGTCC';
+  var B = 'TCAG', AA1 = 'FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG';
+  var INFO = { A: ['Ala', 'Alanine', 'np'], R: ['Arg', 'Arginine', 'ba'], N: ['Asn', 'Asparagine', 'po'], D: ['Asp', 'Aspartic acid', 'ac'], C: ['Cys', 'Cysteine', 'po'], Q: ['Gln', 'Glutamine', 'po'], E: ['Glu', 'Glutamic acid', 'ac'], G: ['Gly', 'Glycine', 'np'], H: ['His', 'Histidine', 'ba'], I: ['Ile', 'Isoleucine', 'np'], L: ['Leu', 'Leucine', 'np'], K: ['Lys', 'Lysine', 'ba'], M: ['Met', 'Methionine', 'np'], F: ['Phe', 'Phenylalanine', 'np'], P: ['Pro', 'Proline', 'np'], S: ['Ser', 'Serine', 'po'], T: ['Thr', 'Threonine', 'po'], W: ['Trp', 'Tryptophan', 'np'], Y: ['Tyr', 'Tyrosine', 'po'], V: ['Val', 'Valine', 'np'], '*': ['Stop', 'Stop', 'st'] };
+  function tl(c) { if (c.length < 3) return ''; var i = B.indexOf(c[0]) * 16 + B.indexOf(c[1]) * 4 + B.indexOf(c[2]); return i >= 0 && /^[TCAG]{3}$/.test(c) ? AA1[i] : 'X'; }
+  function comp(s) { return s.replace(/[ACGT]/g, function (c) { return { A: 'T', T: 'A', C: 'G', G: 'C' }[c]; }); }
+  function rc(s) { return comp(s).split('').reverse().join(''); }
+  function rna(s) { return s.replace(/T/g, 'U'); }
+  function protein(s, f) { var p = ''; for (var i = f; i + 3 <= s.length; i += 3) p += tl(s.substr(i, 3)); return p; }
+  var AR = !!(window.LabAr && LabAr.on);
+  function code(a) { return a === '*' ? (AR ? 'توقف' : 'Stop') : INFO[a][0]; }
+  function nm(a) { var n = INFO[a][1]; return AR && window.__dnaAr && window.__dnaAr[n] || n; }
+  window.__dna = { tl: tl, rc: rc, protein: protein, HBB: HBB };
+
+  var orig = HBB, cur = HBB, frame = 0, strand = 1, sel = -1, shown = Infinity, ribo = -1, timer = null;
+  var view = function () { return strand === 1 ? cur : rc(cur); };
+  var origView = function () { return strand === 1 ? orig : rc(orig); };
+  function setView(v) { cur = strand === 1 ? v : rc(v); }
+
+  // ---- input
+  function clean(s) { return s.toUpperCase().replace(/U/g, 'T').replace(/[^ACGT]/g, ''); }
+  function load(s, msg) {
+    stop(); orig = cur = s.slice(0, 900); sel = -1; shown = Infinity; task = null;
+    $('seq').value = cur; $('inMsg').textContent = msg || '';
+    draw(); verdict();
+  }
+  $('seq').addEventListener('input', function () {
+    var raw = $('seq').value, c = clean(raw);
+    stop(); orig = cur = c.slice(0, 900); sel = -1; shown = Infinity; task = null;
+    $('inMsg').textContent = raw.replace(/\s/g, '').length !== c.length ? 'Letters other than A, C, G, T were ignored.' : '';
+    draw(); verdict();
+  });
+  $('hbb').onclick = function () { load(HBB, 'Human beta-globin (HBB), first 150 letters of the coding sequence.'); };
+  $('rnd').onclick = function () {
+    var s = 'ATG', n = 14 + Math.floor(Math.random() * 10);
+    for (var i = 0; i < n; i++) { var c; do { c = B[Math.random() * 4 | 0] + B[Math.random() * 4 | 0] + B[Math.random() * 4 | 0]; } while (tl(c) === '*'); s += c; }
+    load(s + ['TAA', 'TAG', 'TGA'][Math.random() * 3 | 0], 'A made-up gene: random codons with a start and a stop. Not a real sequence.');
+  };
+  for (var f = 0; f < 3; f++) (function (f) {
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'sm'; b.textContent = String(f + 1); b.setAttribute('aria-pressed', f === 0);
+    b.onclick = function () { frame = f; stop(); shown = Infinity; [].forEach.call($('frm').children, function (x, k) { x.setAttribute('aria-pressed', k === f); }); draw(); verdict(); };
+    $('frm').appendChild(b);
+  })(f);
+  function setStrand(s) { strand = s; sel = -1; stop(); shown = Infinity; $('fwd').setAttribute('aria-pressed', s === 1); $('rev').setAttribute('aria-pressed', s === -1); draw(); verdict(); }
+  $('fwd').onclick = function () { setStrand(1); };
+  $('rev').onclick = function () { setStrand(-1); };
+
+  // ---- translation start/stop in the shown frame
+  function bounds(s) {
+    var start = -1, end = -1;
+    for (var i = frame; i + 3 <= s.length; i += 3) { if (start < 0 && s.substr(i, 3) === 'ATG') start = i; if (start >= 0 && tl(s.substr(i, 3)) === '*') { end = i; break; } }
+    return { start: start, end: end };
+  }
+  function draw() {
+    var s = view(), o = origView(), bd = bounds(s), h = '', cols = [];
+    $('len').textContent = s.length + ' bp';
+    if (frame > 0 && s.length) cols.push({ i: 0, n: Math.min(frame, s.length), part: true });
+    for (var i = frame; i < s.length; i += 3) cols.push({ i: i, n: Math.min(3, s.length - i), part: s.length - i < 3 });
+    var k = 0;
+    cols.forEach(function (c) {
+      var cod = s.substr(c.i, c.n), num = c.part ? '' : (k = (c.i - frame) / 3 + 1);
+      var a = c.part ? '' : tl(cod), inf = INFO[a], st = 'no';
+      var translated = bd.start >= 0 && c.i >= bd.start && (bd.end < 0 || c.i <= bd.end);
+      if (!c.part && inf) st = inf[2];
+      var cls = 'aa p-' + st + (!c.part && !translated ? ' off' : '') + (!c.part && c.i / 3 >= shown + frame / 3 ? ' hide' : '');
+      function row(str, kind) {
+        return '<div class="b ' + kind + '">' + str.split('').map(function (ch, j) {
+          var idx = c.i + j, m = kind === 'dna' && o.length === s.length && o[idx] !== ch;
+          return '<i data-i="' + idx + '" class="' + (kind === 'dna' && idx === sel ? 'sel' : '') + (m ? ' mut' : '') + '">' + ch + '</i>';
+        }).join('') + '</div>';
+      }
+      h += '<div class="cod' + (c.part ? ' part' : '') + '" data-noar data-c="' + c.i + '"><span class="n">' + num + '</span>' + row(cod, 'dna') + row(comp(cod), 'tpl') + row(rna(cod), 'rna') +
+        (c.part ? '<span></span>' : '<span class="' + cls + '" title="' + (inf ? nm(a) : '?') + '">' + (inf ? code(a) : '?') + '</span>') + '</div>';
+    });
+    $('lanein').innerHTML = h + '<div class="ribo" id="ribo"></div>';
+    placeRibo();
+    frames();
+    if (!s.length) $('status').textContent = 'Paste a DNA sequence or pick a sample.';
+    else if (bd.start < 0) $('status').textContent = 'No ATG start codon in this frame, so a ribosome would not start here. Faded chips show what the codons would code for.';
+    else if (shown === Infinity && ribo < 0) $('status').textContent = 'Translation starts at the first ATG (codon ' + ((bd.start - frame) / 3 + 1) + ')' + (bd.end >= 0 ? ' and ends at the stop codon ' + ((bd.end - frame) / 3 + 1) + '.' : '. No stop codon in this piece.');
+  }
+  function placeRibo() {
+    var r = $('ribo'); if (!r) return;
+    if (ribo < 0) { r.style.display = 'none'; return; }
+    var col = document.querySelector('.cod[data-c="' + ribo + '"]'); if (!col) { r.style.display = 'none'; return; }
+    r.style.display = 'block'; r.style.left = (col.offsetLeft - 4) + 'px'; r.style.width = (col.offsetWidth + 8) + 'px';
+    [].forEach.call(document.querySelectorAll('.cod.cur'), function (x) { x.classList.remove('cur'); }); col.classList.add('cur');
+    var lane = $('lane'), x = col.offsetLeft - lane.clientWidth / 2 + col.offsetWidth / 2; lane.scrollTo({ left: Math.max(0, x), behavior: 'smooth' });
+  }
+
+  // ---- ribosome
+  function stop() { if (timer) clearInterval(timer); timer = null; ribo = -1; $('play').textContent = '▶ Translate'; hot(''); }
+  function begin() {
+    var s = view(), bd = bounds(s);
+    if (bd.start < 0) { $('status').textContent = 'No ATG start codon in this frame. Try another frame or the reverse complement.'; return false; }
+    ribo = bd.start; shown = (bd.start - frame) / 3; draw(); return true;
+  }
+  function advance() {
+    var s = view(), bd = bounds(s);
+    if (ribo < 0) { if (!begin()) return false; }
+    var cod = s.substr(ribo, 3), a = tl(cod), inf = INFO[a];
+    shown = (ribo - frame) / 3 + 1;
+    var chip = document.querySelector('.cod[data-c="' + ribo + '"] .aa'); if (chip) chip.classList.remove('hide');
+    placeRibo(); hot(rna(cod));
+    var n = (ribo - frame) / 3 + 1;
+    if (a === '*') { $('status').textContent = 'Codon ' + n + ': ' + rna(cod) + ' is a stop codon. The ribosome lets go and the protein is finished.'; return false; }
+    $('status').textContent = 'Codon ' + n + ': ' + rna(cod) + ' → ' + inf[0] + ' (' + inf[1] + ')' + (n === (bd.start - frame) / 3 + 1 ? '. The start codon.' : '');
+    ribo += 3;
+    if (ribo + 3 > s.length) { $('status').textContent = 'The sequence ran out before a stop codon.'; return false; }
+    return true;
+  }
+  $('play').onclick = function () {
+    if (timer) { clearInterval(timer); timer = null; $('play').textContent = '▶ Translate'; return; }
+    if (ribo < 0 || shown === Infinity) { if (!begin()) return; }
+    $('play').textContent = '❚❚ Pause';
+    var go = function () { if (!advance()) { clearInterval(timer); timer = null; $('play').textContent = '▶ Translate'; } };
+    go(); timer = setInterval(go, 1100 - $('speed').value * 100);
+  };
+  $('speed').oninput = function () { if (timer) { $('play').click(); $('play').click(); } };
+  $('step').onclick = function () { if (timer) $('play').click(); if (ribo < 0 || shown === Infinity) { if (!begin()) return; } advance(); };
+  $('all').onclick = function () { stop(); shown = Infinity; draw(); };
+
+  // ---- wheel
+  var RB = 'UCAG';
+  function arc(r0, r1, a0, a1) {
+    var p = function (r, a) { return (r * Math.sin(a)).toFixed(2) + ' ' + (-r * Math.cos(a)).toFixed(2); };
+    var big = a1 - a0 > Math.PI ? 1 : 0;
+    return 'M' + p(r0, a0) + 'L' + p(r1, a0) + 'A' + r1 + ' ' + r1 + ' 0 ' + big + ' 1 ' + p(r1, a1) + 'L' + p(r0, a1) + 'A' + r0 + ' ' + r0 + ' 0 ' + big + ' 0 ' + p(r0, a0) + 'Z';
+  }
+  function lbl(r, a, t, size, rot) {
+    var x = r * Math.sin(a), y = -r * Math.cos(a), deg = a * 180 / Math.PI - 90; if (deg > 90) deg -= 180;
+    return '<text x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" font-size="' + size + '" text-anchor="middle" dominant-baseline="central"' + (rot ? ' transform="rotate(' + deg.toFixed(1) + ' ' + x.toFixed(1) + ' ' + y.toFixed(1) + ')"' : '') + '>' + t + '</text>';
+  }
+  function wheel() {
+    var h = '', T = Math.PI * 2, shade = ['#1b2147', '#232a58', '#1b2147', '#232a58'];
+    for (var i = 0; i < 4; i++) {
+      h += '<path id="w1' + RB[i] + '" d="' + arc(0.01, 40, i * T / 4, (i + 1) * T / 4) + '" fill="' + shade[i] + '"/>' + lbl(22, (i + .5) * T / 4, RB[i], 16);
+      for (var j = 0; j < 4; j++) {
+        var a0 = (i * 4 + j) * T / 16;
+        h += '<path id="w2' + RB[i] + RB[j] + '" d="' + arc(40, 72, a0, a0 + T / 16) + '" fill="' + shade[(j + i) % 4] + '"/>' + lbl(56, a0 + T / 32, RB[j], 12);
+        for (var k = 0; k < 4; k++) {
+          var b0 = (i * 16 + j * 4 + k) * T / 64, aa = AA1[B.indexOf(B[i]) * 16 + j * 4 + k];
+          h += '<path id="w3' + RB[i] + RB[j] + RB[k] + '" d="' + arc(72, 96, b0, b0 + T / 64) + '" fill="' + shade[k % 2] + '"/>' + lbl(84, b0 + T / 128, RB[k], 8);
+          var col = { np: '#E9B467', po: '#4FD3BD', ac: '#F08AB3', ba: '#84A0FF', st: '#3a3f5c' }[INFO[aa][2]];
+          h += '<path id="w4' + RB[i] + RB[j] + RB[k] + '" d="' + arc(96, 140, b0, b0 + T / 64) + '" fill="' + col + '" opacity=".8"/>';
+        }
+      }
+    }
+    // amino acid labels on runs of the same amino acid
+    var run = 0;
+    for (var n = 0; n < 64; n++) {
+      var a = AA1[n];
+      if (n === 63 || AA1[n + 1] !== a || n % 4 === 3) {
+        var mid = (run + n + 1) / 2 * T / 64;
+        h += lbl(162, mid, code(a), 10, true);
+        run = n + 1;
+      }
+    }
+    $('wheel').innerHTML = h;
+  }
+  function hot(codon) {
+    [].forEach.call(document.querySelectorAll('#wheel .hot'), function (p) { p.classList.remove('hot'); });
+    if (!codon) return;
+    ['w1' + codon[0], 'w2' + codon.slice(0, 2), 'w3' + codon, 'w4' + codon].forEach(function (id) { var p = document.getElementById(id); if (p) p.classList.add('hot'); });
+  }
+  wheel();
+
+  // ---- six frames
+  function frames() {
+    var s = cur, r = rc(cur), h = '';
+    [[1, 0], [1, 1], [1, 2], [-1, 0], [-1, 1], [-1, 2]].forEach(function (fs) {
+      var p = protein(fs[0] === 1 ? s : r, fs[1]), on = fs[0] === strand && fs[1] === frame;
+      var longest = p.split('*').reduce(function (m, x) { return Math.max(m, x.length); }, 0);
+      h += '<button type="button" data-s="' + fs[0] + '" data-f="' + fs[1] + '" aria-pressed="' + on + '"><span>' + (fs[0] === 1 ? 'Frame +' : 'Frame −') + (fs[1] + 1) + '</span><code data-noar>' + (p.replace(/\*/g, '<em>*</em>') || '–') + '</code><span style="grid-column:2">Longest open stretch: ' + longest + '</span></button>';
+    });
+    $('frames').innerHTML = h;
+  }
+  $('frames').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    frame = +b.getAttribute('data-f'); [].forEach.call($('frm').children, function (x, k) { x.setAttribute('aria-pressed', k === frame); });
+    setStrand(+b.getAttribute('data-s'));
+  });
+
+  // ---- mutations
+  $('lane').addEventListener('click', function (e) {
+    var i = e.target.closest('.b.dna i'); if (!i) return;
+    sel = +i.getAttribute('data-i'); draw(); selTxt();
+  });
+  function selTxt() {
+    var s = view();
+    if (sel < 0 || sel >= s.length) { $('selTxt').textContent = 'No letter picked yet.'; return; }
+    $('selTxt').textContent = 'Letter ' + (sel + 1) + ' (' + s[sel] + '), in codon ' + (sel < frame ? '–' : Math.floor((sel - frame) / 3) + 1) + '.';
+  }
+  'ACGT'.split('').forEach(function (b) {
+    var x = document.createElement('button'); x.type = 'button'; x.className = 'sm'; x.textContent = b;
+    x.onclick = function () { edit(function (s) { return s.slice(0, sel) + b + s.slice(sel + 1); }); }; $('sub').appendChild(x);
+    var y = document.createElement('button'); y.type = 'button'; y.className = 'sm'; y.textContent = '+' + b;
+    y.onclick = function () { edit(function (s) { return s.slice(0, sel + 1) + b + s.slice(sel + 1); }); }; $('ins').appendChild(y);
+  });
+  $('del').onclick = function () { edit(function (s) { return s.slice(0, sel) + s.slice(sel + 1); }, true); };
+  function edit(fn, isDel) {
+    if (sel < 0) { $('selTxt').textContent = 'Tap a letter in the DNA row first.'; return; }
+    stop(); shown = Infinity; setView(fn(view()));
+    if (isDel && sel >= view().length) sel = view().length - 1;
+    $('seq').value = cur; draw(); selTxt(); verdict();
+  }
+  $('undo').onclick = function () { stop(); cur = orig; sel = -1; shown = Infinity; $('seq').value = cur; draw(); selTxt(); verdict(); };
+  $('sickle').onclick = function () {
+    strand = 1; frame = 0; setStrand(1); [].forEach.call($('frm').children, function (x, k) { x.setAttribute('aria-pressed', k === 0); });
+    orig = HBB; cur = HBB.slice(0, 19) + 'T' + HBB.slice(20); sel = 19; $('seq').value = cur; $('inMsg').textContent = 'Human beta-globin (HBB), first 150 letters of the coding sequence.';
+    draw(); selTxt(); verdict();
+    var col = document.querySelector('.cod[data-c="18"]'); if (col) $('lane').scrollTo({ left: Math.max(0, col.offsetLeft - 80), behavior: 'smooth' });
+  };
+  function classify(o, m) {
+    var d = m.length - o.length;
+    if (o === m) return null;
+    var po = protein(o, frame), pm = protein(m, frame), first = -1;
+    for (var i = 0; i < Math.max(po.length, pm.length); i++) if (po[i] !== pm[i]) { first = i; break; }
+    if (d !== 0) {
+      if (d % 3 !== 0) return { k: 'Frameshift', t: (d > 0 ? 'Inserted ' : 'Deleted ') + Math.abs(d) + (Math.abs(d) === 1 ? ' letter' : ' letters') + ', not a multiple of three. Every codon after it is read in the wrong frame.', x: [first >= 0 ? 'The protein changes from codon ' + (first + 1) + ' on.' : 'The protein reads the same here, but the frame after the change is shifted.'] };
+      return { k: 'In-frame ' + (d > 0 ? 'insertion' : 'deletion'), t: (d > 0 ? 'Inserted ' : 'Deleted ') + Math.abs(d) + ' letters, a multiple of three. The frame is kept, so the protein gains or loses amino acids but the rest is unchanged.', x: [] };
+    }
+    var ch = [];
+    for (var j = frame; j + 3 <= o.length; j += 3) { var a = o.substr(j, 3), b = m.substr(j, 3); if (a !== b) ch.push({ n: (j - frame) / 3 + 1, a: a, b: b, x: tl(a), y: tl(b) }); }
+    if (!ch.length) return { k: 'Outside the codons', t: 'The change is in letters this frame doesn\'t read as a full codon.', x: [] };
+    var kind = 'Silent';
+    ch.forEach(function (c) { if (c.x !== c.y) { if (c.y === '*') kind = 'Nonsense'; else if (c.x === '*') { if (kind !== 'Nonsense') kind = 'Stop lost'; } else if (kind === 'Silent') kind = 'Missense'; } });
+    var c = ch[0], line = 'Codon ' + c.n + ': ' + c.a + ' → ' + c.b + ', ' + INFO[c.x][0] + ' → ' + INFO[c.y][0] + '.';
+    var why = { Silent: 'The amino acid stays the same, so the protein is unchanged.', Missense: 'One amino acid is swapped for another. The effect depends on how different they are.', Nonsense: 'The codon became a stop, so the protein is cut short.', 'Stop lost': 'The stop codon is gone, so the ribosome keeps reading past where it should end.' }[kind];
+    var extra = '';
+    if (c.n === 7 && c.x === 'E' && c.y === 'V' && o === HBB) extra = 'This is the sickle cell change, HBB Glu6Val (c.20A>T).';
+    else if (c.n === 7 && c.x === 'E' && c.y === 'K' && o === HBB) extra = 'This is haemoglobin C, HBB Glu6Lys (c.19G>A).';
+    return { k: kind, t: line, x: [why, extra, ch.length > 1 ? ch.length + ' codons changed.' : ''].filter(Boolean) };
+  }
+  function verdict() {
+    var v = classify(origView(), view());
+    if (!v) { $('verdict').innerHTML = '<b class="big">No change yet</b><p>Pick a letter in the DNA row and change it.</p>'; return; }
+    $('verdict').innerHTML = '<b class="big">' + v.k + '</b><p>' + v.t + '</p>' + (v.x.length ? '<p>' + v.x.map(function (x) { return '<span>' + x + '</span>'; }).join(' ') + '</p>' : '');
+  }
+
+  // ---- challenge
+  var task = null, solved = 0, tries = 0;
+  function minSubs(codon, aa) { var m = 9; for (var i = 0; i < 64; i++) if (AA1[i] === aa) { var c = B[i >> 4] + B[(i >> 2) & 3] + B[i & 3], d = 0; if (c === codon) continue; for (var k = 0; k < 3; k++) if (c[k] !== codon[k]) d++; m = Math.min(m, d); } return m; }
+  function newTask() {
+    stop(); strand = 1; frame = 0; setStrand(1); [].forEach.call($('frm').children, function (x, k) { x.setAttribute('aria-pressed', k === 0); });
+    orig = cur = HBB; sel = -1; $('seq').value = cur; $('inMsg').textContent = 'Human beta-globin (HBB), first 150 letters of the coding sequence.';
+    var n, codon, from, to, kind = ['sub', 'sub', 'stop', 'silent'][Math.random() * 4 | 0];
+    do { n = 2 + (Math.random() * 48 | 0); codon = HBB.substr((n - 1) * 3, 3); from = tl(codon); } while (from === 'M' || from === 'W' && kind === 'silent');
+    if (kind === 'stop') to = '*';
+    else if (kind === 'silent') to = from;
+    else { var opts = 'ACDEFGHIKLMNPQRSTVWY'.split('').filter(function (a) { return a !== from; }); to = opts[Math.random() * opts.length | 0]; }
+    task = { n: n, from: from, to: to, min: minSubs(codon, to), kind: kind };
+    $('task').textContent = kind === 'silent' ? 'Change codon ' + n + ' (' + INFO[from][0] + ') without changing the amino acid.' : kind === 'stop' ? 'Turn codon ' + n + ' (' + INFO[from][0] + ') into a stop codon.' : 'Make codon ' + n + ' code for ' + INFO[to][0] + ' instead of ' + INFO[from][0] + '.';
+    $('gMsg').textContent = ''; draw(); verdict(); selTxt();
+    var col = document.querySelector('.cod[data-c="' + (n - 1) * 3 + '"]'); if (col) $('lane').scrollTo({ left: Math.max(0, col.offsetLeft - 80), behavior: 'smooth' });
+  }
+  $('newT').onclick = newTask;
+  $('check').onclick = function () {
+    if (!task) { $('gMsg').textContent = 'Press New challenge first.'; return; }
+    if (cur.length !== HBB.length) { $('gMsg').innerHTML = '<span class="bad">Use letter changes only, no inserts or deletes. Undo and try again.</span>'; return; }
+    var diffs = 0, others = false; for (var i = 0; i < HBB.length; i++) if (cur[i] !== HBB[i]) { diffs++; if (Math.floor(i / 3) !== task.n - 1) others = true; }
+    var now = tl(cur.substr((task.n - 1) * 3, 3)), ok = now === task.to && diffs > 0 && !others;
+    tries++;
+    if (others) $('gMsg').innerHTML = '<span class="bad">You changed letters outside codon ' + task.n + '. Only touch that codon.</span>';
+    else if (!ok) $('gMsg').innerHTML = '<span class="bad">Not yet: codon ' + task.n + ' now codes for ' + INFO[now][0] + '.</span>';
+    else if (diffs === task.min) { solved++; $('gMsg').innerHTML = '<span class="ok">Done in ' + diffs + (diffs === 1 ? ' change' : ' changes') + '. That\'s the minimum.</span>'; }
+    else $('gMsg').innerHTML = '<span class="ok">Works, but it took ' + diffs + ' changes. The minimum is ' + task.min + '.</span>';
+    $('score').textContent = solved + ' / ' + tries;
+  };
+
+  load(HBB, 'Human beta-globin (HBB), first 150 letters of the coding sequence.');
+  window.__dnaRedraw = function () { draw(); wheel(); };
+})();
+</script>
+</body>
+</html>

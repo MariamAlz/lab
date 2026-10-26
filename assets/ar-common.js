@@ -304,3 +304,10 @@ LabAr.add({
  "Compare supermarket packs by price per kg, litre, piece or wash, with buy 2 get 1 and extra free offers counted in.": "قارن عبوات السوبرماركت بسعر الكيلو أو اللتر أو القطعة أو الغسلة، مع احتساب عروض اشترِ 2 واحصل على 1 والكمية الإضافية المجانية.",
  "Compare packs →": "قارن العبوات ←"
 });
+/* index cards for newer tools */
+LabAr.add({
+ "Learn · Biology": "تعلّم · أحياء",
+ "From DNA to protein": "من الحمض النووي إلى البروتين",
+ "Watch a ribosome read the beta-globin gene, then change one letter and cause sickle cell.": "شاهد الريبوسوم يقرأ جين بيتا غلوبين، ثم غيّر حرفًا واحدًا لتسبب فقر الدم المنجلي.",
+ "Translate →": "ترجم ←"
+});
