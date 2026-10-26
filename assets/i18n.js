@@ -21,8 +21,8 @@
   window.LabAr = {
     on: AR,
     add: function (d, p) {
-      for (var k in d) { var n = norm(k); if (/[<&]/.test(k)) html[n] = d[k]; else dict[n] = d[k]; arVals.add(norm(d[k])); }
-      (p || []).forEach(function (x) { pats.push(x); });
+      for (var k in d) { var n = norm(k); if (/<|&(?:[a-z]+|#\d+);/i.test(k)) html[n] = d[k]; else dict[n] = d[k]; arVals.add(norm(d[k])); }
+      pats = (p || []).concat(pats); // later dictionaries (the page's own) win
       if (ready) run(document.body);
     },
     t: function (s) { return tr(s); }
@@ -70,8 +70,9 @@
   var ATTR = ['placeholder', 'title', 'aria-label', 'alt'];
   function skip(el) { return el.closest && el.closest('[data-noar],[translate="no"],.leaflet-control-attribution'); }
   function doEl(el) {
-    if (!el || el.nodeType !== 1 || SKIP[el.tagName] || skip(el)) return;
+    if (!el || el.nodeType !== 1 || (SKIP[el.tagName] && el.tagName !== 'TEXTAREA') || skip(el)) return;
     ATTR.forEach(function (a) { var v = el.getAttribute(a); if (v && /[A-Za-z]/.test(v)) { var t = tr(v); if (t !== v) el.setAttribute(a, t); } });
+    if (el.tagName === 'TEXTAREA') return;
     if (el.tagName === 'INPUT' && /^(button|submit|reset)$/.test(el.type) && el.value) { var tv = tr(el.value); if (tv !== el.value) el.value = tv; }
     if (BLOCK.test(el.tagName) && el.children.length && el.children.length < 12) {
       var h = norm(el.innerHTML);
@@ -95,7 +96,7 @@
 
   var ready = false, pending = 2;
   function load(src) {
-    var s = document.createElement('script'); s.src = src;
+    var s = document.createElement('script'); s.async = false; s.src = src;
     s.onload = s.onerror = function () { if (--pending === 0) start(); };
     document.head.appendChild(s);
   }

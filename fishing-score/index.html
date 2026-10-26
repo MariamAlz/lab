@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fishing Now · Mariam's Lab</title>
+<meta name="description" content="The best hours to go fishing at UAE spots over the next 48 hours, from tide, moon, dawn and dusk, pressure and wind, with plain reasons for each.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/fishing-score/">
+<meta property="og:title" content="Fishing Now · Mariam's Lab"><meta property="og:description" content="The best fishing windows in the next 48 hours, and why."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.where { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin-top: 8px; }
+.nowbox { padding: 20px; border-radius: var(--radius); border: 1px solid var(--line); background: rgba(7,10,24,.82); display: grid; gap: 6px; }
+.nowbox b.v { font-family: var(--font-display); font-size: clamp(1.5rem, 5vw, 2.4rem); font-weight: 800; line-height: 1.1; }
+.nowbox p { margin: 0; color: var(--muted); }
+.cwrap { overflow-x: auto; }
+.fchart { width: 100%; min-width: 640px; height: auto; display: block; }
+.fchart text { font-family: var(--font-mono); font-size: 11px; fill: var(--muted); }
+.best { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.best > li { padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); display: grid; gap: 4px; font-size: 0.9rem; }
+.best > li .hd { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.best > li .hd b { font-family: var(--font-display); font-size: 1.15rem; }
+.best > li .hd span { font-family: var(--font-mono); color: var(--accent); }
+.best li ul { margin: 0; padding-inline-start: 18px; color: var(--muted); font-size: 0.84rem; display: grid; gap: 2px; }
+.mini { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; }
+.mini div { padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); min-width: 0; }
+.mini span { font-size: 0.74rem; color: var(--muted); display: block; }
+.mini b { font-family: var(--font-display); font-size: 1.1rem; }
+.legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 0.75rem; color: var(--muted); }
+.legend span::before { content: ''; display: inline-block; width: 12px; height: 8px; border-radius: 2px; margin-inline-end: 5px; background: var(--c); }
+.rules { padding: 14px; border: 1px solid var(--accent); border-radius: 12px; font-size: 0.88rem; background: rgba(255,200,87,.06); }
+html.ar .best > li .hd span { direction: ltr; }
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Sea · Moon · Live</span>
+    <h1 style="font-size:var(--step-3)">Fishing now.</h1>
+    <p>Anglers on the Corniche and the breakwaters will tell you fish bite when the water is moving, at first and last light, and around the new and full moon. This puts those rules together with the tide, moon, pressure and wind forecast for your spot and picks the best three windows in the next 48 hours.</p>
+  </div>
+  <div class="where" id="where"><button class="sm" type="button" id="me">📍 Use my location</button></div>
+  <p class="msg" id="msg" role="status"></p>
+  <div class="game" style="margin-top:12px">
+    <div class="panel" style="min-width:0">
+      <div class="nowbox" id="now"><b class="v">Loading…</b></div>
+      <div class="mini" id="mini"></div>
+      <span class="label">Next 48 hours · fishing score</span>
+      <div class="cwrap"><svg class="fchart" id="chart" viewBox="0 0 900 260" role="img" aria-label="Hourly fishing score with the tide"></svg></div>
+      <div class="legend"><span style="--c:#4fd3bd">Good</span><span style="--c:#ffc857">Fair</span><span style="--c:#5b6178">Slow</span><span style="--c:rgba(127,180,255,.8)">Tide height</span><span style="--c:rgba(255,200,87,.25)">Best windows</span></div>
+    </div>
+    <div class="panel" style="min-width:0">
+      <span class="label">Best three windows</span>
+      <ul class="best" id="best"></ul>
+      <div class="rules"><b>Licence and rules.</b> Fishing in the UAE, even from the shore, needs a recreational fishing licence from the Ministry of Climate Change and Environment (MOCCAE) or your emirate's environment authority. There are also rules on species, sizes, areas and seasons. Check the current rules with the authority before you go.</div>
+    </div>
+  </div>
+  <div class="game" style="margin-top:20px">
+    <p class="fact" style="margin:0"><b>What the score rewards.</b> Water moving in the two hours or so either side of a high or low tide (bait gets stirred up). Solunar periods: the moon overhead or underfoot, plus or minus an hour (major), and moonrise and moonset, plus or minus 30 minutes (minor). An hour either side of sunrise and sunset. Steady or slowly falling pressure. Wind under 15 knots. And the few days around a new or full moon, when tides run strongest.</p>
+    <p class="fact" style="margin:0"><b>What's approximate.</b> Tides come from the Open-Meteo marine model, not a harbour gauge, so turns can be 30 minutes or more off, more so inside creeks and lagoons. Moon times are computed in your browser from a low-precision model (within a few minutes). Solunar theory is folklore with mixed evidence. Treat the score as a guide to when to go, not a promise of fish. Check the weather and sea state before going out on the water.</p>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script src="../assets/sky.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var SPOTS = [['Dubai Creek', 25.268, 55.298], ['Abu Dhabi Corniche breakwater', 24.476, 54.322], ['Khor Fakkan', 25.345, 56.360], ['Dibba', 25.620, 56.290], ['Fujairah', 25.125, 56.360], ['RAK Al Marjan', 25.680, 55.735], ['Umm Al Quwain', 25.580, 55.560], ['Jebel Ali', 25.020, 55.030]];
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  // ---------- moon (sky.js, geocentric) ----------
+  function moonAt(ms, lat, lon) {
+    var d = Sky.dayNum(ms), s = Sky.sun(d), m = Sky.moon(d, s), e = Sky.eclToEq(m, d), L = Sky.lst(ms, lon), h = Sky.toHoriz(e.ra, e.dec, L, lat);
+    return { alt: h.alt, H: Sky.rev(L - e.ra + 180) - 180, dl: m.dl, lit: (1 - Math.cos(m.elong * Math.PI / 180)) / 2 };
+  }
+  var H0 = 0.125; // geocentric altitude at rise/set (parallax − refraction − semi-diameter)
+  function bisect(a, b, f) { var fa = f(a); for (var k = 0; k < 24; k++) { var m = (a + b) / 2, fm = f(m); if ((fm > 0) === (fa > 0)) { a = m; fa = fm; } else b = m; } return (a + b) / 2; }
+  // rise, set, upper transit (overhead) and lower transit (underfoot) between t0 and t1
+  function moonEvents(t0, t1, lat, lon) {
+    var out = [], step = 600000, p = moonAt(t0, lat, lon);
+    for (var t = t0 + step; t <= t1; t += step) {
+      var c = moonAt(t, lat, lon);
+      if ((p.alt - H0) * (c.alt - H0) < 0) out.push({ k: c.alt > p.alt ? 'rise' : 'set', t: bisect(t - step, t, function (x) { return moonAt(x, lat, lon).alt - H0; }) });
+      if (p.H < 0 && c.H >= 0 && c.H - p.H < 90) out.push({ k: 'over', t: bisect(t - step, t, function (x) { return moonAt(x, lat, lon).H; }) });
+      if (p.H > 90 && c.H < -90) out.push({ k: 'under', t: bisect(t - step, t, function (x) { var h = moonAt(x, lat, lon).H; return h < 0 ? h + 360 - 180 : h - 180; }) });
+      p = c;
+    }
+    return out;
+  }
+  function phaseName(dl) { var n = ['New moon', 'Waxing crescent', 'First quarter', 'Waxing gibbous', 'Full moon', 'Waning gibbous', 'Last quarter', 'Waning crescent']; return n[Math.round(dl / 45) % 8]; }
+  // ---------- tide turns ----------
+  function turns(pts) {
+    var out = [];
+    for (var i = 1; i < pts.length - 1; i++) {
+      var a = pts[i - 1].v, b = pts[i].v, c = pts[i + 1].v, hi = b > a && b >= c, lo = b < a && b <= c;
+      if (!hi && !lo) continue;
+      var den = a - 2 * b + c, dx = den ? 0.5 * (a - c) / den : 0; dx = Math.max(-1, Math.min(1, dx));
+      out.push({ hi: hi, t: pts[i].ms + dx * 3600e3, v: b - 0.25 * (a - c) * dx });
+    }
+    return out.filter(function (e, i) { var o = out[i - 1] || out[i + 1]; return !o || Math.abs(o.v - e.v) >= 0.04; });
+  }
+  // ---------- score for one hour ----------
+  function scoreHour(h, ctx) {
+    var s = 10, why = [], t = h.ms + 1800e3; // judge the middle of the hour
+    // tide
+    if (ctx.turns.length) {
+      var near = null; ctx.turns.forEach(function (e) { if (!near || Math.abs(e.t - t) < Math.abs(near.t - t)) near = e; });
+      var dh = Math.abs(near.t - t) / 3600e3;
+      if (dh <= 0.5) { s += 10; why.push([10, 'Slack water at the ' + (near.hi ? 'high' : 'low') + ' tide (' + hm(near.t) + '), about to turn']); }
+      else if (dh <= 2.5) { s += 20; why.push([20, 'Water moving ' + (near.t > t ? 'into' : 'away from') + ' the ' + (near.hi ? 'high' : 'low') + ' tide at ' + hm(near.t)]); }
+      else if (h.flow != null) { var f = Math.round(8 * Math.min(1, h.flow / ctx.maxFlow)); s += f; if (f > 3) why.push([f, 'Mid-tide, strong current']); }
+    }
+    // solunar
+    var sol = 0, solW = '';
+    ctx.moon.forEach(function (e) {
+      var dm = Math.abs(e.t - t) / 60000;
+      if ((e.k === 'over' || e.k === 'under') && dm <= 90 && sol < 20) { sol = 20; solW = 'Major solunar period: moon ' + (e.k === 'over' ? 'overhead' : 'underfoot') + ' at ' + hm(e.t); }
+      if ((e.k === 'rise' || e.k === 'set') && dm <= 30 + 30 && sol < 12) { sol = 12; solW = 'Minor solunar period: moon' + e.k + ' at ' + hm(e.t); }
+    });
+    if (sol) { s += sol; why.push([sol, solW]); }
+    // dawn and dusk
+    ctx.sun.forEach(function (e) { if (Math.abs(e.t - t) <= 3600e3 + 1800e3) { s += 15; why.push([15, (e.k === 'rise' ? 'First light, sunrise ' : 'Last light, sunset ') + hm(e.t)]); } });
+    // pressure trend
+    if (h.dp != null) {
+      var p = h.dp >= -3 && h.dp <= -0.8 ? 12 : Math.abs(h.dp) < 0.8 ? 9 : h.dp < -3 ? 4 : h.dp > 2 ? -6 : 2;
+      s += p; why.push([p, 'Pressure ' + (h.dp >= -3 && h.dp <= -0.8 ? 'falling slowly' : Math.abs(h.dp) < 0.8 ? 'steady' : h.dp < -3 ? 'falling fast' : 'rising') + ' (' + (h.dp > 0 ? '+' : '') + h.dp.toFixed(1) + ' hPa in 6 h)']);
+    }
+    // wind
+    if (h.wind != null) {
+      var w = h.wind < 10 ? 15 : h.wind < 15 ? 8 : h.wind < 20 ? -5 : -20;
+      if (h.gust != null && h.gust > 25) w -= 8;
+      s += w; why.push([w, (h.wind < 10 ? 'Light wind, ' : h.wind < 15 ? 'Moderate wind, ' : 'Windy, ') + Math.round(h.wind) + ' kt' + (h.gust != null ? ' gusting ' + Math.round(h.gust) : '')]);
+    }
+    // moon phase
+    var ph = Math.min(Math.abs(ctx.dl), Math.abs(360 - ctx.dl), Math.abs(ctx.dl - 180));
+    if (ph < 36) { s += 8; why.push([8, (Math.abs(ctx.dl - 180) < 36 ? 'Near full moon' : 'Near new moon') + ', so strong spring tides']); }
+    if (h.cloud != null && h.day && h.cloud >= 40 && h.cloud <= 85) { s += 3; why.push([3, 'Cloud cover dims the light']); }
+    return { s: Math.max(0, Math.min(100, Math.round(s))), why: why };
+  }
+  window.FishMath = { moonEvents: moonEvents, moonAt: moonAt, scoreHour: scoreHour, turns: turns };
+  var OFF = 14400;
+  function hm(ms) { var d = new Date(ms + OFF * 1000); return pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes()); }
+  function dayW(ms, base) { var a = Math.floor((ms + OFF * 1000) / 864e5), b = Math.floor((base + OFF * 1000) / 864e5); return a === b ? 'today' : a === b + 1 ? 'tomorrow' : new Date(ms + OFF * 1000).toLocaleDateString('en-GB', { weekday: 'long', timeZone: 'UTC' }); }
+  function col(s) { return s >= 60 ? '#4fd3bd' : s >= 40 ? '#ffc857' : '#5b6178'; }
+  // ---------- data ----------
+  function get(u) { return fetch(u).then(function (r) { if (!r.ok) throw 0; return r.json(); }); }
+  function load(lat, lon, name) {
+    $('msg').textContent = 'Fetching tide, wind and pressure for ' + name + '…';
+    var m = 'https://marine-api.open-meteo.com/v1/marine?latitude=' + lat + '&longitude=' + lon + '&hourly=sea_level_height_msl&timezone=auto&past_days=1&forecast_days=3&cell_selection=sea';
+    var w = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon + '&hourly=wind_speed_10m,wind_gusts_10m,pressure_msl,cloud_cover,is_day&daily=sunrise,sunset&wind_speed_unit=kn&timezone=auto&past_days=1&forecast_days=3';
+    Promise.all([get(w), get(m).catch(function () { return null; })]).then(function (r) {
+      var W = r[0], H = W.hourly; OFF = W.utc_offset_seconds || 0;
+      var toMs = function (s) { return Date.parse(s + (s.length === 16 ? ':00Z' : 'Z')) - OFF * 1000; };
+      var rows = H.time.map(function (t, i) { return { t: t, ms: toMs(t), wind: H.wind_speed_10m[i], gust: H.wind_gusts_10m ? H.wind_gusts_10m[i] : null, p: H.pressure_msl[i], cloud: H.cloud_cover ? H.cloud_cover[i] : null, day: H.is_day ? H.is_day[i] : 1 }; });
+      rows.forEach(function (h, i) { h.dp = i >= 6 && h.p != null && rows[i - 6].p != null ? h.p - rows[i - 6].p : null; });
+      var tide = [];
+      if (r[1] && r[1].hourly) r[1].hourly.time.forEach(function (t, i) { var v = r[1].hourly.sea_level_height_msl[i]; if (v != null) tide.push({ ms: toMs(t), v: v }); });
+      var tv = {}; tide.forEach(function (p, i) { tv[p.ms] = p; p.flow = i > 0 && i < tide.length - 1 ? Math.abs(tide[i + 1].v - tide[i - 1].v) / 2 : null; });
+      rows.forEach(function (h) { var p = tv[h.ms]; h.tide = p ? p.v : null; h.flow = p ? p.flow : null; });
+      var now = Date.now(), k = 0; rows.forEach(function (h, i) { if (h.ms <= now) k = i; });
+      var view = rows.slice(k, k + 48);
+      var t0 = view[0].ms, t1 = view[view.length - 1].ms + 3600e3;
+      var sun = []; (W.daily ? W.daily.time : []).forEach(function (d, i) { if (W.daily.sunrise[i]) sun.push({ k: 'rise', t: toMs(W.daily.sunrise[i]) }); if (W.daily.sunset[i]) sun.push({ k: 'set', t: toMs(W.daily.sunset[i]) }); });
+      var mo = moonAt(now, +lat, +lon);
+      var ctx = { turns: turns(tide), maxFlow: Math.max.apply(null, tide.map(function (p) { return p.flow || 0; }).concat([0.01])), moon: moonEvents(t0 - 3 * 3600e3, t1 + 3 * 3600e3, +lat, +lon), sun: sun, dl: mo.dl };
+      view.forEach(function (h) { var r2 = scoreHour(h, ctx); h.s = r2.s; h.why = r2.why; });
+      $('msg').textContent = name + (tide.length ? ' · tide model cell ' + (+r[1].latitude).toFixed(2) + '°N ' + (+r[1].longitude).toFixed(2) + '°E' : ' · no tide data here, so the score leaves the tide out');
+      render(view, ctx, mo, now);
+    }).catch(function () { $('msg').textContent = 'Couldn\'t reach the forecast service. Check your connection and try again.'; $('now').innerHTML = '<b class="v">No data</b>'; });
+  }
+  function render(v, ctx, mo, now) {
+    var h = v[0];
+    $('now').style.borderColor = col(h.s);
+    $('now').innerHTML = '<span class="label">Right now</span><b class="v" style="color:' + col(h.s) + '">' + h.s + ' · ' + (h.s >= 60 ? 'Good time to fish' : h.s >= 40 ? 'Fair' : 'Slow') + '</b><p>' + h.why.filter(function (w) { return w[0] > 0; }).map(function (w) { return '<span>' + w[1] + '.</span>'; }).join(' ') + '</p>';
+    var nt = ctx.turns.filter(function (e) { return e.t > now; })[0], nm = ctx.moon.filter(function (e) { return e.t > now; })[0];
+    $('mini').innerHTML = [['Moon', phaseName(mo.dl) + ', ' + Math.round(mo.lit * 100) + '%'], ['Next tide', nt ? (nt.hi ? 'High ' : 'Low ') + hm(nt.t) : '—'], ['Next moon event', nm ? { rise: 'Rise ', set: 'Set ', over: 'Overhead ', under: 'Underfoot ' }[nm.k] + hm(nm.t) : '—'], ['Wind now', h.wind != null ? Math.round(h.wind) + ' kt' : '—']].map(function (x) { return '<div><span>' + x[0] + '</span><b>' + x[1] + '</b></div>'; }).join('');
+    // best 3 two-hour windows, not overlapping
+    var cand = []; for (var i = 0; i + 1 < v.length; i++) cand.push({ i: i, s: (v[i].s + v[i + 1].s) / 2 });
+    cand.sort(function (a, b) { return b.s - a.s; });
+    var best = []; cand.forEach(function (c) { if (best.length < 3 && best.every(function (b) { return Math.abs(b.i - c.i) >= 3; })) best.push(c); });
+    best.sort(function (a, b) { return a.i - b.i; });
+    $('best').innerHTML = best.map(function (b) {
+      var a = v[b.i], z = v[b.i + 1], seen = {}, rs = [];
+      a.why.concat(z.why).filter(function (w) { return w[0] >= 8; }).sort(function (x, y) { return y[0] - x[0]; }).forEach(function (w) { var k = w[1].split(':')[0].split(' (')[0]; if (!seen[k]) { seen[k] = 1; rs.push(w[1]); } });
+      return '<li><div class="hd"><b>' + hm(a.ms) + '–' + hm(z.ms + 3600e3) + ' ' + dayW(a.ms, now) + '</b><span>' + Math.round(b.s) + '/100</span></div><ul>' + rs.slice(0, 4).map(function (r) { return '<li>' + r + '</li>'; }).join('') + '</ul></li>';
+    }).join('');
+    // chart
+    var Wd = 900, Ht = 260, L = 34, Rr = 8, T = 22, B = 30, n = v.length, bw = (Wd - L - Rr) / n, s = '';
+    var X = function (ms) { return L + (ms - v[0].ms) / 3600e3 * bw; }, Y = function (sc) { return T + (1 - sc / 100) * (Ht - T - B); };
+    [20, 40, 60, 80, 100].forEach(function (g) { s += '<line x1="' + L + '" x2="' + (Wd - Rr) + '" y1="' + Y(g) + '" y2="' + Y(g) + '" stroke="rgba(255,255,255,.07)"/><text x="' + (L - 5) + '" y="' + (Y(g) + 4) + '" text-anchor="end">' + g + '</text>'; });
+    best.forEach(function (b) { s += '<rect x="' + X(v[b.i].ms) + '" y="' + T + '" width="' + bw * 2 + '" height="' + (Ht - T - B) + '" fill="rgba(255,200,87,.16)"/>'; });
+    v.forEach(function (h, i) {
+      s += '<rect x="' + (X(h.ms) + 1) + '" y="' + Y(h.s) + '" width="' + Math.max(1, bw - 2) + '" height="' + (Ht - B - Y(h.s)) + '" rx="2" fill="' + col(h.s) + '"><title>' + hm(h.ms) + ' · ' + h.s + '</title></rect>';
+      var hr = +h.t.slice(11, 13); if (hr % 6 === 0) s += '<text x="' + X(h.ms) + '" y="' + (Ht - 10) + '" text-anchor="middle">' + (hr === 0 ? h.t.slice(8, 10) + '/' + h.t.slice(5, 7) : pad(hr) + 'h') + '</text>';
+    });
+    var tp = v.filter(function (h) { return h.tide != null; });
+    if (tp.length > 2) {
+      var lo = Math.min.apply(null, tp.map(function (h) { return h.tide; })), hi = Math.max.apply(null, tp.map(function (h) { return h.tide; })), TY = function (x) { return T + 8 + (1 - (x - lo) / ((hi - lo) || 1)) * (Ht - T - B - 16) * 0.6; };
+      s += '<polyline fill="none" stroke="rgba(127,180,255,.85)" stroke-width="2" points="' + tp.map(function (h) { return (X(h.ms) + bw / 2).toFixed(1) + ',' + TY(h.tide).toFixed(1); }).join(' ') + '"/>';
+    }
+    ctx.moon.forEach(function (e) { if (e.t >= v[0].ms && e.t <= v[n - 1].ms + 3600e3) { var x = X(e.t); s += '<text x="' + x + '" y="' + (T - 7) + '" text-anchor="middle" style="fill:#e6e8f0">' + { rise: '☽↑', set: '☽↓', over: '☽', under: '☽̲' }[e.k] + '</text>'; } });
+    ctx.sun.forEach(function (e) { if (e.t >= v[0].ms && e.t <= v[n - 1].ms + 3600e3) s += '<text x="' + X(e.t) + '" y="' + (T - 7) + '" text-anchor="middle" style="fill:#ffc857">' + (e.k === 'rise' ? '☀↑' : '☀↓') + '</text>'; });
+    $('chart').innerHTML = s;
+  }
+  SPOTS.forEach(function (p, i) {
+    var b = document.createElement('button'); b.className = 'sm'; b.type = 'button'; b.textContent = p[0]; b.setAttribute('aria-pressed', 'false');
+    b.onclick = function () { pick(b); load(p[1], p[2], p[0]); try { localStorage.setItem('fishSpot', i); } catch (e) {} };
+    $('where').appendChild(b);
+  });
+  function pick(b) { [].forEach.call(document.querySelectorAll('#where .sm'), function (x) { x.setAttribute('aria-pressed', x === b); }); }
+  $('me').onclick = function () {
+    if (!navigator.geolocation) { $('msg').textContent = 'Your browser can\'t share a location.'; return; }
+    $('msg').textContent = 'Asking for your location…';
+    navigator.geolocation.getCurrentPosition(function (p) { pick($('me')); load(p.coords.latitude.toFixed(3), p.coords.longitude.toFixed(3), 'Your location'); }, function () { $('msg').textContent = 'Location was not shared. Pick a spot instead.'; }, { maximumAge: 6e5, timeout: 10000 });
+  };
+  var i0 = 1; try { var s = localStorage.getItem('fishSpot'); if (s != null && SPOTS[+s]) i0 = +s; } catch (e) {}
+  document.querySelectorAll('#where .sm')[i0 + 1].click();
+})();
+</script>
+</body>
+</html>

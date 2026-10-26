@@ -83,7 +83,7 @@ LabAr.add({
   "Al Ain": "العين",
   "UAE": "الإمارات",
   "Monday": "الاثنين", "Tuesday": "الثلاثاء", "Wednesday": "الأربعاء", "Thursday": "الخميس", "Friday": "الجمعة", "Saturday": "السبت", "Sunday": "الأحد",
-  "Mon": "الاثنين", "Tue": "الثلاثاء", "Wed": "الأربعاء", "Thu": "الخميس", "Fri": "الجمعة", "Sat": "السبت", "Sun": "الأحد",
+  "Mon": "الاثنين", "Tue": "الثلاثاء", "Wed": "الأربعاء", "Thu": "الخميس", "Fri": "الجمعة", "Sat": "السبت",
   "January": "يناير", "February": "فبراير", "March": "مارس", "April": "أبريل", "May": "مايو", "June": "يونيو", "July": "يوليو", "August": "أغسطس", "September": "سبتمبر", "October": "أكتوبر", "November": "نوفمبر", "December": "ديسمبر",
   "Jan": "يناير", "Feb": "فبراير", "Mar": "مارس", "Apr": "أبريل", "Jun": "يونيو", "Jul": "يوليو", "Aug": "أغسطس", "Sep": "سبتمبر", "Oct": "أكتوبر", "Nov": "نوفمبر", "Dec": "ديسمبر",
   "Yes": "نعم",
@@ -257,4 +257,15 @@ LabAr.add({
  "Bad redaction finder": "كاشف الحجب الخاطئ",
  "Find black boxes in a PDF that still have readable text under them, and pixelation or blur in screenshots that can be undone.": "اكتشف المربعات السوداء في ملفات PDF التي ما زال تحتها نص مقروء، والبكسلة أو التمويه في لقطات الشاشة الذي يمكن عكسه.",
  "Check a redaction →": "افحص الحجب ←"
+});
+/* index cards for newer tools */
+LabAr.add({
+ "Verify · Weather": "تحقق · الطقس",
+ "Was the weather really like that?": "هل كان الطقس فعلًا هكذا؟",
+ "Check a photo or video against the hourly weather record, dust levels and the sun's position for that place and time.": "قارن صورة أو مقطعًا بسجل الطقس بالساعة ومستويات الغبار وموقع الشمس في ذلك المكان والوقت.",
+ "Check a claim →": "افحص ادعاءً ←",
+ "Tool · Sea · Moon": "أداة · البحر · القمر",
+ "Fishing now": "الصيد الآن",
+ "The best three fishing windows in the next 48 hours from tide, moon, dawn and dusk, pressure and wind.": "أفضل ثلاث فترات للصيد في الـ48 ساعة القادمة حسب المد والجزر والقمر والفجر والغروب والضغط والرياح.",
+ "Find a window →": "اعثر على فترة ←"
 });

@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Weather Check · Mariam's Lab</title>
+<meta name="description" content="Was the weather really like that? Look up past hourly weather, dust and sun position for any place and time, and check whether a photo or video matches.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/weather-check/">
+<meta property="og:title" content="Weather Check · Mariam's Lab"><meta property="og:description" content="Check a photo's weather against the historical record: rain, dust, cloud, wind and the sun."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="stylesheet" href="../assets/vendor/leaflet/leaflet.css">
+<style>
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; text-decoration: none; display: inline-block; }
+.sm.pri { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.pills { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 0; }
+.f { display: grid; gap: 5px; min-width: 0; }
+.f > span { font-size: 0.84rem; color: var(--muted); }
+.f input, .f select { font: inherit; color: var(--ink); background: rgba(7, 10, 24, 0.6); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; min-width: 0; width: 100%; color-scheme: dark; }
+.srow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; }
+.three { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+@media (max-width: 520px) { .three { grid-template-columns: 1fr 1fr; } .three .f:first-child { grid-column: 1 / -1; } }
+#map { height: 240px; border-radius: 12px; border: 1px solid var(--line); }
+.leaflet-container { font-family: 'Instrument Sans', sans-serif; background: #0b1020; }
+.place { font-size: 0.9rem; }
+.place b { font-weight: 600; }
+.claims { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
+.claims label { display: flex; gap: 6px; align-items: center; font-size: 0.88rem; padding: 6px 9px; border: 1px solid var(--line); border-radius: 9px; cursor: pointer; }
+.claims input { accent-color: var(--accent); width: 16px; height: 16px; margin: 0; flex: none; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; }
+.tile { padding: 11px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); min-width: 0; }
+.tile span { font-size: 0.76rem; color: var(--muted); display: block; }
+.tile b { font-family: var(--font-display); font-size: 1.3rem; display: block; line-height: 1.2; overflow-wrap: anywhere; }
+.tile small { font-size: 0.76rem; color: var(--muted); display: block; }
+.verd { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.verd li { display: grid; grid-template-columns: minmax(0, 1fr); gap: 3px; padding: 10px 12px; border: 1px solid var(--line); border-inline-start: 5px solid var(--vc); border-radius: 10px; background: var(--surface); }
+.verd .top { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; align-items: baseline; }
+.verd .top b { font-weight: 600; }
+.verd .tag { font-family: var(--font-mono); font-size: 0.72rem; padding: 2px 8px; border-radius: 99px; background: var(--vc); color: #0b0f1f; }
+.verd p { margin: 0; font-size: 0.86rem; color: var(--muted); }
+.chartbox { position: relative; }
+#chart { width: 100%; height: 200px; display: block; }
+.tblwrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; max-height: 360px; overflow-y: auto; }
+table.hrs { border-collapse: collapse; width: 100%; font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+.hrs th, .hrs td { padding: 5px 8px; border-bottom: 1px solid var(--line); text-align: start; white-space: nowrap; }
+.hrs th { position: sticky; top: 0; background: #0d1328; font-weight: 600; color: var(--muted); }
+.hrs tr.tgt td { background: color-mix(in srgb, var(--accent) 18%, transparent); }
+.hrs tr.out td { opacity: .55; }
+.legend { display: flex; gap: 10px; flex-wrap: wrap; font-size: 0.75rem; color: var(--muted); }
+.legend span::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-inline-end: 4px; vertical-align: -1px; background: var(--c); }
+[hidden] { display: none !important; }
+html.ar .tile b, html.ar .tile small { unicode-bidi: plaintext; text-align: right; }
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Weather · Verification</span>
+    <h1 style="font-size:var(--step-3)">Was the weather really like that?</h1>
+    <p>A video of a flooded street goes round, labelled "today". Was it even raining? Pick the place and time, and this pulls the hourly weather record, dust levels and the sun's position for that moment, then checks what the photo or video shows against it.</p>
+  </div>
+  <div class="game">
+    <div class="panel">
+      <span class="label">1 · Where</span>
+      <form class="srow" id="sform"><input id="q" class="f" style="font:inherit;color:var(--ink);background:rgba(7,10,24,.6);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-width:0" placeholder="Search a place, e.g. Al Barsha" autocomplete="off"><button class="sm" type="submit">Search</button></form>
+      <div class="pills" id="hits" data-noar></div>
+      <div id="map" aria-label="Map: tap to pick a place"></div>
+      <p class="place" id="place"></p>
+      <span class="label">2 · When (local time at that place)</span>
+      <div class="three">
+        <label class="f"><span>Date</span><input type="date" id="d1"></label>
+        <label class="f"><span>Time</span><input type="time" id="t1" step="3600"></label>
+        <label class="f"><span>Give or take</span><select id="win"><option value="1">1 hour</option><option value="2">2 hours</option><option value="3" selected>3 hours</option><option value="6">6 hours</option></select></label>
+      </div>
+      <label class="f"><span>End date, for a range of days (optional)</span><input type="date" id="d2"></label>
+      <span class="label">3 · What the photo or video shows</span>
+      <div class="claims" id="claims">
+        <label><input type="checkbox" value="rain"> Rain falling</label>
+        <label><input type="checkbox" value="wet"> Wet ground or puddles</label>
+        <label><input type="checkbox" value="snow"> Snow</label>
+        <label><input type="checkbox" value="dust"> Heavy dust or sandstorm</label>
+        <label><input type="checkbox" value="clear"> Clear blue sky</label>
+        <label><input type="checkbox" value="shadows"> Long shadows</label>
+        <label><input type="checkbox" value="night"> Night</label>
+        <label><input type="checkbox" value="fog"> Fog</label>
+        <label><input type="checkbox" value="wind"> Strong wind</label>
+      </div>
+      <div class="pills"><button class="sm pri" type="button" id="go">Check the weather</button><button class="sm" type="button" id="demo">Demo: Dubai, 16 April 2024</button></div>
+      <p class="msg" id="msg" role="status"></p>
+    </div>
+    <div class="panel">
+      <div id="res" hidden style="display:grid;gap:14px">
+        <span class="label" id="restitle">What the record shows</span>
+        <div class="tiles" id="tiles"></div>
+        <ul class="verd" id="verd"></ul>
+        <div class="chartbox"><canvas id="chart" aria-label="Hourly temperature, rain and cloud chart"></canvas></div>
+        <div class="legend"><span style="--c:#ff9f5a">Temperature</span><span style="--c:#4fa3ff">Rain per hour</span><span style="--c:rgba(200,210,230,.35)">Cloud cover</span><span style="--c:rgba(233,180,103,.35)">Your time window</span></div>
+        <div class="tblwrap"><table class="hrs" id="tbl"></table></div>
+      </div>
+      <p class="fact" style="margin:0"><b>How good is this record?</b> The weather comes from reanalysis: computer models blended with observations from weather stations, balloons and satellites. Each value covers a grid square about 9 to 25 km wide, so a short, local storm or a single flooded street can be missed, and coastal fog or a dust plume may be placed a few kilometres off. "Can't tell" is often the honest answer.</p>
+      <p class="fact" style="margin:0"><b>Dust</b> comes from the CAMS atmospheric model through the Open-Meteo air quality API, which only has history from about August 2022. Before that, dust shows as unavailable. The newest few days may be missing too, because the archive runs about 5 days behind.</p>
+      <p class="fact" style="margin:0"><b>Shadows</b> are worked out from the sun's height. At 20° above the horizon, a shadow is nearly three times as long as the person casting it. At 70°, it's a third. Compare that with the shadows in the picture. Also check the shadows point away from the sun's direction shown here.</p>
+      <p class="msg">Weather data: Open-Meteo (ERA5 and ECMWF IFS reanalysis), CAMS. Sun position calculated in your browser.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script src="../assets/vendor/leaflet/leaflet.js"></script>
+<script src="../assets/sky.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var AR = !!(window.LabAr && LabAr.on);
+  var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  var WMO = { 0: 'Clear sky', 1: 'Mainly clear', 2: 'Partly cloudy', 3: 'Overcast', 45: 'Fog', 48: 'Freezing fog', 51: 'Light drizzle', 53: 'Drizzle', 55: 'Heavy drizzle', 56: 'Freezing drizzle', 57: 'Freezing drizzle', 61: 'Light rain', 63: 'Rain', 65: 'Heavy rain', 66: 'Freezing rain', 67: 'Freezing rain', 71: 'Light snow', 73: 'Snow', 75: 'Heavy snow', 77: 'Snow grains', 80: 'Light showers', 81: 'Showers', 82: 'Violent showers', 85: 'Snow showers', 86: 'Heavy snow showers', 95: 'Thunderstorm', 96: 'Thunderstorm with hail', 99: 'Thunderstorm with hail' };
+  var CL = { rain: 'Rain falling', wet: 'Wet ground or puddles', snow: 'Snow', dust: 'Heavy dust or sandstorm', clear: 'Clear blue sky', shadows: 'Long shadows', night: 'Night', fog: 'Fog', wind: 'Strong wind' };
+  var VC = { yes: ['Consistent', '#4fd3bd'], no: ['Inconsistent', '#ff4f6d'], maybe: ["Can't tell", '#ffc857'] };
+  var loc = null, marker = null, last = null;
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function r1(x) { return Math.round(x * 10) / 10; }
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function ymd(d) { return d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate()); }
+  function addDays(s, n) { var d = new Date(s + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return ymd(d); }
+  function dayLabel(s) { return +s.slice(8, 10) + ' ' + MON[+s.slice(5, 7) - 1]; }
+
+  // map
+  var map = L.map('map', { zoomControl: true, attributionControl: true }).setView([24.4, 54.6], 6);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', { subdomains: 'abcd', maxZoom: 16, attribution: '© OpenStreetMap, © CARTO' }).addTo(map);
+  function setLoc(lat, lon, name, zoom) {
+    loc = { lat: lat, lon: lon, name: name || null };
+    if (marker) marker.setLatLng([lat, lon]); else marker = L.marker([lat, lon]).addTo(map);
+    if (zoom) map.setView([lat, lon], zoom);
+    $('place').innerHTML = '<span>Place:</span> <b data-noar>' + esc(name || (lat.toFixed(3) + ', ' + lon.toFixed(3))) + '</b>';
+  }
+  map.on('click', function (e) { setLoc(e.latlng.lat, e.latlng.lng, null); });
+  $('sform').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var q = $('q').value.trim(); if (!q) return;
+    $('msg').textContent = 'Searching…';
+    fetch('https://geocoding-api.open-meteo.com/v1/search?count=6&format=json&language=' + (AR ? 'ar' : 'en') + '&name=' + encodeURIComponent(q))
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        var res = (j && j.results) || [];
+        $('msg').textContent = res.length ? 'Pick the right place:' : 'No place found. Try another spelling, or tap the map.';
+        $('hits').innerHTML = res.map(function (p, i) { return '<button class="sm" type="button" data-i="' + i + '">' + esc([p.name, p.admin1, p.country].filter(Boolean).join(', ')) + '</button>'; }).join('');
+        [].forEach.call($('hits').querySelectorAll('button'), function (b) { b.addEventListener('click', function () { var p = res[+b.getAttribute('data-i')]; setLoc(p.latitude, p.longitude, [p.name, p.country].filter(Boolean).join(', '), 11); $('hits').innerHTML = ''; $('msg').textContent = ''; }); });
+      })
+      .catch(function () { $('msg').textContent = 'Search failed. Check your connection, or tap the map instead.'; });
+  });
+
+  function sunPos(ms, lat, lon) { var d = Sky.dayNum(ms), s = Sky.sun(d), e = Sky.eclToEq(s, d); return Sky.toHoriz(e.ra, e.dec, Sky.lst(ms, lon), lat); }
+  var DIRS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+  function dir(az) { return DIRS[Math.round(az / 45) % 8]; }
+
+  function getJSON(u) { return fetch(u).then(function (r) { return r.json().then(function (j) { if (!r.ok || j.error) throw new Error(j.reason || 'HTTP ' + r.status); return j; }); }); }
+  function fetchWeather(lat, lon, s, e) {
+    var vars = 'temperature_2m,relative_humidity_2m,precipitation,rain,snowfall,cloud_cover,wind_speed_10m,wind_gusts_10m,weather_code,is_day';
+    var base = 'https://archive-api.open-meteo.com/v1/archive?latitude=' + lat.toFixed(4) + '&longitude=' + lon.toFixed(4) + '&start_date=' + s + '&end_date=' + e + '&daily=sunrise,sunset&timezone=auto&hourly=';
+    return getJSON(base + vars + ',visibility').catch(function () { return getJSON(base + vars); });
+  }
+  function fetchDust(lat, lon, s, e) {
+    if (e < '2022-08-01') return Promise.resolve(null);
+    if (s < '2022-08-01') s = '2022-08-01';
+    return getJSON('https://air-quality-api.open-meteo.com/v1/air-quality?latitude=' + lat.toFixed(4) + '&longitude=' + lon.toFixed(4) + '&hourly=dust,pm10&timezone=auto&start_date=' + s + '&end_date=' + e).catch(function () { return { failed: true }; });
+  }
+
+  function run() {
+    if (!loc) { $('msg').textContent = 'Pick a place first: search, or tap the map.'; return; }
+    var d1 = $('d1').value, d2 = $('d2').value, t = $('t1').value || '12:00';
+    if (!d1) { $('msg').textContent = 'Pick a date.'; return; }
+    var today = ymd(new Date());
+    if (d1 > today) { $('msg').textContent = 'That date is in the future. This looks at past weather.'; return; }
+    if (d1 < '1940-01-01') { $('msg').textContent = 'The record starts in 1940.'; return; }
+    var range = d2 && d2 > d1;
+    if (range && (Date.parse(d2) - Date.parse(d1)) / 864e5 > 30) { $('msg').textContent = 'Pick a range of 31 days or less.'; return; }
+    var fs = addDays(d1, -1), fe = range ? d2 : addDays(d1, 1);
+    if (fe > today) fe = today;
+    $('msg').textContent = 'Loading the weather record…';
+    $('go').disabled = true;
+    Promise.all([fetchWeather(loc.lat, loc.lon, fs, fe), fetchDust(loc.lat, loc.lon, fs, fe)]).then(function (a) {
+      $('go').disabled = false;
+      last = { w: a[0], dust: a[1], d1: d1, d2: range ? d2 : null, t: t, win: +$('win').value };
+      show();
+    }).catch(function (e) {
+      $('go').disabled = false;
+      $('msg').textContent = 'Couldn\'t load the weather record. Check your connection and try again.';
+    });
+  }
+
+  function show() {
+    var W = last.w, H = W.hourly, n = H.time.length, off = (W.utc_offset_seconds || 0) * 1000;
+    var dustBy = {};
+    if (last.dust && last.dust.hourly) last.dust.hourly.time.forEach(function (tm, i) { dustBy[tm] = [last.dust.hourly.dust[i], last.dust.hourly.pm10[i]]; });
+    var rows = [];
+    for (var i = 0; i < n; i++) {
+      var ms = Date.parse(H.time[i] + 'Z') - off, sp = sunPos(ms, W.latitude, W.longitude), du = dustBy[H.time[i]] || [null, null];
+      rows.push({ t: H.time[i], T: H.temperature_2m[i], rh: H.relative_humidity_2m ? H.relative_humidity_2m[i] : null, p: H.precipitation[i], rain: H.rain ? H.rain[i] : null, snow: H.snowfall ? H.snowfall[i] : null, cc: H.cloud_cover[i], ws: H.wind_speed_10m[i], wg: H.wind_gusts_10m[i], wc: H.weather_code[i], vis: H.visibility ? H.visibility[i] : null, day: H.is_day ? H.is_day[i] : null, alt: sp.alt, az: sp.az, dust: du[0], pm10: du[1] });
+    }
+    var tgtStr = last.d1 + 'T' + pad(Math.min(23, Math.round(+last.t.slice(0, 2) + (+last.t.slice(3, 5)) / 60))) + ':00';
+    var ti = -1, a0, a1;
+    if (last.d2) { a0 = H.time.indexOf(last.d1 + 'T00:00'); a1 = H.time.lastIndexOf(last.d2 + 'T23:00'); if (a1 < 0) a1 = n - 1; }
+    else { ti = H.time.indexOf(tgtStr); a0 = Math.max(0, ti - last.win); a1 = Math.min(n - 1, ti + last.win); }
+    if (a0 < 0) a0 = 0;
+    var win = rows.slice(a0, a1 + 1).filter(function (r) { return r.T != null; });
+    if (!win.length) { $('res').hidden = true; $('msg').textContent = 'No data yet for these dates. The archive is usually about 5 days behind.'; return; }
+    $('msg').textContent = '';
+    $('res').hidden = false;
+    $('restitle').textContent = last.d2 ? 'What the record shows, ' + dayLabel(last.d1) + ' to ' + dayLabel(last.d2) : 'What the record shows around ' + tgtStr.slice(11) + ', ' + dayLabel(last.d1) + ' ' + last.d1.slice(0, 4);
+    function mx(k) { var v = win.map(function (r) { return r[k]; }).filter(function (x) { return x != null; }); return v.length ? Math.max.apply(null, v) : null; }
+    function mn(k) { var v = win.map(function (r) { return r[k]; }).filter(function (x) { return x != null; }); return v.length ? Math.min.apply(null, v) : null; }
+    function sum(k) { return win.reduce(function (s, r) { return s + (r[k] || 0); }, 0); }
+    var tr = ti >= 0 ? rows[ti] : null;
+    var worst = win.reduce(function (b, r) { return r.wc != null && r.wc > b ? r.wc : b; }, -1);
+    var di = H.time.indexOf(last.d1 + 'T00:00') >= 0 ? (W.daily.time.indexOf(last.d1)) : -1;
+    var sr = di >= 0 && W.daily.sunrise[di] ? W.daily.sunrise[di].slice(11) : '-', ss = di >= 0 && W.daily.sunset[di] ? W.daily.sunset[di].slice(11) : '-';
+    var tiles = [
+      ['Weather', tr && tr.wc != null ? WMO[tr.wc] || 'Unknown' : WMO[worst] || 'Unknown', tr ? 'At ' + tgtStr.slice(11) : 'Worst in range'],
+      ['Temperature', Math.round(mn('T')) + '–' + Math.round(mx('T')) + '°C', tr ? Math.round(tr.T) + '°C at that hour' : 'Range'],
+      ['Rain', r1(sum('p')) + ' mm', 'Total in window'],
+      ['Cloud cover', Math.round(mn('cc')) + '–' + Math.round(mx('cc')) + '%', 'Lowest to highest'],
+      ['Wind gusts', Math.round(mx('wg')) + ' km/h', 'Strongest in window'],
+      ['Dust', mx('dust') != null ? Math.round(mx('dust')) + ' µg/m³' : 'Not available', mx('pm10') != null ? 'PM10 up to ' + Math.round(mx('pm10')) + ' µg/m³' : last.dust && last.dust.failed ? 'Couldn\'t load' : 'History from Aug 2022']
+    ];
+    if (mn('vis') != null) tiles.push(['Visibility', r1(mn('vis') / 1000) + ' km', 'Lowest in window']);
+    if (tr) tiles.push(['Sun position', (tr.alt >= 0 ? Math.round(tr.alt) + '° up' : Math.round(-tr.alt) + '° below horizon'), tr.alt > 0 ? 'In the ' + dir(tr.az) + ', shadows point ' + dir((tr.az + 180) % 360) : 'No sunlight shadows']);
+    tiles.push(['Sunrise · Sunset', sr + ' · ' + ss, dayLabel(last.d1)]);
+    $('tiles').innerHTML = tiles.map(function (x) { return '<div class="tile"><span>' + x[0] + '</span><b>' + esc(x[1]) + '</b><small>' + esc(x[2]) + '</small></div>'; }).join('');
+
+    // claims
+    var picked = [].map.call($('claims').querySelectorAll('input:checked'), function (c) { return c.value; });
+    function before24(r) { var i = rows.indexOf(r), s = 0; for (var k = Math.max(0, i - 24); k <= i; k++) s += rows[k].p || 0; return s; }
+    var V = [];
+    picked.forEach(function (k) {
+      var st, why;
+      if (k === 'rain') {
+        var tot = sum('p'), pk = mx('p'), pre = rows.slice(Math.max(0, a0 - 6), a0).reduce(function (s, r) { return s + (r.p || 0); }, 0);
+        if (tot >= 0.5) { st = 'yes'; why = 'The record shows ' + r1(tot) + ' mm of rain in this window, up to ' + r1(pk) + ' mm in one hour.'; }
+        else if (tot > 0 || pre > 0) { st = 'maybe'; why = 'Only a trace of rain (' + r1(tot + pre) + ' mm). Light or very local showers are easy to miss.'; }
+        else { st = 'no'; why = 'No rain in the record for this window or the 6 hours before. A very local shower is still possible.'; }
+      } else if (k === 'wet') {
+        var w24 = Math.max.apply(null, win.map(before24));
+        if (w24 >= 1) { st = 'yes'; why = r1(w24) + ' mm of rain fell in the 24 hours before.'; }
+        else if (w24 > 0) { st = 'maybe'; why = 'Very little rain (' + r1(w24) + ' mm) in the 24 hours before. Sprinklers, washing or a burst pipe can also wet the ground.'; }
+        else { st = 'no'; why = 'No rain in the 24 hours before. Wet ground would have to come from sprinklers, washing or a leak.'; }
+      } else if (k === 'snow') {
+        var tmin = mn('T'), sn = mx('snow') || 0, sc = win.some(function (r) { return [71, 73, 75, 77, 85, 86].indexOf(r.wc) >= 0; });
+        if (sn > 0 || sc) { st = 'yes'; why = 'The record shows snowfall.'; }
+        else if (tmin >= 4) { st = 'no'; why = 'It was at least ' + Math.round(tmin) + '°C. Snow is very unlikely.'; }
+        else { st = 'maybe'; why = 'Cold enough for snow (' + Math.round(tmin) + '°C), but the record shows none.'; }
+      } else if (k === 'dust') {
+        var dm = mx('dust'), pm = mx('pm10'), vm = mn('vis');
+        if (dm == null && pm == null) { st = 'maybe'; why = last.dust && last.dust.failed ? 'Dust data could not be loaded.' : 'No dust data for this date. The dust model history starts around August 2022.'; }
+        else if (dm >= 150 || pm >= 300 || (vm != null && vm < 3000 && dm >= 80)) { st = 'yes'; why = 'Dust up to ' + Math.round(dm) + ' µg/m³ and PM10 up to ' + Math.round(pm) + ' µg/m³. That is a dusty day.'; }
+        else if (dm < 50 && pm < 120) { st = 'no'; why = 'Dust stayed low, up to ' + Math.round(dm) + ' µg/m³.'; }
+        else { st = 'maybe'; why = 'Some dust in the air, up to ' + Math.round(dm) + ' µg/m³, but not clearly a dust storm.'; }
+      } else if (k === 'clear') {
+        var cmin = mn('cc');
+        if (cmin <= 20) { st = 'yes'; why = 'Cloud cover dropped to ' + Math.round(cmin) + '%.'; }
+        else if (cmin >= 80) { st = 'no'; why = 'Cloud cover never dropped below ' + Math.round(cmin) + '%.'; }
+        else { st = 'maybe'; why = 'Partly cloudy, at least ' + Math.round(cmin) + '% cloud. A clear patch of sky is possible.'; }
+      } else if (k === 'shadows') {
+        var ups = win.filter(function (r) { return r.alt > 0; }), lo = ups.length ? Math.min.apply(null, ups.map(function (r) { return r.alt; })) : null, hi = ups.length ? Math.max.apply(null, ups.map(function (r) { return r.alt; })) : null;
+        if (!ups.length) { st = 'no'; why = 'The sun was below the horizon, so there were no sunlight shadows.'; }
+        else if (lo <= 25) { st = 'yes'; why = 'The sun got as low as ' + Math.round(Math.max(1, lo)) + '°, where shadows are ' + r1(1 / Math.tan(Math.max(lo, 2) * Math.PI / 180)) + ' times as long as the object.'; }
+        else if (lo >= 45) { st = 'no'; why = 'The sun stayed at least ' + Math.round(lo) + '° high, so shadows were shorter than the objects.'; }
+        else { st = 'maybe'; why = 'The sun was between ' + Math.round(lo) + '° and ' + Math.round(hi) + '°, so shadows were medium length.'; }
+        if (st === 'yes' && mn('cc') >= 90) { st = 'maybe'; why = 'The sun was low, but it was overcast, so shadows would be faint.'; }
+      } else if (k === 'night') {
+        var amin = Math.min.apply(null, win.map(function (r) { return r.alt; })), amax = Math.max.apply(null, win.map(function (r) { return r.alt; }));
+        if (amin < -6) { st = 'yes'; why = 'The sun was ' + Math.round(-amin) + '° below the horizon. It was dark.'; }
+        else if (amin > 3) { st = 'no'; why = 'The sun was up the whole time, at least ' + Math.round(amin) + '° above the horizon.'; }
+        else { st = 'maybe'; why = 'Twilight: the sun was close to the horizon.'; }
+      } else if (k === 'fog') {
+        var fc = win.some(function (r) { return r.wc === 45 || r.wc === 48; }), vmin = mn('vis'), rh = mx('rh');
+        if (fc || (vmin != null && vmin < 1000)) { st = 'yes'; why = vmin != null && vmin < 1000 ? 'Visibility dropped to ' + Math.round(vmin) + ' m.' : 'The record shows fog.'; }
+        else if (vmin != null && vmin > 5000) { st = 'no'; why = 'Visibility stayed above ' + Math.round(vmin / 1000) + ' km.'; }
+        else if (rh != null && rh < 80) { st = 'no'; why = 'Humidity stayed below ' + Math.round(rh) + '%, too dry for fog.'; }
+        else { st = 'maybe'; why = 'Humid enough for fog (up to ' + Math.round(rh) + '%), but the record shows none. Coastal fog is often patchy.'; }
+      } else if (k === 'wind') {
+        var g = mx('wg'), wv = mx('ws');
+        if (g >= 45 || wv >= 30) { st = 'yes'; why = 'Gusts up to ' + Math.round(g) + ' km/h.'; }
+        else if (g < 25) { st = 'no'; why = 'Light wind, gusts no more than ' + Math.round(g) + ' km/h.'; }
+        else { st = 'maybe'; why = 'Moderate gusts up to ' + Math.round(g) + ' km/h.'; }
+      }
+      V.push('<li style="--vc:' + VC[st][1] + '"><div class="top"><b>' + CL[k] + '</b><span class="tag">' + VC[st][0] + '</span></div><p>' + esc(why) + '</p></li>');
+    });
+    $('verd').innerHTML = V.length ? V.join('') : '<li style="--vc:var(--line)"><p>Tick what the photo or video shows to check it against the record.</p></li>';
+
+    // chart + table cover the window plus some context
+    var c0 = last.d2 ? a0 : Math.max(0, ti - 12), c1 = last.d2 ? a1 : Math.min(n - 1, ti + 12);
+    drawChart(rows.slice(c0, c1 + 1), a0 - c0, a1 - c0);
+    var th = '<tr><th>Time</th><th>Weather</th><th>°C</th><th>Rain mm</th><th>Cloud %</th><th>Gusts km/h</th><th>Dust</th><th>Sun°</th></tr>';
+    $('tbl').innerHTML = th + rows.slice(c0, c1 + 1).map(function (r, i) {
+      var j = i + c0, cls = j === ti ? 'tgt' : (j < a0 || j > a1) ? 'out' : '';
+      return '<tr class="' + cls + '"><td>' + (last.d2 ? dayLabel(r.t.slice(0, 10)) + ' ' : '') + r.t.slice(11) + '</td><td>' + (r.wc != null ? WMO[r.wc] || '' : '') + '</td><td>' + (r.T != null ? r1(r.T) : '-') + '</td><td>' + (r.p != null ? r1(r.p) : '-') + '</td><td>' + (r.cc != null ? Math.round(r.cc) : '-') + '</td><td>' + (r.wg != null ? Math.round(r.wg) : '-') + '</td><td>' + (r.dust != null ? Math.round(r.dust) : '-') + '</td><td>' + Math.round(r.alt) + '</td></tr>';
+    }).join('');
+  }
+
+  function drawChart(rs, w0, w1) {
+    var cv = $('chart'), dpr = window.devicePixelRatio || 1, W = cv.clientWidth, Hh = cv.clientHeight;
+    cv.width = W * dpr; cv.height = Hh * dpr;
+    var x = cv.getContext('2d'); x.setTransform(dpr, 0, 0, dpr, 0, 0); x.clearRect(0, 0, W, Hh);
+    var L0 = 34, R0 = 30, T0 = 10, B0 = 22, pw = W - L0 - R0, ph = Hh - T0 - B0, n = rs.length, bw = pw / n;
+    var temps = rs.map(function (r) { return r.T; }).filter(function (v) { return v != null; });
+    if (!temps.length) return;
+    var tmin = Math.floor(Math.min.apply(null, temps) - 1), tmax = Math.ceil(Math.max.apply(null, temps) + 1);
+    var pmax = Math.max(2, Math.max.apply(null, rs.map(function (r) { return r.p || 0; })));
+    x.fillStyle = 'rgba(233,180,103,.16)'; x.fillRect(L0 + w0 * bw, T0, (w1 - w0 + 1) * bw, ph);
+    rs.forEach(function (r, i) {
+      if (r.cc != null) { x.fillStyle = 'rgba(200,210,230,' + (r.cc / 100 * 0.35).toFixed(3) + ')'; x.fillRect(L0 + i * bw, T0, bw, 10); }
+      if (r.p) { var h = r.p / pmax * ph * 0.9; x.fillStyle = '#4fa3ff'; x.fillRect(L0 + i * bw + bw * 0.15, T0 + ph - h, bw * 0.7, h); }
+    });
+    x.strokeStyle = '#ff9f5a'; x.lineWidth = 2; x.beginPath();
+    var first = true;
+    rs.forEach(function (r, i) { if (r.T == null) return; var px = L0 + (i + 0.5) * bw, py = T0 + ph - (r.T - tmin) / (tmax - tmin) * ph; if (first) { x.moveTo(px, py); first = false; } else x.lineTo(px, py); });
+    x.stroke();
+    x.fillStyle = 'rgba(200,210,230,.75)'; x.font = '10px JetBrains Mono, monospace'; x.textAlign = 'right';
+    x.fillText(tmax + '°', L0 - 4, T0 + 10); x.fillText(tmin + '°', L0 - 4, T0 + ph);
+    x.textAlign = 'left'; x.fillText(r1(pmax) + '', W - R0 + 4, T0 + 10); x.fillText('0', W - R0 + 4, T0 + ph);
+    x.textAlign = 'center';
+    var step = Math.max(1, Math.ceil(n / Math.max(4, Math.floor(pw / 46))));
+    rs.forEach(function (r, i) { if (i % step) return; var hh = r.t.slice(11, 13); x.fillText(n > 48 && hh === '00' ? r.t.slice(8, 10) + '/' + r.t.slice(5, 7) : hh, L0 + (i + 0.5) * bw, Hh - 6); });
+  }
+  var rt; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { if (last && !$('res').hidden) show(); }, 200); });
+  $('go').addEventListener('click', run);
+  $('claims').addEventListener('change', function () { if (last) show(); });
+  function demo() {
+    setLoc(25.2048, 55.2708, AR ? 'دبي، الإمارات' : 'Dubai, United Arab Emirates', 10);
+    $('d1').value = '2024-04-16'; $('t1').value = '18:00'; $('d2').value = ''; $('win').value = '3';
+    [].forEach.call($('claims').querySelectorAll('input'), function (c) { c.checked = c.value === 'rain' || c.value === 'wet' || c.value === 'clear' || c.value === 'dust'; });
+    run();
+  }
+  $('demo').addEventListener('click', demo);
+  $('d1').max = $('d2').max = ymd(new Date());
+  demo();
+})();
+</script>
+</body>
+</html>
