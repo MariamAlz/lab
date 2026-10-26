@@ -325,3 +325,10 @@ LabAr.add({
  "Drop any file to see its real type from its bytes, catch disguised programs, macros and reversed names, and get its hashes to look up.": "أفلت أي ملف لتعرف نوعه الحقيقي من بايتاته، وتكشف البرامج المتنكرة ووحدات الماكرو والأسماء المعكوسة، وتحصل على بصماته للبحث عنها.",
  "Check a file →": "افحص ملفًا ←"
 });
+/* index cards for newer tools */
+LabAr.add({
+ "Game · Media literacy": "لعبة · الوعي الإعلامي",
+ "Spot the manipulation": "اكشف التضليل",
+ "Twenty made-up posts and twelve real tricks: fake urgency, recycled photos, bot swarms, lookalike accounts and more. Spot them, then learn how to check.": "عشرون منشورًا مختلَقًا واثنتا عشرة حيلة حقيقية: استعجال مصطنع، وصور معاد تدويرها، وحسابات آلية ومنتحلة. اكتشفها وتعلّم كيف تتحقق.",
+ "Play →": "العب ←"
+});

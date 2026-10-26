@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Spot the Manipulation · Mariam's Lab</title>
+<meta name="description" content="A game of 20 made-up social media posts. Spot the tricks: fake urgency, old photos, fake experts, bot swarms, cropped quotes, misleading charts and more, with tips on how to check.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/manipulation-game/">
+<meta property="og:title" content="Spot the Manipulation · Mariam's Lab"><meta property="og:description" content="Twenty made-up posts, twelve tricks. Can you spot them?"><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; text-decoration: none; display: inline-block; }
+.sm.pri { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.sm:disabled { opacity: .45; cursor: default; }
+.pills { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 0; }
+/* the mock post */
+.post { background: #fff; color: #0f1419; border-radius: 16px; padding: 14px 16px; display: grid; gap: 10px; font-family: 'Instrument Sans', system-ui, sans-serif; box-shadow: 0 10px 40px rgba(0,0,0,.35); min-width: 0; }
+html.ar .post { font-family: 'IBM Plex Sans Arabic', 'Instrument Sans', sans-serif; }
+.who { display: grid; grid-template-columns: 42px minmax(0, 1fr) auto; gap: 10px; align-items: center; }
+.av { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 700; font-size: 0.95rem; }
+.nm { min-width: 0; line-height: 1.2; }
+.nm b { font-weight: 700; font-size: 0.95rem; }
+.nm .tick { color: #1d9bf0; font-size: 0.85rem; margin-inline-start: 2px; }
+.nm small { display: block; color: #536471; font-size: 0.82rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.when { color: #536471; font-size: 0.8rem; align-self: start; }
+.ptext { margin: 0; font-size: 1rem; line-height: 1.45; white-space: pre-line; overflow-wrap: anywhere; }
+.acts { display: flex; gap: 22px; color: #536471; font-size: 0.82rem; }
+.media { border-radius: 12px; overflow: hidden; border: 1px solid #cfd9de; position: relative; }
+.media svg { display: block; width: 100%; height: auto; }
+.media .tell { opacity: 0; transition: opacity .3s; }
+.revealed .media .tell { opacity: 1; }
+.qcard { padding: 18px; background: #14213d; color: #fff; display: grid; gap: 8px; }
+.qcard q { font-family: 'Bricolage Grotesque', serif; font-size: 1.35rem; font-weight: 800; line-height: 1.2; quotes: '“' '”'; }
+html.ar .qcard q { font-family: 'IBM Plex Sans Arabic', sans-serif; }
+.qcard span { font-size: 0.82rem; opacity: .8; }
+.chartbox { padding: 12px 12px 4px; background: #fff; }
+.chartbox b { font-size: 0.9rem; }
+.charts { display: grid; grid-template-columns: 1fr; gap: 8px; }
+.revealed .charts { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+.charts .full { display: none; }
+.revealed .charts .full { display: block; }
+.charts small { display: block; font-size: 0.72rem; color: #536471; }
+.shot { background: #f4f1ea; padding: 14px; display: grid; gap: 6px; font-family: Georgia, 'Times New Roman', serif; color: #222; }
+.shot .hdr { font-family: Arial, sans-serif; font-weight: 700; letter-spacing: .06em; font-size: 0.78rem; color: #7a1f1f; border-bottom: 2px solid #7a1f1f; padding-bottom: 4px; }
+.shot .big { font-family: 'Comic Sans MS', 'Bricolage Grotesque', sans-serif; font-size: 1.05rem; font-weight: 700; }
+.shot .lnk { font-family: monospace; font-size: 0.82rem; color: #1a4fd6; text-decoration: underline; direction: ltr; unicode-bidi: isolate; }
+.tw { background: #000; color: #e7e9ea; padding: 14px; display: grid; gap: 8px; font-family: Arial, sans-serif; }
+.tw .nm small { color: #71767b; }
+.tw .ptext { font-size: 1.05rem; }
+.tw .meta { color: #71767b; font-size: 0.8rem; direction: ltr; text-align: left; }
+.thread { border-inline-start: 3px solid #cfd9de; padding-inline-start: 12px; display: grid; gap: 8px; }
+.reps { display: grid; gap: 8px; border-top: 1px solid #eff3f4; padding-top: 10px; }
+.rep { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 8px; font-size: 0.88rem; }
+.rep .av { width: 30px; height: 30px; font-size: 0.7rem; }
+.rep small { color: #536471; }
+.rep .j { color: #b4232c; font-size: 0.74rem; display: block; }
+.rep p { margin: 2px 0 0; }
+/* game ui */
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips button { font: inherit; font-size: 0.84rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; cursor: pointer; }
+.chips button[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.chips button.ok { background: #2fae8f; border-color: #2fae8f; color: #04140f; }
+.chips button.miss { border: 2px dashed #ffc857; color: #ffc857; }
+.chips button.bad { background: #ff4f6d; border-color: #ff4f6d; color: #1a0710; text-decoration: line-through; }
+.chips button:disabled { cursor: default; }
+.fb { display: grid; gap: 10px; padding: 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); }
+.fb h3 { margin: 0; font-size: 1.1rem; }
+.fb p { margin: 0; font-size: 0.92rem; }
+.fb .rev { padding: 10px 12px; border-radius: 10px; background: color-mix(in srgb, var(--sat-b) 14%, transparent); border: 1px solid var(--sat-b); font-size: 0.88rem; }
+.fb .rev b { display: block; font-family: var(--font-mono); font-size: 0.74rem; color: var(--sat-b); margin-bottom: 2px; }
+.fb ul { margin: 0; padding-inline-start: 1.1em; display: grid; gap: 6px; font-size: 0.88rem; }
+.fb ul b { color: var(--accent); }
+.fb ul b::after { content: ':'; }
+.gloss { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 10px; }
+.gloss div { padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); display: grid; gap: 4px; }
+.gloss b { font-family: var(--font-display); font-size: 1rem; }
+.gloss p { margin: 0; font-size: 0.86rem; color: var(--muted); }
+.gloss p.h { color: var(--ink); }
+.end { display: grid; gap: 10px; padding: 18px; border-radius: var(--radius); border: 1px solid var(--accent); background: var(--surface); }
+.end b.big { font-family: var(--font-display); font-size: 2.4rem; line-height: 1; }
+[hidden] { display: none !important; }
+html.ar .nm small, html.ar .rep small { direction: ltr; unicode-bidi: isolate; }
+html.ar .nm small { text-align: right; }
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Game · Media literacy</span>
+    <h1 style="font-size:var(--step-3)">Spot the manipulation.</h1>
+    <p>Every post here is made up, but the tricks are real and turn up in UAE group chats every week: fake urgency, recycled photos, fake experts, bot swarms and lookalike accounts. Pick the tricks you see in each post, then learn how to check them yourself.</p>
+  </div>
+  <div class="stats" style="margin-bottom:18px"><div><b id="sPost">1/10</b><span>Post</span></div><div><b id="sScore">0</b><span>Score</span></div><div><b id="sBest">0</b><span>Best score</span></div></div>
+  <div class="game">
+    <div class="panel" id="stage"></div>
+    <div class="panel">
+      <span class="label" id="pickLabel">Which tricks does this post use? Pick one or two.</span>
+      <div class="chips" id="chips"></div>
+      <div class="pills"><button class="sm pri" type="button" id="check">Check my answer</button><button class="sm" type="button" id="next" hidden>Next post</button></div>
+      <div id="fb"></div>
+      <div class="pills"><span class="msg">Round length:</span><button class="sm" type="button" data-n="10" id="r10">10 posts</button><button class="sm" type="button" data-n="20" id="r20">All 20</button></div>
+    </div>
+  </div>
+  <div style="margin-top:32px;display:grid;gap:14px">
+    <span class="label">The twelve tricks and how to check them</span>
+    <div class="gloss" id="gloss"></div>
+    <p class="fact" style="margin:0">Most of these work because they make you share before you think. The single best habit is a pause: if a post makes you angry, scared or excited, wait a minute and look for the same news from an official source or a known news outlet before you forward it.</p>
+    <p class="fact" style="margin:0">All accounts, people, brands and numbers in this game are invented. Any resemblance to a real account is a coincidence.</p>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var KEY = 'manipGameBest';
+  var TECH = [
+    ['urgency', 'Fake urgency', 'Pushes you to act or share right now: countdowns, "before it\'s deleted", "only today".', 'Real offers and official notices don\'t vanish in two hours. Slow down and look for the same news on the official website or app.'],
+    ['oldphoto', 'Old or out-of-context photo', 'A real photo from another time or place, presented as new.', 'Run a reverse image search (Google Lens, Bing Visual Search or TinEye) and look for the earliest copy.'],
+    ['fakeexpert', 'Fake expert', 'A title like "Dr." or "scientist" with no way to check it, often outside their field.', 'Search the name with the field. Real experts have a workplace, published work and colleagues who mention them.'],
+    ['bots', 'Bot swarm', 'Lots of near-identical accounts pushing the same message to make it look popular.', 'Open a few profiles. Watch for handles ending in strings of digits, no photos, the same wording and accounts all created in the same week.'],
+    ['cropquote', 'Cropped quote', 'Real words, cut so they mean something different.', 'Find the full interview or video and read the sentences before and after.'],
+    ['chart', 'Misleading chart', 'A chart with a cut-off axis, odd scale or cherry-picked dates that makes a small change look huge.', 'Check where the vertical axis starts and do the maths: from 482 to 491 is under 2%.'],
+    ['outrage', 'Outrage bait', 'Angry or fearful wording designed to make you react and share, not think.', 'Notice how the post makes you feel. Rewrite the claim in calm words and ask what the evidence actually is.'],
+    ['falsebalance', 'False balance', 'Treating a fringe view and the expert consensus as two equal sides.', 'Ask what most experts in the field say. Equal airtime doesn\'t mean equal evidence.'],
+    ['whatabout', 'Whataboutism', 'Dodging a complaint by pointing at someone else\'s faults.', 'Check whether the reply answers the original point. "Others do it too" is not an answer.'],
+    ['impersonation', 'Lookalike account', 'An account copying a real person or company, with a name that is one letter off.', 'Read the handle letter by letter, check the join date and follower count, and reach the company through its official app or website.'],
+    ['aiimage', 'AI-generated image', 'A picture made by an AI generator, shown as a real photo.', 'Zoom in on hands, legs, text and backgrounds. Look for other photos of the same event from different people and angles.'],
+    ['fakeshot', 'Fake screenshot', 'An image of a "post", "letter" or "article" that was never published.', 'Look for the original on the real account or site. Check fonts, dates, times and web addresses for mistakes.']
+  ];
+  var TN = {}; TECH.forEach(function (t) { TN[t[0]] = t; });
+  // scenes for photos (drawn, not real photos)
+  var SCN = {
+    flood: '<svg viewBox="0 0 400 220" data-noar><rect width="400" height="220" fill="#8aa3b8"/><rect x="10" y="40" width="60" height="110" fill="#5c6f80"/><rect x="80" y="20" width="45" height="130" fill="#4d5f70"/><rect x="290" y="30" width="50" height="120" fill="#4d5f70"/><rect x="345" y="60" width="50" height="90" fill="#5c6f80"/><rect x="150" y="70" width="110" height="18" rx="3" fill="#2f6b3a"/><text x="205" y="83" font-size="11" fill="#fff" text-anchor="middle" font-family="Arial">EXIT 41</text><rect y="150" width="400" height="70" fill="#6b5a3e"/><path d="M0 160 Q100 150 200 162 T400 158 V220 H0Z" fill="#7d6b4c" opacity=".9"/><rect x="60" y="150" width="70" height="16" rx="6" fill="#c33"/><rect x="230" y="152" width="80" height="14" rx="6" fill="#ddd"/><path d="M0 170 Q100 162 200 172 T400 168" stroke="#a89670" stroke-width="2" fill="none"/></svg>',
+    dust: '<svg viewBox="0 0 400 220" data-noar><defs><linearGradient id="dg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c9772e"/><stop offset="1" stop-color="#e8a560"/></linearGradient></defs><rect width="400" height="220" fill="#9cc3dd"/><path d="M0 220 V70 Q60 30 120 60 T240 50 T400 40 V220Z" fill="url(#dg)"/><g fill="#6d4a2a" opacity=".85"><rect x="40" y="130" width="22" height="70"/><rect x="70" y="110" width="30" height="90"/><rect x="250" y="120" width="26" height="80"/><rect x="290" y="100" width="18" height="100"/><rect x="320" y="140" width="40" height="60"/></g><rect y="200" width="400" height="20" fill="#7a5530"/><path d="M110 200 v-40 h10 v40 M150 200 l5 -45 l5 45" stroke="#4a2f17" stroke-width="3" fill="none"/></svg>',
+    camel: '<svg viewBox="0 0 400 240" data-noar><rect width="400" height="240" fill="#f3d9a4"/><circle cx="330" cy="50" r="26" fill="#fff6d8"/><path d="M0 190 Q120 160 220 185 T400 175 V240 H0Z" fill="#e2b56b"/><g fill="#d9a53a" stroke="#b07c1c" stroke-width="2"><ellipse cx="190" cy="140" rx="70" ry="34"/><path d="M175 110 q20 -40 40 0"/><path d="M245 130 q30 -60 40 -70 q10 -5 14 4 q-6 6 -10 10 q-10 30 -30 70z"/></g><g stroke="#b07c1c" stroke-width="7" stroke-linecap="round"><path d="M140 160 v45"/><path d="M160 162 v44"/><path d="M178 164 v42"/><path d="M215 162 v44"/><path d="M235 160 v45"/></g><rect x="20" y="40" width="130" height="34" rx="4" fill="#7a3b12"/><text x="85" y="62" font-size="14" fill="#ffe7a8" text-anchor="middle" font-family="Arial" font-weight="700">LIWVA FESTVL</text><g class="tell" fill="none" stroke="#e0245e" stroke-width="3"><circle cx="190" cy="185" r="58"/><circle cx="85" cy="57" r="72" stroke-dasharray="6 5"/><circle cx="288" cy="62" r="20"/></g></svg>',
+    trash: '<svg viewBox="0 0 400 240" data-noar><rect width="400" height="240" fill="#b7c9d8"/><path d="M0 140 L90 60 L160 110 L240 40 L330 100 L400 70 V240 H0Z" fill="#8a7d70"/><g><circle cx="120" cy="190" r="26" fill="#e33"/><circle cx="150" cy="180" r="22" fill="#3a6"/><circle cx="180" cy="195" r="28" fill="#36c"/><circle cx="210" cy="178" r="24" fill="#fc3"/><circle cx="240" cy="192" r="27" fill="#e33"/><circle cx="270" cy="180" r="22" fill="#3a6"/><circle cx="160" cy="160" r="20" fill="#fc3"/><circle cx="200" cy="150" r="22" fill="#e33"/><circle cx="235" cy="158" r="20" fill="#36c"/><circle cx="215" cy="128" r="18" fill="#3a6"/></g><rect x="300" y="150" width="80" height="28" rx="3" fill="#2f6b3a"/><text x="340" y="169" font-size="12" fill="#fff" text-anchor="middle" font-family="Arial">JEBL JAIIS</text><g fill="#333"><circle cx="60" cy="170" r="7"/><rect x="54" y="177" width="12" height="30" rx="5"/><circle cx="76" cy="172" r="7"/><rect x="66" y="179" width="20" height="28" rx="5"/></g><g class="tell" fill="none" stroke="#e0245e" stroke-width="3"><circle cx="340" cy="164" r="44"/><circle cx="70" cy="186" r="32"/><ellipse cx="195" cy="175" rx="95" ry="50" stroke-dasharray="6 5"/></g></svg>'
+  };
+  function chartSvg(c, full) {
+    var W = 300, H = 170, L = 38, B = 24, T = 10, ph = H - B - T, pw = W - L - 10, mn = full ? 0 : c.min, mx = c.max;
+    var s = '<svg viewBox="0 0 ' + W + ' ' + H + '"><rect width="' + W + '" height="' + H + '" fill="#fff"/>';
+    for (var k = 0; k <= 4; k++) { var v = mn + (mx - mn) * k / 4, y = T + ph - ph * k / 4; s += '<line x1="' + L + '" x2="' + (W - 6) + '" y1="' + y + '" y2="' + y + '" stroke="#e6e9ec"/><text x="' + (L - 4) + '" y="' + (y + 4) + '" font-size="10" text-anchor="end" fill="#536471" font-family="Arial">' + Math.round(v) + '</text>'; }
+    var n = c.vals.length, bw = pw / n;
+    if (c.kind === 'line') {
+      var pts = c.vals.map(function (v, i) { return (L + bw * (i + 0.5)) + ',' + (T + ph - (v - mn) / (mx - mn) * ph); }).join(' ');
+      s += '<polyline points="' + pts + '" fill="none" stroke="#e0245e" stroke-width="3"/>';
+    } else c.vals.forEach(function (v, i) { var h = (v - mn) / (mx - mn) * ph; s += '<rect x="' + (L + bw * i + bw * 0.18) + '" y="' + (T + ph - h) + '" width="' + (bw * 0.64) + '" height="' + h + '" fill="' + (i === n - 1 ? '#e0245e' : '#1d9bf0') + '"/>'; });
+    c.labels.forEach(function (l, i) { s += '<text x="' + (L + bw * (i + 0.5)) + '" y="' + (H - 7) + '" font-size="10" text-anchor="middle" fill="#536471" font-family="Arial">' + l + '</text>'; });
+    return s + '</svg>';
+  }
+  var COLORS = ['#1d9bf0', '#7856ff', '#f91880', '#00ba7c', '#ff7a00', '#536471', '#b07c1c', '#0a7d6e'];
+  function av(name, i, small) { var ini = name.replace(/[^A-Za-z ]/g, '').split(' ').filter(Boolean).slice(0, 2).map(function (w) { return w[0]; }).join(''); return '<div class="av" data-noar aria-hidden="true" style="background:' + COLORS[i % COLORS.length] + '">' + ini + '</div>'; }
+  var P = [
+    { id: 1, name: 'UAE Weather Alerts', h: 'uae_weather_alerts_', t: '3h', text: '⚠️ URGENT: Meteorologist Dr. Khalid Saif confirms a Category 5 cyclone will hit Fujairah within 24 hours. Schools will close tomorrow. Share this before they delete it!', ans: ['urgency', 'fakeexpert'], why: 'No official weather service is quoted, and "Dr. Khalid Saif" has no workplace you can check. "Share before they delete it" is there to stop you checking first. Official warnings come from the national weather service and are repeated by the news.' },
+    { id: 2, name: 'Residents Support UAE', h: 'residents_support_uae', t: '1h', text: '🇦🇪 Every resident gets AED 5,000 for National Day! The registration portal closes in 2 hours. Register now 👇', media: { t: 'shot', kind: 'letter' }, ans: ['urgency', 'fakeshot'], why: 'The "official letter" has no reference number, mixes fonts and points to an odd web address ending in .top. Real government payments are announced on official sites and apps, never through a random account with a two-hour deadline.', rev: 'Tells in the letter: a strange domain, three different fonts, no reference number or signature, and a deadline that creates panic.' },
+    { id: 3, name: 'Rashed Al Noor', h: 'rashed_alnoor_officiall', verified: false, t: '20m', text: '🎁 GIVEAWAY! I\'m giving 10 brand new cars to my fans to say thank you. Only the first 50 people who DM me their card details for the delivery fee can win. Hurry!', ans: ['impersonation', 'urgency'], why: 'The handle ends in "officiall" with a double L, there\'s no verified badge, and the real star would never ask for card details. Giveaways that ask you to pay a "fee" are scams.' },
+    { id: 4, name: 'Dubai Traffic Now', h: 'dxb_traffic_now', t: '15m', text: 'The E11 near the Marina is COMPLETELY flooded right now!! Avoid the area!!', media: { t: 'photo', scene: 'flood' }, ans: ['oldphoto'], why: 'The photo is real, but it isn\'t from today or from Dubai. A reverse image search finds the same picture years earlier, from another country.', rev: 'Reverse image search: the earliest copy is from March 2016, on a forum about floods in another country. Same cars, same exit sign.' },
+    { id: 5, name: 'Mall Fan', h: 'mallfan_ae', t: '2h', text: 'Al Waha Mall is the best mall in the country, no contest 😍 Everyone is talking about it!', media: { t: 'replies', list: [['Sara', 'sara48213', 'So true, best mall ever!!'], ['Sara', 'sara48214', 'So true, best mall ever!!'], ['Ahmed', 'ahmed_77210', 'Best mall ever, so true!!'], ['Noor', 'noor_55190', 'So true!! best mall ever']] }, ans: ['bots'], why: 'The replies come from accounts with numbered handles, all created the same week, posting almost the same sentence. That\'s a bought or automated swarm, not real excitement.' },
+    { id: 6, name: 'Bill Watch', h: 'billwatch', t: '5h', text: 'Electricity bills EXPLODED this summer 📈😡 Look at this chart. How are families supposed to live?!', media: { t: 'chart', title: 'Average monthly bill (AED)', kind: 'bar', labels: ['May', 'Jun', 'Jul', 'Aug'], vals: [482, 484, 487, 491], min: 480, max: 492 }, ans: ['chart', 'outrage'], why: 'The vertical axis starts at 480, so a rise from 482 to 491 dirhams, under 2%, looks like a tower. The angry wording does the rest.', rev: 'Same numbers with the axis starting at zero: the bars are almost the same height.' },
+    { id: 7, name: 'Food Facts Daily', h: 'foodfactsdaily', t: '1d', text: 'Even a famous chef admits it 😱', media: { t: 'quote', q: 'Rice is poison.', who: 'Chef Maha, TV interview' }, ans: ['cropquote', 'outrage'], why: 'The quote was cut from a longer sentence that says the opposite. The shocked emoji is there to make you share it.', rev: 'Full quote: "Rice is poison for your waistline if you eat three plates a day, but in normal portions it\'s a fine part of a meal."' },
+    { id: 8, name: 'Big Questions Podcast', h: 'bigquestionspod', t: '6h', text: 'Tonight\'s debate: is the Earth flat? 🌍 We invited a university astronomer and the host of a flat Earth page. Two sides, equal time. You decide!', ans: ['falsebalance'], why: 'The shape of the Earth isn\'t an open question. Giving a fringe page the same time as the scientific consensus makes it look like a real debate.' },
+    { id: 9, name: 'Hamad', h: 'hamad_k', t: '4h', text: 'Third time this week my order arrived cold and an hour late. @QuickBiteApp what\'s going on?', media: { t: 'thread', name: 'QuickBite', h: 'QuickBiteApp', text: 'What about the other delivery apps? They\'re late too. Why don\'t you complain about them?' }, ans: ['whatabout'], why: 'The reply doesn\'t answer the complaint about cold, late food. It points at competitors instead.' },
+    { id: 10, name: 'Desert Wonders', h: 'desertwonders', t: '8h', text: 'A rare golden camel was born at the Liwa festival! Not edited, 100% real 🐪✨', media: { t: 'photo', scene: 'camel' }, ans: ['aiimage'], why: 'Count the legs: there are five. The sign text is gibberish and the head joins the neck strangely. These are common AI image mistakes.', rev: 'AI tells circled: five legs, garbled lettering on the sign, a melted-looking head.' },
+    { id: 11, name: 'Football Gossip', h: 'footy_gossip_24', t: '2h', text: 'BREAKING: Leo Marquez confirms he\'s moving to a UAE club! Screenshot before he deletes it 👇', media: { t: 'shot', kind: 'tweet' }, ans: ['fakeshot', 'urgency'], why: 'The time stamp says 25:14 and the date is 31 September. Neither exists. The real account has no such post.', rev: 'Tells in the screenshot: an impossible time (25:14), a date that doesn\'t exist (31 September), and no post on the player\'s real account.' },
+    { id: 12, name: 'Angry Resident', h: 'angry_resident', t: '30m', text: 'They\'re BANNING shawarma after 10pm?! 😡 This is the end of our way of life. RT if you\'re as angry as I am!!', ans: ['outrage'], why: 'There\'s no source, no "who" and no link, just anger and a request to share. Outrage spreads faster than facts.' },
+    { id: 13, name: 'Dr. Sam Health Coach', h: 'drsam_wellness', t: '1d', text: 'As a nutrition scientist (PhD), I can confirm that 4 litres of camel milk a day cures diabetes. Doctors don\'t want you to know this.', ans: ['fakeexpert'], why: 'The bio says "PhD | Coach | Crypto", with no university or published work. A real scientist wouldn\'t promise a cure, and "doctors don\'t want you to know" is a classic warning sign.' },
+    { id: 14, name: 'Gulf Star Bank Help', h: 'GuIfStarBankHelp', t: '10m', text: '@user Sorry for the trouble with your card! Please DM us your card number and the OTP you just received so we can fix it right away.', ans: ['impersonation'], why: 'Look closely: GuIfStar uses a capital i, not a lowercase L. And no real bank ever asks for your OTP. Contact your bank through its official app or the number on your card.' },
+    { id: 15, name: 'Abu Dhabi Live', h: 'abudhabi_live_news', t: '25m', text: 'Huge sandstorm hitting Abu Dhabi RIGHT NOW 😱 Stay inside!', media: { t: 'photo', scene: 'dust' }, ans: ['oldphoto'], why: 'The picture is a dust storm from years ago in another country. Today\'s weather records show clear skies.', rev: 'Reverse image search: first posted in 2011 by a news site in another country. It has been reshared as "today" in several cities since.' },
+    { id: 16, name: 'Clean UAE', h: 'clean_uae_now', t: '3h', text: 'Look at the mountain of rubbish tourists left at Jebel Jais!! Disgusting 🤮 Share so everyone sees it!', media: { t: 'photo', scene: 'trash' }, ans: ['aiimage', 'outrage'], why: 'The sign is misspelled, the rubbish looks like identical round blobs and the people melt into each other. It\'s AI-generated, made to make you angry.', rev: 'AI tells circled: misspelled sign, people fused together, repeated round shapes instead of real rubbish.' },
+    { id: 17, name: 'Crypto Insider', h: 'crypto_insider_pro', t: '2h', text: 'Top financial analyst: DesertCoin will go up 100x by Friday 🚀 Get in now!', media: { t: 'replies', list: [['Ali', 'ali93021', 'Just bought 5000 DesertCoin 🚀🚀'], ['Ali', 'ali93022', 'Just bought 5000 DesertCoin 🚀🚀'], ['Fatima', 'fatima_11873', 'DesertCoin to the moon 🚀'], ['Omar', 'omar_66402', 'Bought 5000 DesertCoin just now 🚀']] }, ans: ['bots', 'fakeexpert'], why: 'The "top analyst" is never named, and the cheering replies are clearly a swarm of new numbered accounts. This is a pump-and-dump pattern.' },
+    { id: 18, name: 'Road News', h: 'roadnews_daily', t: '6h', text: 'Traffic official: "speed cameras are switched off this weekend" 🚗💨', media: { t: 'quote', q: 'Speed cameras are switched off this weekend.', who: 'Traffic official, radio interview' }, ans: ['cropquote'], why: 'The official said the opposite. The quote leaves out the start and end of the sentence.', rev: 'Full quote: "Some people believe speed cameras are switched off this weekend. They\'re not, and fines apply as usual."' },
+    { id: 19, name: 'Property Pulse', h: 'propertypulse', t: '1d', text: 'Rents are CRASHING 📉 Prices will bounce back next month, so sign a contract today!', media: { t: 'chart', title: 'Rent index', kind: 'line', labels: ['Jan', 'Feb', 'Mar', 'Apr'], vals: [100, 99.2, 98.4, 97.1], min: 96.8, max: 100.2 }, ans: ['chart', 'urgency'], why: 'The axis runs from about 97 to 100, so a 3% dip looks like a cliff. "Sign today" adds pressure.', rev: 'Same numbers with the axis from zero: a nearly flat line.' },
+    { id: 20, name: 'Al Nakheel School', h: 'alnakheel_school', t: '2d', text: 'To the parents complaining about crowded buses: what about the parents who park in the fire lane every morning? Fix yourselves first.', ans: ['whatabout'], why: 'Parking in the fire lane is a real problem, but it has nothing to do with crowded buses. The reply changes the subject instead of answering.' }
+  ];
+  var st = { order: [], i: 0, score: 0, n: 10, picked: {}, done: false, found: 0, total: 0 };
+  var best = 0;
+  function loadBest(n) { best = 0; try { best = +(localStorage.getItem(KEY + n) || 0) || 0; } catch (e) {} $('sBest').textContent = best; }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function media(m, p) {
+    if (!m) return '';
+    if (m.t === 'photo') return '<div class="media">' + SCN[m.scene] + '</div>';
+    if (m.t === 'chart') return '<div class="media chartbox"><b>' + m.title + '</b><div class="charts"><div>' + chartSvg(m, false) + '</div><div class="full"><small>Axis from zero</small>' + chartSvg(m, true) + '</div></div></div>';
+    if (m.t === 'quote') return '<div class="media qcard"><q>' + m.q + '</q><span>' + m.who + '</span></div>';
+    if (m.t === 'shot' && m.kind === 'letter') return '<div class="media shot"><div class="hdr">OFFICIAL NOTICE · RESIDENT SUPPORT OFFICE</div><div class="big">National Day Support Payment</div><div>Every resident will receive AED 5,000. Register before 11:59 PM tonight to receive the payment.</div><div class="lnk" data-noar>gov-support-ae.top/register</div></div>';
+    if (m.t === 'shot' && m.kind === 'tweet') return '<div class="media tw"><div class="who">' + av('Leo Marquez', 3) + '<div class="nm"><b>Leo Marquez</b> <span class="tick">✓</span><small data-noar>@leomarquez10</small></div><span></span></div><p class="ptext">Decided. Next season I play in the UAE 🇦🇪 Announcement tomorrow.</p><div class="meta" data-noar>25:14 · 31 Sep 2026</div></div>';
+    if (m.t === 'replies') return '<div class="reps">' + m.list.map(function (r, i) { return '<div class="rep">' + av(r[0], i + 2) + '<div><b>' + r[0] + '</b> <small data-noar>@' + r[1] + '</small><span class="j">Joined March 2026 · 0 followers</span><p>' + r[2] + '</p></div></div>'; }).join('') + '</div>';
+    if (m.t === 'thread') return '<div class="thread"><div class="who">' + av(m.name, 5) + '<div class="nm"><b>' + m.name + '</b><small data-noar>@' + m.h + '</small></div><span class="when">' + p.t + '</span></div><p class="ptext">' + m.text + '</p></div>';
+    return '';
+  }
+  function render() {
+    var p = P[st.order[st.i]];
+    st.picked = {}; st.done = false;
+    $('stage').innerHTML = '<article class="post" id="post"><div class="who">' + av(p.name, p.id) + '<div class="nm"><b>' + p.name + '</b>' + (p.verified ? ' <span class="tick">✓</span>' : '') + '<small data-noar>@' + p.h + '</small></div><span class="when">' + p.t + '</span></div><p class="ptext">' + esc(p.text) + '</p>' + media(p.media, p) + '<div class="acts" data-noar aria-hidden="true"><span>💬 ' + (37 + p.id * 13) + '</span><span>↻ ' + (120 + p.id * 71) + '</span><span>♥ ' + (400 + p.id * 157) + '</span></div></article>';
+    $('chips').innerHTML = TECH.map(function (t) { return '<button type="button" data-t="' + t[0] + '" aria-pressed="false">' + t[1] + '</button>'; }).join('');
+    $('fb').innerHTML = '';
+    $('check').hidden = false; $('check').disabled = false; $('next').hidden = true;
+    $('sPost').textContent = (st.i + 1) + '/' + st.order.length;
+    $('sScore').textContent = st.score;
+  }
+  $('chips').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b || st.done) return;
+    var k = b.getAttribute('data-t'); st.picked[k] = !st.picked[k]; b.setAttribute('aria-pressed', st.picked[k] ? 'true' : 'false');
+  });
+  $('check').addEventListener('click', function () {
+    var p = P[st.order[st.i]], picks = Object.keys(st.picked).filter(function (k) { return st.picked[k]; });
+    if (!picks.length) { $('fb').innerHTML = '<p class="msg">Pick at least one trick first.</p>'; return; }
+    st.done = true;
+    var ok = picks.filter(function (k) { return p.ans.indexOf(k) >= 0; }), bad = picks.filter(function (k) { return p.ans.indexOf(k) < 0; }), miss = p.ans.filter(function (k) { return picks.indexOf(k) < 0; });
+    var pts = Math.max(0, ok.length * 10 - bad.length * 5) + (!bad.length && !miss.length ? 5 : 0);
+    st.score += pts; st.found += ok.length; st.total += p.ans.length;
+    [].forEach.call($('chips').querySelectorAll('button'), function (b) {
+      var k = b.getAttribute('data-t'); b.disabled = true;
+      if (ok.indexOf(k) >= 0) b.className = 'ok'; else if (bad.indexOf(k) >= 0) b.className = 'bad'; else if (miss.indexOf(k) >= 0) b.className = 'miss';
+    });
+    $('post').classList.add('revealed');
+    var head = !bad.length && !miss.length ? 'Spot on!' : ok.length ? 'Partly right.' : 'Not quite.';
+    var h = '<div class="fb"><h3>' + head + '</h3><p class="msg">+' + pts + ' points. You found ' + ok.length + ' of ' + p.ans.length + '.</p>';
+    h += '<p>' + esc(p.why) + '</p>';
+    if (p.rev) h += '<div class="rev"><b>Check</b>' + esc(p.rev) + '</div>';
+    h += '<span class="label">How to check</span><ul>' + p.ans.map(function (k) { return '<li><b>' + TN[k][1] + '</b> <span>' + TN[k][3] + '</span></li>'; }).join('') + '</ul></div>';
+    $('fb').innerHTML = h;
+    $('sScore').textContent = st.score;
+    $('check').hidden = true; $('next').hidden = false;
+    $('next').textContent = st.i + 1 < st.order.length ? 'Next post' : 'See my result';
+  });
+  $('next').addEventListener('click', function () {
+    st.i++;
+    if (st.i < st.order.length) { render(); $('stage').scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+    var max = st.order.reduce(function (s, k) { return s + P[k].ans.length * 10 + 5; }, 0), isBest = st.score > best;
+    if (isBest) { best = st.score; try { localStorage.setItem(KEY + st.n, String(best)); } catch (e) {} }
+    $('sBest').textContent = best;
+    var pc = st.score / max;
+    $('stage').innerHTML = '<div class="end"><span class="label">Round complete</span><b class="big">' + st.score + ' / ' + max + '</b><p>You spotted ' + st.found + ' of ' + st.total + ' tricks.</p><p>' + (pc >= 0.8 ? 'Sharp eyes. You\'d be hard to fool.' : pc >= 0.5 ? 'Good instincts. Read the glossary to catch the ones you missed.' : 'These tricks work on everyone. The glossary below shows what to look for.') + '</p>' + (isBest ? '<p><b>New best score!</b></p>' : '') + '<div class="pills"><button class="sm pri" type="button" id="again">Play again</button></div></div>';
+    $('again').addEventListener('click', function () { start(st.n); });
+    $('chips').innerHTML = ''; $('fb').innerHTML = ''; $('next').hidden = true; $('check').hidden = true;
+  });
+  function start(n) {
+    loadBest(n);
+    st.n = n; st.order = shuffle(P.map(function (_, i) { return i; })).slice(0, n); st.i = 0; st.score = 0; st.found = 0; st.total = 0;
+    $('r10').className = n === 10 ? 'sm pri' : 'sm'; $('r20').className = n === 20 ? 'sm pri' : 'sm';
+    render();
+  }
+  $('r10').addEventListener('click', function () { start(10); });
+  $('r20').addEventListener('click', function () { start(20); });
+  $('gloss').innerHTML = TECH.map(function (t) { return '<div><b>' + t[1] + '</b><p>' + t[2] + '</p><p class="h">' + t[3] + '</p></div>'; }).join('');
+  window.__mg = { P: P, start: start, st: st, render: render };
+  start(10);
+})();
+</script>
+</body>
+</html>
