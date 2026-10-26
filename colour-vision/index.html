@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Colour-Blind View · Mariam's Lab</title>
+<meta name="description" content="See any photo, chart or design the way people with colour blindness see it, check whether your colours can be told apart, and preview a fix. All on your device.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/colour-vision/">
+<meta property="og:title" content="Colour-Blind View · Mariam's Lab"><meta property="og:description" content="See your design through colour-blind eyes, and fix it."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.view { position: relative; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); background: #0a1020; touch-action: none; user-select: none; }
+.view canvas { width: 100%; display: block; }
+.view #cvA { position: absolute; inset: 0; height: 100%; }
+.wipe { position: absolute; top: 0; bottom: 0; width: 2px; background: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.4); cursor: ew-resize; }
+.wipe::after { content: "⇆"; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 34px; height: 34px; border-radius: 50%; background: #fff; color: #070A18; display: grid; place-items: center; font-weight: 700; }
+.tag { position: absolute; bottom: 10px; font-family: var(--font-mono); font-size: 0.72rem; padding: 3px 8px; border-radius: 6px; background: rgba(7,10,24,.75); }
+.grid4 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.grid4 figure { margin: 0; border-radius: 10px; overflow: hidden; border: 1px solid var(--line); }
+.grid4 canvas { width: 100%; display: block; }
+.grid4 figcaption { font-size: 0.78rem; color: var(--muted); padding: 5px 8px; }
+.ctrls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm:hover { border-color: var(--muted); }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.ctrls input[type=range] { flex: 1 1 160px; accent-color: var(--accent); min-width: 0; }
+.lbl { font-size: 0.8rem; color: var(--muted); }
+.drop { border: 1.5px dashed var(--line); border-radius: 12px; padding: 14px; text-align: center; color: var(--muted); font-size: 0.88rem; cursor: pointer; }
+.drop.on { border-color: var(--accent); color: var(--ink); }
+.pal { display: grid; gap: 8px; }
+.pal textarea { width: 100%; font-family: var(--font-mono); font-size: 0.85rem; color: var(--ink); background: rgba(7,10,24,.6); border: 1px solid var(--line); border-radius: 8px; padding: 8px; min-height: 60px; resize: vertical; }
+.swrow { display: grid; grid-template-columns: 7.5em repeat(auto-fit, minmax(24px, 1fr)); gap: 4px; align-items: center; font-size: 0.76rem; color: var(--muted); }
+.swrow i { height: 24px; border-radius: 5px; }
+.clash { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 0.84rem; }
+.clash b { display: inline-block; width: 14px; height: 14px; border-radius: 3px; vertical-align: -2px; }
+.ok { color: var(--sat-b); } .bad { color: var(--sat-c); }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Accessibility</span>
+    <h1 style="font-size:var(--step-3)">Colour-blind view.</h1>
+    <p>About 1 in 12 men and 1 in 200 women see colour differently, most often mixing up reds and greens. Drop in a photo, chart, map or design and drag the line to compare. Then check your colour palette and try an automatic fix.</p>
+  </div>
+  <div class="game">
+    <div>
+      <div class="view" id="view"><canvas id="cvB"></canvas><canvas id="cvA"></canvas><div class="wipe" id="wipe"></div><span class="tag" style="left:10px">original</span><span class="tag" id="tagR" style="right:10px">deuteranopia</span></div>
+      <div class="ctrls" role="group" aria-label="Type">
+        <button class="sm" type="button" data-t="deutan" aria-pressed="true">Green-weak (deuteranopia)</button>
+        <button class="sm" type="button" data-t="protan" aria-pressed="false">Red-weak (protanopia)</button>
+        <button class="sm" type="button" data-t="tritan" aria-pressed="false">Blue-yellow (tritanopia)</button>
+        <button class="sm" type="button" data-t="achro" aria-pressed="false">No colour</button>
+      </div>
+      <div class="ctrls"><span class="lbl">Strength</span><input type="range" id="sev" min="0.2" max="1" step="0.05" value="1" aria-label="Strength"><span class="lbl" id="sevL">full</span>
+        <button class="sm" type="button" id="fix" aria-pressed="false">Show the fix</button><button class="sm" type="button" id="all" aria-pressed="false">All four</button></div>
+      <div class="grid4" id="grid4" hidden style="margin-top:12px"></div>
+    </div>
+    <div class="panel" style="display:grid;gap:14px">
+      <label class="drop" id="drop"><input type="file" id="file" accept="image/*" hidden>Drop an image, tap to choose one, or paste a screenshot</label>
+      <div class="ctrls" style="margin:0"><button class="sm" type="button" id="cam">Use my camera</button><button class="sm" type="button" id="samp">Sample chart</button><button class="sm" type="button" id="dl">Download this view</button></div>
+      <div class="pal">
+        <span class="label">Check a palette</span>
+        <textarea id="hex" spellcheck="false" aria-label="Colours, one per line or comma-separated">#d62728, #2ca02c, #ff7f0e, #1f77b4, #9467bd, #8c564b</textarea>
+        <div id="sw"></div>
+        <ul class="clash" id="clash"></ul>
+      </div>
+      <p class="fact">Fixes that work for everyone: don't rely on colour alone (add labels, patterns or icons), pair red with blue rather than green, and vary lightness as well as hue. The simulation uses the Machado (2009) model; nothing you load leaves your device.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var M = {
+    protan: [0.152286, 1.052583, -0.204868, 0.114503, 0.786281, 0.099216, -0.003882, -0.048116, 1.051998],
+    deutan: [0.367322, 0.860646, -0.227968, 0.280085, 0.672501, 0.047413, -0.011820, 0.042940, 0.968881],
+    tritan: [1.255528, -0.076749, -0.178779, -0.078411, 0.930809, 0.147602, 0.004733, 0.691367, 0.303900],
+    achro: [0.2126, 0.7152, 0.0722, 0.2126, 0.7152, 0.0722, 0.2126, 0.7152, 0.0722]
+  };
+  var NAME = { protan: 'protanopia', deutan: 'deuteranopia', tritan: 'tritanopia', achro: 'no colour' };
+  var type = 'deutan', sev = 1, fix = false, src = null, split = 0.5, video = null;
+  var LIN = new Float32Array(256); for (var i = 0; i < 256; i++) { var c = i / 255; LIN[i] = c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }
+  function enc(v) { v = v <= 0 ? 0 : v >= 1 ? 1 : v; return Math.round((v <= 0.0031308 ? v * 12.92 : 1.055 * Math.pow(v, 1 / 2.4) - 0.055) * 255); }
+  function mat(t, s) { var m = M[t]; return m.map(function (v, k) { var id = k % 4 === 0 ? 1 : 0; return id + (v - id) * s; }); }
+  function sim3(r, g, b, m) { return [m[0] * r + m[1] * g + m[2] * b, m[3] * r + m[4] * g + m[5] * b, m[6] * r + m[7] * g + m[8] * b]; }
+  // daltonise: push the information the viewer loses into channels they can still see
+  function correct(R, G, B, m) {
+    var s = sim3(R, G, B, m), er = R - s[0], eg = G - s[1], eb = B - s[2];
+    return type === 'tritan' ? [R + 0.7 * eb, G + 0.7 * eb, B] : [R, G + 0.7 * er + eg, B + 0.7 * er + eb];
+  }
+  function render(img, out, t, s, withFix) {
+    var w = img.width, h = img.height; out.width = w; out.height = h;
+    var x = out.getContext('2d'), sd = img.getContext('2d').getImageData(0, 0, w, h), d = sd.data, o = x.createImageData(w, h), od = o.data, m = mat(t, s);
+    for (var p = 0; p < d.length; p += 4) {
+      var R = LIN[d[p]], G = LIN[d[p + 1]], B = LIN[d[p + 2]];
+      if (withFix) { var c = correct(R, G, B, m); R = Math.max(0, Math.min(1, c[0])); G = Math.max(0, Math.min(1, c[1])); B = Math.max(0, Math.min(1, c[2])); }
+      var v = sim3(R, G, B, m);
+      od[p] = enc(v[0]); od[p + 1] = enc(v[1]); od[p + 2] = enc(v[2]); od[p + 3] = 255;
+    }
+    x.putImageData(o, 0, 0);
+  }
+  function setSource(drawable, w, h) {
+    var max = 1100, k = Math.min(1, max / Math.max(w, h)), c = document.createElement('canvas');
+    c.width = Math.round(w * k); c.height = Math.round(h * k); c.getContext('2d').drawImage(drawable, 0, 0, c.width, c.height);
+    src = c; draw();
+  }
+  function draw() {
+    if (!src) return;
+    var b = $('cvB'); b.width = src.width; b.height = src.height; b.getContext('2d').drawImage(src, 0, 0);
+    render(src, $('cvA'), type, sev, fix);
+    clip();
+    $('tagR').textContent = NAME[type] + (fix ? ' + fix' : '');
+    if (!$('grid4').hidden) grid();
+  }
+  function clip() { var p = (split * 100).toFixed(2); $('cvA').style.clipPath = 'inset(0 0 0 ' + p + '%)'; $('wipe').style.left = 'calc(' + p + '% - 1px)'; }
+  function grid() {
+    $('grid4').innerHTML = '';
+    ['deutan', 'protan', 'tritan', 'achro'].forEach(function (t) { var f = document.createElement('figure'), c = document.createElement('canvas'); render(src, c, t, sev, fix); f.appendChild(c); f.insertAdjacentHTML('beforeend', '<figcaption>' + NAME[t] + (fix ? ' + fix' : '') + '</figcaption>'); $('grid4').appendChild(f); });
+  }
+  function sample() {
+    var c = document.createElement('canvas'), W = 900, H = 520; c.width = W; c.height = H; var g = c.getContext('2d');
+    g.fillStyle = '#ffffff'; g.fillRect(0, 0, W, H);
+    g.fillStyle = '#222'; g.font = '700 26px Instrument Sans, sans-serif'; g.fillText('Sales by region', 30, 46);
+    var cols = ['#d62728', '#2ca02c', '#ff7f0e', '#1f77b4'], names = ['North', 'South', 'East', 'West'], data = [[3, 5, 4, 6, 7], [4, 4.5, 5, 5.5, 6.5], [2, 3, 3.5, 3, 4], [5, 4, 3, 2.5, 2]];
+    g.strokeStyle = '#ddd'; g.lineWidth = 1; for (var y = 0; y <= 4; y++) { g.beginPath(); g.moveTo(40, 90 + y * 80); g.lineTo(560, 90 + y * 80); g.stroke(); }
+    data.forEach(function (s, k) { g.strokeStyle = cols[k]; g.lineWidth = 5; g.beginPath(); s.forEach(function (v, i) { var x = 60 + i * 120, yy = 410 - v * 45; i ? g.lineTo(x, yy) : g.moveTo(x, yy); }); g.stroke(); g.fillStyle = cols[k]; g.fillRect(600, 100 + k * 44, 26, 26); g.fillStyle = '#222'; g.font = '20px Instrument Sans, sans-serif'; g.fillText(names[k], 640, 121 + k * 44); });
+    [['#2ca02c', 'OK'], ['#ff7f0e', 'Late'], ['#d62728', 'Failed']].forEach(function (s, k) { g.fillStyle = s[0]; g.beginPath(); g.arc(625, 330 + k * 50, 15, 0, 7); g.fill(); g.fillStyle = '#222'; g.fillText(s[1], 650, 337 + k * 50); });
+    g.fillStyle = '#2ca02c'; g.fillRect(30, 450, 260, 44); g.fillStyle = '#d62728'; g.font = '700 22px Instrument Sans, sans-serif'; g.fillText('Error: card declined', 42, 479);
+    setSource(c, W, H);
+  }
+  // wipe
+  var dragging = false;
+  function move(e) { var r = $('view').getBoundingClientRect(); split = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)); clip(); }
+  $('view').addEventListener('pointerdown', function (e) { dragging = true; $('view').setPointerCapture(e.pointerId); move(e); });
+  $('view').addEventListener('pointermove', function (e) { if (dragging) move(e); });
+  $('view').addEventListener('pointerup', function () { dragging = false; });
+  [].forEach.call(document.querySelectorAll('[data-t]'), function (b) { b.onclick = function () { type = b.dataset.t; [].forEach.call(document.querySelectorAll('[data-t]'), function (x) { x.setAttribute('aria-pressed', x === b); }); draw(); palette(); }; });
+  $('sev').addEventListener('input', function () { sev = +this.value; $('sevL').textContent = sev >= 1 ? 'full' : Math.round(sev * 100) + '%'; draw(); palette(); });
+  $('fix').onclick = function () { fix = !fix; this.setAttribute('aria-pressed', fix); draw(); };
+  $('all').onclick = function () { var on = $('grid4').hidden; $('grid4').hidden = !on; this.setAttribute('aria-pressed', on); if (on) grid(); };
+  $('samp').onclick = sample;
+  $('dl').onclick = function () { if (!src) return; var a = document.createElement('a'); a.download = 'colour-view-' + type + '.png'; a.href = $('cvA').toDataURL('image/png'); a.click(); };
+  function loadFile(f) { if (!f || !/^image\//.test(f.type)) return; var im = new Image(); im.onload = function () { setSource(im, im.naturalWidth, im.naturalHeight); URL.revokeObjectURL(im.src); }; im.src = URL.createObjectURL(f); }
+  $('file').onchange = function () { loadFile(this.files[0]); };
+  var dz = $('drop');
+  ['dragenter', 'dragover'].forEach(function (ev) { dz.addEventListener(ev, function (e) { e.preventDefault(); dz.classList.add('on'); }); });
+  ['dragleave', 'drop'].forEach(function (ev) { dz.addEventListener(ev, function (e) { e.preventDefault(); dz.classList.remove('on'); }); });
+  dz.addEventListener('drop', function (e) { loadFile(e.dataTransfer.files[0]); });
+  window.addEventListener('paste', function (e) { var it = [].filter.call(e.clipboardData.items || [], function (i) { return i.type.indexOf('image') === 0; })[0]; if (it) loadFile(it.getAsFile()); });
+  $('cam').onclick = function () {
+    var btn = this;
+    if (video) { video.srcObject.getTracks().forEach(function (t) { t.stop(); }); video = null; btn.textContent = 'Use my camera'; return; }
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: 960 } }).then(function (s) {
+      video = document.createElement('video'); video.playsInline = true; video.muted = true; video.srcObject = s; video.play(); btn.textContent = 'Stop camera';
+      (function loop() { if (!video) return; if (video.videoWidth) setSource(video, video.videoWidth, video.videoHeight); setTimeout(function () { requestAnimationFrame(loop); }, 120); })();
+    }).catch(function () { btn.textContent = 'Camera not available'; });
+  };
+  // palette check: CIE76 distance in Lab between simulated colours
+  function hex2rgb(h) { h = h.replace('#', ''); if (h.length === 3) h = h.split('').map(function (c) { return c + c; }).join(''); var n = parseInt(h, 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
+  function lab(r, g, b) {
+    var X = (0.4124 * r + 0.3576 * g + 0.1805 * b) / 0.95047, Y = 0.2126 * r + 0.7152 * g + 0.0722 * b, Z = (0.0193 * r + 0.1192 * g + 0.9505 * b) / 1.08883;
+    function f(t) { return t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116; }
+    return [116 * f(Y) - 16, 500 * (f(X) - f(Y)), 200 * (f(Y) - f(Z))];
+  }
+  function palette() {
+    var hs = ($('hex').value.match(/#?[0-9a-f]{6}\b|#[0-9a-f]{3}\b/gi) || []).slice(0, 12).map(function (h) { return h[0] === '#' ? h : '#' + h; });
+    var rows = [['Normal', null], [NAME[type], type]];
+    $('sw').innerHTML = rows.map(function (r) {
+      return '<div class="swrow"><span>' + r[0] + '</span>' + hs.map(function (h) { var c = hex2rgb(h); if (r[1]) { var v = sim3(LIN[c[0]], LIN[c[1]], LIN[c[2]], mat(r[1], sev)); c = [enc(v[0]), enc(v[1]), enc(v[2])]; } return '<i style="background:rgb(' + c.join(',') + ')"></i>'; }).join('') + '</div>';
+    }).join('');
+    var L = hs.map(function (h) { var c = hex2rgb(h), v = sim3(LIN[c[0]], LIN[c[1]], LIN[c[2]], mat(type, sev)); return lab(v[0], v[1], v[2]); }), bad = [];
+    for (var a = 0; a < L.length; a++) for (var b = a + 1; b < L.length; b++) { var d = Math.hypot(L[a][0] - L[b][0], L[a][1] - L[b][1], L[a][2] - L[b][2]); if (d < 20) bad.push([hs[a], hs[b], d]); }
+    $('clash').innerHTML = hs.length < 2 ? '' : bad.length ? bad.sort(function (x, y) { return x[2] - y[2]; }).map(function (p) { return '<li class="bad"><b style="background:' + p[0] + '"></b> and <b style="background:' + p[1] + '"></b> look ' + (p[2] < 10 ? 'almost the same' : 'very similar') + ' with ' + NAME[type] + '</li>'; }).join('') : '<li class="ok">✓ Every pair stays distinguishable with ' + NAME[type] + '.</li>';
+  }
+  $('hex').addEventListener('input', palette);
+  sample(); palette();
+})();
+</script>
+</body>
+</html>
