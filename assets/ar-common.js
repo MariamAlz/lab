@@ -469,3 +469,10 @@ LabAr.add({
  "Hour-by-hour heat index and estimated WBGT, work and rest times, water per hour, the midday break and the best slots today and tomorrow.": "مؤشر الحرارة وWBGT التقديري ساعة بساعة، مع أوقات العمل والراحة، وكمية الماء في الساعة، واستراحة منتصف النهار، وأفضل الفترات اليوم وغدًا.",
  "Plan →": "خطّط ←"
 });
+/* index cards for newer tools */
+LabAr.add({
+ "Game · Security · UAE": "لعبة · أمن · الإمارات",
+ "Phish or legit?": "تصيد أم رسالة حقيقية؟",
+ "24 made-up UAE emails, texts, WhatsApp chats, login pages and QR codes. Tap the giveaways and see which tricks fool you most.": "24 رسالة إماراتية مختلقة بين بريد ورسائل نصية وواتساب وصفحات دخول ورموز QR. اضغط على العلامات واعرف أي الحيل تخدعك أكثر.",
+ "Play →": "العب ←"
+});

@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Spot the Phish · Mariam's Lab</title>
+<meta name="description" content="A game of realistic, UAE-flavoured emails, texts, WhatsApp messages and login pages. Decide which are phishing, tap the giveaways, and learn which tricks fool you most.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/phish-game/">
+<meta property="og:title" content="Spot the Phish · Mariam's Lab"><meta property="og:description" content="Phish or legit? Tap the giveaways and see which tricks fool you."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.85rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 7px 14px; cursor: pointer; }
+.sm.pri { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 600; }
+.pg-top { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: space-between; margin-bottom: 12px; font-size: 0.88rem; color: var(--muted); }
+.pg-dots { display: flex; gap: 4px; }
+.pg-dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--line); }
+.pg-dots i.pg-cur { background: var(--accent); }
+.pg-dots i.pg-win { background: var(--sat-b); }
+.pg-dots i.pg-lose { background: var(--sat-c); }
+.pg-ctx { font-size: 0.9rem; padding: 10px 12px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); margin-bottom: 12px; }
+.pg-ctx b { color: var(--accent); font-weight: 600; }
+.pg-help { font-size: 0.84rem; color: var(--muted); margin: 10px 0; }
+.pg-act { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.pg-act button { font: inherit; font-weight: 700; font-size: 1rem; padding: 14px; border-radius: 14px; cursor: pointer; border: 1.5px solid; background: transparent; }
+.pg-phish { color: var(--sat-c); border-color: var(--sat-c) !important; }
+.pg-legit { color: var(--sat-b); border-color: var(--sat-b) !important; }
+.pg-act button:hover { background: rgba(255,255,255,.04); }
+.pg-res { padding: 16px; border-radius: var(--radius); border: 1px solid var(--line); background: rgba(7,10,24,.82); display: grid; gap: 10px; }
+.pg-big { font-family: var(--font-display); font-size: clamp(1.3rem, 4vw, 1.8rem); font-weight: 800; line-height: 1.15; }
+.pg-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.pg-list li { display: grid; grid-template-columns: 1.4em minmax(0, 1fr); gap: 8px; font-size: 0.9rem; }
+.pg-list small { display: block; color: var(--muted); font-size: 0.84rem; }
+.pg-list .pg-tr { display: inline-block; font-size: 0.7rem; font-weight: 600; padding: 0 7px; border-radius: 99px; border: 1px solid var(--line); color: var(--muted); margin-inline-start: 4px; }
+.pg-ok { color: var(--sat-b); } .pg-bad { color: var(--sat-c); } .pg-meh { color: var(--accent); } .pg-na { color: var(--muted); }
+.pg-score { font-family: var(--font-mono); color: var(--ink); }
+
+/* hotspots */
+.pg-hs { cursor: pointer; border-radius: 4px; transition: background .15s, box-shadow .15s; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+.pg-hs:hover { background: rgba(233,180,103,.18); }
+.pg-hs.pg-mark { background: rgba(233,180,103,.35); box-shadow: 0 0 0 2px #E9B467; }
+.pg-done .pg-hs { cursor: default; }
+.pg-done .pg-hs.pg-found { background: rgba(79,211,189,.28); box-shadow: 0 0 0 2px #4FD3BD; }
+.pg-done .pg-hs.pg-miss { box-shadow: 0 0 0 2px #F08AB3; background: rgba(240,138,179,.18); }
+.pg-done .pg-hs.pg-false { box-shadow: 0 0 0 2px #8a90b0; text-decoration: line-through; }
+.pg-lnk { color: #2a62d4; text-decoration: underline; }
+.pg-mock sup.pg-n { font: 600 0.62rem var(--font-mono); background: #F08AB3; color: #fff; border-radius: 99px; padding: 0 4px; margin-inline-start: 2px; vertical-align: super; }
+
+/* mock UIs: light, generic, no real brands */
+.pg-mock { font-family: 'Instrument Sans', 'IBM Plex Sans Arabic', system-ui, sans-serif; color: #1d2230; border-radius: 16px; overflow: hidden; border: 1px solid var(--line); background: #f4f5f8; max-width: 100%; line-height: 1.5; }
+.pg-mock [dir="rtl"] { font-family: 'IBM Plex Sans Arabic', 'Instrument Sans', sans-serif; }
+.pg-em-bar { display: flex; gap: 6px; align-items: center; padding: 8px 12px; background: #e3e6ee; font-size: 0.75rem; color: #5b6275; }
+.pg-em-bar i { width: 10px; height: 10px; border-radius: 50%; background: #c9cdd8; }
+.pg-em-head { padding: 14px 16px 10px; background: #fff; border-bottom: 1px solid #e3e6ee; display: grid; gap: 4px; font-size: 0.86rem; }
+.pg-em-head .pg-subj { font-size: 1.08rem; font-weight: 700; margin-bottom: 4px; }
+.pg-em-head .pg-meta { color: #5b6275; display: flex; gap: 6px; flex-wrap: wrap; }
+.pg-em-head .pg-meta > span:first-child { min-width: 3.5em; }
+.pg-em-body { padding: 16px; background: #fff; display: grid; gap: 10px; font-size: 0.93rem; overflow-wrap: anywhere; }
+.pg-btnlnk { display: inline-block; background: #1d4fa8; color: #fff !important; text-decoration: none !important; padding: 8px 18px; border-radius: 6px; font-weight: 600; }
+.pg-att { display: inline-flex; gap: 8px; align-items: center; border: 1px solid #d5d9e3; border-radius: 8px; padding: 8px 12px; font-size: 0.85rem; background: #f7f8fb; }
+.pg-status { min-height: 26px; padding: 4px 12px; font: 0.74rem var(--font-mono); background: #e9ecf2; color: #39405a; word-break: break-all; direction: ltr; text-align: left; }
+.pg-phone { max-width: 380px; margin: 0 auto; background: #fff; border-radius: 26px; border: 8px solid #20263a; overflow: hidden; }
+.pg-ph-head { display: grid; justify-items: center; gap: 2px; padding: 12px 10px 10px; background: #f3f4f7; border-bottom: 1px solid #e4e6ec; font-size: 0.86rem; }
+.pg-ph-head .pg-av { width: 40px; height: 40px; border-radius: 50%; background: #b9bfcc; color: #fff; display: grid; place-items: center; font-weight: 700; }
+.pg-ph-head small { color: #6b7285; font-size: 0.72rem; }
+.pg-ph-body { padding: 14px 12px 18px; display: grid; gap: 8px; min-height: 160px; }
+.pg-bub { background: #e9eaef; border-radius: 16px; padding: 9px 12px; max-width: 88%; font-size: 0.92rem; justify-self: start; overflow-wrap: anywhere; }
+.pg-wa .pg-ph-head { background: #1f6f5c; color: #fff; grid-template-columns: 40px minmax(0, 1fr); justify-items: start; align-items: center; text-align: start; }
+.pg-wa .pg-ph-head small { color: #cfe8e0; }
+.pg-wa .pg-ph-body { background: #ece4d8; }
+.pg-wa .pg-bub { background: #fff; border-radius: 10px; box-shadow: 0 1px 1px rgba(0,0,0,.08); }
+.pg-wa .pg-banner { background: #fff6d9; color: #6b5a1d; font-size: 0.78rem; text-align: center; padding: 6px 10px; border-radius: 8px; justify-self: center; }
+.pg-br-top { background: #e3e6ee; padding: 8px 10px; display: grid; gap: 6px; }
+.pg-br-url { background: #fff; border-radius: 99px; padding: 6px 12px; font: 0.8rem var(--font-mono); color: #39405a; display: flex; gap: 6px; align-items: center; direction: ltr; overflow-wrap: anywhere; word-break: break-all; }
+.pg-br-page { background: #fff; padding: 22px 18px; display: grid; gap: 12px; justify-items: center; }
+.pg-logo { display: flex; gap: 8px; align-items: center; font-weight: 800; font-size: 1.05rem; color: #123a7a; }
+.pg-logo i { width: 30px; height: 30px; border-radius: 50%; background: radial-gradient(circle at 65% 40%, #fff 0 38%, transparent 39%), #1d4fa8; display: inline-block; }
+.pg-logo.pg-gov i { background: radial-gradient(circle at 50% 50%, #fff 0 30%, transparent 31%), #8a6d2b; border-radius: 6px; }
+.pg-field { width: 100%; max-width: 300px; display: grid; gap: 3px; font-size: 0.82rem; color: #4b5266; }
+.pg-field span.pg-in { border: 1px solid #cfd4df; border-radius: 6px; height: 34px; background: #fafbfc; }
+.pg-submit { background: #1d4fa8; color: #fff; border-radius: 6px; padding: 8px 26px; font-weight: 600; font-size: 0.9rem; }
+.pg-small { font-size: 0.76rem; color: #6b7285; text-align: center; }
+.pg-timer { color: #b3261e; font-weight: 700; }
+.pg-lock { background: linear-gradient(160deg, #2a3350, #11152a); color: #fff; padding: 18px 12px 22px; display: grid; gap: 8px; }
+.pg-lock .pg-clock { text-align: center; font: 300 2.6rem var(--font-display); }
+.pg-lock .pg-date { text-align: center; font-size: 0.8rem; opacity: .75; margin-top: -8px; margin-bottom: 6px; }
+.pg-note-c { background: rgba(255,255,255,.88); color: #1d2230; border-radius: 14px; padding: 9px 12px; font-size: 0.84rem; }
+.pg-note-c b { display: block; font-size: 0.72rem; color: #5b6275; font-weight: 600; }
+.pg-sign { background: #1c4f9c; color: #fff; padding: 16px; display: grid; gap: 10px; justify-items: center; text-align: center; }
+.pg-sign .pg-p { width: 54px; height: 54px; border-radius: 10px; background: #fff; color: #1c4f9c; font: 800 2rem var(--font-display); display: grid; place-items: center; }
+.pg-qrbox { background: #fff; padding: 8px; border-radius: 8px; width: 132px; position: relative; }
+.pg-qrbox svg { display: block; width: 100%; height: auto; }
+.pg-qrbox.pg-stick { transform: rotate(-4deg); box-shadow: 3px 4px 0 rgba(0,0,0,.35); outline: 3px solid #f2f2f2; }
+.pg-cam { background: #20263a; color: #fff; padding: 10px; display: grid; justify-items: center; }
+.pg-cam .pg-pill { background: rgba(255,255,255,.92); color: #1d2230; border-radius: 12px; padding: 8px 12px; font-size: 0.84rem; display: grid; gap: 2px; max-width: 100%; overflow-wrap: anywhere; }
+.pg-cam .pg-pill small { color: #6b7285; font-size: 0.7rem; }
+.pg-sum { display: grid; gap: 12px; }
+.pg-bars { display: grid; gap: 8px; }
+.pg-bars div { display: grid; grid-template-columns: minmax(0, 1fr) 3.5em; gap: 8px; align-items: center; font-size: 0.86rem; }
+.pg-bars div i { grid-column: 1 / -1; height: 6px; border-radius: 99px; background: var(--line); overflow: hidden; display: block; }
+.pg-bars div i b { display: block; height: 100%; background: var(--sat-c); }
+.pg-bars em { font-style: normal; font-family: var(--font-mono); font-size: 0.78rem; text-align: end; color: var(--muted); }
+html.ar .pg-mock .pg-status { direction: ltr; }
+#play, #res, #sum { scroll-margin-top: 72px; }
+[hidden] { display: none !important; }
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Game · Security · UAE</span>
+    <h1 style="font-size:var(--step-3)">Spot the phish.</h1>
+    <p>Eight messages per round: texts, emails, WhatsApp chats and login pages, all made up but modelled on real UAE scams. Tap anything that looks off, then decide: phish or legit? You score for the right call and for every giveaway you spot. At the end you'll see which tricks fooled you.</p>
+  </div>
+
+  <div class="game">
+    <div class="panel" style="display:grid;gap:0;min-width:0">
+      <div class="pg-top"><span id="pos"></span><div class="pg-dots" id="dots"></div><span>Score <b class="pg-score" id="score">0</b></span></div>
+      <div id="play">
+        <div class="pg-ctx" id="ctx"></div>
+        <div id="mock"></div>
+        <p class="pg-help" id="help">Tap anything suspicious (sender, links, wording, attachments), then decide.</p>
+        <div class="pg-act" id="act"><button type="button" class="pg-phish" id="bPhish">🎣 It's a phish</button><button type="button" class="pg-legit" id="bLegit">✓ It's legit</button></div>
+      </div>
+      <div class="pg-sum" id="sum" hidden></div>
+    </div>
+    <div class="panel" style="display:grid;gap:14px;align-content:start">
+      <div class="pg-res" id="res" hidden></div>
+      <div class="stats" id="stats"><div><b id="stRounds">0</b><span>rounds played</span></div><div><b id="stAcc">–</b><span>right calls</span></div><div><b id="stBest">0</b><span>best round</span></div></div>
+      <p class="fact" style="margin:0">Every message here is invented. Bank, courier and company names are fictional, and any real authority names appear only because scammers pretend to be them. No real logos are used.</p>
+      <p class="fact" style="margin:0"><b>The one habit that beats nearly every trick:</b> don't act from the message. If it is about your bank, a fine, a parcel or your boss, open the official app or call a number you already have. Phishing works by keeping you inside the scammer's story.</p>
+      <div class="pg-btnrow" style="display:flex;gap:8px;flex-wrap:wrap"><button class="sm" type="button" id="newRound">Start a new round</button><button class="sm" type="button" id="resetAll">Reset all progress</button></div>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var KEY = 'phishGameV1', ROUND = 8;
+  var AR = !!(window.LabAr && LabAr.on);
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  var TRICKS = { sender: 'Odd sender or number', lookalike: 'Look-alike link or domain', urgency: 'Rushed deadline', threat: 'Threats', money: 'Unusual payment request', fee: 'Small "fee" bait', codes: 'Asks for PIN, OTP or card details', greeting: 'Generic greeting', attach: 'Disguised attachment', secrecy: 'Secrecy or "don\'t call"', qr: 'QR code trick', mfa: 'MFA fatigue', prize: 'Too good to be true', authority: 'Fake authority', bankchange: 'Changed bank details', story: 'Emotional story' };
+
+  // [[key|text]] marks a tappable part; [[key|text|url]] is a link whose real address shows on hover
+  // flags = real giveaways: key -> [trick, why]; ok = parts that look suspicious but are fine: key -> why
+  var S = [
+    { id: 'rta', k: 'sms', p: 1, from: '[[from|+63 917 555 0142]]', time: 'Today 09:41',
+      ctx: 'A text arrives while you are driving to work.',
+      body: ['[[auth|RTA]]: Your vehicle has an unpaid traffic fine of AED 400. [[urg|Pay within 24 hours to avoid black points]]: [[link|rta-ae.fines-pay.top/pay]]'],
+      flags: { from: ['sender', 'A UAE government fine from a foreign mobile number (+63). Real government texts come from a named sender ID.'], urg: ['urgency', 'A 24-hour deadline plus black points is pressure to stop you checking.'], link: ['lookalike', 'The real domain is fines-pay.top, not rta.ae. "rta-ae" at the start is just decoration.'] },
+      ok: { auth: 'Anyone can type "RTA". The name proves nothing either way, which is why the sender and link matter.' },
+      ex: 'Fake fine texts are among the most common scams in the UAE. Check fines only in the official app or website, which you open yourself.' },
+    { id: 'salik', k: 'sms', p: 1, from: '[[from|+44 7700 900461]]', time: 'Today 18:05',
+      ctx: 'You have a toll tag on your car.',
+      body: ['Salik: your toll balance is negative (AED -12.60). Your account will be [[threat|suspended tonight]] and fines added. Top up now: [[link|salik-topup.xyz/ae]]'],
+      flags: { from: ['sender', 'A UK mobile number sending a UAE toll notice.'], threat: ['threat', '"Suspended tonight" is designed to rush you.'], link: ['lookalike', 'salik-topup.xyz is not the toll operator\'s site. .xyz domains cost almost nothing.'] },
+      ex: 'Top up tolls only in the official app or website. A low balance message never needs a link to a strange domain.' },
+    { id: 'epost', k: 'sms', p: 1, from: '[[from|EmiratesPost]]', time: 'Today 11:20',
+      ctx: 'You are not expecting anything from abroad.',
+      body: ['Your parcel [[trk|EP0039812AE]] is held at customs. [[fee|Pay the AED 12.50 clearance fee]] [[urg|within 48 hours]] or it will be returned to sender: [[link|emiratespost.ae-track.info/pay]]'],
+      flags: { fee: ['fee', 'A tiny fee makes you relax. The page then steals your card details and the OTP.'], urg: ['urgency', 'A deadline so you don\'t stop to check.'], link: ['lookalike', 'The real domain is ae-track.info. "emiratespost.ae" at the front is only a subdomain the scammer chose.'] },
+      ok: { from: 'Sender names can be faked, so a familiar name doesn\'t make a text safe, but it isn\'t a giveaway by itself either. The link is.', trk: 'Tracking numbers are easy to invent. Neutral.' },
+      ex: 'Parcel fee scams copy the national post and big couriers. Check tracking on the official site or app, typed yourself.' },
+    { id: 'dune', k: 'sms', p: 0, from: '[[from|DuneExpress]]', time: 'Today 10:02',
+      ctx: 'You ordered headphones from ShopMall two days ago.',
+      body: ['Your ShopMall order [[ord|#4471]] is out for delivery today between 2 and 6 pm. The driver will call before arriving. Track it in the Dune Express app. [[nf|No payment is due.]]'],
+      flags: {}, ok: { from: 'The courier name matches the one shown when you ordered.', ord: 'The order number matches an order you really placed.', nf: 'No payment, no link, nothing to type.' },
+      ex: 'A normal delivery notice: it matches something you ordered, asks for nothing and points you to the official app.' },
+    { id: 'bank', k: 'email', p: 1, from: '[[from|Gulf Crescent Bank Security <alerts@gulfcrescent-secure.com>]]', to: 'you', date: 'Sun 06:12',
+      subj: '[[subj|URGENT: Your account will be blocked]]', ctx: 'You bank with Gulf Crescent Bank. Its website is gulfcrescentbank.ae.',
+      body: ['[[greet|Dear Customer]],', 'We detected unusual activity on your account. [[urg|Verify your identity within 12 hours]] or your account will be permanently blocked.', '{btn}[[link|Verify now|http://gcb-verify.login-update.icu/secure]]', 'Gulf Crescent Bank'],
+      flags: { from: ['lookalike', 'The address is gulfcrescent-secure.com, not gulfcrescentbank.ae. Anyone can register a name like that.'], subj: ['threat', 'A blocked-account threat in capitals.'], greet: ['greeting', 'Your bank knows your name. "Dear Customer" is a bulk scam.'], urg: ['urgency', 'Twelve hours to act: pure pressure.'], link: ['lookalike', 'The button says the bank, but it goes to login-update.icu. Hover or long-press links before tapping.'] },
+      ex: 'Five giveaways in one email. Even if you miss some, the fix is the same: open the bank\'s app yourself.' },
+    { id: 'statement', k: 'email', p: 0, from: 'Gulf Crescent Bank <[[from|estatements@gulfcrescentbank.ae]]>', to: 'you', date: 'Mon 08:00',
+      subj: 'Your October e-statement is ready', ctx: 'You bank with Gulf Crescent Bank and get a statement every month.',
+      body: ['Dear [[greet|Noura Khalid]],', 'Your e-statement for October is now available in the Gulf Crescent Bank app, under Accounts > Statements.', '[[safe|We will never ask for your PIN, password or OTP by email or phone.]]', 'Gulf Crescent Bank'],
+      flags: {}, ok: { from: 'The sender domain matches the bank\'s real website exactly.', greet: 'It uses your real name.', safe: 'Genuine banks include this warning.' },
+      ex: 'Legit: your name, the bank\'s real domain, no link and no request. It tells you to open the app yourself.' },
+    { id: 'ceo', k: 'email', p: 1, from: '[[from|Khalid Al Mansoori <k.almansoori.ceo@gmail.com>]]', to: 'you', date: 'Thu 13:47',
+      subj: 'Quick favour', ctx: 'Khalid is the CEO of Sahara Logistics, where you work. Staff email addresses end in @saharalogistics.ae.',
+      body: ['Hi, are you at your desk? [[busy|I\'m in a board meeting and can\'t talk.]]', 'I need you to [[gift|buy 5 store gift cards of AED 500 each]] for a client. [[secret|Keep this between us for now]], [[urg|I need the codes in the next 30 minutes]].', 'Sent from my phone'],
+      flags: { from: ['sender', 'The boss writing from a personal Gmail address instead of the company domain.'], busy: ['secrecy', '"Can\'t talk" stops you calling to check.'], gift: ['money', 'Gift cards are untraceable cash. No real business pays clients this way.'], secret: ['secrecy', 'Secrecy keeps colleagues from spotting the scam.'], urg: ['urgency', 'Thirty minutes so you don\'t think.'] },
+      ex: 'CEO fraud. Verify any unusual money request by calling the person on a number you already have, or walking to their office.' },
+    { id: 'invoice', k: 'email', p: 1, from: 'Al Noor Trading Accounts <[[from|accounts@alnoor-trading.co]]>', to: 'accounts', date: 'Tue 10:31',
+      subj: 'Updated bank details for invoice INV-2291', ctx: 'Al Noor Trading is a regular supplier. Their emails come from @alnoortrading.ae.',
+      body: ['Dear Sir/Madam,', 'Please note our bank details have changed after an audit. [[bank|Kindly send all future payments to our new account at a bank in another country]]. The IBAN is in the attached file.', '[[urg|Please process today]] to avoid late charges.', 'Accounts Team'],
+      att: '[[att|New_Bank_Details.pdf.htm]]',
+      flags: { from: ['lookalike', 'alnoor-trading.co is not alnoortrading.ae: one hyphen and a different ending.'], bank: ['bankchange', 'A change of bank account by email is the classic invoice fraud. Always confirm by phone.'], urg: ['urgency', 'Pressure to pay before anyone checks.'], att: ['attach', 'It ends in .htm, not .pdf. It opens a fake sign-in page in your browser.'] },
+      ex: 'Invoice redirection costs businesses millions. The rule: never change payment details based on an email alone; call the supplier on the number you already have.' },
+    { id: 'invoiceok', k: 'email', p: 0, from: 'Al Noor Trading Accounts <[[from|accounts@alnoortrading.ae]]>', to: 'accounts', date: 'Tue 09:15',
+      subj: 'Invoice INV-2291 for October', ctx: 'Al Noor Trading is a regular supplier. Their emails come from @alnoortrading.ae.',
+      body: ['Hello,', 'Please find attached invoice INV-2291 for the October delivery. Payment goes to the [[same|same account as always]].', '[[call|If anything looks different, please call us on the number you already have.]]', 'Accounts Team'],
+      att: '[[att|INV-2291.pdf]]',
+      flags: {}, ok: { from: 'The usual, correct domain.', same: 'No change of bank details.', call: 'Encouraging you to verify by phone is a good sign.', att: 'A plain .pdf from a known sender, for an expected invoice.' },
+      ex: 'Legit: right domain, an expected invoice, no change of bank details.' },
+    { id: 'fakebank', k: 'web', p: 1, url: '[[url|https://gulfcrescentbank.ae.login-secure.top/online]]', brand: 'Gulf Crescent Bank', ctx: 'You tapped a link in a text about a "security check".',
+      fields: ['Username', 'Password', '[[pin|Card PIN]]', '[[otp|OTP sent to your phone]]'], btn: 'Sign in', foot: '[[lock|🔒 Secure connection]]',
+      flags: { url: ['lookalike', 'The real domain is login-secure.top. Everything before it is a subdomain made to look like the bank.'], pin: ['codes', 'No bank asks for your card PIN to log in online.'], otp: ['codes', 'Asking for the OTP on the login page lets the scammer use it at the same moment.'] },
+      ok: { lock: 'The padlock only means the connection is encrypted. Scam sites get padlocks for free.' },
+      ex: 'Read a web address from the right: find the part just before the first single slash. Here that is login-secure.top.' },
+    { id: 'realbank', k: 'web', p: 0, url: '[[url|https://online.gulfcrescentbank.ae/login]]', brand: 'Gulf Crescent Bank', ctx: 'You typed your bank\'s address yourself.',
+      fields: ['Username', 'Password'], btn: 'Sign in', foot: '[[note|Never share your OTP. We will never ask for your card PIN online.]]',
+      flags: {}, ok: { url: 'online.gulfcrescentbank.ae is a subdomain of the bank\'s real domain.', note: 'A normal security reminder.' },
+      ex: 'Legit: the real domain, only username and password, and you got here by typing the address.' },
+    { id: 'mfa', k: 'push', p: 1, clock: '2:58', date: 'Wednesday', ctx: 'It\'s 3 AM. You are in bed, not signing in to anything.',
+      notes: [['Authenticator', '[[rep|Approve sign-in? Work account · Location unknown]]'], ['Authenticator', '[[rep|Approve sign-in? Work account · Location unknown]]'], ['Authenticator', '[[rep|Approve sign-in? Work account · Location unknown]]'], ['Authenticator', '[[rep|Approve sign-in? Work account · Location unknown]]'], ['WhatsApp · +1 202 555 0175', '[[msg|IT Support here. We are fixing your account, please press Approve so the alerts stop.]]']],
+      flags: { rep: ['mfa', 'Repeated approval requests you didn\'t start mean someone has your password and is hoping you tap Approve to make it stop.'], msg: ['authority', '"IT support" messaging you on WhatsApp at 3 AM. Real IT never asks you to approve a login.'] },
+      ex: 'This is MFA fatigue. Press Deny, change your password, and report it to IT in the morning.' },
+    { id: 'mfaok', k: 'push', p: 0, clock: '10:14', date: 'Monday', ctx: 'You just signed in to your work email on your new laptop. The screen shows the number 47.',
+      notes: [['Authenticator', '[[n|Are you trying to sign in? Enter the number shown: 47 · Dubai, UAE · now]]']],
+      flags: {}, ok: { n: 'One request, right after you signed in, asking for the number on your own screen. That is how it should work.' },
+      ex: 'Legit: you started it, the place is right, and number matching proves it is your screen.' },
+    { id: 'mum', k: 'wa', p: 1, from: '[[from|+44 7700 900123]]', sub: 'online', banner: '[[banner|Not in your contacts]]', ctx: 'Your daughter is studying in London.',
+      body: ['[[greet|Hi mum]] it\'s me 😊 [[newnum|I dropped my phone, this is my new number]]. Save it', '[[money|Can you send AED 2,300 for my rent today? I\'ll pay you back tomorrow]]', '[[nocall|Don\'t call, the mic is broken]]'],
+      flags: { banner: ['sender', 'An unknown number claiming to be family.'], newnum: ['story', 'The "new number" story is the opening of the Hi Mum scam.'], money: ['money', 'An urgent money request from a new number.'], nocall: ['secrecy', 'Stopping you from calling is the giveaway. A real child would happily take a call.'] },
+      ok: { from: 'A UK number is plausible here. That is exactly why scammers choose believable details.', greet: 'Friendly and normal. The tricks come next.' },
+      ex: 'Call your daughter on her old number, or ask a question only she would know.' },
+    { id: 'job', k: 'wa', p: 1, from: '[[from|+62 812 5555 0199]]', sub: 'online', banner: 'Not in your contacts', ctx: 'You uploaded your CV to a job site last month.',
+      body: ['Hello! I\'m Sara from a recruitment agency 🙂', '[[pay|Part-time job: earn AED 800 to 1,500 a day]] by [[task|liking hotel reviews online]].', '[[fee|Pay a AED 150 registration fee]] to start. [[link|Join the team: t.me/+dailytask_uae]]'],
+      flags: { from: ['sender', 'A foreign number for a UAE job, out of the blue.'], pay: ['prize', 'Huge pay for no skill is the bait.'], task: ['prize', 'Liking reviews is the "task scam": small payouts first, then you must top up.'], fee: ['fee', 'Real employers in the UAE can\'t charge you to work.'], link: ['lookalike', 'Moving you to a Telegram group run by the scammers.'] },
+      ex: 'Task scams start with small real payouts so you trust them, then ask for bigger "top-ups".' },
+    { id: 'school', k: 'wa', p: 0, from: '[[from|Al Reem School Office]]', sub: 'business account', ctx: 'This school\'s number is saved in your phone, and your son is in Grade 4.',
+      body: ['Dear parents, the Grade 4 parents\' meeting is on Thursday at 6 pm in the main hall.', '[[nolink|The agenda is in the school app as usual.]]'],
+      flags: {}, ok: { from: 'A saved contact you already know.', nolink: 'No link, no payment, and it points to the app you already use.' },
+      ex: 'Legit: a saved contact, nothing asked of you.' },
+    { id: 'quish', k: 'email', p: 1, from: 'IT Helpdesk <[[from|it-support@mailbox-renewal.net]]>', to: 'you', date: 'Mon 07:30',
+      subj: '[[subj|Action required: password expires today]]', ctx: 'Your work email is @saharalogistics.ae.',
+      body: ['[[greet|Dear user]],', 'Your mailbox password expires today. [[qr|Scan the QR code below with your phone]] to keep your current password.', '{qr}', '[[urg|Failure to act will disable your mailbox.]]'],
+      flags: { from: ['sender', 'IT emails from mailbox-renewal.net, not your company\'s domain.'], subj: ['urgency', '"Expires today" pressure.'], greet: ['greeting', 'Your own IT team knows your name.'], qr: ['qr', 'A QR code moves you to your phone, where the link is harder to check and your email filter can\'t scan it.'], urg: ['threat', 'Threatening to disable your mailbox.'] },
+      ex: 'Quishing (QR phishing) is popular because it skips email link scanners. Never sign in through a QR code from an email.' },
+    { id: 'parking', k: 'qr', p: 1, sign: 'Pay parking here', zone: 'Zone 342C', scan: '[[url|pay-parking-dxb.com/zone342]]', ctx: 'You park downtown and see a QR code on the parking meter.',
+      flags: { sticker: ['qr', 'A sticker sitting crooked on top of the meter. Scammers paste their own codes over real signs.'], url: ['lookalike', 'pay-parking-dxb.com is not an official domain. Parking is paid through the official app, SMS or the meter.'] },
+      ex: 'Fake parking QR codes lead to card-stealing pages. Pay with the official parking app or SMS instead.' },
+    { id: 'prize', k: 'sms', p: 1, from: '[[from|+234 803 555 0147]]', time: 'Today 15:33', ctx: 'You never entered a competition.',
+      body: ['[[win|Congratulations! Your number won AED 50,000]] in the [[draw|Falcon Mobile 2026 loyalty draw]]. To claim, [[id|send a copy of your Emirates ID]] and [[fee|pay a AED 99 processing fee]] at [[link|bit.ly/fm-claim26]]'],
+      flags: { from: ['sender', 'A Nigerian number announcing a UAE prize.'], win: ['prize', 'You can\'t win a draw you didn\'t enter.'], id: ['codes', 'An ID copy is valuable for identity fraud.'], fee: ['fee', 'Real prizes never cost money to claim.'], link: ['lookalike', 'A link shortener hides the real address.'] },
+      ok: { draw: 'Loyalty draws do exist. The rest of the message is what gives it away.' },
+      ex: 'Prize scams want a fee, your card details, or a copy of your ID.' },
+    { id: 'otp', k: 'sms', p: 0, from: '[[from|GCBANK]]', time: 'Now', ctx: 'You are checking out on ShopMall right now and just pressed Pay.',
+      body: ['Your OTP for a purchase of [[amt|AED 245.00 at ShopMall]] is 482913. Valid for 5 minutes. [[warn|Never share this code with anyone, including bank staff.]]'],
+      flags: {}, ok: { from: 'Your bank\'s usual sender name.', amt: 'The amount and shop match what you are buying.', warn: 'The standard warning. Real OTP texts include it.' },
+      ex: 'Legit: you started the payment and the details match. Typing it into the shop\'s own payment page is fine; reading it to a caller never is.' },
+    { id: 'police', k: 'wa', p: 1, from: '[[from|+92 300 555 0188]]', name: '[[name|Dubai Police Investigation Dept]]', sub: 'online', ctx: 'A WhatsApp message appears with a police badge as the profile picture.',
+      body: ['[[threat|Your Emirates ID is linked to a money laundering case.]]', 'Join a video call now or [[warrant|an arrest warrant will be issued today]].', '[[secret|Do not tell anyone, this is confidential.]] You must [[money|transfer your savings to a safe government account]] for checking.'],
+      flags: { from: ['sender', 'A Pakistani mobile number, not an official police line.'], name: ['authority', 'Anyone can name a WhatsApp profile "police" and add a badge picture. Police don\'t open cases over WhatsApp.'], threat: ['threat', 'A frightening accusation to stop you thinking.'], warrant: ['urgency', 'Arrest today unless you act now.'], secret: ['secrecy', 'Secrecy stops your family from talking you out of it.'], money: ['money', 'There is no "safe government account". This is where your money disappears.'] },
+      ex: 'Fake police scams use fear and secrecy. Hang up and call the police yourself on the official number.' },
+    { id: 'reset', k: 'email', p: 0, from: 'ShopMall <[[from|no-reply@shopmall.ae]]>', to: 'you', date: 'Just now', subj: 'Reset your password', ctx: 'You just pressed "Forgot password" on ShopMall.',
+      body: ['Hi Noura,', 'You asked to reset your ShopMall password. This link works for 30 minutes.', '{btn}[[link|Reset password|https://www.shopmall.ae/account/reset?t=8f2k]]', '[[ign|If you didn\'t ask for this, you can ignore this email. Your password won\'t change.]]'],
+      flags: {}, ok: { from: 'The shop\'s real domain.', link: 'The link goes to shopmall.ae, the same domain as the sender.', ign: 'No threat if you ignore it.' },
+      ex: 'Legit: you asked for it a moment ago, and the link matches the real site.' },
+    { id: 'icp', k: 'web', p: 1, url: '[[url|https://icp-gov-ae.online/renew]]', brand: 'Residency & ID Renewal', gov: 1, ctx: 'You searched "renew Emirates ID" and clicked the first sponsored result.',
+      top: '[[timer|Your residency expires in 02:59:41]]', fields: ['Emirates ID number', 'Full name', '[[card|Card number, expiry and CVV]]'], btn: '[[fee|Pay AED 370 + AED 95 urgent fee]]', foot: 'Official renewal portal',
+      flags: { url: ['lookalike', 'icp-gov-ae.online is not a .gov.ae address. UAE government sites use .gov.ae or a well-known .ae address.'], timer: ['urgency', 'A countdown to panic you.'], card: ['codes', 'Card details on an unofficial site.'], fee: ['fee', 'An invented "urgent fee" on top.'] },
+      ex: 'Search ads can lead to look-alike government sites. Use the official app or type the address yourself.' },
+    { id: 'delivered', k: 'email', p: 0, from: 'Dune Express <[[from|notifications@duneexpress.ae]]>', to: 'you', date: 'Today 15:50', subj: 'Delivered: your parcel from ShopMall', ctx: 'Your ShopMall parcel arrived this afternoon.',
+      body: ['Hi Noura,', 'Your parcel was delivered today at 3:42 pm and signed for at reception.', '[[rate|How did we do? Rate your driver in the Dune Express app.]]'],
+      flags: {}, ok: { from: 'The courier\'s real domain.', rate: 'No link, no payment.' },
+      ex: 'Legit: it matches what happened, and asks nothing of you.' }
+  ];
+  var SBY = {}; S.forEach(function (s) { SBY[s.id] = s; });
+
+  // Arabic versions (ar.js fills window.PG_AR)
+  function scen(id) {
+    var s = SBY[id], a = AR && window.PG_AR && PG_AR[id];
+    if (!a) return s;
+    var o = {}; for (var k in s) o[k] = s[k]; for (var j in a) if (j !== 'flags') o[j] = a[j];
+    o.flags = {}; for (var f in s.flags) o.flags[f] = [s.flags[f][0], a.flags && a.flags[f] || s.flags[f][1]];
+    return o;
+  }
+
+  // ---- markup
+  var HS = /\[\[([a-z0-9]+)\|([^\]|]+)(?:\|([^\]]+))?\]\]/g;
+  function mk(t) {
+    var out = '', last = 0, m; HS.lastIndex = 0;
+    while ((m = HS.exec(t))) {
+      out += esc(t.slice(last, m.index));
+      out += '<span class="pg-hs' + (m[3] ? ' pg-lnk' : '') + '" dir="auto" data-k="' + m[1] + '"' + (m[3] ? ' data-href="' + esc(m[3]) + '"' : '') + ' tabindex="0" role="button">' + esc(m[2]) + '</span>';
+      last = m.index + m[0].length;
+    }
+    return out + esc(t.slice(last));
+  }
+  function qrSvg(seed) {
+    var n = 25, r = seed, s = '';
+    function rnd() { r = (r * 1103515245 + 12345) & 0x7fffffff; return r / 0x7fffffff; }
+    function finder(x, y) { s += '<rect x="' + x + '" y="' + y + '" width="7" height="7"/><rect x="' + (x + 1) + '" y="' + (y + 1) + '" width="5" height="5" fill="#fff"/><rect x="' + (x + 2) + '" y="' + (y + 2) + '" width="3" height="3"/>'; }
+    for (var y = 0; y < n; y++) for (var x = 0; x < n; x++) { if ((x < 8 && y < 8) || (x > n - 9 && y < 8) || (x < 8 && y > n - 9)) continue; if (rnd() > 0.52) s += '<rect x="' + x + '" y="' + y + '" width="1" height="1"/>'; }
+    finder(0, 0); finder(n - 7, 0); finder(0, n - 7);
+    return '<svg viewBox="-1 -1 ' + (n + 2) + ' ' + (n + 2) + '" shape-rendering="crispEdges" aria-hidden="true"><rect x="-1" y="-1" width="' + (n + 2) + '" height="' + (n + 2) + '" fill="#fff"/><g fill="#111">' + s + '</g></svg>';
+  }
+  var UI = function (s) { return window.LabAr && LabAr.t ? LabAr.t(s) : s; };
+  function render(s) {
+    var h = '', rtl = AR ? ' dir="rtl"' : '';
+    if (s.k === 'email') {
+      h = '<div class="pg-mock" data-mock><div class="pg-em-bar"><i></i><i></i><i></i><span style="margin-inline-start:8px">Inbox</span></div>' +
+        '<div class="pg-em-head"' + rtl + '><div class="pg-subj" data-noar>' + mk(s.subj) + '</div>' +
+        '<div class="pg-meta"><span>From</span><span data-noar dir="ltr">' + mk(s.from) + '</span></div><div class="pg-meta"><span>To</span><span data-noar>' + esc(s.to === 'accounts' ? 'accounts@saharalogistics.ae' : 'noura.khalid@saharalogistics.ae') + '</span></div><div class="pg-meta"><span>Date</span><span data-noar>' + esc(s.date) + '</span></div></div>' +
+        '<div class="pg-em-body" data-noar' + rtl + '>' + s.body.map(function (p) {
+          if (p === '{qr}') return '<div class="pg-qrbox" style="width:120px">' + qrSvg(77) + '</div>';
+          if (p.indexOf('{btn}') === 0) return '<div>' + mk(p.slice(5)).replace('pg-hs pg-lnk', 'pg-hs pg-lnk pg-btnlnk') + '</div>';
+          return '<p style="margin:0">' + mk(p) + '</p>';
+        }).join('') + (s.att ? '<div><span class="pg-att">📎 ' + mk(s.att) + '</span></div>' : '') + '</div>' +
+        '<div class="pg-status" id="stbar" data-noar></div></div>';
+    } else if (s.k === 'sms' || s.k === 'wa') {
+      var wa = s.k === 'wa', nm = s.name || s.from;
+      h = '<div class="pg-mock pg-phone' + (wa ? ' pg-wa' : '') + '" data-mock><div class="pg-ph-head"><span class="pg-av">' + (wa ? '👤' : '#') + '</span><span' + (wa ? '' : ' style="text-align:center"') + '><b data-noar dir="ltr">' + mk(nm) + '</b>' + (s.name ? '<br><small data-noar dir="ltr">' + mk(s.from) + '</small>' : '') + '<br><small>' + esc(wa ? (s.sub || '') : 'Text message') + '</small></span></div>' +
+        '<div class="pg-ph-body"' + rtl + '>' + (s.banner ? '<div class="pg-banner">' + mk(s.banner) + '</div>' : '') + (s.time ? '<small style="justify-self:center;color:#8a90a0;font-size:.7rem" data-noar>' + esc(s.time) + '</small>' : '') +
+        s.body.map(function (b) { return '<div class="pg-bub" data-noar>' + mk(b) + '</div>'; }).join('') + '</div></div>';
+    } else if (s.k === 'web') {
+      h = '<div class="pg-mock" data-mock><div class="pg-br-top"><div class="pg-br-url" data-noar>🔒 ' + mk(s.url) + '</div></div><div class="pg-br-page"' + rtl + '>' +
+        '<div class="pg-logo' + (s.gov ? ' pg-gov' : '') + '"><i></i><span data-noar>' + esc(s.brand) + '</span></div>' + (s.top ? '<div class="pg-timer" data-noar>' + mk(s.top) + '</div>' : '') +
+        s.fields.map(function (f) { return '<label class="pg-field"><span data-noar>' + mk(f) + '</span><span class="pg-in"></span></label>'; }).join('') +
+        '<span class="pg-submit" data-noar>' + mk(s.btn) + '</span>' + (s.foot ? '<p class="pg-small" data-noar style="margin:0">' + mk(s.foot) + '</p>' : '') + '</div></div>';
+    } else if (s.k === 'push') {
+      h = '<div class="pg-mock pg-phone" data-mock><div class="pg-lock"><div class="pg-clock">' + esc(s.clock) + '</div><div class="pg-date" data-noar>' + esc(s.date) + '</div>' +
+        s.notes.map(function (n) { return '<div class="pg-note-c" data-noar' + rtl + '><b dir="auto">' + esc(n[0]) + '</b>' + mk(n[1]) + '</div>'; }).join('') + '</div></div>';
+    } else if (s.k === 'qr') {
+      h = '<div class="pg-mock pg-phone" data-mock style="max-width:340px"><div class="pg-sign"><div class="pg-p" data-noar>P</div><b data-noar>' + esc(s.sign) + '</b><small data-noar>' + esc(s.zone) + '</small>' +
+        '<span class="pg-hs" data-k="sticker" role="button" tabindex="0" style="display:inline-block;padding:6px"><span class="pg-qrbox pg-stick" style="display:block">' + qrSvg(5) + '</span></span><small>Scan to pay</small></div>' +
+        '<div class="pg-cam"><div class="pg-pill"><small>Camera · QR code</small><span data-noar dir="ltr">' + esc(s.open || 'Open') + ' ' + mk(s.scan) + '</span></div></div></div>';
+    }
+    return h;
+  }
+
+  // ---- state
+  var st = { rounds: 0, best: 0, calls: 0, right: 0, tricks: {}, seen: {}, cur: null };
+  try { var sv = JSON.parse(localStorage.getItem(KEY) || 'null'); if (sv && sv.tricks) st = sv; } catch (e) {}
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} }
+  function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function newRound() {
+    var unseen = S.filter(function (s) { return !st.seen[s.id]; }), pool = unseen.length >= ROUND ? unseen : S.slice();
+    var ph = shuffle(pool.filter(function (s) { return s.p; })), lg = shuffle(pool.filter(function (s) { return !s.p; }));
+    if (lg.length < 2) lg = lg.concat(shuffle(S.filter(function (s) { return !s.p && lg.indexOf(s) < 0; })));
+    if (ph.length < 4) ph = ph.concat(shuffle(S.filter(function (s) { return s.p && ph.indexOf(s) < 0; })));
+    var nl = 2 + Math.floor(Math.random() * 2), pick = lg.slice(0, nl).concat(ph.slice(0, ROUND - nl));
+    st.cur = { order: shuffle(pick).map(function (s) { return s.id; }), i: 0, res: [], marks: [] };
+    save(); show();
+  }
+  var marked = {}, decided = false;
+  function show() {
+    var c = st.cur; $('res').hidden = true; $('sum').hidden = true; $('play').hidden = false;
+    if (!c) return newRound();
+    while (c.i < c.order.length && c.res[c.i]) c.i++; // already answered (e.g. reload before Next)
+    if (c.i >= c.order.length) return summary();
+    var s = scen(c.order[c.i]); marked = {}; decided = false;
+    $('pos').textContent = 'Message ' + (c.i + 1) + ' of ' + c.order.length;
+    $('score').textContent = c.res.reduce(function (t, r) { return t + r.pts; }, 0);
+    $('dots').innerHTML = c.order.map(function (id, i) { var r = c.res[i]; return '<i class="' + (i === c.i ? 'pg-cur' : r ? (r.right ? 'pg-win' : 'pg-lose') : '') + '"></i>'; }).join('');
+    $('ctx').innerHTML = '<b>Context:</b> <span data-noar>' + esc(s.ctx) + '</span>';
+    $('mock').innerHTML = render(s);
+    $('act').hidden = false; $('help').hidden = false;
+    [].forEach.call(document.querySelectorAll('#mock .pg-hs'), function (el) {
+      var k = el.getAttribute('data-k');
+      el.onclick = function () {
+        if (decided) return;
+        marked[k] = !marked[k];
+        [].forEach.call(document.querySelectorAll('#mock .pg-hs[data-k="' + k + '"]'), function (x) { x.classList.toggle('pg-mark', !!marked[k]); });
+        hover(el);
+      };
+      el.onkeydown = function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.onclick(); } };
+      el.onmouseenter = function () { hover(el); };
+      el.onmouseleave = function () { var sb = $('stbar'); if (sb) sb.textContent = ''; };
+    });
+  }
+  function hover(el) { var sb = $('stbar'), u = el.getAttribute('data-href'); if (sb && u) sb.textContent = u; }
+  function decide(saysPhish) {
+    if (decided) return; decided = true;
+    var c = st.cur, s = scen(c.order[c.i]), right = !!s.p === saysPhish, keys = Object.keys(s.flags), found = keys.filter(function (k) { return marked[k]; }), falseK = Object.keys(marked).filter(function (k) { return marked[k] && !s.flags[k]; });
+    var pts = (right ? 10 : 0) + found.length * 3 - falseK.length;
+    pts = Math.max(0, pts);
+    c.res[c.i] = { id: s.id, right: right, found: found.length, total: keys.length, falses: falseK.length, pts: pts, said: saysPhish };
+    st.calls++; if (right) st.right++;
+    keys.forEach(function (k) { var t = s.flags[k][0], e = st.tricks[t] || (st.tricks[t] = [0, 0]); e[0]++; if (!marked[k]) e[1]++; });
+    st.seen[s.id] = right ? 1 : 2; save();
+    // reveal
+    $('mock').firstChild.classList.add('pg-done');
+    var n = 0, num = {};
+    keys.forEach(function (k) { num[k] = ++n; });
+    [].forEach.call(document.querySelectorAll('#mock .pg-hs'), function (el) {
+      var k = el.getAttribute('data-k');
+      if (s.flags[k]) { el.classList.add(marked[k] ? 'pg-found' : 'pg-miss'); if (!el.dataset.numbered) { el.insertAdjacentHTML('beforeend', '<sup class="pg-n">' + num[k] + '</sup>'); el.dataset.numbered = 1; } }
+      else if (marked[k]) el.classList.add('pg-false');
+    });
+    // only number the first element for each key
+    var seenK = {}; [].forEach.call(document.querySelectorAll('#mock sup.pg-n'), function (x) { var k = x.parentNode.getAttribute('data-k'); if (seenK[k]) x.remove(); seenK[k] = 1; });
+    $('act').hidden = true; $('help').hidden = true;
+    var li = keys.map(function (k) { return '<li><span class="' + (marked[k] ? 'pg-ok' : 'pg-bad') + '">' + num[k] + '</span><span><span>' + esc(UI(TRICKS[s.flags[k][0]])) + '</span> <span class="pg-tr">' + (marked[k] ? 'spotted' : 'missed') + '</span><small data-noar>' + esc(s.flags[k][1]) + '</small></span></li>'; });
+    falseK.forEach(function (k) { li.push('<li><span class="pg-na">·</span><span><span>Not a giveaway</span><small data-noar>' + esc((s.ok && s.ok[k]) || '') + '</small></span></li>'); });
+    $('res').hidden = false;
+    $('res').innerHTML = '<span class="label">' + (right ? 'Right call' : 'Not quite') + '</span><div class="pg-big ' + (right ? 'pg-ok' : 'pg-bad') + '">' + (s.p ? 'This was phishing.' : 'This one was legit.') + '</div>' +
+      '<p style="margin:0;font-size:.9rem;color:var(--muted)">' + (keys.length ? '<span>You spotted ' + found.length + ' of ' + keys.length + ' giveaways.</span> ' : '') + '<span>+' + pts + ' points.</span></p>' +
+      (li.length ? '<ul class="pg-list">' + li.join('') + '</ul>' : '') +
+      '<p class="fact" style="margin:0" data-noar>' + esc(s.ex) + '</p>' +
+      '<div><button class="sm pri" type="button" id="next">' + (c.i + 1 < c.order.length ? 'Next message →' : 'See your results →') + '</button></div>';
+    $('next').onclick = function () { c.i++; save(); show(); if (innerWidth < 860) $('play').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+    $('score').textContent = c.res.reduce(function (t, r) { return t + r.pts; }, 0);
+    stats();
+    if (innerWidth < 860) setTimeout(function () { $('res').scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50);
+  }
+  function summary() {
+    var c = st.cur, total = c.res.reduce(function (t, r) { return t + r.pts; }, 0), right = c.res.filter(function (r) { return r.right; }).length;
+    var f = c.res.reduce(function (t, r) { return t + r.found; }, 0), ft = c.res.reduce(function (t, r) { return t + r.total; }, 0), fa = c.res.reduce(function (t, r) { return t + r.falses; }, 0);
+    if (!c.counted) { st.rounds++; st.best = Math.max(st.best, total); c.counted = true; save(); }
+    var allT = Object.keys(st.tricks).map(function (t) { return [t, st.tricks[t][1] / st.tricks[t][0], st.tricks[t]]; }).filter(function (x) { return x[2][0] >= 1; }).sort(function (a, b) { return b[1] - a[1]; });
+    var fooled = c.res.filter(function (r) { return SBY[r.id].p && !r.said; }), para = c.res.filter(function (r) { return !SBY[r.id].p && r.said; });
+    $('play').hidden = true; $('res').hidden = true; $('sum').hidden = false;
+    $('pos').textContent = 'Round complete'; $('dots').innerHTML = c.res.map(function (r) { return '<i class="' + (r.right ? 'pg-win' : 'pg-lose') + '"></i>'; }).join(''); $('score').textContent = total;
+    $('sum').innerHTML = '<div class="pg-res"><span class="label">Round complete</span><div class="pg-big">' + total + ' points</div>' +
+      '<div class="stats"><div><b>' + right + '/' + c.res.length + '</b><span>right calls</span></div><div><b>' + (ft ? Math.round(f / ft * 100) : 0) + '%</b><span>giveaways spotted</span></div><div><b>' + fa + '</b><span>false alarms</span></div></div>' +
+      (fooled.length ? '<p style="margin:0"><b class="pg-bad">Phish you let through:</b> <span data-noar>' + fooled.map(function (r) { return esc(scen(r.id).title || scen(r.id).ctx); }).join(' · ') + '</span></p>' : '<p class="pg-ok" style="margin:0">You caught every phish this round.</p>') +
+      (para.length ? '<p style="margin:0;color:var(--muted);font-size:.9rem"><span>You flagged ' + para.length + ' genuine message' + (para.length === 1 ? '' : 's') + ' as phishing.</span> <span>Being careful is good, but real messages that ask for nothing are safe to read.</span></p>' : '') +
+      '</div><div class="pg-res"><span class="label">Tricks that fool you most (all rounds)</span><div class="pg-bars">' + allT.slice(0, 8).map(function (x) { return '<div><span>' + esc(UI(TRICKS[x[0]])) + '</span><em>' + x[2][1] + '/' + x[2][0] + '</em><i><b style="width:' + Math.round(x[1] * 100) + '%"></b></i></div>'; }).join('') + '</div><p style="margin:0;font-size:.84rem;color:var(--muted)">Missed out of seen. Higher bars are your blind spots.</p></div>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="sm pri" type="button" id="again">Play another round</button></div>';
+    $('again').onclick = newRound;
+    stats();
+  }
+  function stats() { $('stRounds').textContent = st.rounds; $('stAcc').textContent = st.calls ? Math.round(st.right / st.calls * 100) + '%' : '–'; $('stBest').textContent = st.best; }
+  $('bPhish').onclick = function () { decide(true); };
+  $('bLegit').onclick = function () { decide(false); };
+  $('newRound').onclick = function () { newRound(); };
+  $('resetAll').onclick = function () { if (confirm(UI('Clear all your scores and progress?'))) { st = { rounds: 0, best: 0, calls: 0, right: 0, tricks: {}, seen: {}, cur: null }; save(); stats(); newRound(); } };
+  stats();
+  function start() { show(); }
+  if (AR && !window.PG_AR) { var t0 = Date.now(), iv = setInterval(function () { if (window.PG_AR || Date.now() - t0 > 2500) { clearInterval(iv); start(); } }, 50); } else start();
+  window.__pg = { S: S, scen: scen, decide: decide, mark: function (k) { var el = document.querySelector('#mock .pg-hs[data-k="' + k + '"]'); if (el) el.click(); }, state: function () { return st; } };
+})();
+</script>
+</body>
+</html>
