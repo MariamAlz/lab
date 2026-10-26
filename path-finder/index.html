@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Path Finder · Mariam's Lab</title>
+<meta name="description" content="Draw walls and sand, then race A*, Dijkstra, breadth-first and greedy search to find the way. See how many squares each one has to look at.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/path-finder/">
+<meta property="og:title" content="Path Finder · Mariam's Lab"><meta property="og:description" content="Race A*, Dijkstra and friends across a map you draw."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.board { aspect-ratio: 3 / 2; cursor: crosshair; }
+.ctrls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm:hover { border-color: var(--muted); }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.algos { display: grid; gap: 8px; padding: 0; margin: 0; list-style: none; }
+.algos li { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); cursor: pointer; }
+.algos li[aria-pressed="true"] { border-color: var(--accent); background: var(--surface); }
+.algos li b { display: block; font-size: 0.95rem; }
+.algos li p { color: var(--muted); font-size: 0.82rem; }
+.algos li span:last-child { font-family: var(--font-mono); font-size: 0.78rem; color: var(--muted); text-align: end; white-space: nowrap; }
+.algos i { width: 12px; height: 12px; border-radius: 3px; }
+.acts { display: flex; flex-wrap: wrap; gap: 10px; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Experiment · Algorithms</span>
+    <h1 style="font-size:var(--step-3)">Path finder.</h1>
+    <p>Get from the green dot to the gold one. Draw walls and soft sand (slow, costs 5), then watch how different search algorithms explore. Some find the cheapest route; some just find a route, fast.</p>
+  </div>
+  <div class="game">
+    <div>
+      <div class="board"><canvas id="cv" aria-label="Grid map. Draw with the selected brush; drag the dots to move them."></canvas></div>
+      <div class="ctrls" role="group" aria-label="Brush">
+        <span class="label">Draw</span>
+        <button class="sm" type="button" data-b="1" aria-pressed="true">Wall</button>
+        <button class="sm" type="button" data-b="2" aria-pressed="false">Sand</button>
+        <button class="sm" type="button" data-b="0" aria-pressed="false">Eraser</button>
+        <span class="label" style="margin-inline-start:8px">Map</span>
+        <button class="sm" type="button" id="maze">Maze</button>
+        <button class="sm" type="button" id="desert">Desert</button>
+        <button class="sm" type="button" id="clear">Clear</button>
+      </div>
+    </div>
+    <div class="panel">
+      <ul class="algos" id="algos"></ul>
+      <div class="acts"><button class="btn primary" type="button" id="run">Find the way</button><button class="btn ghost" type="button" id="race">Race all four</button></div>
+      <div class="stats">
+        <div><span class="label">Looked at</span><b id="sV">—</b></div>
+        <div><span class="label">Steps</span><b id="sL">—</b></div>
+        <div><span class="label">Cost</span><b id="sC">—</b></div>
+      </div>
+      <p class="fact">A* is what sat-navs and game characters use: it explores like Dijkstra but leans toward the goal with a guess of the remaining distance. As long as that guess never overestimates, A* still finds the cheapest route, while looking at far fewer squares.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var C = 36, R = 24, grid, start = [4, 12], goal = [31, 12], brush = 1, algo = 'astar', anim = null, layers = [];
+  var ALGOS = [
+    { id: 'astar', n: 'A*', d: 'Cheapest route, heads for the goal.', col: '#E9B467' },
+    { id: 'dijkstra', n: 'Dijkstra', d: 'Cheapest route, explores evenly in all directions.', col: '#4FD3BD' },
+    { id: 'bfs', n: 'Breadth-first', d: 'Fewest squares, ignores sand cost.', col: '#84A0FF' },
+    { id: 'greedy', n: 'Greedy best-first', d: 'Rushes at the goal. Fast, not always cheap.', col: '#F08AB3' }
+  ];
+  var res = {};
+  var cv = $('cv'), g = cv.getContext('2d'), dpr = 1, cw = 0;
+  function fit() { dpr = Math.min(window.devicePixelRatio || 1, 2); var r = cv.getBoundingClientRect(); cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr); cw = cv.width / C; }
+  function empty() { grid = []; for (var y = 0; y < R; y++) { grid.push(new Array(C).fill(0)); } }
+  function cost(x, y) { return grid[y][x] === 2 ? 5 : 1; }
+  function h(x, y) { return Math.abs(x - goal[0]) + Math.abs(y - goal[1]); }
+
+  function search(kind) {
+    var key = function (x, y) { return y * C + x; }, dist = new Float64Array(C * R).fill(Infinity), prev = new Int32Array(C * R).fill(-1), seen = new Uint8Array(C * R), order = [];
+    var open = [[0, start[0], start[1], 0]]; dist[key(start[0], start[1])] = 0; var tie = 0;
+    while (open.length) {
+      // a simple binary heap keyed on priority
+      var cur = pop(open), x = cur[1], y = cur[2], k = key(x, y);
+      if (seen[k]) continue; seen[k] = 1; order.push(k);
+      if (x === goal[0] && y === goal[1]) break;
+      [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(function (d) {
+        var nx = x + d[0], ny = y + d[1]; if (nx < 0 || ny < 0 || nx >= C || ny >= R || grid[ny][nx] === 1) return;
+        var nk = key(nx, ny); if (seen[nk]) return;
+        var step = kind === 'bfs' ? 1 : cost(nx, ny), nd = dist[k] + step;
+        if (kind === 'greedy') { if (dist[nk] === Infinity) { dist[nk] = nd; prev[nk] = k; push(open, [h(nx, ny), nx, ny, ++tie]); } return; }
+        if (nd < dist[nk]) { dist[nk] = nd; prev[nk] = k; push(open, [kind === 'astar' ? nd + h(nx, ny) * 1.0001 : nd, nx, ny, ++tie]); }
+      });
+    }
+    var path = [], gk = key(goal[0], goal[1]);
+    if (seen[gk]) for (var p = gk; p !== -1; p = prev[p]) path.unshift(p);
+    var c = 0; path.slice(1).forEach(function (p) { c += cost(p % C, Math.floor(p / C)); });
+    return { order: order, path: path, cost: path.length ? c : null };
+  }
+  function less(a, b) { return a[0] < b[0] || (a[0] === b[0] && a[3] < b[3]); }
+  function push(hp, v) { hp.push(v); var i = hp.length - 1; while (i > 0) { var p = (i - 1) >> 1; if (less(hp[i], hp[p])) { var t = hp[i]; hp[i] = hp[p]; hp[p] = t; i = p; } else break; } }
+  function pop(hp) { var top = hp[0], last = hp.pop(); if (hp.length) { hp[0] = last; var i = 0; for (;;) { var l = 2 * i + 1, r = l + 1, m = i; if (l < hp.length && less(hp[l], hp[m])) m = l; if (r < hp.length && less(hp[r], hp[m])) m = r; if (m === i) break; var t = hp[i]; hp[i] = hp[m]; hp[m] = t; i = m; } } return top; }
+
+  function draw() {
+    var W = cv.width, H = cv.height; g.clearRect(0, 0, W, H); g.fillStyle = '#0b1128'; g.fillRect(0, 0, W, H);
+    for (var y = 0; y < R; y++) for (var x = 0; x < C; x++) {
+      if (grid[y][x] === 1) { g.fillStyle = '#5a6488'; g.fillRect(x * cw, y * cw, cw + 0.5, cw + 0.5); }
+      else if (grid[y][x] === 2) { g.fillStyle = '#7a6236'; g.fillRect(x * cw, y * cw, cw + 0.5, cw + 0.5); }
+    }
+    layers.forEach(function (L) {
+      g.fillStyle = L.col + (layers.length > 1 ? '30' : '55');
+      for (var i = 0; i < L.shown; i++) { var k = L.r.order[i]; g.fillRect((k % C) * cw + 1, Math.floor(k / C) * cw + 1, cw - 2, cw - 2); }
+    });
+    layers.forEach(function (L, j) {
+      if (L.shown < L.r.order.length || !L.r.path.length) return;
+      g.strokeStyle = L.col; g.lineWidth = Math.max(2, cw * 0.22); g.lineJoin = 'round'; g.beginPath(); var off = layers.length > 1 ? (j - 1.5) * cw * 0.1 : 0;
+      L.r.path.forEach(function (k, i) { var px = (k % C + 0.5) * cw + off, py = (Math.floor(k / C) + 0.5) * cw + off; if (i) g.lineTo(px, py); else g.moveTo(px, py); }); g.stroke();
+    });
+    g.strokeStyle = 'rgba(255,255,255,0.04)'; g.lineWidth = 1; g.beginPath();
+    for (var i = 0; i <= C; i++) { g.moveTo(i * cw, 0); g.lineTo(i * cw, H); } for (i = 0; i <= R; i++) { g.moveTo(0, i * cw); g.lineTo(W, i * cw); } g.stroke();
+    dot(start, '#4FD3BD'); dot(goal, '#E9B467');
+  }
+  function dot(p, col) { g.fillStyle = col; g.beginPath(); g.arc((p[0] + 0.5) * cw, (p[1] + 0.5) * cw, cw * 0.38, 0, 7); g.fill(); g.strokeStyle = '#fff'; g.lineWidth = 1.5 * dpr; g.stroke(); }
+
+  function list() {
+    $('algos').innerHTML = ALGOS.map(function (a) { var r = res[a.id]; return '<li role="button" tabindex="0" data-a="' + a.id + '" aria-pressed="' + (algo === a.id) + '"><i style="background:' + a.col + '"></i><div><b>' + a.n + '</b><p>' + a.d + '</p></div><span>' + (r ? (r.path.length ? r.order.length + ' looked · cost ' + r.cost : 'no way through') : '') + '</span></li>'; }).join('');
+  }
+  $('algos').onclick = $('algos').onkeydown = function (e) { if (e.type === 'keydown' && e.key !== 'Enter' && e.key !== ' ') return; var li = e.target.closest('li'); if (!li) return; e.preventDefault(); algo = li.dataset.a; list(); };
+  function animate(which) {
+    if (anim) cancelAnimationFrame(anim); res = {};
+    layers = which.map(function (id) { var r = search(id); res[id] = r; return { id: id, r: r, shown: 0, col: ALGOS.filter(function (a) { return a.id === id; })[0].col }; });
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    (function step() {
+      var more = false; layers.forEach(function (L) { L.shown = reduce ? L.r.order.length : Math.min(L.r.order.length, L.shown + 6); if (L.shown < L.r.order.length) more = true; });
+      draw(); if (more) anim = requestAnimationFrame(step); else done();
+    })();
+    function done() {
+      list(); var r = res[which.length === 1 ? which[0] : algo] || res[which[0]];
+      $('sV').textContent = r.order.length; $('sL').textContent = r.path.length ? r.path.length - 1 : '—'; $('sC').textContent = r.cost !== null ? r.cost : 'blocked';
+    }
+  }
+  function clearRun() { layers = []; res = {}; list(); ['sV', 'sL', 'sC'].forEach(function (id) { $(id).textContent = '—'; }); draw(); }
+  $('run').onclick = function () { animate([algo]); };
+  $('race').onclick = function () { animate(ALGOS.map(function (a) { return a.id; })); };
+
+  // drawing
+  var drag = null;
+  function cell(e) { var r = cv.getBoundingClientRect(); return [Math.floor((e.clientX - r.left) / r.width * C), Math.floor((e.clientY - r.top) / r.height * R)]; }
+  cv.addEventListener('pointerdown', function (e) {
+    var c = cell(e); cv.setPointerCapture(e.pointerId);
+    if (c[0] === start[0] && c[1] === start[1]) drag = 'start'; else if (c[0] === goal[0] && c[1] === goal[1]) drag = 'goal'; else { drag = 'paint'; paint(c); }
+    if (layers.length) clearRun();
+  });
+  cv.addEventListener('pointermove', function (e) {
+    if (!drag) return; var c = cell(e); if (c[0] < 0 || c[1] < 0 || c[0] >= C || c[1] >= R) return;
+    if (drag === 'paint') paint(c);
+    else if (grid[c[1]][c[0]] !== 1) { if (drag === 'start' && !(c[0] === goal[0] && c[1] === goal[1])) start = c; if (drag === 'goal' && !(c[0] === start[0] && c[1] === start[1])) goal = c; draw(); }
+  });
+  cv.addEventListener('pointerup', function () { drag = null; });
+  function paint(c) { if ((c[0] === start[0] && c[1] === start[1]) || (c[0] === goal[0] && c[1] === goal[1])) return; grid[c[1]][c[0]] = brush; draw(); }
+  [].forEach.call(document.querySelectorAll('[data-b]'), function (b) { b.onclick = function () { brush = +b.dataset.b; [].forEach.call(document.querySelectorAll('[data-b]'), function (x) { x.setAttribute('aria-pressed', x === b); }); }; });
+  $('clear').onclick = function () { empty(); clearRun(); };
+  $('maze').onclick = function () { // recursive backtracker on odd cells
+    for (var y = 0; y < R; y++) for (var x = 0; x < C; x++) grid[y][x] = 1;
+    var stack = [[1, 1]]; grid[1][1] = 0;
+    while (stack.length) {
+      var c = stack[stack.length - 1], n = [[2, 0], [-2, 0], [0, 2], [0, -2]].map(function (d) { return [c[0] + d[0], c[1] + d[1], d]; }).filter(function (q) { return q[0] > 0 && q[1] > 0 && q[0] < C - 1 && q[1] < R - 1 && grid[q[1]][q[0]] === 1; });
+      if (!n.length) { stack.pop(); continue; }
+      var q = n[Math.floor(Math.random() * n.length)]; grid[c[1] + q[2][1] / 2][c[0] + q[2][0] / 2] = 0; grid[q[1]][q[0]] = 0; stack.push([q[0], q[1]]);
+    }
+    for (var i = 0; i < 40; i++) { var rx = 1 + Math.floor(Math.random() * (C - 2)), ry = 1 + Math.floor(Math.random() * (R - 2)); if (grid[ry][rx] === 1) grid[ry][rx] = 0; }
+    start = [1, 1]; goal = [C % 2 ? C - 2 : C - 3, R % 2 ? R - 2 : R - 3]; clearRun();
+  };
+  $('desert').onclick = function () { // dunes of sand with a few rocky ridges
+    empty();
+    for (var y = 0; y < R; y++) for (var x = 0; x < C; x++) { var v = Math.sin(x * 0.35 + y * 0.12) + Math.sin(y * 0.5 - x * 0.08) * 0.8 + Math.random() * 0.5; if (v > 1.0) grid[y][x] = 2; }
+    for (var k = 0; k < 4; k++) { var cx = 8 + k * 7, len = 8 + Math.floor(Math.random() * 8), y0 = Math.floor(Math.random() * (R - len)); for (var j = 0; j < len; j++) grid[y0 + j][cx + (j % 3 === 0 ? 1 : 0)] = 1; }
+    start = [2, Math.floor(R / 2)]; goal = [C - 3, Math.floor(R / 2)]; grid[start[1]][start[0]] = 0; grid[goal[1]][goal[0]] = 0; clearRun();
+  };
+  window.addEventListener('resize', function () { fit(); draw(); });
+  fit(); empty(); $('desert').onclick(); list();
+})();
+</script>
+</body>
+</html>
