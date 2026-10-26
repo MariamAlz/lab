@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cool Weekend Escape · Mariam's Lab</title>
+<meta name="description" content="Where in the UAE is coolest this weekend? Live forecasts for Jebel Jais, Jebel Hafeet, Hatta, the east coast, Liwa and more, ranked for cool air, swimming, hiking or camping.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/cool-escape/">
+<meta property="og:title" content="Cool Weekend Escape · Mariam's Lab"><meta property="og:description" content="Live weekend forecasts for UAE mountains, beaches and desert, ranked by how comfortable they'll be."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="stylesheet" href="../assets/vendor/leaflet/leaflet.css">
+<style>
+.ctl { display: grid; gap: 10px; }
+.ctl > div { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.ctl .lab { font-size: 0.78rem; color: var(--muted); min-width: 4.6em; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 0; }
+.verdict { padding: 18px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); display: grid; gap: 6px; }
+.verdict b.h { font-family: var(--font-display); font-size: clamp(1.35rem, 4vw, 2rem); font-weight: 800; line-height: 1.15; }
+.verdict p { margin: 0; color: var(--muted); font-size: 0.92rem; }
+.spots { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.spot { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: grid; gap: 8px; background: var(--surface); min-width: 0; }
+.spot.off { opacity: 0.6; }
+.spot .top { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: start; }
+.spot h3 { margin: 0; font-family: var(--font-display); font-size: 1.1rem; font-weight: 600; line-height: 1.2; }
+.spot h3 small { display: block; font-family: var(--font-body); font-weight: 400; font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
+.score { text-align: end; display: grid; gap: 3px; justify-items: end; }
+.score b { font-family: var(--font-mono); font-size: 1.15rem; font-weight: 500; }
+.score i { display: block; width: 64px; height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.score i u { display: block; height: 100%; background: var(--sat-b); text-decoration: none; }
+.score span { font-size: 0.7rem; color: var(--muted); }
+.mets { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 6px; }
+.mets div { border: 1px solid var(--line); border-radius: 8px; padding: 5px 7px; min-width: 0; }
+.mets span { display: block; font-size: 0.68rem; color: var(--muted); }
+.mets b { font-family: var(--font-mono); font-weight: 500; font-size: 0.86rem; }
+.cool { color: var(--sat-b); }
+.warm { color: var(--sat-c); }
+.spot p { margin: 0; font-size: 0.86rem; }
+.spot .sub { color: var(--muted); font-size: 0.8rem; }
+.border { font-size: 0.8rem; padding: 6px 9px; border-radius: 8px; border: 1px solid color-mix(in srgb, var(--accent) 50%, var(--line)); }
+#map { height: 360px; border-radius: var(--radius); border: 1px solid var(--line); background: #0b1020; }
+.leaflet-container { font-family: 'Instrument Sans', sans-serif; }
+.pin { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font: 600 12px var(--font-mono); color: #070A18; border: 2px solid #070A18; box-shadow: 0 1px 6px rgba(0,0,0,.5); }
+.pin.me { background: #EEF0FA; width: 14px; height: 14px; }
+@media (min-width: 861px) { .mapcol { position: sticky; top: 84px; } }
+@media (max-width: 520px) { #map { height: 280px; } }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Weather · UAE · Live</span>
+    <h1 style="font-size:var(--step-3)">Cool weekend escape.</h1>
+    <p>Hot in the city? Twelve UAE escapes, from the top of Jebel Jais to the mangroves at Kalba, with this weekend's live forecast side by side. See how many degrees cooler each one is than where you live, then rank them for what you want to do: cool air, a swim, a hike or a night under the stars.</p>
+  </div>
+  <div class="ctl">
+    <div id="from"><span class="lab">From</span><button class="sm" type="button" id="me">📍 My location</button></div>
+    <div id="days"><span class="lab">When</span></div>
+    <div id="wants"><span class="lab">I want</span></div>
+  </div>
+  <p class="msg" id="msg" role="status" style="margin-top:10px"></p>
+  <div class="game" style="margin-top:14px">
+    <div class="panel" style="gap:14px">
+      <div class="verdict" id="verdict"><b class="h">Loading the forecast…</b></div>
+      <ol class="spots" id="spots"></ol>
+    </div>
+    <div class="panel mapcol" style="gap:12px">
+      <div id="map" role="img" aria-label="Map of the escapes, numbered by rank"></div>
+      <p class="src" style="font-size:0.75rem;color:var(--muted);margin:0">Numbers show the ranking. The white dot is you.</p>
+      <p class="fact" style="margin:0"><b>Why the mountains are cooler.</b> Air cools by about 6.5°C for every 1,000 m you climb, because rising air expands and loses heat as it does. The viewing deck on Jebel Jais sits around 1,650 m, so it's often 10°C cooler than the coast. Weather models smooth mountains into gentle hills, so this page asks for each forecast at the real height of the place you'd stand.</p>
+      <p class="fact" style="margin:0"><b>How the score works.</b> Each place gets 100 points, minus points for whatever spoils the plan. For cool air: heat and sticky humidity. For swimming: sea temperature away from about 27°C, wind that makes waves, and heat on the sand. For hiking: heat over 26°C, humidity and strong UV. For camping: a warm or windy night, or rain.</p>
+      <p class="src" style="font-size:0.75rem;color:var(--muted);margin:0">Forecasts from Open-Meteo, sea temperature from the Open-Meteo marine model. Drive times are rough, without traffic. Mountain weather changes fast: check road closures and wadi warnings from the NCM before you go, and never enter a flowing wadi.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script src="../assets/vendor/leaflet/leaflet.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  // where you start from (drive-time matrix keys)
+  var FROM = [['auh', 'Abu Dhabi', 24.4539, 54.3773], ['dxb', 'Dubai', 25.2048, 55.2708], ['shj', 'Sharjah', 25.3463, 55.4209], ['ajm', 'Ajman', 25.4052, 55.5136], ['uaq', 'Umm Al Quwain', 25.5647, 55.5552], ['rak', 'Ras Al Khaimah', 25.7895, 55.9432], ['fuj', 'Fujairah', 25.1288, 56.3265], ['aan', 'Al Ain', 24.2075, 55.7447]];
+  // drive minutes from each origin, in FROM order (approximate, no traffic)
+  var P = [
+    { id: 'jais', n: 'Jebel Jais summit', r: 'Ras Al Khaimah · 1,650 m', lat: 25.9427, lon: 56.1586, el: 1650, hike: 1, camp: 1, todo: 'The UAE\'s highest road. Viewing deck, the Jais Flight zipline and short trails near the top.', best: 'Early morning to hike, sunset at the viewing deck.', d: [195, 105, 80, 70, 55, 40, 100, 180] },
+    { id: 'hafeet', n: 'Jebel Hafeet', r: 'Al Ain · 1,150 m', lat: 24.0597, lon: 55.7768, el: 1150, hike: 1, todo: 'Drive the 60 bends to the top for views over Al Ain, then the hot springs at Green Mubazzarah below.', best: 'Late afternoon to sunset at the top.', d: [135, 120, 135, 140, 150, 165, 165, 30] },
+    { id: 'hatta', n: 'Hatta', r: 'Dubai · 400 m', lat: 24.8170, lon: 56.1260, el: 400, hike: 1, camp: 1, todo: 'Kayak the dam, ride or hike the Hatta trails, and walk the heritage village.', best: 'Trails at sunrise, kayaking mid-morning.', d: [135, 75, 75, 80, 85, 95, 60, 105] },
+    { id: 'dibba', n: 'Dibba beach', r: 'Fujairah · east coast', lat: 25.5960, lon: 56.2720, el: 3, sea: [25.60, 56.30], beach: 1, camp: 1, todo: 'Snorkel or dive at Dibba Rock, take a boat toward Musandam, camp on the beach.', best: 'Swim in the morning, before the afternoon wind.', d: [195, 105, 90, 80, 75, 70, 45, 165] },
+    { id: 'khorfakkan', n: 'Khor Fakkan', r: 'Sharjah · east coast', lat: 25.3460, lon: 56.3540, el: 3, sea: [25.35, 56.37], beach: 1, hike: 1, todo: 'Beach and corniche, Shark Island snorkelling, Al Rafisah dam and the waterfall.', best: 'Morning swim, evening on the corniche.', d: [165, 90, 70, 75, 80, 90, 25, 150] },
+    { id: 'alain', n: 'Al Ain oasis', r: 'Al Ain · 290 m', lat: 24.2160, lon: 55.7660, el: 290, todo: 'Shaded walks under the date palms, Al Jahili Fort, Al Ain Zoo when it cools down.', best: 'The oasis in the morning, the zoo after 4pm.', d: [105, 90, 110, 120, 130, 145, 150, 10] },
+    { id: 'liwa', n: 'Liwa', r: 'Al Dhafra · desert', lat: 23.0500, lon: 53.8500, el: 110, camp: 1, todo: 'Tal Moreeb, one of the tallest dunes on earth. Desert camping and dark skies for stars.', best: 'Sunrise on the dunes, stars after dark.', d: [135, 210, 225, 235, 245, 260, 270, 180] },
+    { id: 'kalba', n: 'Kalba mangroves', r: 'Sharjah · east coast', lat: 24.9970, lon: 56.3600, el: 3, sea: [25.00, 56.38], beach: 1, todo: 'Kayak through the oldest mangroves in the UAE, look for herons and turtles, then Kalba beach.', best: 'Morning at high tide for kayaking.', d: [165, 100, 80, 85, 90, 100, 20, 150] },
+    { id: 'khasab', n: 'Khasab, Musandam', r: 'Oman · fjords', lat: 26.1800, lon: 56.2470, el: 10, sea: [26.20, 56.26], beach: 1, hike: 1, camp: 1, todo: 'Dhow trips through the fjords, dolphins, snorkelling near Telegraph Island, the Jebel Harim drive.', best: 'Morning dhow trip, when the water is calmest.', border: 'Oman: you cross the border at Tibat (via RAK). Bring your passport or Emirates ID, check visa rules for your nationality, and get Oman cover on your car insurance.', d: [240, 165, 150, 140, 125, 95, 150, 225] },
+    { id: 'rak', n: 'Ras Al Khaimah beach', r: 'Al Marjan Island', lat: 25.6800, lon: 55.7400, el: 3, sea: [25.68, 55.71], beach: 1, todo: 'Beaches on Al Marjan Island, kayaking the Al Qurm mangroves, Jebel Jais an hour away.', best: 'Morning or late afternoon swim.', d: [135, 60, 50, 40, 30, 20, 80, 155] },
+    { id: 'auhc', n: 'Abu Dhabi Corniche', r: 'Abu Dhabi', lat: 24.4720, lon: 54.3390, el: 3, sea: [24.48, 54.33], beach: 1, todo: 'Lifeguarded Corniche beach, the cycle path, kayaking in Mangrove National Park.', best: 'After 5pm, when the sea breeze is up.', d: [15, 90, 115, 125, 140, 160, 165, 105] },
+    { id: 'dxbb', n: 'Dubai beach', r: 'Kite Beach', lat: 25.1606, lon: 55.2030, el: 3, sea: [25.17, 55.19], beach: 1, todo: 'Kite Beach and JBR for a swim and a run on the track.', best: 'Sunrise, or after sunset.', d: [90, 15, 25, 35, 50, 70, 100, 90] }
+  ];
+  var WANTS = [['cool', 'Cool air'], ['swim', 'Swimming'], ['hike', 'Hiking'], ['camp', 'Camping at night']];
+  var state = { from: 1, here: null, day: 'wkd', want: 'cool' }, F = null, M = null, dayIdx = {};
+  try { var sv = JSON.parse(localStorage.getItem('coolEscape') || 'null'); if (sv) { if (FROM[sv.from]) state.from = sv.from; if (sv.want) state.want = sv.want; } } catch (e) {}
+
+  function clamp(x, a, b) { return Math.max(a, Math.min(b, x)); }
+  function avg(a) { var s = 0, n = 0; a.forEach(function (x) { if (x != null && isFinite(x)) { s += x; n++; } }); return n ? s / n : null; }
+  function hm(m) { var h = Math.floor(m / 60), r = m % 60; return (h ? h + 'h' : '') + (r ? (h ? ' ' : '') + r + 'm' : ''); }
+  function fmtH(h) { return (h % 12 || 12) + (h < 12 ? 'am' : 'pm'); }
+
+  // ---- data ----
+  function get(u) { return fetch(u).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }); }
+  function list(x) { return Array.isArray(x) ? x : [x]; }
+  function load() {
+    var city = cityPoint();
+    var pts = P.concat([{ lat: city[2], lon: city[3], el: city[4] }]);
+    var u = 'https://api.open-meteo.com/v1/forecast?latitude=' + pts.map(function (p) { return p.lat; }).join(',') + '&longitude=' + pts.map(function (p) { return p.lon; }).join(',')
+      + '&elevation=' + pts.map(function (p) { return p.el; }).join(',') + '&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m,precipitation_probability,uv_index'
+      + '&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,uv_index_max,wind_speed_10m_max&timezone=Asia%2FDubai&forecast_days=8';
+    var beaches = P.filter(function (p) { return p.sea; });
+    var mu = 'https://marine-api.open-meteo.com/v1/marine?latitude=' + beaches.map(function (p) { return p.sea[0]; }).join(',') + '&longitude=' + beaches.map(function (p) { return p.sea[1]; }).join(',') + '&hourly=sea_surface_temperature,wave_height&timezone=Asia%2FDubai&forecast_days=8&cell_selection=sea';
+    $('msg').textContent = 'Fetching forecasts for 12 places and ' + city[1] + '…';
+    return Promise.all([get(u), get(mu).catch(function () { return null; })]).then(function (r) {
+      var fc = list(r[0]), mar = r[1] ? list(r[1]) : null;
+      if (fc.length < pts.length) throw new Error('short');
+      var data = P.map(function (p, i) { return { p: p, f: fc[i] }; });
+      if (mar) beaches.forEach(function (p, j) { var d = data[P.indexOf(p)]; d.m = mar[j]; });
+      F = { places: data, city: fc[pts.length - 1], cityName: city[1], marine: !!mar };
+      buildDays(F.city.daily.time);
+      $('msg').textContent = mar ? '' : 'Sea temperatures are unavailable right now.';
+      render();
+    }).catch(function () { $('msg').textContent = 'Couldn\'t reach the forecast service. Check your connection and try again.'; $('verdict').innerHTML = '<b class="h">No forecast right now</b>'; });
+  }
+  function cityPoint() {
+    // one elevation per point; "nan" (your location) means use the model's own terrain
+    if (state.here) return ['me', 'your location', state.here[0], state.here[1], 'nan'];
+    var f = FROM[state.from]; return [f[0], f[1], f[2], f[3], f[0] === 'aan' ? 290 : f[0] === 'fuj' ? 10 : 5];
+  }
+  function originIdx() {
+    if (!state.here) return state.from;
+    var b = 0, bd = 1e9; FROM.forEach(function (f, i) { var d = Math.pow(f[2] - state.here[0], 2) + Math.pow((f[3] - state.here[1]) * Math.cos(f[2] * Math.PI / 180), 2); if (d < bd) { bd = d; b = i; } }); return b;
+  }
+
+  // ---- days: today, next Saturday, next Sunday, or the weekend ----
+  function buildDays(times) {
+    var sat = -1, sun = -1;
+    times.forEach(function (t, i) { var w = new Date(t + 'T12:00:00Z').getUTCDay(); if (w === 6 && sat < 0) sat = i; if (w === 0 && sun < 0 && (sat < 0 ? i === 0 : i > sat)) sun = i; });
+    if (sun === 0) sat = -1; // it's Sunday: the weekend is today
+    dayIdx = { today: [0], sat: sat >= 0 ? [sat] : null, sun: sun >= 0 ? [sun] : null, wkd: [sat, sun].filter(function (i) { return i >= 0; }) };
+    var lab = { wkd: 'This weekend', sat: 'Saturday', sun: 'Sunday', today: 'Today' };
+    if (sat === 0) lab.sat = 'Saturday (today)';
+    var box = $('days'); box.innerHTML = '<span class="lab">When</span>';
+    ['wkd', 'sat', 'sun', 'today'].forEach(function (k) {
+      if (!dayIdx[k] || !dayIdx[k].length) return;
+      if (k === 'today' && dayIdx[k][0] === sat) return;
+      var b = document.createElement('button'); b.className = 'sm'; b.type = 'button'; b.textContent = lab[k]; b.setAttribute('aria-pressed', state.day === k);
+      b.onclick = function () { state.day = k; press(box, b); render(); };
+      box.appendChild(b);
+    });
+    if (!dayIdx[state.day]) state.day = 'wkd';
+  }
+
+  // per place metrics for the chosen days
+  function metrics(f, m, idx) {
+    var d = f.daily, H = f.hourly, out = { tmax: [], tmin: [], rain: [], uv: [], wind: [], rh: [], rhN: [], sea: [], wave: [], hours: [] };
+    idx.forEach(function (i) {
+      var day = d.time[i];
+      out.tmax.push(d.temperature_2m_max[i]); out.tmin.push(d.temperature_2m_min[i]); out.rain.push(d.precipitation_probability_max[i]); out.uv.push(d.uv_index_max[i]); out.wind.push(d.wind_speed_10m_max[i]);
+      H.time.forEach(function (t, j) {
+        if (t.slice(0, 10) !== day) return;
+        var h = +t.slice(11, 13);
+        if (h >= 10 && h <= 17) out.rh.push(H.relative_humidity_2m[j]);
+        if (h <= 6 || h >= 21) out.rhN.push(H.relative_humidity_2m[j]);
+        if (out.hours.length < 24) out.hours.push({ h: h, T: H.temperature_2m[j], w: H.wind_speed_10m[j] });
+      });
+      if (m && m.hourly) m.hourly.time.forEach(function (t, j) { if (t.slice(0, 10) === day) { out.sea.push(m.hourly.sea_surface_temperature[j]); if (m.hourly.wave_height) out.wave.push(m.hourly.wave_height[j]); } });
+    });
+    return { tmax: avg(out.tmax), tmin: Math.min.apply(null, out.tmin), rain: Math.max.apply(null, out.rain.map(function (x) { return x || 0; })), uv: Math.max.apply(null, out.uv.map(function (x) { return x || 0; })), wind: Math.max.apply(null, out.wind), rh: avg(out.rh), rhN: avg(out.rhN), sea: avg(out.sea), wave: out.wave.length ? Math.max.apply(null, out.wave.filter(function (x) { return x != null; }).concat([0])) : null, hours: out.hours };
+  }
+
+  // 100 minus penalties for whatever spoils the plan; null = not possible here
+  function score(x, p, want) {
+    var pen = 0, rh = x.rh == null ? 50 : x.rh;
+    if (want === 'cool') pen = Math.max(0, x.tmax - 24) * 3.5 + Math.max(0, 15 - x.tmax) * 3 + Math.max(0, rh - 60) * 0.4 + x.rain * 0.2 + Math.max(0, x.wind - 35) * 0.8;
+    else if (want === 'swim') {
+      if (!p.beach) return null;
+      var sea = x.sea == null ? 27 : x.sea;
+      pen = Math.max(0, Math.abs(sea - 27) - 2) * 5 + Math.max(0, x.tmax - 34) * 3 + Math.max(0, 25 - x.tmax) * 3 + Math.max(0, x.wind - 20) * 1.5 + x.rain * 0.3 + (x.wave != null ? Math.max(0, x.wave - 1) * 20 : 0);
+    } else if (want === 'hike') pen = Math.max(0, x.tmax - 26) * 4 + Math.max(0, 10 - x.tmax) * 2 + Math.max(0, rh - 55) * 0.5 + x.rain * 0.4 + Math.max(0, x.uv - 8) * 2 + Math.max(0, x.wind - 40) + (p.hike ? 0 : 15);
+    else pen = Math.max(0, x.tmin - 22) * 4 + Math.max(0, 12 - x.tmin) * 3 + Math.max(0, x.wind - 30) * 1.2 + x.rain * 0.5 + Math.max(0, (x.rhN == null ? 60 : x.rhN) - 70) * 0.4 + (p.camp ? 0 : 15);
+    return Math.round(clamp(100 - pen, 0, 100));
+  }
+  function hint(x, want) {
+    var hs = x.hours; if (!hs.length) return '';
+    if (want === 'camp') { var lo = hs.reduce(function (a, b) { return b.T < a.T ? b : a; }); return 'Coolest around ' + fmtH(lo.h) + ', ' + Math.round(lo.T) + '°C.'; }
+    if (want === 'swim') { var day = hs.filter(function (h) { return h.h >= 7 && h.h <= 17; }); if (!day.length) return ''; var c = day.reduce(function (a, b) { return b.w < a.w ? b : a; }); return 'Calmest wind around ' + fmtH(c.h) + ' (' + Math.round(c.w) + ' km/h).'; }
+    var dh = hs.filter(function (h) { return h.h >= 6 && h.h <= 18; });
+    if (!dh.length) return '';
+    var lim = want === 'hike' ? 28 : 30;
+    if (dh.every(function (h) { return h.T < lim; })) return 'Under ' + lim + '°C all day.';
+    var last = -1; for (var i = 0; i < dh.length && dh[i].T < lim; i++) last = dh[i].h;
+    var ev = null; for (var j = dh.length - 1; j >= 0 && dh[j].T < lim; j--) ev = dh[j].h;
+    if (last < 0 && ev == null) return 'Over ' + lim + '°C through daylight. ' + (want === 'hike' ? 'Start before sunrise.' : 'Go in the evening.');
+    return (last >= 0 ? 'Under ' + lim + '°C until about ' + fmtH(last + 1) : 'Warm all morning') + (ev != null ? ', and again from ' + fmtH(ev) : '') + '.';
+  }
+
+  // ---- render ----
+  function render() {
+    if (!F) return;
+    var idx = dayIdx[state.day] || dayIdx.wkd, cm = metrics(F.city, null, idx), o = originIdx(), want = state.want;
+    var rows = F.places.map(function (d) { var x = metrics(d.f, d.m, idx); return { p: d.p, x: x, s: score(x, d.p, want), cooler: cm.tmax - x.tmax }; });
+    rows.sort(function (a, b) { return (b.s == null ? -1 : b.s) - (a.s == null ? -1 : a.s); });
+    var whenTxt = { wkd: 'this weekend', sat: 'on Saturday', sun: 'on Sunday', today: 'today' }[state.day];
+    var from = F.cityName === 'your location' ? 'where you are' : F.cityName;
+    var top = rows[0], wl = { cool: 'cool air', swim: 'a swim', hike: 'a hike', camp: 'a night outdoors' }[want];
+    var t = top.x, lines = [];
+    if (want === 'camp') lines.push('Night low ' + Math.round(t.tmin) + '°C');
+    lines.push('high of ' + Math.round(t.tmax) + '°C');
+    if (Math.round(top.cooler) >= 1) lines.push(Math.round(top.cooler) + '° cooler than ' + from);
+    if (want === 'swim' && t.sea != null) lines.push('sea ' + Math.round(t.sea) + '°C');
+    lines.push('about ' + hm(top.p.d[o]) + ' drive from ' + FROM[o][1]);
+    var q = top.s >= 75 ? 'Looks great.' : top.s >= 50 ? 'Decent, with some compromises.' : 'Nowhere is ideal ' + whenTxt + ', but this is the least bad.';
+    $('verdict').innerHTML = '<span class="label">Best for ' + wl + ' ' + whenTxt + '</span><b class="h">' + top.p.n + '</b><p>' + lines.join(', ').replace(/^./, function (c) { return c.toUpperCase(); }) + '. ' + q + '</p><p class="sub" style="font-size:0.8rem">' + F.cityName.replace(/^./, function (c) { return c.toUpperCase(); }) + ': high ' + Math.round(cm.tmax) + '°C, low ' + Math.round(cm.tmin) + '°C' + (cm.rh != null ? ', ' + Math.round(cm.rh) + '% humidity in the day' : '') + '.</p>';
+    $('spots').innerHTML = rows.map(function (r, i) {
+      var x = r.x, c = Math.round(r.cooler), off = r.s == null;
+      var met = [['Max', Math.round(x.tmax) + '°C'], ['Night low', Math.round(x.tmin) + '°C'], ['Humidity', x.rh == null ? '—' : Math.round(x.rh) + '%'], ['Wind', Math.round(x.wind) + ' km/h'], ['Rain', Math.round(x.rain) + '%'], ['UV', Math.round(x.uv)]];
+      if (r.p.sea) met.push(['Sea', x.sea == null ? '—' : x.sea.toFixed(1) + '°C']);
+      return '<li class="spot' + (off ? ' off' : '') + '" data-id="' + r.p.id + '"><div class="top"><h3>' + (i + 1) + '. ' + r.p.n + '<small>' + r.p.r + ' · ~' + hm(r.p.d[o]) + ' from ' + FROM[o][1] + '</small></h3>'
+        + '<div class="score">' + (off ? '<span>No sea here</span>' : '<b>' + r.s + '</b><i><u style="width:' + r.s + '%"></u></i><span>comfort</span>') + '</div></div>'
+        + '<p class="' + (c >= 1 ? 'cool' : c <= -1 ? 'warm' : '') + '" style="font-weight:600">' + (c >= 1 ? c + '° cooler than ' + from : c <= -1 ? -c + '° warmer than ' + from : 'About the same as ' + from) + '</p>'
+        + '<div class="mets">' + met.map(function (m) { return '<div><span>' + m[0] + '</span><b>' + m[1] + '</b></div>'; }).join('') + '</div>'
+        + '<p>' + r.p.todo + '</p><p class="sub"><b>Best time:</b> ' + r.p.best + ' ' + hint(x, want) + '</p>'
+        + (r.p.border ? '<p class="border">' + r.p.border + '</p>' : '') + '</li>';
+    }).join('');
+    drawMap(rows);
+    try { localStorage.setItem('coolEscape', JSON.stringify({ from: state.from, want: state.want })); } catch (e) {}
+  }
+
+  // ---- map ----
+  var markers = [];
+  function drawMap(rows) {
+    if (!window.L) return;
+    if (!M) {
+      M = L.map('map', { zoomControl: true, scrollWheelZoom: false, attributionControl: true }).setView([24.9, 55.4], 7);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', { subdomains: 'abcd', maxZoom: 12, attribution: '© OpenStreetMap, © CARTO' }).addTo(M);
+      M.fitBounds([[22.9, 53.6], [26.3, 56.5]]);
+    }
+    markers.forEach(function (m) { M.removeLayer(m); }); markers = [];
+    rows.forEach(function (r, i) {
+      var col = r.s == null ? '#6b7290' : i < 3 ? '#E9B467' : '#4FD3BD';
+      var m = L.marker([r.p.lat, r.p.lon], { icon: L.divIcon({ className: '', html: '<div class="pin" style="background:' + col + '">' + (i + 1) + '</div>', iconSize: [26, 26], iconAnchor: [13, 13] }), title: r.p.n, zIndexOffset: 100 - i })
+        .bindPopup('<b>' + (i + 1) + '. ' + r.p.n + '</b><br>' + Math.round(r.x.tmax) + '°C max' + (r.s != null ? ' · score ' + r.s : ''));
+      m.on('click', function () { var el = document.querySelector('.spot[data-id="' + r.p.id + '"]'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); });
+      markers.push(m.addTo(M));
+    });
+    var c = cityPoint();
+    markers.push(L.marker([c[2], c[3]], { icon: L.divIcon({ className: '', html: '<div class="pin me"></div>', iconSize: [14, 14], iconAnchor: [7, 7] }), title: 'You', zIndexOffset: 500 }).addTo(M));
+  }
+
+  // ---- controls ----
+  function press(box, b) { [].forEach.call(box.querySelectorAll('.sm'), function (x) { x.setAttribute('aria-pressed', x === b); }); }
+  FROM.forEach(function (f, i) {
+    var b = document.createElement('button'); b.className = 'sm'; b.type = 'button'; b.textContent = f[1]; b.setAttribute('aria-pressed', i === state.from);
+    b.onclick = function () { state.from = i; state.here = null; press($('from'), b); load(); };
+    $('from').appendChild(b);
+  });
+  WANTS.forEach(function (w) {
+    var b = document.createElement('button'); b.className = 'sm'; b.type = 'button'; b.textContent = w[1]; b.setAttribute('aria-pressed', w[0] === state.want);
+    b.onclick = function () { state.want = w[0]; press($('wants'), b); render(); };
+    $('wants').appendChild(b);
+  });
+  $('me').onclick = function () {
+    if (!navigator.geolocation) { $('msg').textContent = 'Your browser can\'t share a location.'; return; }
+    $('msg').textContent = 'Asking for your location…';
+    navigator.geolocation.getCurrentPosition(function (p) { state.here = [+p.coords.latitude.toFixed(3), +p.coords.longitude.toFixed(3)]; press($('from'), $('me')); load(); }, function () { $('msg').textContent = 'Location was not shared. Pick an emirate instead.'; }, { maximumAge: 6e5, timeout: 10000 });
+  };
+  window.CoolEscape = { score: score, metrics: metrics };
+  load();
+})();
+</script>
+</body>
+</html>

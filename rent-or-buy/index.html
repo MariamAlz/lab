@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rent or Buy in Dubai · Mariam's Lab</title>
+<meta name="description" content="Rent or buy a home in Dubai or Abu Dhabi? Compare net worth year by year with UAE mortgage caps, DLD and bank fees, service charges, the housing fee and selling costs.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/rent-or-buy/">
+<meta property="og:title" content="Rent or Buy in Dubai · Mariam's Lab"><meta property="og:description" content="Year-by-year net worth, break-even year and monthly cash for renting versus buying in Dubai or Abu Dhabi."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.form { display: grid; gap: 12px; }
+.f { display: grid; gap: 5px; min-width: 0; }
+.f > span { font-size: 0.84rem; color: var(--muted); }
+.f input, .f select { font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; min-width: 0; width: 100%; }
+.f input[type=number] { font-family: var(--font-mono); }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.chk { display: flex; gap: 8px; align-items: flex-start; font-size: 0.9rem; cursor: pointer; }
+.chk input { accent-color: var(--accent); width: 17px; height: 17px; margin: 2px 0 0; flex: none; }
+.grp { border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; display: grid; gap: 10px; background: var(--surface); min-width: 0; }
+.grp legend { padding: 0 6px; font-family: var(--font-display); font-weight: 600; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.pills { display: flex; gap: 6px; flex-wrap: wrap; }
+.src { font-size: 0.75rem; color: var(--muted); margin: 0; }
+.say { padding: 18px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); display: grid; gap: 6px; }
+.say b.h { font-family: var(--font-display); font-size: clamp(1.35rem, 4vw, 2rem); font-weight: 800; line-height: 1.15; }
+.say p { margin: 0; color: var(--muted); font-size: 0.92rem; }
+.stats span { font-size: 0.78rem; color: var(--muted); }
+.ltv { padding: 10px 12px; border-radius: 10px; border: 1px solid color-mix(in srgb, var(--accent) 50%, var(--line)); font-size: 0.86rem; display: grid; gap: 4px; }
+.ltv b { font-family: var(--font-mono); font-weight: 500; }
+.warn { padding: 10px 12px; border-radius: 10px; border: 1px solid color-mix(in srgb, var(--sat-c) 60%, var(--line)); font-size: 0.88rem; }
+.ckey { display: flex; gap: 14px; flex-wrap: wrap; font-size: 0.8rem; color: var(--muted); }
+.ckey i { display: inline-block; width: 18px; height: 0; border-top: 2px solid var(--c); vertical-align: middle; margin-inline-end: 6px; }
+.ckey i.d { border-top-style: dashed; }
+.plot { position: relative; }
+.plot svg { display: block; width: 100%; height: auto; overflow: visible; touch-action: pan-y; }
+.plot text { font-family: var(--font-mono); font-size: 11px; fill: var(--muted); }
+.tip { position: absolute; pointer-events: none; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); font-size: 0.8rem; white-space: nowrap; display: none; z-index: 2; }
+.tip b { font-family: var(--font-mono); font-weight: 500; }
+.tbl { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+.tbl th, .tbl td { padding: 6px 6px; border-bottom: 1px solid var(--line); text-align: end; }
+.tbl th:first-child, .tbl td:first-child { text-align: start; }
+.tbl th { font-weight: 500; color: var(--muted); font-size: 0.76rem; }
+.tbl td { font-family: var(--font-mono); font-size: 0.8rem; }
+.tbl td:nth-child(2) { white-space: nowrap; }
+.tbl td small { font-size: 0.7rem; color: var(--muted); display: inline-block; width: 2.4em; text-align: start; }
+.tbl td.n { font-family: inherit; font-size: 0.84rem; }
+.tbl tr.tot td { font-weight: 600; border-bottom: 0; }
+.tbl input { font: inherit; font-family: var(--font-mono); font-size: 0.8rem; width: 5.2em; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 3px 5px; text-align: end; }
+.scroll { overflow-x: auto; max-width: 100%; }
+.cash { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.cash > div { border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: grid; gap: 4px; align-content: start; min-width: 0; }
+.cash .big { font-family: var(--font-display); font-weight: 800; font-size: 1.5rem; }
+.cash ul { list-style: none; padding: 0; margin: 4px 0 0; display: grid; gap: 3px; font-size: 0.8rem; color: var(--muted); }
+.cash li { display: flex; justify-content: space-between; gap: 8px; }
+.cash li b { font-family: var(--font-mono); font-weight: 400; color: var(--ink); }
+details summary { cursor: pointer; font-size: 0.86rem; color: var(--muted); }
+@media (max-width: 520px) { .stats b { font-size: 1.1rem; } .stats div { padding: 10px; } .cash { grid-template-columns: 1fr; } }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Money · UAE</span>
+    <h1 style="font-size:var(--step-3)">Rent or buy in Dubai.</h1>
+    <p>Buying a home in the UAE costs about 7 to 8% of the price before you get the keys, and more again when you sell. Renting means paying a landlord, but your cash keeps working. Enter a home you're looking at and see which leaves you better off, year by year, with UAE mortgage caps and fees built in. Abu Dhabi is here too.</p>
+  </div>
+  <div class="game">
+    <div class="panel" style="gap:18px">
+      <div class="say" id="say"><b class="h">Working it out…</b></div>
+      <div class="stats" id="stats"></div>
+      <div style="display:grid;gap:8px">
+        <span class="label">Net worth if you sell at the end of each year</span>
+        <div class="ckey"><span><i style="--c:var(--accent)"></i>Buy</span><span><i class="d" style="--c:var(--sat-b)"></i>Rent and invest</span></div>
+        <div class="plot" id="plot"><svg id="chart" viewBox="0 0 640 300" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Net worth for buying and renting by year"></svg><div class="tip" id="tip"></div></div>
+        <p class="src">Buy = home value minus selling costs and what's left on the mortgage, plus any cash the owner saves. Rent = the upfront cash invested, plus whatever renting saves each month, invested too.</p>
+        <details><summary>Show the numbers as a table</summary><div class="scroll"><table class="tbl" id="yrs"></table></div></details>
+      </div>
+      <div style="display:grid;gap:8px">
+        <span class="label">Monthly cash in year 1</span>
+        <div class="cash" id="cash"></div>
+        <p class="src" id="cashNote"></p>
+      </div>
+      <div style="display:grid;gap:8px">
+        <span class="label">What if prices grow differently?</span>
+        <div class="scroll"><table class="tbl" id="sens"></table></div>
+        <p class="src">Rent growth, rates and fees stay as you set them. Only house price growth changes.</p>
+      </div>
+      <div style="display:grid;gap:8px">
+        <span class="label" id="feeHead">Buying and selling costs · Dubai</span>
+        <div class="scroll"><table class="tbl" id="fees"></table></div>
+        <p class="src" id="feeNote"></p>
+      </div>
+      <p class="fact">The real cost of buying isn't the mortgage interest alone. It's interest, plus fees, plus service charges and upkeep, plus what your down payment would have earned somewhere else. Rent is a cost too, but it's the whole cost. Buying usually wins only if you stay long enough for price growth and the paid-down loan to cover the money spent going in and out. That's the break-even year.</p>
+      <p class="src">An estimate to help you think, not financial advice. Fees, caps and rates here are approximate, based on rules as generally published. Check the current figures with the Dubai Land Department, Abu Dhabi's ADREC or DARI, your bank and a licensed mortgage adviser before you decide.</p>
+    </div>
+    <div class="panel form" id="form">
+      <fieldset class="grp"><legend>The home</legend>
+        <div class="pills" id="emi"><button class="sm" type="button" data-e="dxb" aria-pressed="true">Dubai</button><button class="sm" type="button" data-e="auh" aria-pressed="false">Abu Dhabi</button></div>
+        <div class="two">
+          <label class="f"><span>Property price (AED)</span><input type="number" id="price" min="0" step="10000" value="2000000"></label>
+          <label class="f"><span>Annual rent for the same home</span><input type="number" id="rent" min="0" step="1000" value="120000"></label>
+        </div>
+        <div class="two">
+          <label class="f"><span>Size (sq ft)</span><input type="number" id="size" min="0" step="10" value="1300"></label>
+          <label class="f"><span>Service charge (AED/sq ft/yr)</span><input type="number" id="svc" min="0" step="0.5" value="18"></label>
+        </div>
+        <label class="chk"><input type="checkbox" id="offplan"><span>Off-plan (buying from a developer before it's built)</span></label>
+      </fieldset>
+      <fieldset class="grp"><legend>You</legend>
+        <div class="two">
+          <label class="f"><span>Nationality</span><select id="nat"><option value="expat">Expat resident</option><option value="national">UAE national</option></select></label>
+          <label class="f"><span>Your age</span><input type="number" id="age" min="18" max="69" step="1" value="35"></label>
+        </div>
+        <label class="chk"><input type="checkbox" id="first" checked><span>This would be my first home in the UAE</span></label>
+        <label class="f"><span>How long you'd stay (years)</span><input type="number" id="stay" min="1" max="25" step="1" value="10"></label>
+      </fieldset>
+      <fieldset class="grp"><legend>Mortgage</legend>
+        <label class="f"><span>Down payment (% of price)</span><input type="number" id="down" min="0" max="100" step="1" value="20"></label>
+        <div class="ltv" id="ltv"></div>
+        <div class="two">
+          <label class="f"><span>Fixed rate (%)</span><input type="number" id="fixRate" min="0" max="20" step="0.05" value="3.99"></label>
+          <label class="f"><span>Fixed for (years)</span><input type="number" id="fixYrs" min="0" max="25" step="1" value="3"></label>
+        </div>
+        <div class="two">
+          <label class="f"><span>3-month EIBOR, assumed (%)</span><input type="number" id="eibor" min="0" max="15" step="0.05" value="3.70"></label>
+          <label class="f"><span>Bank margin over EIBOR (%)</span><input type="number" id="margin" min="0" max="10" step="0.05" value="1.50"></label>
+        </div>
+        <label class="f"><span>Term (years)</span><input type="number" id="term" min="1" max="25" step="1" value="25"></label>
+        <p class="src" id="termNote"></p>
+      </fieldset>
+      <fieldset class="grp"><legend>Assumptions</legend>
+        <div class="two">
+          <label class="f"><span>Home price growth (%/yr)</span><input type="number" id="pg" min="-20" max="30" step="0.5" value="3"></label>
+          <label class="f"><span>Rent growth (%/yr)</span><input type="number" id="rg" min="-20" max="30" step="0.5" value="3"></label>
+        </div>
+        <p class="src" id="rgNote">In Dubai, rent rises on renewal are limited by the RERA rental index: none if your rent is within 10% of the market average for the area, then up to 5, 10, 15 or 20% the further below it you are. Over many years, rents still track the market.</p>
+        <div class="two">
+          <label class="f"><span>Return on invested cash (%/yr)</span><input type="number" id="ir" min="-10" max="20" step="0.5" value="5"></label>
+          <label class="f"><span>Running costs growth (%/yr)</span><input type="number" id="cg" min="-5" max="15" step="0.5" value="2"></label>
+        </div>
+        <div class="two">
+          <label class="f"><span>Maintenance (% of value/yr)</span><input type="number" id="maint" min="0" max="5" step="0.1" value="0.5"></label>
+          <label class="f"><span>Home insurance (AED/yr)</span><input type="number" id="ins" min="0" step="100" value="1200"></label>
+        </div>
+        <label class="chk"><input type="checkbox" id="hfOn" checked><span id="hfLab">Housing fee applies to me</span></label>
+        <p class="src" id="hfNote"></p>
+        <button class="sm" type="button" id="reset" style="justify-self:start">Reset to defaults</button>
+      </fieldset>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var VAT = 0.05;
+
+  // ---- fee tables (approximate, as generally published) ----
+  // base: price | loan | fixed. vat: add 5%. mort: only when there's a mortgage.
+  function feeTable(e) {
+    if (e === 'auh') return {
+      buy: [
+        { k: 'tr', n: 'Transfer fee (ADREC / DARI)', pct: 2, base: 'price' },
+        { k: 'ad', n: 'Registration and service fees', fix: 1500 },
+        { k: 'mr', n: 'Mortgage registration (of loan)', pct: 0.1, base: 'loan', mort: 1 },
+        { k: 'ag', n: 'Agent commission + VAT', pct: 2, base: 'price', vat: 1 },
+        { k: 'ar', n: 'Bank arrangement fee + VAT', pct: 1, base: 'loan', vat: 1, mort: 1 },
+        { k: 'va', n: 'Valuation fee + VAT', fix: 3000, vat: 1, mort: 1 }
+      ],
+      sell: [
+        { k: 'sa', n: 'Agent commission + VAT', pct: 2, base: 'price', vat: 1 },
+        { k: 'es', n: 'Early mortgage settlement (1%, max 10,000)', pct: 1, base: 'bal', cap: 10000 },
+        { k: 'no', n: 'Developer NOC and admin', fix: 1000 }
+      ],
+      hfRent: 3, hfOwn: 0,
+      hfNote: 'Abu Dhabi charges expat tenants a municipality fee of about 3% of the annual rent through the water and electricity bill. Owner-occupiers are not usually charged, so it is 0% for buying here. UAE nationals are generally exempt.'
+    };
+    return {
+      buy: [
+        { k: 'tr', n: 'DLD transfer fee', pct: 4, base: 'price' },
+        { k: 'ad', n: 'DLD admin and title deed', fix: 4580 },
+        { k: 'mr', n: 'Mortgage registration (0.25% + 290)', pct: 0.25, base: 'loan', add: 290, mort: 1 },
+        { k: 'ag', n: 'Agent commission + VAT', pct: 2, base: 'price', vat: 1 },
+        { k: 'ar', n: 'Bank arrangement fee + VAT', pct: 1, base: 'loan', vat: 1, mort: 1 },
+        { k: 'va', n: 'Valuation fee + VAT', fix: 3000, vat: 1, mort: 1 },
+        { k: 'tu', n: 'Trustee office fee + VAT', fix: 4000, vat: 1 }
+      ],
+      sell: [
+        { k: 'sa', n: 'Agent commission + VAT', pct: 2, base: 'price', vat: 1 },
+        { k: 'es', n: 'Early mortgage settlement (1%, max 10,000)', pct: 1, base: 'bal', cap: 10000 },
+        { k: 'no', n: 'Developer NOC and admin', fix: 2000 }
+      ],
+      hfRent: 5, hfOwn: 5,
+      hfNote: 'Dubai adds a 5% housing fee to the DEWA bill. Tenants pay 5% of the annual rent. Owners who live in their home pay 5% of its assessed annual rental value, so both sides pay it here. UAE nationals are generally exempt.'
+    };
+  }
+  function feeAmt(f, b) {
+    var base = f.base === 'price' ? b.price : f.base === 'loan' ? b.loan : f.base === 'bal' ? b.bal : 0;
+    if (f.mort && !(b.loan > 0)) return 0;
+    if (f.base === 'bal' && !(b.bal > 0)) return 0;
+    var v = f.pct != null ? base * f.pct / 100 + (f.add || 0) : f.fix;
+    if (f.cap != null) v = Math.min(v, f.cap);
+    if (f.vat) v *= 1 + VAT;
+    return v;
+  }
+
+  // ---- UAE Central Bank loan-to-value caps (as generally published) ----
+  function maxLTV(nat, first, offplan, price) {
+    if (offplan) return 50;
+    if (nat === 'national') return first ? (price <= 5e6 ? 85 : 75) : 65;
+    return first ? (price <= 5e6 ? 80 : 70) : 60;
+  }
+
+  // standard amortising payment
+  function payment(L, annualPct, months) {
+    if (!(L > 0) || !(months > 0)) return 0;
+    var r = annualPct / 1200;
+    if (Math.abs(r) < 1e-12) return L / months;
+    return L * r / (1 - Math.pow(1 + r, -months));
+  }
+
+  // ---- the model ----
+  function model(o) {
+    var T = o.table, years = 25;
+    var loan = o.price * (1 - o.down / 100), n = Math.round(o.term * 12), F = Math.round(o.fixYrs * 12);
+    var varRate = o.eibor + o.margin;
+    var b0 = { price: o.price, loan: loan };
+    var buyRows = T.buy.map(function (f) { return { n: f.n, k: f.k, v: feeAmt(f, b0) }; });
+    var fees = buyRows.reduce(function (s, r) { return s + r.v; }, 0);
+    var upfront = o.price - loan + fees;
+    var pay1 = payment(loan, F > 0 ? o.fixRate : varRate, n), pay = pay1, pay2 = null;
+    var bal = loan, rentInv = upfront, ownInv = 0, gi = Math.pow(1 + o.ir / 100, 1 / 12);
+    var hfR = o.hfOn ? T.hfRent / 100 : 0, hfO = o.hfOn ? T.hfOwn / 100 : 0;
+    function sellCost(value, b) { return T.sell.reduce(function (s, f) { return s + feeAmt(f, { price: value, bal: b }); }, 0); }
+    var out = [{ y: 0, value: o.price, bal: bal, buy: o.price - sellCost(o.price, bal) - bal, rent: rentInv }];
+    var cash1 = null, interestPaid = 0;
+    for (var m = 1; m <= years * 12; m++) {
+      var y = Math.floor((m - 1) / 12); // completed years before this month
+      if (m === F + 1 && F < n && bal > 0) { pay = payment(bal, varRate, n - F); pay2 = pay; }
+      var rate = m <= F ? o.fixRate : varRate, mp = 0;
+      if (bal > 0.005 && m <= n) {
+        var intr = bal * rate / 1200; mp = Math.min(pay, bal + intr);
+        bal = bal + intr - mp; interestPaid += intr;
+      } else bal = 0;
+      var value = o.price * Math.pow(1 + o.pg / 100, y);
+      var rentY = o.rent * Math.pow(1 + o.rg / 100, y), cgY = Math.pow(1 + o.cg / 100, y);
+      var own = { mort: mp, svc: o.size * o.svc * cgY / 12, maint: value * o.maint / 1200, ins: o.ins * cgY / 12, hf: rentY * hfO / 12 };
+      var ownOut = own.mort + own.svc + own.maint + own.ins + own.hf;
+      var rentOut = rentY / 12 * (1 + hfR);
+      if (m === 1) cash1 = { own: own, ownOut: ownOut, rent: rentY / 12, rhf: rentY * hfR / 12, rentOut: rentOut };
+      rentInv *= gi; ownInv *= gi;
+      var d = ownOut - rentOut;
+      if (d > 0) rentInv += d; else ownInv -= d;
+      if (m % 12 === 0) {
+        var Y = m / 12, v = o.price * Math.pow(1 + o.pg / 100, Y);
+        out.push({ y: Y, value: v, bal: bal, buy: v - sellCost(v, bal) - bal + ownInv, rent: rentInv, sell: sellCost(v, bal) });
+      }
+    }
+    var be = null;
+    for (var i = 1; i < out.length; i++) if (out[i].buy >= out[i].rent) { be = i; break; }
+    return { rows: out, fees: fees, buyRows: buyRows, upfront: upfront, loan: loan, pay1: pay1, pay2: pay2, varRate: varRate, be: be, cash1: cash1, interest: interestPaid };
+  }
+  window.RentBuy = { payment: payment, model: model, maxLTV: maxLTV, feeTable: feeTable, feeAmt: feeAmt };
+
+  // ---- formatting ----
+  function aed(v) { return 'AED ' + Math.round(v).toLocaleString('en-US'); }
+  function num(v) { return Math.round(v).toLocaleString('en-US'); }
+  function short(v) { var a = Math.abs(v), s = v < 0 ? '−' : ''; return s + (a >= 1e6 ? (a / 1e6).toFixed(a >= 1e7 ? 1 : 2) + 'M' : a >= 1e3 ? Math.round(a / 1e3) + 'k' : Math.round(a)); }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  // ---- state ----
+  var emirate = 'dxb', edits = { dxb: {}, auh: {} };
+  var IDS = ['price', 'rent', 'size', 'svc', 'age', 'stay', 'down', 'fixRate', 'fixYrs', 'eibor', 'margin', 'term', 'pg', 'rg', 'ir', 'cg', 'maint', 'ins'];
+  var DEF = {}; IDS.forEach(function (k) { DEF[k] = $(k).value; });
+  function v(id) { var x = parseFloat($(id).value); return isFinite(x) ? x : 0; }
+  function table() {
+    var t = feeTable(emirate), e = edits[emirate];
+    t.buy.concat(t.sell).forEach(function (f) { var x = e[f.k]; if (x != null) { if (f.pct != null) f.pct = x; else f.fix = x; } });
+    if (e.hfRent != null) t.hfRent = e.hfRent; if (e.hfOwn != null) t.hfOwn = e.hfOwn;
+    return t;
+  }
+
+  function inputs() {
+    var nat = $('nat').value, first = $('first').checked, off = $('offplan').checked, price = Math.max(0, v('price'));
+    var cap = maxLTV(nat, first, off, price), minDown = 100 - cap;
+    var down = Math.min(100, Math.max(minDown, v('down')));
+    var age = v('age'), maxT = Math.max(0, Math.min(25, (nat === 'national' ? 70 : 65) - age));
+    var term = Math.min(maxT, Math.max(1, Math.round(v('term'))));
+    return { nat: nat, first: first, off: off, cap: cap, minDown: minDown, downAsked: v('down'), maxT: maxT,
+      price: price, rent: Math.max(0, v('rent')), size: Math.max(0, v('size')), svc: Math.max(0, v('svc')), down: down,
+      fixRate: Math.max(0, v('fixRate')), fixYrs: Math.max(0, Math.round(v('fixYrs'))), eibor: Math.max(0, v('eibor')), margin: Math.max(0, v('margin')),
+      term: term, stay: Math.min(25, Math.max(1, Math.round(v('stay')))), pg: v('pg'), rg: v('rg'), ir: v('ir'), cg: v('cg'),
+      maint: Math.max(0, v('maint')), ins: Math.max(0, v('ins')), hfOn: $('hfOn').checked, table: table() };
+  }
+
+  function render() {
+    var o = inputs(), T = o.table;
+    // LTV box
+    var who = o.nat === 'national' ? 'UAE nationals' : 'Expats';
+    var rule = o.off ? 'Off-plan homes: banks lend at most 50%, so at least half is paid in cash.'
+      : o.first ? who + ' buying a first home can borrow up to ' + (o.nat === 'national' ? '85%' : '80%') + ' of a price up to AED 5M, and ' + (o.nat === 'national' ? '75%' : '70%') + ' above that.'
+      : who + ' buying a second or later home can borrow up to ' + (o.nat === 'national' ? '65%' : '60%') + '.';
+    var clamp = o.downAsked < o.minDown - 1e-9 ? '<span style="color:var(--sat-c)">Raised your down payment to the ' + o.minDown + '% minimum.</span>' : '';
+    $('ltv').innerHTML = '<span>Most you can borrow: <b>' + o.cap + '%</b> · minimum down <b>' + o.minDown + '%</b> (' + aed(o.price * o.minDown / 100) + ')</span><span class="src">' + rule + ' UAE Central Bank caps as generally published. Your bank may ask for more and will also check that loan payments stay under half your income.</span>' + clamp;
+    if (o.maxT < 1) $('termNote').innerHTML = '<span style="color:var(--sat-c)">Banks usually want the loan repaid by age ' + (o.nat === 'national' ? 70 : 65) + ', so a mortgage may not be possible at this age.</span>';
+    else $('termNote').textContent = 'Up to 25 years, and repaid by age ' + (o.nat === 'national' ? 70 : 65) + ' for ' + (o.nat === 'national' ? 'UAE nationals' : 'expats') + '. Longest for you: ' + o.maxT + ' years.' + (v('term') > o.maxT ? ' Using ' + o.term + '.' : '');
+    if (o.maxT < 1) { o.down = 100; o.term = 1; }
+    $('hfLab').textContent = (emirate === 'dxb' ? 'Dubai 5% housing fee' : 'Abu Dhabi municipality fee') + ' applies to me';
+    $('hfNote').textContent = T.hfNote;
+    $('rgNote').hidden = emirate !== 'dxb';
+
+    var r = model(o), S = o.stay, row = r.rows[S], diff = row.buy - row.rent;
+    // verdict
+    var head, body;
+    if (Math.abs(diff) < o.price * 0.01) head = 'About even after ' + S + ' year' + (S > 1 ? 's' : '') + '.';
+    else if (diff > 0) head = 'Buying comes out about ' + aed(diff) + ' ahead after ' + S + ' year' + (S > 1 ? 's' : '') + '.';
+    else head = 'Renting comes out about ' + aed(-diff) + ' ahead after ' + S + ' year' + (S > 1 ? 's' : '') + '.';
+    body = r.be ? 'Buying catches up with renting in year ' + r.be + '. ' + (r.be > S ? 'You plan to stay ' + S + ', so you would move before that point.' : 'You plan to stay ' + S + ', which is past that point.')
+      : 'With these numbers, buying never catches up within 25 years.';
+    body += ' Getting in costs ' + aed(r.upfront) + ' in cash: ' + aed(o.price - r.loan) + ' down plus ' + aed(r.fees) + ' in fees.';
+    if (o.pg < o.ir - 1 && !r.be) body += ' Your money earns more invested than the home gains in value, which favours renting.';
+    $('say').innerHTML = '<span class="label">The short answer</span><b class="h">' + head + '</b><p>' + body + '</p>';
+    $('stats').innerHTML = [[r.be ? 'Year ' + r.be : 'None', 'Break-even year'], [short(r.fees), 'Fees to buy (AED)'], [num(r.pay1), 'Mortgage / month (AED)']].map(function (x) { return '<div><b>' + x[0] + '</b><span>' + x[1] + '</span></div>'; }).join('');
+
+    // monthly cash
+    var c = r.cash1, ow = c.own;
+    function li(a, b) { return b > 0.5 ? '<li><span>' + a + '</span><b>' + num(b) + '</b></li>' : ''; }
+    $('cash').innerHTML = '<div><span class="label" style="color:var(--accent)">Buy</span><span class="big">' + aed(c.ownOut) + '</span><ul>' + li('Mortgage', ow.mort) + li('Service charges', ow.svc) + li('Maintenance', ow.maint) + li('Insurance', ow.ins) + li('Housing fee', ow.hf) + '</ul></div>'
+      + '<div><span class="label" style="color:var(--sat-b)">Rent</span><span class="big">' + aed(c.rentOut) + '</span><ul>' + li('Rent', c.rent) + li('Housing fee', c.rhf) + '</ul></div>';
+    var gap = c.ownOut - c.rentOut;
+    $('cashNote').textContent = (gap > 0 ? 'Owning costs ' + aed(gap) + ' more a month at first. The model invests that gap for the renter.' : 'Owning costs ' + aed(-gap) + ' less a month at first. The model invests that saving for the owner.')
+      + (r.pay2 != null ? ' After ' + o.fixYrs + ' fixed year' + (o.fixYrs > 1 ? 's' : '') + ' the rate moves to EIBOR + margin (' + r.varRate.toFixed(2) + '%) and the mortgage becomes about ' + aed(r.pay2) + ' a month.' : '')
+      + ' Rent is shown monthly, though most landlords take 1 to 4 cheques a year.';
+
+    // chart + year table
+    chart(r.rows, r.be, S);
+    $('yrs').innerHTML = '<tr><th>Year</th><th>Home value</th><th>Loan left</th><th>Buy</th><th>Rent</th></tr>' + r.rows.map(function (x) { return '<tr><td>' + x.y + '</td><td>' + short(x.value) + '</td><td>' + short(x.bal) + '</td><td>' + short(x.buy) + '</td><td>' + short(x.rent) + '</td></tr>'; }).join('');
+
+    // sensitivity
+    var sens = [-2, 0, 2, 5].map(function (g) { var q = model(Object.assign({}, o, { pg: g })), w = q.rows[S]; return [g, w.buy - w.rent, q.be, w.value]; });
+    $('sens').innerHTML = '<tr><th>Price growth</th><th>Home value yr ' + S + '</th><th>Buy minus rent</th><th>Break-even</th></tr>' + sens.map(function (x) {
+      return '<tr><td class="n">' + (x[0] > 0 ? '+' : '') + x[0] + '% a year</td><td>' + short(x[3]) + '</td><td style="color:' + (x[1] >= 0 ? 'var(--accent)' : 'var(--sat-b)') + '">' + (x[1] >= 0 ? '+' : '') + short(x[1]) + '</td><td>' + (x[2] ? 'Year ' + x[2] : 'None') + '</td></tr>';
+    }).join('');
+
+    // fee table
+    $('feeHead').textContent = 'Buying and selling costs · ' + (emirate === 'dxb' ? 'Dubai' : 'Abu Dhabi');
+    var b0 = { price: o.price, loan: r.loan }, sb = { price: row.value, bal: row.bal };
+    function frow(f, amt) { var isP = f.pct != null; return '<tr><td class="n">' + esc(f.n) + '</td><td><input type="number" step="' + (isP ? '0.05' : '100') + '" min="0" data-k="' + f.k + '" value="' + (isP ? f.pct : f.fix) + '" aria-label="' + esc(f.n) + '"> <small>' + (isP ? '%' : 'AED') + '</small></td><td>' + num(amt) + '</td></tr>'; }
+    var sellTot = 0;
+    var html = '<tr><th>Buying</th><th>Rate</th><th>AED</th></tr>' + T.buy.map(function (f) { return frow(f, feeAmt(f, b0)); }).join('') + '<tr class="tot"><td class="n">Total to buy</td><td></td><td>' + num(r.fees) + '</td></tr>';
+    html += '<tr><th>Selling in year ' + S + '</th><th></th><th></th></tr>' + T.sell.map(function (f) { var a = feeAmt(f, sb); sellTot += a; return frow(f, a); }).join('') + '<tr class="tot"><td class="n">Total to sell</td><td></td><td>' + num(sellTot) + '</td></tr>';
+    html += '<tr><th>Each year</th><th></th><th></th></tr>'
+      + '<tr><td class="n">Housing fee, renter (% of rent)</td><td><input type="number" step="0.5" min="0" data-k="hfRent" value="' + T.hfRent + '" aria-label="Housing fee renter"> %</td><td>' + (o.hfOn ? num(o.rent * T.hfRent / 100) : 0) + '</td></tr>'
+      + '<tr><td class="n">Housing fee, owner (% of rental value)</td><td><input type="number" step="0.5" min="0" data-k="hfOwn" value="' + T.hfOwn + '" aria-label="Housing fee owner"> %</td><td>' + (o.hfOn ? num(o.rent * T.hfOwn / 100) : 0) + '</td></tr>'
+      + '<tr><td class="n">Service charges (' + o.svc + ' × ' + num(o.size) + ' sq ft)</td><td></td><td>' + num(o.svc * o.size) + '</td></tr>';
+    $('fees').innerHTML = html;
+    $('feeNote').textContent = 'All approximate. Edit any rate to match a real quote. ' + (emirate === 'dxb'
+      ? 'Dubai figures follow commonly quoted DLD fees: 4% transfer, AED 4,000 admin plus AED 580 title deed for homes over AED 500,000, mortgage registration 0.25% of the loan plus AED 290, and a trustee office fee. Check with DLD and your bank.'
+      : 'Abu Dhabi figures follow commonly quoted ADREC / DARI fees: 2% transfer and 0.1% of the loan to register a mortgage. There is no Dubai-style trustee office. Check with ADREC and your bank.')
+      + ' Bank arrangement fees are capped at 1% of the loan. Early settlement is capped at 1% of what\'s left, up to AED 10,000.';
+    try { var s = {}; IDS.forEach(function (k) { s[k] = $(k).value; }); s.nat = $('nat').value; s.first = $('first').checked; s.off = $('offplan').checked; s.hf = $('hfOn').checked; s.e = emirate; s.ed = edits; localStorage.setItem('rentBuy', JSON.stringify(s)); } catch (e) {}
+  }
+
+  // ---- chart ----
+  var CH = { l: 50, r: 44, t: 14, b: 28 }, lastChart = null;
+  function chart(rows, be, stay) {
+    lastChart = [rows, be, stay];
+    var svg = $('chart'), W = Math.max(300, Math.round($('plot').clientWidth || 640)), H = Math.round(Math.max(220, Math.min(320, W * 0.48)));
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    var x0 = CH.l, x1 = W - CH.r, y0 = H - CH.b, y1 = CH.t;
+    var vals = []; rows.forEach(function (r) { vals.push(r.buy, r.rent); });
+    var lo = Math.min(0, Math.min.apply(null, vals)), hi = Math.max.apply(null, vals);
+    var step = niceStep((hi - lo) / 5); lo = Math.floor(lo / step) * step; hi = Math.ceil(hi / step) * step || step;
+    var N = rows.length - 1;
+    function X(i) { return x0 + (x1 - x0) * i / N; }
+    function Y(v) { return y0 - (y0 - y1) * (v - lo) / (hi - lo); }
+    var g = '';
+    for (var t = lo; t <= hi + step / 2; t += step) g += '<line x1="' + x0 + '" x2="' + x1 + '" y1="' + Y(t) + '" y2="' + Y(t) + '" stroke="var(--line)" stroke-width="1"' + (Math.abs(t) < 1e-6 ? '' : ' stroke-dasharray="2 4"') + '/><text x="' + (x0 - 8) + '" y="' + (Y(t) + 4) + '" text-anchor="end">' + short(t).replace('.00M', 'M').replace('.0M', 'M') + '</text>';
+    for (var i = 0; i <= N; i += 5) g += '<text x="' + X(i) + '" y="' + (y0 + 18) + '" text-anchor="middle">' + (i === 0 ? 'Now' : 'Yr ' + i) + '</text>';
+    g += '<line x1="' + X(stay) + '" x2="' + X(stay) + '" y1="' + y1 + '" y2="' + y0 + '" stroke="var(--muted)" stroke-width="1" stroke-dasharray="4 3"/><text x="' + (X(stay) > x1 - 70 ? X(stay) - 4 : X(stay) + 4) + '" y="' + (y1 + 10) + '" text-anchor="' + (X(stay) > x1 - 70 ? 'end' : 'start') + '" style="fill:var(--ink)">you move</text>';
+    function path(k) { return rows.map(function (r, i) { return (i ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(r[k]).toFixed(1); }).join(''); }
+    g += '<path d="' + path('rent') + '" fill="none" stroke="var(--sat-b)" stroke-width="2" stroke-dasharray="6 4" stroke-linejoin="round"/>';
+    g += '<path d="' + path('buy') + '" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round"/>';
+    if (be) g += '<circle cx="' + X(be) + '" cy="' + Y(rows[be].buy) + '" r="5" fill="var(--accent)" stroke="var(--bg)" stroke-width="2"/>';
+    var lb = rows[N], ya = Y(lb.buy), yb = Y(lb.rent); if (Math.abs(ya - yb) < 14) { var mid = (ya + yb) / 2, s = ya < yb ? -1 : 1; ya = mid + s * 7; yb = mid - s * 7; }
+    g += '<text x="' + (x1 + 6) + '" y="' + (ya + 4) + '" style="fill:var(--ink)">Buy</text><text x="' + (x1 + 6) + '" y="' + (yb + 4) + '" style="fill:var(--ink)">Rent</text>';
+    g += '<g id="hov" style="display:none"><line id="hl" y1="' + y1 + '" y2="' + y0 + '" stroke="var(--ink)" stroke-width="1" opacity=".4"/><circle id="hb" r="4" fill="var(--accent)" stroke="var(--bg)" stroke-width="2"/><circle id="hr" r="4" fill="var(--sat-b)" stroke="var(--bg)" stroke-width="2"/></g>';
+    g += '<rect id="hit" x="' + x0 + '" y="0" width="' + (x1 - x0) + '" height="' + H + '" fill="transparent"/>';
+    svg.innerHTML = g;
+    var hit = $('hit'), tip = $('tip');
+    function move(ev) {
+      var bb = svg.getBoundingClientRect(), px = (ev.clientX - bb.left) / bb.width * W;
+      var i = Math.max(0, Math.min(N, Math.round((px - x0) / (x1 - x0) * N))), r = rows[i];
+      $('hov').style.display = ''; $('hl').setAttribute('x1', X(i)); $('hl').setAttribute('x2', X(i));
+      $('hb').setAttribute('cx', X(i)); $('hb').setAttribute('cy', Y(r.buy)); $('hr').setAttribute('cx', X(i)); $('hr').setAttribute('cy', Y(r.rent));
+      tip.innerHTML = '<div>' + (i === 0 ? 'Today' : 'End of year ' + i) + '</div><div>Buy <b>' + aed(r.buy) + '</b></div><div>Rent <b>' + aed(r.rent) + '</b></div>';
+      tip.style.display = 'block';
+      var left = X(i) / W * bb.width, tw = tip.offsetWidth;
+      tip.style.left = Math.max(0, Math.min(bb.width - tw, left + (left > bb.width / 2 ? -tw - 12 : 12))) + 'px';
+      tip.style.top = '8px';
+    }
+    hit.addEventListener('pointermove', move); hit.addEventListener('pointerdown', move);
+    hit.addEventListener('pointerleave', function () { $('hov').style.display = 'none'; tip.style.display = 'none'; });
+  }
+  var rsz; window.addEventListener('resize', function () { clearTimeout(rsz); rsz = setTimeout(function () { if (lastChart) chart.apply(null, lastChart); }, 150); });
+  function niceStep(x) { if (!(x > 0)) return 1; var p = Math.pow(10, Math.floor(Math.log10(x))), f = x / p; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * p; }
+
+  // ---- wiring ----
+  function setEmirate(e) {
+    emirate = e;
+    [].forEach.call(document.querySelectorAll('#emi .sm'), function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-e') === e); });
+  }
+  $('emi').addEventListener('click', function (ev) {
+    var b = ev.target.closest('.sm'); if (!b) return;
+    var e = b.getAttribute('data-e'); if (e === emirate) return;
+    if ($('svc').value === (emirate === 'dxb' ? '18' : '14')) $('svc').value = e === 'dxb' ? '18' : '14';
+    setEmirate(e); render();
+  });
+  $('form').addEventListener('input', function (ev) { if (!ev.target.closest('#fees')) render(); });
+  $('form').addEventListener('change', function () { render(); });
+  $('fees').addEventListener('change', function (ev) {
+    var k = ev.target.getAttribute('data-k'); if (!k) return;
+    var x = parseFloat(ev.target.value); edits[emirate][k] = isFinite(x) && x >= 0 ? x : 0; render();
+  });
+  $('reset').onclick = function () { IDS.forEach(function (k) { $(k).value = DEF[k]; }); $('nat').value = 'expat'; $('first').checked = true; $('offplan').checked = false; $('hfOn').checked = true; edits = { dxb: {}, auh: {} }; setEmirate('dxb'); render(); };
+  $('nat').addEventListener('change', function () { $('hfOn').checked = $('nat').value !== 'national'; });
+  try {
+    var s = JSON.parse(localStorage.getItem('rentBuy') || 'null');
+    if (s) { IDS.forEach(function (k) { if (s[k] != null) $(k).value = s[k]; }); $('nat').value = s.nat || 'expat'; $('first').checked = !!s.first; $('offplan').checked = !!s.off; $('hfOn').checked = s.hf !== false; if (s.ed) edits = { dxb: s.ed.dxb || {}, auh: s.ed.auh || {} }; setEmirate(s.e === 'auh' ? 'auh' : 'dxb'); }
+  } catch (e) {}
+  render();
+})();
+</script>
+</body>
+</html>
