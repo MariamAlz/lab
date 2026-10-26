@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hijri Date Converter · Mariam's Lab</title>
+<meta name="description" content="Convert dates between the Gregorian and Hijri (Umm al-Qura) calendars both ways, see your age in each, and count down to Ramadan and Eid.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/hijri/">
+<meta property="og:title" content="Hijri Date Converter · Mariam's Lab"><meta property="og:description" content="Gregorian and Hijri, both ways, with your age and the next occasions."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@500;600&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.today { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.today div { padding: 18px; border-radius: var(--radius); border: 1px solid var(--line); background: rgba(7,10,24,.82); }
+.today b { display: block; font-family: var(--font-display); font-size: clamp(1.4rem, 4vw, 2.1rem); font-weight: 800; color: var(--accent); }
+.today .ar { font-family: 'IBM Plex Sans Arabic', sans-serif; font-size: 1.05rem; color: var(--muted); }
+.conv { display: grid; gap: 10px; }
+.row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.row input, .row select { font: inherit; color: var(--ink); background: rgba(7,10,24,.6); border: 1px solid var(--line); border-radius: 8px; padding: 7px 9px; min-width: 0; }
+.row input[type=number] { width: 5.5em; font-family: var(--font-mono); }
+.ans { padding: 12px 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); font-size: 1.05rem; }
+.ans .ar { display: block; font-family: 'IBM Plex Sans Arabic', sans-serif; color: var(--muted); font-size: 0.95rem; margin-top: 2px; }
+.ups { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.ups li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; font-size: 0.9rem; }
+.ups small { display: block; color: var(--muted); font-size: 0.8rem; }
+.ups b { font-family: var(--font-display); font-size: 1.3rem; color: var(--sat-b); text-align: end; }
+.ups b small { font-family: inherit; text-align: end; }
+h2.sub { font-size: 1.05rem; font-weight: 700; }
+@media (max-width: 520px) { .today { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Calendar · UAE</span>
+    <h1 style="font-size:var(--step-3)">Hijri date converter.</h1>
+    <p>The Hijri year follows the Moon, so it's about 11 days shorter than the Gregorian one and the months drift through the seasons. Convert any date both ways, see your age in each calendar, and count down to the next Ramadan and Eid.</p>
+  </div>
+  <div class="today"><div><span class="label">Today</span><b id="tG">—</b></div><div><span class="label">Hijri</span><b id="tH">—</b><span class="ar" id="tHa"></span></div></div>
+  <div class="game" style="margin-top:18px">
+    <div class="panel conv">
+      <h2 class="sub">Gregorian → Hijri</h2>
+      <div class="row"><input type="date" id="g" aria-label="Gregorian date"></div>
+      <div class="ans" id="gOut">—</div>
+      <h2 class="sub" style="margin-top:10px">Hijri → Gregorian</h2>
+      <div class="row"><input type="number" id="hd" min="1" max="30" value="1" aria-label="Day"><select id="hm" aria-label="Month"></select><input type="number" id="hy" min="1300" max="1500" aria-label="Year"><span class="lbl" style="color:var(--muted)">AH</span></div>
+      <div class="ans" id="hOut">—</div>
+      <h2 class="sub" style="margin-top:10px">Age in both calendars</h2>
+      <div class="row"><input type="date" id="bd" aria-label="Date of birth"></div>
+      <div class="ans" id="age">Enter a date of birth.</div>
+    </div>
+    <div class="panel" style="display:grid;gap:10px">
+      <h2 class="sub">Coming up</h2>
+      <ul class="ups" id="ups"></ul>
+      <p class="fact">This uses the Umm al-Qura calendar built into your browser. Religious dates such as the start of Ramadan and Eid are confirmed by moon sighting and can differ by a day. Hijri age matters for some official purposes: a Hijri year is 354 or 355 days, so you are a little older in Hijri years.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var DAY = 864e5;
+  var MON = ['Muharram', 'Safar', 'Rabi al-Awwal', 'Rabi al-Thani', 'Jumada al-Ula', 'Jumada al-Akhirah', 'Rajab', 'Shaban', 'Ramadan', 'Shawwal', 'Dhu al-Qadah', 'Dhu al-Hijjah'];
+  var num = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura-nu-latn', { day: 'numeric', month: 'numeric', year: 'numeric', timeZone: 'UTC' });
+  var arF = new Intl.DateTimeFormat('ar-AE-u-ca-islamic-umalqura', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+  function H(d) { var p = {}; num.formatToParts(d).forEach(function (x) { p[x.type] = parseInt(x.value, 10); }); return { d: p.day, m: p.month, y: p.year }; }
+  function hStr(d) { var h = H(d); return h.d + ' ' + MON[h.m - 1] + ' ' + h.y + ' AH'; }
+  function gStr(d) { return d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }); }
+  function utc(s) { var p = s.split('-'); return new Date(Date.UTC(+p[0], +p[1] - 1, +p[2])); }
+  function todayUTC() { var n = new Date(); return new Date(Date.UTC(n.getFullYear(), n.getMonth(), n.getDate())); }
+  // Hijri → Gregorian: estimate, then walk day by day to the exact match
+  function fromH(y, m, d) {
+    var est = new Date(Date.UTC(622, 6, 16) + ((y - 1) * 354.36707 + (m - 1) * 29.530589 + (d - 1)) * DAY);
+    for (var k = -40; k <= 40; k++) { var t = new Date(+est + k * DAY), h = H(t); if (h.y === y && h.m === m && h.d === d) return t; }
+    return null;
+  }
+  function nextH(m, d, from) { var h = H(from); for (var y = h.y; y <= h.y + 2; y++) { var t = fromH(y, m, d); if (t && t >= from) return t; } return null; }
+  function show() {
+    var t = todayUTC(); $('tG').textContent = gStr(t); $('tH').textContent = hStr(t); $('tHa').textContent = arF.format(t);
+    var g = $('g').value ? utc($('g').value) : t; $('gOut').innerHTML = '<b>' + hStr(g) + '</b><span class="ar">' + arF.format(g) + '</span>';
+    var r = fromH(+$('hy').value, +$('hm').value, +$('hd').value);
+    $('hOut').innerHTML = r ? '<b>' + gStr(r) + '</b>' : 'That day doesn\'t exist in this month (Hijri months have 29 or 30 days).';
+    if ($('bd').value) {
+      var b = utc($('bd').value), gy = t.getUTCFullYear() - b.getUTCFullYear() - ((t.getUTCMonth() < b.getUTCMonth() || (t.getUTCMonth() === b.getUTCMonth() && t.getUTCDate() < b.getUTCDate())) ? 1 : 0);
+      var hb = H(b), ht = H(t), hy = ht.y - hb.y - ((ht.m < hb.m || (ht.m === hb.m && ht.d < hb.d)) ? 1 : 0);
+      var nb = nextH(hb.m, Math.min(hb.d, 29), t), days = Math.round((t - b) / DAY);
+      $('age').innerHTML = '<b>' + gy + '</b> Gregorian years · <b>' + hy + '</b> Hijri years<span class="ar">Born ' + hStr(b) + '. That\'s ' + days.toLocaleString('en') + ' days. Next Hijri birthday: ' + (nb ? gStr(nb) : '—') + '.</span>';
+    }
+    var occ = [['Start of Ramadan', 9, 1], ['Eid al-Fitr', 10, 1], ['Day of Arafah', 12, 9], ['Eid al-Adha', 12, 10], ['Islamic New Year', 1, 1], ['Prophet\'s Birthday', 3, 12], ['Isra and Mi\'raj', 7, 27]];
+    $('ups').innerHTML = occ.map(function (o) { var d = nextH(o[1], o[2], t); return { n: o[0], d: d }; }).filter(function (o) { return o.d; }).sort(function (a, b) { return a.d - b.d; }).map(function (o) {
+      var n = Math.round((o.d - t) / DAY);
+      return '<li><span>' + o.n + '<small>' + gStr(o.d) + ' · ' + hStr(o.d) + '</small></span><b>' + (n === 0 ? 'Today' : n) + (n ? '<small>days</small>' : '') + '</b></li>';
+    }).join('');
+  }
+  MON.forEach(function (m, i) { var o = document.createElement('option'); o.value = i + 1; o.textContent = m; $('hm').appendChild(o); });
+  var h0 = H(todayUTC()); $('hy').value = h0.y; $('hm').value = 9; $('hd').value = 1;
+  $('g').value = todayUTC().toISOString().slice(0, 10);
+  try { $('bd').value = localStorage.getItem('hijriBD') || ''; } catch (e) {}
+  ['g', 'hd', 'hm', 'hy', 'bd'].forEach(function (k) { $(k).addEventListener('input', function () { if (k === 'bd') try { localStorage.setItem('hijriBD', $('bd').value); } catch (e) {} show(); }); $(k).addEventListener('change', show); });
+  show();
+})();
+</script>
+</body>
+</html>
