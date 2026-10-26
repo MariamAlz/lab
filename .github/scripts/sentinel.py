@@ -1,6 +1,6 @@
 """Fetch a cloud-free Sentinel-2 scene of Abu Dhabi and save six bands as small PNGs.
 
-Each PNG holds surface reflectance 0 to 0.4 mapped linearly to 0-255, the same scale
+Each PNG holds surface reflectance 0 to 0.6 mapped linearly to 0-255, the same scale
 for every band, so the page can mix bands and compute indices like NDVI in the browser.
 Data: Copernicus Sentinel-2 L2A via the Earth Search STAC catalogue (AWS open data).
 """
@@ -50,10 +50,10 @@ def main():
         os.makedirs(OUT, exist_ok=True)
         for key, name in BANDS.items():
             refl = red if key == "red" else read(item, key)[0]
-            img = np.clip(np.nan_to_num(refl, nan=0) / 0.4 * 255, 0, 255).round().astype(np.uint8)
+            img = np.clip(np.nan_to_num(refl, nan=0) / 0.6 * 255, 0, 255).round().astype(np.uint8)
             Image.fromarray(img, "L").save(f"{OUT}/{key}.png", optimize=True)
         meta = {"id": item.id, "date": item.properties["datetime"][:10], "cloud": item.properties.get("eo:cloud_cover"),
-                "bbox": BBOX, "width": W, "height": H, "scale": 0.4, "bands": BANDS}
+                "bbox": BBOX, "width": W, "height": H, "scale": 0.6, "bands": BANDS}
         with open(f"{OUT}/meta.json", "w") as f:
             json.dump(meta, f, indent=1)
         print("Saved", item.id)

@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Spot the City · Mariam's Lab</title>
+<meta name="description" content="A real satellite picture of somewhere in the UAE. Find it on the map. Ten rounds, from dunes to skyscrapers.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/spot-the-city/">
+<meta property="og:title" content="Spot the City · Mariam's Lab"><meta property="og:description" content="Where in the UAE is this? Guess from space."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.play { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 20px; align-items: start; }
+@media (max-width: 860px) { .play { grid-template-columns: 1fr; } }
+.chip { position: relative; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); aspect-ratio: 1 / 1; background: #0a1020; }
+.chip img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.chip .scale { position: absolute; left: 12px; bottom: 12px; padding: 4px 8px; border-radius: 6px; background: rgba(7,10,24,0.75); font-family: var(--font-mono); font-size: 0.75rem; }
+.chip .scale i { display: block; height: 3px; background: #fff; margin-bottom: 4px; }
+.map { position: relative; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); background: #0b1d44; cursor: crosshair; touch-action: manipulation; }
+.map canvas { width: 100%; display: block; aspect-ratio: 4 / 3; }
+.ar { font-family: 'IBM Plex Sans Arabic', sans-serif; color: var(--accent); }
+.res { display: grid; gap: 8px; padding: 16px; border-radius: 12px; border: 1px solid var(--accent); background: var(--surface); }
+.res h3 { font-size: 1.2rem; font-weight: 800; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.res p { color: var(--muted); }
+.acts { display: flex; flex-wrap: wrap; gap: 10px; }
+.btn:disabled { opacity: .45; cursor: default; transform: none; }
+.side { display: grid; gap: 14px; margin-top: 18px; }
+@media (min-width: 861px) { .side { grid-template-columns: 1fr 1fr; } }
+.credit { font-size: 0.8rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Game · Earth observation · UAE</span>
+    <h1 style="font-size:var(--step-3)">Spot the city.</h1>
+    <p>Each round shows a real satellite picture, about 6 km across, of somewhere in the UAE. Tap the map where you think it is. Coastline, dunes, mountains and road patterns are your clues.</p>
+  </div>
+  <div class="stats" style="margin-bottom:16px;max-width:520px">
+    <div><span class="label">Round</span><b id="sR">1/10</b></div>
+    <div><span class="label">Score</span><b id="sS">0</b></div>
+    <div><span class="label">Best</span><b id="sB">—</b></div>
+  </div>
+  <div class="play">
+    <div class="chip"><img id="img" alt="Satellite picture of the mystery place"><span class="scale"><i style="width:56px"></i>1 km</span></div>
+    <div>
+      <div class="map"><canvas id="map" aria-label="Map of the UAE. Tap where you think the picture was taken."></canvas></div>
+      <div class="acts" style="margin-top:12px">
+        <button class="btn primary" type="button" id="go" disabled>Guess</button>
+        <button class="btn ghost" type="button" id="hint">Hint</button>
+        <button class="btn ghost" type="button" id="next" hidden>Next</button>
+      </div>
+    </div>
+  </div>
+  <div class="side">
+    <div class="res" id="res" hidden></div>
+    <div>
+      <p class="fact">Pictures from the European Sentinel-2 satellites, taken in the last few weeks, in true colour. Each pixel is 10 m: enough to see a stadium or a runway, not a car. Spotting places from shape and texture alone is how image analysts start.</p>
+      <p class="credit" style="margin-top:10px">Contains modified Copernicus Sentinel-2 data. Borders: Natural Earth.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var B = { lon0: 51.4, lon1: 56.7, lat0: 22.4, lat1: 26.4 };
+  var EMIRATE = { burj: 'Dubai', palm: 'Dubai', mosque: 'Abu Dhabi', liwa: 'Abu Dhabi (Al Dhafra)', hafeet: 'Abu Dhabi (Al Ain)', hatta: 'Dubai (inland, in the mountains)', jais: 'Ras Al Khaimah', dxb: 'Dubai', yas: 'Abu Dhabi', masdar: 'Abu Dhabi', khorfakkan: 'Sharjah (east coast)', wathba: 'Abu Dhabi', world: 'Dubai', qudra: 'Dubai (inland desert)', corniche: 'Abu Dhabi', uaq: 'Umm Al Quwain', fujairah: 'Fujairah' };
+  var FACT = {
+    burj: 'The lake, the canal and the long shadow give it away: the Burj Khalifa casts a shadow you can see from space.',
+    palm: 'The Palm\'s fronds and crescent are one of the few human-made shapes you can recognise at a glance from orbit.',
+    mosque: 'The Grand Mosque sits by the bridges into Abu Dhabi island, near the Khor Al Maqta channel.',
+    liwa: 'Liwa\'s farms sit in the hollows between some of the tallest dunes in the world, on the edge of the Empty Quarter.',
+    hafeet: 'Jebel Hafeet\'s long folded ridge rises over 1,200 m above Al Ain, on the border with Oman.',
+    hatta: 'Hatta is a Dubai exclave in the Hajar Mountains, with dams that hold back the rare winter floods.',
+    jais: 'Jebel Jais is the highest peak in the UAE, around 1,900 m, and the only place that sometimes sees frost.',
+    dxb: 'Two parallel 4 km runways: Dubai International is one of the busiest airports in the world for international passengers.',
+    yas: 'The red roof of Ferrari World is the giveaway, next to the Yas Marina Circuit.',
+    masdar: 'Masdar City\'s tight street grid is designed to shade itself, beside Abu Dhabi\'s airport.',
+    khorfakkan: 'A deep-water port on the Gulf of Oman, tucked between the mountains and the sea.',
+    wathba: 'Al Wathba\'s lake is a breeding site for greater flamingos, right next to the city.',
+    world: 'About 300 artificial islands shaped like a map of the world, off the Dubai coast.',
+    qudra: 'Man-made lakes in the desert south of Dubai, a stop for migrating birds and weekend campers.',
+    corniche: 'The Abu Dhabi Corniche and its breakwater, with the Marina Mall peninsula across the water.',
+    uaq: 'Khor Al Beidah\'s lagoon and mangroves at Umm Al Quwain, one of the richest wetlands on the Gulf coast.',
+    fujairah: 'Fujairah\'s airport and city, on the east coast facing the Indian Ocean side.'
+  };
+  var outline = null, all = [], rounds = [], k = 0, score = 0, guess = null, revealed = false, hinted = false;
+  var cv = $('map'), g = cv.getContext('2d'), dpr = 1;
+  function fit() { dpr = Math.min(window.devicePixelRatio || 1, 2); var r = cv.getBoundingClientRect(); cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr); }
+  function X(lon) { return (lon - B.lon0) / (B.lon1 - B.lon0) * cv.width; }
+  function Y(lat) { return (B.lat1 - lat) / (B.lat1 - B.lat0) * cv.height; }
+  function poly(geom, fill, stroke) {
+    var polys = geom.type === 'Polygon' ? [geom.coordinates] : geom.coordinates;
+    g.fillStyle = fill; g.strokeStyle = stroke; g.lineWidth = 1 * dpr;
+    polys.forEach(function (p) { g.beginPath(); p.forEach(function (ring) { ring.forEach(function (c, i) { if (i) g.lineTo(X(c[0]), Y(c[1])); else g.moveTo(X(c[0]), Y(c[1])); }); g.closePath(); }); g.fill('evenodd'); g.stroke(); });
+  }
+  function km(a, b) { var R = 6371, dlat = (b[1] - a[1]) * Math.PI / 180, dlon = (b[0] - a[0]) * Math.PI / 180, x = Math.sin(dlat / 2) ** 2 + Math.cos(a[1] * Math.PI / 180) * Math.cos(b[1] * Math.PI / 180) * Math.sin(dlon / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(x)); }
+  function draw() {
+    g.clearRect(0, 0, cv.width, cv.height); g.fillStyle = '#0b1d44'; g.fillRect(0, 0, cv.width, cv.height);
+    if (outline) {
+      ['SAU', 'OMN', 'QAT'].forEach(function (c) { if (outline[c]) poly(outline[c], '#3a3424', '#5a4f36'); });
+      poly(outline.ARE, '#c9b48a', '#f2e2bd');
+    }
+    g.fillStyle = 'rgba(7,10,24,0.55)'; g.font = '600 ' + (11 * dpr) + 'px "Instrument Sans", sans-serif';
+    [['Abu Dhabi', 54.37, 24.47], ['Dubai', 55.27, 25.2], ['Al Ain', 55.76, 24.21]].forEach(function (c) { g.fillRect(X(c[1]) - 2 * dpr, Y(c[2]) - 2 * dpr, 4 * dpr, 4 * dpr); g.fillText(c[0], X(c[1]) + 5 * dpr, Y(c[2]) + 4 * dpr); });
+    var s = rounds[k];
+    if (hinted && !revealed && s) { g.fillStyle = 'rgba(233,180,103,0.9)'; g.font = '600 ' + (12 * dpr) + 'px "Instrument Sans", sans-serif'; g.fillText('Hint: ' + EMIRATE[s.id], 10 * dpr, cv.height - 12 * dpr); }
+    if (guess) { g.fillStyle = '#F08AB3'; g.strokeStyle = '#fff'; g.lineWidth = 2 * dpr; g.beginPath(); g.arc(X(guess[0]), Y(guess[1]), 7 * dpr, 0, 7); g.fill(); g.stroke(); }
+    if (revealed && s) {
+      g.strokeStyle = 'rgba(255,255,255,0.8)'; g.setLineDash([5 * dpr, 4 * dpr]); g.beginPath(); g.moveTo(X(guess[0]), Y(guess[1])); g.lineTo(X(s.lon), Y(s.lat)); g.stroke(); g.setLineDash([]);
+      g.fillStyle = '#4FD3BD'; g.beginPath(); g.arc(X(s.lon), Y(s.lat), 8 * dpr, 0, 7); g.fill(); g.stroke();
+    }
+  }
+  function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function start() { rounds = shuffle(all.slice()).slice(0, 10); k = 0; score = 0; load(); }
+  function load() {
+    var s = rounds[k]; guess = null; revealed = false; hinted = false;
+    $('img').src = '../assets/eo/spot/' + s.id + '.jpg'; $('res').hidden = true; $('next').hidden = true; $('go').hidden = false; $('go').disabled = true; $('hint').disabled = false;
+    $('sR').textContent = (k + 1) + '/' + rounds.length; $('sS').textContent = score; best(); draw();
+  }
+  function best() { var b = null; try { b = localStorage.getItem('spotBest'); } catch (e) {} $('sB').textContent = b || '—'; }
+  cv.addEventListener('click', function (e) { if (revealed) return; var r = cv.getBoundingClientRect(); guess = [B.lon0 + (e.clientX - r.left) / r.width * (B.lon1 - B.lon0), B.lat1 - (e.clientY - r.top) / r.height * (B.lat1 - B.lat0)]; $('go').disabled = false; draw(); });
+  $('hint').onclick = function () { hinted = true; this.disabled = true; draw(); };
+  $('go').onclick = function () {
+    if (!guess) return; var s = rounds[k], d = km(guess, [s.lon, s.lat]), pts = Math.round(1000 * Math.exp(-d / 40) * (hinted ? 0.7 : 1));
+    score += pts; revealed = true; $('sS').textContent = score; draw();
+    $('res').hidden = false; $('res').innerHTML = '<h3><span>' + s.en + '</span><span class="ar" lang="ar">' + s.ar + '</span></h3><p><b style="color:var(--ink)">' + (d < 1 ? 'Spot on!' : Math.round(d) + ' km away') + '</b> · +' + pts + ' points' + (hinted ? ' (hint used)' : '') + '</p><p>' + FACT[s.id] + '</p>';
+    $('go').hidden = true; $('next').hidden = false; $('next').textContent = k + 1 < rounds.length ? 'Next' : 'See your score'; $('next').focus();
+  };
+  $('next').onclick = function () {
+    if (k + 1 < rounds.length) { k++; load(); return; }
+    var b = 0; try { b = +(localStorage.getItem('spotBest') || 0); if (score > b) localStorage.setItem('spotBest', score); } catch (e) {}
+    $('res').innerHTML = '<h3>' + score + ' points out of ' + rounds.length * 1000 + '</h3><p>' + (score > b ? 'A new best!' : 'Your best is ' + b + '.') + ' ' + (score > 7000 ? 'You know the UAE from above.' : score > 4000 ? 'Good eye. The east coast and the desert are the hardest.' : 'Try again; the coastline is the best clue.') + '</p>';
+    $('next').hidden = true; $('go').hidden = false; $('go').disabled = false; $('go').textContent = 'Play again'; $('go').onclick = function () { location.reload(); };
+    best();
+  };
+  Promise.all([fetch('../assets/eo/uae.json').then(function (r) { return r.json(); }), fetch('../assets/eo/spot/meta.json').then(function (r) { return r.json(); })]).then(function (r) {
+    outline = r[0]; all = r[1].filter(function (s) { return FACT[s.id]; }); start();
+  });
+  window.addEventListener('resize', function () { fit(); draw(); });
+  fit(); draw();
+})();
+</script>
+</body>
+</html>

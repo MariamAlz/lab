@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Then and Now · Mariam's Lab</title>
+<meta name="description" content="Slide between satellite images of the UAE from 2000 and today: Palm Jumeirah, Saadiyat, Yas Island and Downtown Dubai.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/then-now/">
+<meta property="og:title" content="Then and Now · Mariam's Lab"><meta property="og:description" content="The UAE from space in 2000 and today."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.cmp { position: relative; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); background: #0a1020; touch-action: none; cursor: ew-resize; user-select: none; }
+.cmp img { display: block; width: 100%; height: auto; pointer-events: none; }
+.cmp .top { position: absolute; inset: 0; clip-path: inset(0 0 0 50%); }
+.cmp .bar { position: absolute; top: 0; bottom: 0; left: 50%; width: 2px; margin-left: -1px; background: #fff; box-shadow: 0 0 8px rgba(0,0,0,.6); }
+.cmp .knob { position: absolute; top: 50%; left: 50%; width: 38px; height: 38px; margin: -19px 0 0 -19px; border-radius: 50%; background: #fff; color: #070A18; display: grid; place-items: center; font-weight: 700; box-shadow: 0 2px 10px rgba(0,0,0,.5); }
+.cmp .tag { position: absolute; top: 12px; padding: 4px 10px; border-radius: 99px; background: rgba(7,10,24,0.75); font-family: var(--font-mono); font-size: 0.78rem; color: #EEF0FA; }
+.cmp .tag.l { left: 12px; } .cmp .tag.r { right: 12px; }
+.sites { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.sm { font: inherit; font-size: 0.85rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; cursor: pointer; }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.ar { font-family: 'IBM Plex Sans Arabic', sans-serif; color: var(--accent); }
+.story { display: grid; gap: 10px; padding: 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); }
+.story h2 { font-size: 1.3rem; font-weight: 800; display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: baseline; }
+.story p { color: var(--muted); }
+.credit { font-size: 0.8rem; color: var(--muted); }
+#rng { width: 100%; accent-color: var(--accent); margin-top: 10px; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Experiment · Earth observation · UAE</span>
+    <h1 style="font-size:var(--step-3)">Then and now.</h1>
+    <p>The same patch of the UAE seen from orbit in 2000 and this month. Drag across the picture to wipe between them.</p>
+  </div>
+  <div class="sites" id="sites" role="group" aria-label="Place"></div>
+  <div class="game">
+    <div>
+      <div class="cmp" id="cmp">
+        <img id="imgThen" alt="">
+        <div class="top"><img id="imgNow" alt=""></div>
+        <div class="bar" id="bar"></div><div class="knob" id="knob" aria-hidden="true">⇆</div>
+        <span class="tag l" id="tagL"></span><span class="tag r" id="tagR"></span>
+      </div>
+      <input type="range" id="rng" min="0" max="100" value="50" aria-label="Wipe between then and now">
+    </div>
+    <div class="panel">
+      <div class="story" id="story"></div>
+      <p class="fact">The 2000 images come from Landsat 7, which sees the ground in 30 m pixels; today's are Sentinel-2 at 10 m, which is why the old ones look softer. Both are real surface reflectance, colour-balanced the same way.</p>
+      <p class="credit">Landsat imagery courtesy of the U.S. Geological Survey. Contains modified Copernicus Sentinel-2 data.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var STORY = {
+    palm: 'In 2000 this was a plain stretch of beach. Work on the Palm began in 2001, building the trunk, 16 fronds and an 11 km breakwater from dredged sand and rock.',
+    saadiyat: 'A low, sandy island of dunes and mangrove creeks. Today it holds the Louvre Abu Dhabi, new neighbourhoods and protected beaches where hawksbill turtles still nest.',
+    yas: 'Mostly sand and sabkha in 2000. The Yas Marina Circuit hosted its first Formula 1 race in 2009, and the island grew around it.',
+    downtown: 'Sheikh Zayed Road is already there in 2000, with desert beside it. The Burj Khalifa, the tallest building in the world, opened here in 2010, along with the lake and the Dubai Mall.'
+  };
+  var meta = [], cur = null, pos = 50;
+  function fmt(d) { var p = d.split('-'); return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][+p[1] - 1] + ' ' + p[0]; }
+  function set(p) { pos = Math.max(0, Math.min(100, p)); document.querySelector('.cmp .top').style.clipPath = 'inset(0 0 0 ' + pos + '%)'; $('bar').style.left = pos + '%'; $('knob').style.left = pos + '%'; $('rng').value = pos; }
+  function show(s) {
+    cur = s; var base = '../assets/eo/thennow/' + s.id;
+    $('imgThen').src = base + '-then.jpg'; $('imgThen').alt = s.en + ' from space in ' + fmt(s.then.date);
+    $('imgNow').src = base + '-now.jpg'; $('imgNow').alt = s.en + ' from space in ' + fmt(s.now.date);
+    $('tagL').textContent = fmt(s.then.date); $('tagR').textContent = fmt(s.now.date);
+    $('story').innerHTML = '<h2><span>' + s.en + '</span><span class="ar" lang="ar">' + s.ar + '</span></h2><p>' + STORY[s.id] + '</p>';
+    [].forEach.call($('sites').children, function (b) { b.setAttribute('aria-pressed', b.dataset.id === s.id); });
+    try { history.replaceState(null, '', '?place=' + s.id); } catch (e) {}
+  }
+  fetch('../assets/eo/thennow/meta.json').then(function (r) { return r.json(); }).then(function (m) {
+    meta = m.filter(function (s) { return s.then && s.now; });
+    $('sites').innerHTML = meta.map(function (s) { return '<button class="sm" type="button" data-id="' + s.id + '">' + s.en + '</button>'; }).join('');
+    $('sites').onclick = function (e) { var b = e.target.closest('button'); if (b) show(meta.filter(function (s) { return s.id === b.dataset.id; })[0]); };
+    var want = null; try { want = new URLSearchParams(location.search).get('place'); } catch (e) {}
+    show(meta.filter(function (s) { return s.id === want; })[0] || meta[0]); set(50);
+  });
+  var cmp = $('cmp'), down = false;
+  function fromEvent(e) { var r = cmp.getBoundingClientRect(); set((e.clientX - r.left) / r.width * 100); }
+  cmp.addEventListener('pointerdown', function (e) { down = true; cmp.setPointerCapture(e.pointerId); fromEvent(e); });
+  cmp.addEventListener('pointermove', function (e) { if (down) fromEvent(e); });
+  cmp.addEventListener('pointerup', function () { down = false; });
+  $('rng').addEventListener('input', function () { set(+this.value); });
+})();
+</script>
+</body>
+</html>
