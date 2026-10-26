@@ -34,6 +34,7 @@
 .row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: 0.9rem; }
 .row input[type=range] { grid-column: 1 / -1; width: 100%; }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -341,13 +342,13 @@
   [].forEach.call($('presets').children, function (b) { b.onclick = function () { applyMix(PRESETS[+b.dataset.p][1]); $('msg').textContent = PRESETS[+b.dataset.p][0] + '.'; }; });
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function renderMixes() {
-    $('mixes').innerHTML = st.saved.length ? st.saved.map(function (m, i) { return '<li><span>' + esc(m.name) + '</span><button class="sm" type="button" data-load="' + i + '">Play</button><button class="sm" type="button" data-del="' + i + '" aria-label="Delete ' + esc(m.name) + '">✕</button></li>'; }).join('') : '<li style="grid-template-columns:1fr"><span class="msg" style="min-height:0">Set the sliders how you like, name it and save.</span></li>';
+    $('mixes').innerHTML = st.saved.length ? st.saved.map(function (m, i) { return '<li><span data-noar>' + esc(m.name) + '</span><button class="sm" type="button" data-load="' + i + '">Play</button><button class="sm" type="button" data-del="' + i + '" aria-label="Delete ' + esc(m.name) + '">✕</button></li>'; }).join('') : '<li style="grid-template-columns:1fr"><span class="msg" style="min-height:0">Set the sliders how you like, name it and save.</span></li>';
     [].forEach.call($('mixes').querySelectorAll('[data-load]'), function (b) { b.onclick = function () { var m = st.saved[+b.dataset.load]; applyMix(m.mix); $('msg').textContent = m.name + '.'; }; });
     [].forEach.call($('mixes').querySelectorAll('[data-del]'), function (b) { b.onclick = function () { st.saved.splice(+b.dataset.del, 1); save(); renderMixes(); }; });
   }
   $('save').onclick = function () {
     if (!Object.keys(st.mix).length) { $('msg').textContent = 'Turn up at least one sound first.'; return; }
-    var name = $('name').value.trim() || 'Mix ' + (st.saved.length + 1);
+    var name = $('name').value.trim() || (window.LabAr && LabAr.on ? 'مزيج ' : 'Mix ') + (st.saved.length + 1);
     var i = st.saved.findIndex(function (m) { return m.name === name; }), entry = { name: name, mix: Object.assign({}, st.mix) };
     if (i >= 0) st.saved[i] = entry; else st.saved.unshift(entry);
     st.saved = st.saved.slice(0, 30); save(); renderMixes(); $('name').value = ''; $('msg').textContent = 'Saved "' + name + '".';

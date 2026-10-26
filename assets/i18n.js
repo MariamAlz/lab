@@ -71,7 +71,7 @@
   var ATTR = ['placeholder', 'title', 'aria-label', 'alt'];
   function skip(el) { return el.closest && el.closest('[data-noar],[translate="no"],.leaflet-control-attribution'); }
   function doEl(el) {
-    if (!el || el.nodeType !== 1 || (SKIP[el.tagName] && el.tagName !== 'TEXTAREA') || skip(el)) return;
+    if (!el || el.nodeType !== 1 || (SKIP[el.tagName.toUpperCase()] && el.tagName !== 'TEXTAREA') || skip(el)) return;
     ATTR.forEach(function (a) { var v = el.getAttribute(a); if (v && /[A-Za-z]/.test(v)) { var t = tr(v); if (t !== v) el.setAttribute(a, t); } });
     if (el.tagName === 'TEXTAREA') return;
     if (el.tagName === 'INPUT' && /^(button|submit|reset)$/.test(el.type) && el.value) { var tv = tr(el.value); if (tv !== el.value) el.value = tv; }
@@ -83,7 +83,7 @@
   }
   function doText(n) {
     var v = n.nodeValue; if (!v || !/[A-Za-z]/.test(v)) return;
-    var p = n.parentNode; if (!p || SKIP[p.nodeName] || (p.closest && skip(p))) return;
+    var p = n.parentNode; if (!p || SKIP[p.nodeName.toUpperCase()] || (p.closest && skip(p))) return;
     var t = tr(v); if (t !== v) n.nodeValue = t;
   }
   function run(node) { if (node && node.isConnected !== false) { if (node.nodeType === 3) doText(node); else doEl(node); } }

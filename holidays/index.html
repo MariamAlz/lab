@@ -39,6 +39,7 @@
 .hl li span:last-child { font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted); white-space: nowrap; }
 .acts { display: flex; gap: 10px; flex-wrap: wrap; }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -149,7 +150,7 @@
     var tk = key(t0), html = '';
     for (var m = 0; m < 12; m++) {
       var first = utc(y, m, 1), pad = first.getUTCDay(), dim = new Date(Date.UTC(y, m + 1, 0)).getUTCDate();
-      html += '<div class="mon"><h3>' + MONTHS[m] + '</h3><div class="g">' + ['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(function (x) { return '<span class="h">' + x + '</span>'; }).join('') + new Array(pad + 1).join('<span></span>');
+      html += '<div class="mon"><h3>' + MONTHS[m] + '</h3><div class="g">' + (window.LabAr && LabAr.on ? ['ح', 'ن', 'ث', 'ر', 'خ', 'ج', 'س'] : ['S', 'M', 'T', 'W', 'T', 'F', 'S']).map(function (x) { return '<span class="h">' + x + '</span>'; }).join('') + new Array(pad + 1).join('<span></span>');
       for (var dd = 1; dd <= dim; dd++) { var k2 = key(utc(y, m, dd)), dy = days.filter(function (z) { return z.k === k2; })[0]; html += '<span class="' + (dy.ph ? 'ph' : LV[k2] ? 'lv' : dy.we ? 'we' : '') + (k2 === tk ? ' td' : '') + '" title="' + (dy.ph || (LV[k2] ? 'take leave' : '')) + '">' + dd + '</span>'; }
       html += '</div></div>';
     }

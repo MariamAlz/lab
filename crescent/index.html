@@ -37,7 +37,10 @@
 .gloss { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; margin: 0; font-size: 0.86rem; }
 .gloss dt { font-family: var(--font-mono); color: var(--accent); }
 .gloss dd { margin: 0; color: var(--muted); }
+html.ar .month h3 .en { display: none; }
+html.ar .eve dd { direction: ltr; unicode-bidi: plaintext; text-align: left; }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -64,7 +67,7 @@
         <dt>Lag</dt><dd>Minutes between sunset and moonset. More time means a darker sky while the Moon is still up.</dd>
         <dt>ARCV</dt><dd>How much higher the Moon is than the Sun, in degrees.</dd>
         <dt>ARCL</dt><dd>The angle between the Moon and the Sun (elongation). Below about 7° no crescent forms that anyone has seen.</dd>
-        <dt>W</dt><dd>The crescent's width in arcminutes. Even a good crescent is only about 0.5′ thick, less than a sixtieth of the Moon's width.</dd>
+        <dt data-noar>W</dt><dd>The crescent's width in arcminutes. Even a good crescent is only about 0.5′ thick, less than a sixtieth of the Moon's width.</dd>
       </dl>
       <p class="fact" style="margin:0">The verdict uses <b>Odeh's criterion (2004)</b>, fitted to 737 real sighting reports. It compares ARCV with the width W at the "best time", which is sunset plus four ninths of the lag: V = ARCV − (−0.1018W³ + 0.7319W² − 6.3226W + 7.1651). V ≥ 5.65 means naked eye, 2 to 5.65 optical aid and maybe naked eye, −0.96 to 2 optical aid only, below −0.96 not visible. The older <b>Yallop q</b> value is shown for comparison.</p>
     </div>
@@ -199,7 +202,7 @@
       for (var k = 0; k < 3; k++) { var e = evening(addDays(d0, k), c); if (e) eves.push(e); }
       // skip the day of conjunction when the Moon is not yet born at sunset, add a third day instead
       if (eves.length && eves[0].code === -2) { var e3 = evening(addDays(d0, 3), c); eves = eves.slice(1); if (e3) eves.push(e3); }
-      html += '<section class="month"><h3><span>' + h.en + '</span><span class="ar" dir="rtl" lang="ar">' + h.ar + '</span></h3><span class="mono">New moon ' + df.format(new Date(c)) + ' at ' + tf.format(c) + (h.date ? ' · Umm al-Qura calendar starts the month on ' + dlabel(h.date) : '') + '</span><div class="eves">' + eves.map(card).join('') + '</div></section>';
+      html += '<section class="month"><h3><span class="en" data-noar>' + h.en + '</span><span class="ar" dir="rtl" lang="ar">' + h.ar + '</span></h3><span class="mono">New moon ' + df.format(new Date(c)) + ' at ' + tf.format(c) + (h.date ? ' · Umm al-Qura calendar starts the month on ' + dlabel(h.date) : '') + '</span><div class="eves">' + eves.map(card).join('') + '</div></section>';
     });
     $('months').innerHTML = html;
     [].forEach.call(document.querySelectorAll('.eve'), function (b) { b.onclick = function () { pickEve(+b.dataset.i); }; });
@@ -227,7 +230,7 @@
     c.strokeStyle = 'rgba(255,255,255,.08)'; c.fillStyle = 'rgba(255,255,255,.45)'; c.font = '26px "JetBrains Mono", monospace'; c.textAlign = 'left';
     for (var a = -10; a <= 15; a += 5) if (a) { c.beginPath(); c.moveTo(0, Y(a)); c.lineTo(W, Y(a)); c.stroke(); c.fillText(a + '°', 8, Y(a) - 4); }
     c.textAlign = 'center';
-    [['S', 180], ['SW', 225], ['W', 270], ['NW', 315]].forEach(function (k) { var x = X(k[1]); if (x > 20 && x < W - 20) c.fillText(k[0], x, Y(0) + 28); });
+    [['S', 180], ['SW', 225], ['W', 270], ['NW', 315]].forEach(function (k) { var x = X(k[1]); if (x > 20 && x < W - 20) var lb = window.LabAr && LabAr.on ? LabAr.t(k[0]) : k[0], hw = c.measureText(lb).width / 2 + 4; c.fillText(lb, Math.min(Math.max(x, hw), W - hw), Y(0) + 28); });
     c.strokeStyle = 'rgba(79,211,189,.7)'; c.beginPath(); c.moveTo(0, Y(0)); c.lineTo(W, Y(0)); c.stroke();
     // Sun (below horizon)
     var sx = X(sAz), sy = Y(p.sun.alt); c.fillStyle = '#ffc857'; c.beginPath(); c.arc(sx, sy, 14, 0, 2 * Math.PI); c.fill();

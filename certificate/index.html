@@ -40,7 +40,12 @@
 .res { display: grid; gap: 14px; }
 .res[hidden] { display: none !important; }
 h3.sub { font-size: 1rem; font-weight: 700; }
+html.ar .life i { inset: 0 0 0 auto; }
+html.ar .drop { display: block; }
+html.ar .raw, html.ar .look input { direction: ltr; }
+html.ar .kv dd, html.ar .names span, html.ar .head h2, html.ar .plain small[data-noar] { unicode-bidi: plaintext; text-align: right; }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -160,15 +165,15 @@ h3.sub { font-size: 1rem; font-weight: 700; }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function show() {
     $('empty').hidden = true; $('out').hidden = false;
-    $('tabs').innerHTML = certs.length > 1 ? certs.map(function (c, i) { return '<button class="sm" type="button" data-i="' + i + '" aria-pressed="' + (i === sel) + '">' + esc(c.subject.CN || c.subject.O || 'cert ' + (i + 1)) + '</button>'; }).join('') : '';
+    $('tabs').innerHTML = certs.length > 1 ? certs.map(function (c, i) { return '<button class="sm" type="button" data-noar data-i="' + i + '" aria-pressed="' + (i === sel) + '">' + esc(c.subject.CN || c.subject.O || 'cert ' + (i + 1)) + '</button>'; }).join('') : '';
     var c = certs[sel], now = Date.now(), days = Math.round((c.to - now) / 864e5), total = (c.to - c.from) / 864e5, used = Math.max(0, Math.min(1, (now - c.from) / (c.to - c.from)));
     var kind = c.self && c.ca ? 'A root authority: browsers ship it built in' : c.self ? 'Self-signed: it vouches for itself' : c.ca ? 'A certificate authority (it signs other certificates)' : 'A website or user certificate';
     var col = days < 0 ? 'var(--sat-c)' : days < 14 ? 'var(--sat-c)' : days < 30 ? 'var(--accent)' : 'var(--sat-b)';
-    $('head').innerHTML = '<h2>' + esc(c.subject.CN || c.subject.O || c.san[0] || 'No name') + '</h2><p>' + kind + (c.pre ? ' · log copy (precertificate)' : '') + '</p>' +
+    $('head').innerHTML = '<h2 data-noar>' + esc(c.subject.CN || c.subject.O || c.san[0] || 'No name') + '</h2><p>' + kind + (c.pre ? ' · log copy (precertificate)' : '') + '</p>' +
       '<div class="life"><i style="width:' + (used * 100) + '%;background:' + col + '"></i></div><div class="lifelbl"><span>' + fmtD(c.from) + '</span><span>' + (days < 0 ? 'expired ' + (-days) + ' days ago' : days + ' days left') + '</span><span>' + fmtD(c.to) + '</span></div>';
     var P = [];
     P.push([days < 0 ? 'bad' : days < 30 ? 'meh' : 'ok', days < 0 ? 'Expired' : days < 30 ? 'Expires soon' : 'In date', 'Valid for ' + Math.round(total) + ' days in total. ' + (total > 398 && !c.ca && !c.self ? 'Longer than browsers accept for websites (398 days).' : total <= 100 && !c.ca ? 'Short-lived, as automated services like Let\'s Encrypt issue them.' : '')]);
-    P.push(['na', 'Vouched for by', c.self && c.ca ? 'Itself. Roots like this come pre-installed in your phone and browser, and everything they sign inherits that trust.' : c.self ? 'Nobody else. Browsers won\'t trust it unless it is a root they already ship.' : (c.issuer.O || '') + (c.issuer.CN ? ' (' + c.issuer.CN + ')' : '')]);
+    P.push(['na', 'Vouched for by', c.self && c.ca ? 'Itself. Roots like this come pre-installed in your phone and browser, and everything they sign inherits that trust.' : c.self ? 'Nobody else. Browsers won\'t trust it unless it is a root they already ship.' : (c.issuer.O || '') + (c.issuer.CN ? ' (' + c.issuer.CN + ')' : ''), !c.self]);
     var org = c.subject.O ? 'The company "' + c.subject.O + '"' + (c.subject.C ? ' in ' + c.subject.C : '') + ' was named and checked.' : 'Only control of the domain was checked; no company name is included.';
     var lvl = c.policies.indexOf('2.23.140.1.1') >= 0 ? 'Extended validation (EV)' : c.policies.indexOf('2.23.140.1.2.2') >= 0 ? 'Organisation validated (OV)' : c.policies.indexOf('2.23.140.1.2.1') >= 0 ? 'Domain validated (DV)' : c.policies.indexOf('2.23.140.1.2.3') >= 0 ? 'Individual validated (IV)' : '';
     if (!c.ca) P.push(['na', lvl || 'Who was checked', org]);
@@ -177,11 +182,11 @@ h3.sub { font-size: 1rem; font-weight: 700; }
     if (c.eku.length) P.push(['na', 'Allowed for', c.eku.join(', ')]);
     if (!c.ca && !c.self) P.push([c.sct >= 2 || c.pre ? 'ok' : 'meh', c.sct ? 'Publicly logged ' + c.sct + ' times' : 'No log receipts inside', c.sct ? 'Embedded receipts from Certificate Transparency logs, which Chrome and Safari require.' : 'Browsers may need the receipts from somewhere else (TLS or OCSP).']);
     if (c.san.some(function (n) { return n.indexOf('*.') === 0; })) P.push(['na', 'Wildcard', 'Covers every first-level subdomain, such as anything.' + c.san.filter(function (n) { return n.indexOf('*.') === 0; })[0].slice(2) + '.']);
-    $('plain').innerHTML = P.map(function (p) { return '<li><span class="' + p[0] + '">' + ({ ok: '✓', bad: '✕', meh: '!', na: '·' })[p[0]] + '</span><span>' + esc(p[1]) + '<small>' + esc(p[2]) + '</small></span></li>'; }).join('');
-    $('names').innerHTML = (c.san.length ? c.san : [c.subject.CN || '—']).map(function (n) { return '<span>' + esc(n) + '</span>'; }).join('');
+    $('plain').innerHTML = P.map(function (p) { return '<li><span class="' + p[0] + '">' + ({ ok: '✓', bad: '✕', meh: '!', na: '·' })[p[0]] + '</span><span>' + esc(p[1]) + '<small' + (p[3] ? ' data-noar' : '') + '>' + esc(p[2]) + '</small></span></li>'; }).join('');
+    $('names').innerHTML = (c.san.length ? c.san : [c.subject.CN || '—']).map(function (n) { return '<span data-noar>' + esc(n) + '</span>'; }).join('');
     crypto.subtle.digest('SHA-256', c.der).then(function (h) {
       var kv = [['Subject', c.subject._], ['Issuer', c.issuer._], ['Serial', c.serial], ['Version', 'v' + c.version], ['SHA-256 fingerprint', hex(new Uint8Array(h), ':').toUpperCase()], ['OCSP', c.ocsp], ['Issuer cert', c.caIssuers]];
-      $('kv').innerHTML = kv.filter(function (x) { return x[1]; }).map(function (x) { return '<dt>' + x[0] + '</dt><dd>' + esc(x[1]) + '</dd>'; }).join('');
+      $('kv').innerHTML = kv.filter(function (x) { return x[1]; }).map(function (x) { return '<dt>' + x[0] + '</dt><dd data-noar>' + esc(x[1]) + '</dd>'; }).join('');
     });
   }
   $('tabs').addEventListener('click', function (e) { var b = e.target.closest('[data-i]'); if (b) { sel = +b.dataset.i; show(); } });

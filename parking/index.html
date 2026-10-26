@@ -57,6 +57,7 @@
 [hidden] { display: none !important; }
 @media (max-width: 520px) { .two { grid-template-columns: 1fr; } }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -362,10 +363,10 @@
     if (r.level) t.push(['Level', r.level]);
     if (r.zone) t.push(['Zone', r.zone]);
     if (r.colour) t.push(['Colour', r.colour]);
-    if (r.pillar) t.push(['Pillar', r.pillar]);
-    if (r.note) t.push(['Note', r.note]);
+    if (r.pillar) t.push(['Pillar', r.pillar, 1]);
+    if (r.note) t.push(['Note', r.note, 1]);
     if (!t.length) t.push(['Saved', fmtT(r.t)]);
-    return t.map(function (x) { return '<span>' + esc(x[0]) + '<b>' + esc(x[1]) + '</b></span>'; }).join('');
+    return t.map(function (x) { return '<span>' + esc(x[0]) + '<b' + (x[2] ? ' data-noar' : '') + '>' + esc(x[1]) + '</b></span>'; }).join('');
   }
   function renderFind() {
     $('findEmpty').hidden = !!cur; $('findBody').hidden = !cur;

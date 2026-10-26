@@ -48,7 +48,10 @@
 .acts { display: flex; flex-wrap: wrap; gap: 10px; }
 .voice { font-family: var(--font-mono); font-size: 0.8rem; padding: 7px 12px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--muted); cursor: pointer; }
 .voice[aria-pressed="true"] { color: var(--sat-b); border-color: var(--sat-b); }
+html.ar .notes blockquote { border-radius: 12px 0 0 12px; font-family: inherit; font-style: normal; }
+html.ar .stage { direction: ltr; }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -132,7 +135,7 @@
     var b = $('bubble'); b.textContent = text; b.className = 'bubble' + (cls ? ' ' + cls : '');
     if (!reduce) { void b.offsetWidth; b.classList.add('pop'); }
     if (voiceOn && window.speechSynthesis && !cls) {
-      speechSynthesis.cancel(); var u = new SpeechSynthesisUtterance(text.replace(/!/g, '')); u.rate = 0.9; u.lang = 'en-GB'; speechSynthesis.speak(u);
+      speechSynthesis.cancel(); var ar = window.LabAr && LabAr.on, u = new SpeechSynthesisUtterance((ar ? LabAr.t(text) : text).replace(/!/g, '')); u.rate = 0.9; u.lang = ar ? 'ar' : 'en-GB'; speechSynthesis.speak(u);
     }
   }
   function stats() { $('sCalls').textContent = calls; $('sWrong').textContent = wrong; $('sStones').textContent = placed.length; }

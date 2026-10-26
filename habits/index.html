@@ -52,7 +52,9 @@
 .rem li.past { opacity: .5; }
 .edit { display: grid; gap: 8px; padding-top: 6px; border-top: 1px solid var(--line); }
 .empty { padding: 20px; text-align: center; color: var(--muted); border: 1px dashed var(--line); border-radius: 14px; }
+html.ar .hb .sk small { letter-spacing: 0; }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -238,7 +240,7 @@
     var T = times(today(), D.loc.lat, D.loc.lng, D.loc.tz), now = new Date(), nowM = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
     var list = D.habits.map(function (h) { return { h: h, m: remTime(h, T) }; }).filter(function (x) { return x.m != null; }).sort(function (a, b) { return a.m - b.m; });
     $('rems').innerHTML = list.length ? list.map(function (x) {
-      return '<li class="' + (x.m < nowM ? 'past' : '') + '"><span>' + esc(x.h.name) + (ramOn() && x.h.anchor && x.h.anchor !== 'keep' ? ' <small style="color:var(--muted)">· ' + ANCH[x.h.anchor].toLowerCase() + '</small>' : '') + '</span><b class="mono">' + hm(x.m / 60) + '</b></li>';
+      return '<li class="' + (x.m < nowM ? 'past' : '') + '"><span><span data-noar>' + esc(x.h.name) + '</span>' + (ramOn() && x.h.anchor && x.h.anchor !== 'keep' ? ' <small style="color:var(--muted)">· ' + ANCH[x.h.anchor].toLowerCase() + '</small>' : '') + '</span><b class="mono">' + hm(x.m / 60) + '</b></li>';
     }).join('') : '<li><span class="msg">No reminders set. Add a time to a habit.</span></li>';
     list.forEach(function (x) {
       var ms = (x.m - nowM) * 60000; if (ms <= 0 || ms > 864e5) return;
@@ -285,7 +287,7 @@
         '<input type="number" data-f="off" min="0" max="240" step="5" value="' + (h.off == null ? 30 : h.off) + '" style="width:72px" aria-label="Minutes"> min</div>' +
         '<div class="line">' + COLORS.map(function (c) { return '<button type="button" class="sm x" data-col="' + c + '" aria-label="Colour" style="background:' + c + ';border-color:' + (c === h.color ? 'var(--ink)' : c) + ';width:24px;height:24px;padding:0"></button>'; }).join('') +
         '<button class="sm x" type="button" data-up="' + h.id + '">↑ Move up</button><button class="sm x" type="button" data-del="' + h.id + '" style="color:var(--sat-c)">Delete</button></div></div>' : '';
-      return '<li class="hb" style="--c:' + h.color + '" data-h="' + h.id + '"><div class="top"><button type="button" class="tick" data-tog="' + h.id + '" data-day="' + key(t) + '" aria-pressed="' + dn + '" aria-label="' + (dn ? 'Undo ' : 'Check in ') + esc(h.name) + '">' + (dn ? '✓' : '') + '</button><div><h3>' + esc(h.name) + '</h3><span class="sub">' + sub + '</span></div><div class="sk">' + sk + '<small>' + (h.kind === 'weekly' ? 'week' : 'day') + (sk === 1 ? '' : 's') + ' streak</small></div></div>' +
+      return '<li class="hb" style="--c:' + h.color + '" data-h="' + h.id + '"><div class="top"><button type="button" class="tick" data-tog="' + h.id + '" data-day="' + key(t) + '" aria-pressed="' + dn + '" aria-label="' + (dn ? 'Undo ' : 'Check in ') + esc(h.name) + '">' + (dn ? '✓' : '') + '</button><div><h3 data-noar>' + esc(h.name) + '</h3><span class="sub">' + sub + '</span></div><div class="sk">' + sk + '<small>' + (h.kind === 'weekly' ? 'week' : 'day') + (sk === 1 ? '' : 's') + ' streak</small></div></div>' +
         '<div class="week">' + wk + '</div>' +
         '<div class="line"><button class="sm x" type="button" data-heat="' + h.id + '">' + (openHeat[h.id] ? 'Hide year' : 'Show year') + '</button><button class="sm x" type="button" data-edit="' + h.id + '">' + (openEdit === h.id ? 'Close' : 'Edit') + '</button></div>' +
         (openHeat[h.id] ? '<div class="heat">' + heat(h) + '</div><div class="hstat"><span>Total <b>' + Object.keys(D.log[h.id] || {}).length + '</b></span><span>Best streak <b>' + bestStreak(h) + '</b></span><span>Last 30 days <b>' + Math.round(rate30(h) * 100) + '%</b></span><span>Tap a square to fix a past day.</span></div>' : '') + ed + '</li>';
@@ -323,7 +325,7 @@
   document.addEventListener('click', function (e) {
     var b = e.target.closest ? e.target.closest('button, rect') : null; if (!b) return;
     var v;
-    if ((v = b.getAttribute('data-idea'))) { $('hName').value = v; addHabit(v); }
+    if ((v = b.getAttribute('data-idea'))) { if (window.LabAr) v = LabAr.t(v); $('hName').value = v; addHabit(v); }
     else if ((v = b.getAttribute('data-tog'))) { var p = b.getAttribute('data-day').split('-'); toggle(hById(+v), new Date(+p[0], p[1] - 1, +p[2])); }
     else if ((v = b.getAttribute('data-heat'))) { openHeat[v] = !openHeat[v]; render(); }
     else if ((v = b.getAttribute('data-edit'))) { openEdit = openEdit === +v ? null : +v; render(); }
@@ -379,7 +381,7 @@
     if (D.habits.length && !confirm('Replace your habits with demo data?')) return;
     D = blank(); var t = today();
     [['Read 10 pages', 'daily', 0, '21:30', 'iftar', 90, 0.7], ['Walk 20 minutes', 'weekly', 4, '18:00', 'preiftar', 45, 0.55], ['Drink 8 glasses of water', 'daily', 0, '10:00', 'suhoor', 30, 0.85], ['Call family', 'weekly', 2, '', 'keep', 30, 0.3]].forEach(function (x, i) {
-      var h = { id: D.nid++, name: x[0], kind: x[1], target: x[2] || 1, time: x[3], anchor: x[4], off: x[5], color: COLORS[i], created: key(addDays(t, -365)) };
+      var h = { id: D.nid++, name: window.LabAr ? LabAr.t(x[0]) : x[0], kind: x[1], target: x[2] || 1, time: x[3], anchor: x[4], off: x[5], color: COLORS[i], created: key(addDays(t, -365)) };
       D.habits.push(h); D.log[h.id] = {};
       for (var k = 1; k < 365; k++) if (Math.random() < x[6] * (0.6 + 0.4 * Math.sin(k / 40) ** 2 + 0.2)) D.log[h.id][key(addDays(t, -k))] = 1;
     });

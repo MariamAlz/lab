@@ -33,7 +33,9 @@ h2.sub { font-size: var(--step-1); font-weight: 800; margin-top: 34px; }
 .perm li { font-size: 0.8rem; padding: 3px 10px; border-radius: 99px; border: 1px solid var(--line); }
 .ok { color: var(--sat-b); } .bad { color: var(--sat-c); } .meh { color: var(--accent); }
 @media (max-width: 700px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+html.ar .item .v[data-noar] { direction: ltr; text-align: right; }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -68,7 +70,7 @@ h2.sub { font-size: var(--step-1); font-weight: 800; margin-top: 34px; }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function item(where, id, title, risk, val, why, block) {
     var d = document.createElement('div'); d.className = 'item' + (where === 'ask' ? ' ask' : ''); d.id = id;
-    d.innerHTML = '<h3>' + title + '<small class="' + (risk === 'high' ? 'bad' : risk === 'medium' ? 'meh' : 'ok') + '">' + risk + '</small></h3><div class="v">' + val + '</div><p>' + why + '</p>' + (block ? '<details><summary>How to hide it</summary>' + block + '</details>' : '');
+    d.innerHTML = '<h3>' + title + '<small class="' + (risk === 'high' ? 'bad' : risk === 'medium' ? 'meh' : 'ok') + '">' + risk + '</small></h3><div class="v"' + (id === 'lang' || id === 'gpu' ? ' data-noar' : '') + '>' + val + '</div><p>' + why + '</p>' + (block ? '<details><summary>How to hide it</summary>' + block + '</details>' : '');
     $(where).appendChild(d); return d;
   }
   function sha(s) { return crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)).then(function (h) { return Array.from(new Uint8Array(h)).map(function (x) { return ('0' + x.toString(16)).slice(-2); }).join(''); }); }
