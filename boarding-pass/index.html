@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>What Your Boarding Pass Reveals · Mariam's Lab</title>
+<meta name="description" content="Scan the barcode on a boarding pass and see what it holds: your name, booking reference, ticket and frequent flyer numbers. Learn why you shouldn't post it online.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/boarding-pass/">
+<meta property="og:title" content="What Your Boarding Pass Reveals · Mariam's Lab"><meta property="og:description" content="Scan a boarding pass barcode and see what anyone else could read from it."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.privacy { display: flex; gap: 10px; align-items: center; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--sat-b); color: var(--ink); font-size: 0.92rem; margin-bottom: 18px; background: rgba(79,211,189,.08); }
+.privacy b { color: var(--sat-b); }
+.btns { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.sm { font: inherit; font-size: 0.85rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 7px 14px; cursor: pointer; text-decoration: none; display: inline-block; }
+.sm.pri { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.cam { position: relative; aspect-ratio: 4 / 3; max-width: 520px; width: 100%; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); background: #05070f; display: grid; place-items: center; }
+.cam video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.cam .aim { position: absolute; inset: 22% 8%; border: 2px solid rgba(255,255,255,.7); border-radius: 12px; box-shadow: 0 0 0 999px rgba(0,0,0,.35); pointer-events: none; }
+.cam p { position: relative; color: var(--muted); font-size: 0.9rem; text-align: center; padding: 0 20px; }
+.drop { border: 1px dashed var(--line); border-radius: 12px; padding: 14px; text-align: center; color: var(--muted); font-size: 0.86rem; }
+.drop.over { border-color: var(--accent); color: var(--ink); }
+textarea.raw { width: 100%; min-height: 70px; font: 0.8rem/1.4 var(--font-mono); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px; resize: vertical; box-sizing: border-box; }
+.pane { padding: 18px; border-radius: var(--radius); border: 1px solid var(--line); background: rgba(7,10,24,.82); display: grid; gap: 12px; min-width: 0; }
+.pane h2 { font-size: 1.25rem; margin: 0; word-break: break-word; }
+.legs { display: grid; gap: 10px; }
+.legcard { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: grid; gap: 8px; background: var(--surface); }
+.route { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-weight: 800; font-size: clamp(1.4rem, 5vw, 2rem); direction: ltr; justify-content: flex-start; }
+.route span { color: var(--muted); font-size: 1rem; font-weight: 400; }
+.kv { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 14px; font-size: 0.9rem; margin: 0; }
+.kv dt { color: var(--muted); } .kv dd { margin: 0; font-family: var(--font-mono); font-size: 0.84rem; word-break: break-word; }
+.kv dd.hot { color: var(--sat-c); font-weight: 500; }
+@media (max-width: 420px) { .kv { grid-template-columns: minmax(0, 1fr); gap: 2px; } .kv dd { margin-bottom: 8px; } }
+.rawview { font-family: var(--font-mono); font-size: 0.78rem; line-height: 1.9; word-break: break-all; padding: 10px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); direction: ltr; text-align: left; white-space: pre-wrap; }
+.rawview span { border-radius: 3px; padding: 1px 0; }
+.rawview .f-name { background: rgba(255,79,109,.35); } .rawview .f-pnr { background: rgba(255,200,87,.45); } .rawview .f-flt { background: rgba(132,160,255,.3); }
+.rawview .f-id { background: rgba(79,211,189,.35); } .rawview .f-misc { background: rgba(255,255,255,.08); } .rawview .f-sec { background: rgba(255,255,255,.18); }
+.legend2 { display: flex; gap: 10px; flex-wrap: wrap; font-size: 0.75rem; color: var(--muted); }
+.legend2 span::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-inline-end: 4px; vertical-align: -1px; background: var(--c); }
+.checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.checks li { display: grid; grid-template-columns: 1.4em minmax(0, 1fr); gap: 8px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; font-size: 0.92rem; }
+.checks small { display: block; color: var(--muted); font-size: 0.82rem; word-break: break-word; }
+.ok { color: var(--sat-b); } .bad { color: var(--sat-c); } .meh { color: var(--accent); }
+.tips { margin: 0; padding-inline-start: 1.1em; display: grid; gap: 6px; font-size: 0.88rem; color: var(--muted); }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 0; }
+html.ar .route { justify-content: flex-end; }
+html.ar .kv dd { unicode-bidi: plaintext; }
+[hidden] { display: none !important; }
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Privacy · Travel</span>
+    <h1 style="font-size:var(--step-3)">What your boarding pass reveals.</h1>
+    <p>The barcode on a boarding pass isn't random. It spells out your name, booking reference, flight, seat and often your frequent flyer and ticket numbers, in plain text that any free scanner app can read. Scan one here to see exactly what a photo of it gives away.</p>
+  </div>
+  <div class="privacy" role="note"><span aria-hidden="true">🔒</span><span><b>Nothing leaves this device.</b> The camera image and the barcode are read inside this browser tab. Nothing is uploaded or saved.</span></div>
+  <div class="game">
+    <div class="panel" style="align-content:start">
+      <div class="cam" id="cam"><p id="camMsg">Point the camera at the barcode on a paper pass or a phone screen, or choose a photo.</p></div>
+      <div class="btns"><button class="sm pri" type="button" id="start">Start camera</button><button class="sm" type="button" id="stop" hidden>Stop</button><label class="sm" style="cursor:pointer">Choose a photo<input type="file" id="file" accept="image/*" hidden></label><button class="sm" type="button" id="demo">Try a sample pass</button></div>
+      <div class="drop" id="drop">Drop a screenshot or photo of the barcode here</div>
+      <label for="rawIn" class="label">Or paste the barcode text</label>
+      <textarea class="raw" id="rawIn" spellcheck="false" placeholder="M1SURNAME/GIVEN MR    EABC123 DXBLHR..." data-noar></textarea>
+      <div class="btns"><button class="sm" type="button" id="readRaw">Read this text</button><select class="sm" id="samples" aria-label="Sample passes"><option value="">More samples…</option><option value="0">One flight, basic</option><option value="1">One flight, full details</option><option value="2">Two flights, one booking</option></select></div>
+      <p class="msg" id="msg" role="status"></p>
+    </div>
+    <div class="panel" style="align-content:start">
+      <div class="pane" id="res" hidden></div>
+      <div class="pane">
+        <span class="label">Keep your pass to yourself</span>
+        <ul class="tips">
+          <li>Don't post photos of boarding passes or bag tags, even with the name covered. The barcode holds the same details.</li>
+          <li>Phone screenshots of mobile passes count too. Crop them out of travel photos.</li>
+          <li>Shred or tear through the barcode on paper passes before throwing them away, including the stubs left in seat pockets and airport bins.</li>
+          <li>Add a PIN or password to your airline account and frequent flyer programme, and turn on sign-in alerts if offered.</li>
+          <li>If a pass was already shared, call the airline. They can add a note to the booking or reissue the reference.</li>
+        </ul>
+      </div>
+      <p class="fact" style="margin:0"><b>How it works.</b> Airlines follow an industry standard called Bar Coded Boarding Pass (BCBP). It's a fixed layout of letters: positions 3 to 22 are your name, the next 7 are the booking reference, then airports, airline, flight number, the day of the year, cabin and seat. Paper passes use a PDF417 stack barcode; phones use Aztec or QR. The data is not encrypted. Some airlines add a digital signature, which stops forgery but doesn't hide anything.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var AR = !!(window.LabAr && LabAr.on);
+  function T(s) { return AR ? LabAr.t(s) : s; }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  // Fictional sample passes (airline code ZZ is not a real airline)
+  var SAMPLES = [
+    'M1EXAMPLE/SAM MR      EXK7Q2P DXBLHRZZ 0001 074Y032A0042 100',
+    'M1PLACEHOLDER/ALEX MS EABC123 AUHCDGZZ 0423 160J004K0007 36B>6322WW6158BZZ 0999123456001                          2A99921543210980 ZZ ZZ 123456789        30KNFICTIONAL^10EGIXNOTAREALSIG',
+    'M2SAMPLE/JORDAN       EQ9W8E7 DXBISTZZ 0711 300Y021C0101 136>60B0MM6299BZZ 2599921500000011 ZZ                    Q9W8E7 ISTJFKZZ 0012 300Y044D0088 1272599921500000011 ZZ                    '
+  ];
+
+  // ---------- IATA BCBP (Resolution 792) parser ----------
+  var STATUS = { '0': 'Ticket issued, not checked in', '1': 'Checked in', '2': 'Bag checked, not checked in', '3': 'Bag checked and checked in', '4': 'Passed security', '5': 'Passed the gate (boarded)', '6': 'Transit', '7': 'Standby', '8': 'Boarding data revalidated', '9': 'Original boarding line used', 'A': 'Upgrade or downgrade needed' };
+  var DESC = { '0': 'Adult', '1': 'Male', '2': 'Female', '3': 'Child', '4': 'Infant', '5': 'No passenger (cabin baggage)', '6': 'Adult with infant', '7': 'Unaccompanied minor' };
+  var SRC = { W: 'Web', K: 'Airport kiosk', R: 'Remote kiosk', M: 'Mobile app', O: 'Airport agent', T: 'Town agent', V: 'Third-party vendor', X: 'Cancelled' };
+  function cabin(c) { return /[FAP]/.test(c) ? 'First' : /[JCDIZR]/.test(c) ? 'Business' : /[WET]/.test(c) ? 'Premium economy' : 'Economy'; }
+  function parse(s) {
+    s = String(s || '').replace(/^\s+/, '').replace(/[\r\n]+$/, '');
+    if (s[0] !== 'M' || !/^[1-9]$/.test(s[1])) throw new Error('This doesn\'t look like a boarding pass barcode. They start with M and a number from 1 to 9.');
+    var f = [], pos = 0, out = { legs: [], fields: f };
+    function take(n, label, cls) { var v = s.substr(pos, n); if (n > 0 && v.length) f.push([pos, v.length, label, cls || 'misc']); pos += n; return v; }
+    function hex(v) { var n = parseInt(v, 16); return isFinite(n) ? n : 0; }
+    take(1, 'Format code'); var nLegs = +take(1, 'Number of legs');
+    out.name = take(20, 'Passenger name', 'name').trim(); out.eticket = take(1, 'Electronic ticket indicator') === 'E';
+    var nm = out.name.split('/'); out.surname = nm[0]; out.given = (nm[1] || '').replace(/\s+(MR|MRS|MS|MISS|MSTR|DR|PROF|CHD|INF)$/, ''); out.title = ((nm[1] || '').match(/\s(MR|MRS|MS|MISS|MSTR|DR|PROF|CHD|INF)$/) || [])[1] || '';
+    for (var i = 0; i < nLegs && pos < s.length; i++) {
+      var L = {};
+      L.pnr = take(7, 'Booking reference (PNR)', 'pnr').trim(); L.from = take(3, 'From', 'flt'); L.to = take(3, 'To', 'flt'); L.carrier = take(3, 'Operating airline', 'flt').trim();
+      L.flight = take(5, 'Flight number', 'flt').trim().replace(/^0+(?=\d)/, ''); L.julian = take(3, 'Date (day of year)', 'flt'); L.cls = take(1, 'Compartment code', 'flt');
+      L.seat = take(4, 'Seat', 'flt').trim().replace(/^0+(?=\d)/, ''); L.seq = take(5, 'Check-in sequence', 'flt').trim().replace(/^0+(?=\d)/, ''); L.status = take(1, 'Passenger status', 'flt');
+      var vsz = hex(take(2, 'Size of optional section')), end = pos + vsz;
+      if (i === 0 && s[pos] === '>') {
+        take(1, 'Start of version'); out.version = take(1, 'Version'); var usz = hex(take(2, 'Size of shared section')), uend = pos + usz;
+        var U = [[1, 'desc', 'Passenger description'], [1, 'srcCheckin', 'Source of check-in'], [1, 'srcIssue', 'Source of issue'], [4, 'issueDate', 'Date of issue'], [1, 'docType', 'Document type'], [3, 'issuer', 'Issuing airline'], [13, 'bag1', 'Bag tag numbers', 'id'], [13, 'bag2', 'Bag tag numbers', 'id'], [13, 'bag3', 'Bag tag numbers', 'id']];
+        for (var u = 0; u < U.length && pos < uend; u++) out[U[u][1]] = take(Math.min(U[u][0], uend - pos), U[u][2], U[u][3]).trim();
+        pos = uend;
+      }
+      if (pos + 2 <= end) {
+        var rsz = hex(take(2, 'Size of leg section')), rend = pos + rsz;
+        var R = [[3, 'airlineNum', 'Airline code (numeric)', 'id'], [10, 'docNum', 'Ticket number', 'id'], [1, 'selectee', 'Selectee indicator'], [1, 'intlDoc', 'Document check'], [3, 'marketing', 'Marketing airline'], [3, 'ffAirline', 'Frequent flyer airline', 'id'], [16, 'ffNum', 'Frequent flyer number', 'id'], [1, 'idad', 'ID/AD indicator'], [3, 'bags', 'Free baggage allowance'], [1, 'fast', 'Fast track']];
+        for (var r = 0; r < R.length && pos < rend; r++) L[R[r][1]] = take(Math.min(R[r][0], rend - pos), R[r][2], R[r][3]).trim();
+        pos = rend;
+      }
+      if (pos < end) L.airlineUse = take(end - pos, 'Airline\'s own data').trim();
+      pos = end; out.legs.push(L);
+    }
+    if (s[pos] === '^') { take(1, 'Start of security data', 'sec'); out.secType = take(1, 'Security data type', 'sec'); var ssz = hex(take(2, 'Security data size', 'sec')); out.signature = take(ssz, 'Digital signature', 'sec'); }
+    if (pos < s.length) take(s.length - pos, 'Extra data');
+    out.raw = s;
+    out.legs.forEach(function (L) { L.date = julian(L.julian, out.issueDate); });
+    return out;
+  }
+  function julian(j, issue) {
+    var d = parseInt(j, 10); if (!(d >= 1 && d <= 366)) return null;
+    var now = new Date(), y = now.getFullYear(), cand;
+    if (issue && /^\d{4}$/.test(issue)) { var yd = +issue[0], iy = y - ((y % 10 - yd + 10) % 10); if (+issue.slice(1) > d) iy++; cand = [iy]; }
+    else cand = [y - 1, y, y + 1];
+    var best = null; cand.forEach(function (yy) { var t = new Date(yy, 0, d); if (!best || Math.abs(t - now) < Math.abs(best - now)) best = t; });
+    return { date: best, guessed: !issue };
+  }
+
+  // ---------- report ----------
+  function fmtDate(o) { if (!o) return ''; return o.date.toLocaleDateString(AR ? 'ar-AE-u-nu-latn' : 'en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }); }
+  function kv(rows) { rows = rows.filter(function (r) { return r[1]; }); return '<dl class="kv">' + rows.map(function (r) { return '<dt>' + esc(r[0]) + '</dt><dd' + (r[2] ? ' class="hot"' : '') + (r[3] ? '' : ' data-noar') + '>' + esc(r[1]) + '</dd>'; }).join('') + '</dl>'; }
+  function show(text) {
+    var p;
+    try { p = parse(text); } catch (e) { $('msg').textContent = e.message; $('res').hidden = true; return; }
+    $('msg').textContent = '';
+    var L0 = p.legs[0] || {}, ff = p.legs.map(function (l) { return l.ffNum ? (l.ffAirline ? l.ffAirline + ' ' : '') + l.ffNum : ''; }).filter(Boolean)[0];
+    var tkt = p.legs.map(function (l) { return l.docNum ? (l.airlineNum || '') + l.docNum : ''; }).filter(Boolean)[0];
+    var bags = [p.bag1, p.bag2, p.bag3].filter(Boolean);
+    var h = '<span class="label">' + (p.legs.length === 1 ? 'Boarding pass · 1 flight' : 'Boarding pass · ' + p.legs.length + ' flights') + '</span>';
+    h += '<h2 data-noar>' + esc(p.given ? p.given + ' ' + p.surname : p.surname) + '</h2>';
+    h += kv([['Name as printed', p.name, 1], ['Booking reference', uniq(p.legs.map(function (l) { return l.pnr; })).join(', '), 1], ['Frequent flyer', ff, 1], ['Ticket number', tkt, 1], ['Bag tags', bags.join(', '), 1], ['Passenger', DESC[p.desc] ? T(DESC[p.desc]) : '', 0, 1], ['E-ticket', p.eticket ? T('Yes') : T('No'), 0, 1], ['Checked in via', SRC[p.srcCheckin] ? T(SRC[p.srcCheckin]) : '', 0, 1], ['Pass issued', p.issueDate ? T('day') + ' ' + +p.issueDate.slice(1) + (SRC[p.srcIssue] ? ' · ' + T(SRC[p.srcIssue]) : '') : '', 0, 1], ['Document', p.docType === 'B' ? T('Boarding pass') : p.docType === 'I' ? T('Itinerary receipt') : '', 0, 1], ['Format version', p.version], ['Signature', p.signature ? T('Yes') + ' (' + p.signature.length + ' ' + T('characters') + ')' : T('None'), 0, 1]]);
+    h += '<div class="legs">' + p.legs.map(function (l, i) {
+      var sel = l.selectee === '1' || l.selectee === '3';
+      return '<div class="legcard"><span class="label">' + T('Flight') + ' ' + (i + 1) + '</span><div class="route" data-noar>' + esc(l.from) + ' <span>→</span> ' + esc(l.to) + '</div>' + kv([['Flight', l.carrier + ' ' + l.flight], ['Date', l.date ? fmtDate(l.date) + (l.date.guessed ? ' ' + T('(year guessed)') : '') : l.julian, 0, 1], ['Day of year', l.julian], ['Cabin', cabin(l.cls) ? T(cabin(l.cls)) + ' (' + l.cls + ')' : '', 0, 1], ['Seat', l.seat], ['Check-in number', l.seq], ['Status', STATUS[l.status] ? T(STATUS[l.status]) : l.status, 0, 1], ['Marketing airline', l.marketing], ['Baggage allowance', l.bags], ['Fast track', l.fast === 'Y' ? T('Yes') : '', 0, 1], ['Extra screening', sel ? T('Yes (selectee)') : '', 1, 1], ['Airline\'s own data', l.airlineUse]]) + '</div>';
+    }).join('') + '</div>';
+    var risks = [['bad', 'Booking reference and surname', 'Together they open "Manage booking" on most airline websites. Someone could change your seat or meals, cancel or change flights, and see your phone number, email and sometimes passport details.']];
+    if (ff) risks.push(['bad', 'Frequent flyer number', 'Can be used to claim miles, reset a weak account login, or in social engineering calls to the airline.']);
+    if (tkt) risks.push(['meh', 'Ticket number', 'Used for refunds and changes. Some airline phone lines will act on it.']);
+    if (bags.length) risks.push(['meh', 'Bag tag numbers', 'Can be used to track your luggage, or to file a false lost-bag claim.']);
+    risks.push(['meh', 'Your full name, route and date', 'Tells people you are away from home, and when you will be back.']);
+    h += '<span class="label">What someone could do with it</span><ul class="checks">' + risks.map(function (r) { return '<li><span class="' + r[0] + '">' + (r[0] === 'bad' ? '✕' : '!') + '</span><span>' + esc(r[1]) + '<small>' + esc(r[2]) + '</small></span></li>'; }).join('') + '</ul>';
+    h += '<span class="label">The barcode text, field by field</span><div class="rawview" data-noar>' + rawHtml(p) + '</div><div class="legend2"><span style="--c:rgba(255,79,109,.6)">Name</span><span style="--c:rgba(255,200,87,.7)">Booking reference</span><span style="--c:rgba(132,160,255,.6)">Flight</span><span style="--c:rgba(79,211,189,.6)">Ticket, bags, frequent flyer</span><span style="--c:rgba(255,255,255,.3)">Signature</span></div>';
+    $('res').innerHTML = h; $('res').hidden = false; $('rawIn').value = text;
+    if (window.innerWidth < 900) $('res').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  function uniq(a) { return a.filter(function (x, i) { return x && a.indexOf(x) === i; }); }
+  function rawHtml(p) {
+    var s = p.raw, out = '', pos = 0;
+    p.fields.forEach(function (f) { if (f[0] > pos) out += esc(s.slice(pos, f[0])); out += '<span class="f-' + f[3] + '" title="' + esc(T(f[2])) + '">' + esc(s.substr(f[0], f[1])).replace(/ /g, '·') + '</span>'; pos = f[0] + f[1]; });
+    return out + esc(s.slice(pos));
+  }
+
+  // ---------- decoding ----------
+  var detector = null, zx = null, zxLoading = null, stream = null, video = null, timer = 0, busy = false;
+  var cv = document.createElement('canvas'), cx = cv.getContext('2d', { willReadFrequently: true });
+  function getDetector() {
+    if (detector !== null) return Promise.resolve(detector);
+    if (!('BarcodeDetector' in window)) { detector = false; return Promise.resolve(false); }
+    return BarcodeDetector.getSupportedFormats().then(function (f) { var want = ['pdf417', 'aztec', 'qr_code'].filter(function (x) { return f.indexOf(x) >= 0; }); detector = want.length === 3 ? new BarcodeDetector({ formats: want }) : false; return detector; }).catch(function () { detector = false; return false; });
+  }
+  function loadZx() {
+    if (zx) return Promise.resolve(zx);
+    if (!zxLoading) zxLoading = new Promise(function (res, rej) {
+      var sc = document.createElement('script'); sc.src = '../assets/vendor/zxing/zxing.min.js';
+      sc.onload = function () { try { var Z = window.ZXing, hints = new Map(); hints.set(Z.DecodeHintType.POSSIBLE_FORMATS, [Z.BarcodeFormat.PDF_417, Z.BarcodeFormat.AZTEC, Z.BarcodeFormat.QR_CODE]); hints.set(Z.DecodeHintType.TRY_HARDER, true); var r = new Z.MultiFormatReader(); r.setHints(hints); zx = { Z: Z, r: r }; res(zx); } catch (e) { rej(e); } };
+      sc.onerror = function () { zxLoading = null; rej(new Error('The barcode reader couldn\'t load. Paste the barcode text instead.')); };
+      document.head.appendChild(sc);
+    });
+    return zxLoading;
+  }
+  function zxDecode(canvas) {
+    var Z = zx.Z;
+    try { return zx.r.decodeWithState(new Z.BinaryBitmap(new Z.HybridBinarizer(new Z.HTMLCanvasElementLuminanceSource(canvas)))).getText(); } catch (e) { return null; }
+  }
+  function draw(src, w, h, rot, max) {
+    var s = Math.min(1, (max || 1600) / Math.max(w, h)), W = Math.round(w * s), H = Math.round(h * s);
+    cv.width = rot ? H : W; cv.height = rot ? W : H; cx.save(); if (rot) { cx.translate(H, 0); cx.rotate(Math.PI / 2); } cx.drawImage(src, 0, 0, W, H); cx.restore();
+  }
+  function decodeSource(src, w, h, thorough) {
+    return getDetector().then(function (d) {
+      if (d) return d.detect(src).then(function (r) { return r && r[0] ? r[0].rawValue : null; }).catch(function () { return null; }).then(function (t) { return t || (thorough ? viaZx() : null); });
+      return viaZx();
+    });
+    function viaZx() {
+      return loadZx().then(function () {
+        draw(src, w, h, false, thorough ? 2000 : 1000); var t = zxDecode(cv);
+        if (!t && thorough) { draw(src, w, h, true, 2000); t = zxDecode(cv); }
+        return t;
+      });
+    }
+  }
+  function fromFile(file) {
+    if (!file || !/^image\//.test(file.type)) return;
+    $('msg').textContent = 'Reading the barcode…';
+    var img = new Image(); img.onload = function () {
+      decodeSource(img, img.naturalWidth, img.naturalHeight, true).then(function (t) { URL.revokeObjectURL(img.src); if (t) show(t); else $('msg').textContent = 'No boarding pass barcode found. Try a sharper, closer photo with the whole barcode in view, or paste the text.'; })
+        .catch(function (e) { $('msg').textContent = e.message; });
+    }; img.src = URL.createObjectURL(file);
+  }
+  function tick() {
+    if (!stream) return;
+    if (!busy && video.readyState >= 2) {
+      busy = true;
+      decodeSource(video, video.videoWidth, video.videoHeight, false).then(function (t) { busy = false; if (t && stream) { if (navigator.vibrate) navigator.vibrate(60); stop(); show(t); } }).catch(function (e) { busy = false; $('msg').textContent = e.message; stop(); });
+    }
+    timer = setTimeout(tick, 250);
+  }
+  function stop() { clearTimeout(timer); if (stream) stream.getTracks().forEach(function (t) { t.stop(); }); stream = null; $('stop').hidden = true; $('start').hidden = false; $('start').textContent = 'Scan another'; }
+  $('start').onclick = function () {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { $('camMsg').textContent = 'This browser can\'t use the camera here. Choose a photo or paste the text instead.'; return; }
+    getDetector().then(function (d) { if (!d) loadZx().catch(function () {}); });
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1920 } }, audio: false }).then(function (s) {
+      stream = s; $('cam').innerHTML = '<video playsinline muted></video><div class="aim"></div>'; video = $('cam').querySelector('video'); video.srcObject = s; video.play();
+      $('start').hidden = true; $('stop').hidden = false; tick();
+    }).catch(function () { $('cam').innerHTML = '<p id="camMsg">Camera access was blocked. Allow it in your browser settings, or choose a photo instead.</p>'; });
+  };
+  $('stop').onclick = stop;
+  $('file').onchange = function () { fromFile(this.files[0]); this.value = ''; };
+  var dr = $('drop');
+  dr.addEventListener('dragover', function (e) { e.preventDefault(); dr.classList.add('over'); });
+  dr.addEventListener('dragleave', function () { dr.classList.remove('over'); });
+  dr.addEventListener('drop', function (e) { e.preventDefault(); dr.classList.remove('over'); fromFile(e.dataTransfer.files[0]); });
+  document.addEventListener('paste', function (e) { if (e.target === $('rawIn')) return; var it = [].filter.call((e.clipboardData && e.clipboardData.items) || [], function (x) { return /^image\//.test(x.type); })[0]; if (it) fromFile(it.getAsFile()); });
+  $('readRaw').onclick = function () { show($('rawIn').value); };
+  $('demo').onclick = function () { show(SAMPLES[1]); };
+  $('samples').onchange = function () { if (this.value !== '') show(SAMPLES[+this.value]); this.value = ''; };
+  window.BCBP = { parse: parse, SAMPLES: SAMPLES };
+})();
+</script>
+</body>
+</html>

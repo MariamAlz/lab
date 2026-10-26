@@ -311,3 +311,10 @@ LabAr.add({
  "Watch a ribosome read the beta-globin gene, then change one letter and cause sickle cell.": "شاهد الريبوسوم يقرأ جين بيتا غلوبين، ثم غيّر حرفًا واحدًا لتسبب فقر الدم المنجلي.",
  "Translate →": "ترجم ←"
 });
+/* index cards for newer tools */
+LabAr.add({
+ "Privacy · Travel": "الخصوصية · السفر",
+ "What your boarding pass reveals": "ماذا تكشف بطاقة صعودك إلى الطائرة",
+ "Scan the barcode on a boarding pass to see the name, booking reference, ticket and frequent flyer numbers anyone can read from a photo of it.": "امسح الرمز الشريطي على بطاقة الصعود لترى الاسم ورقم الحجز ورقم التذكرة ورقم المسافر الدائم التي يستطيع أي شخص قراءتها من صورتها.",
+ "Scan a pass →": "امسح بطاقة ←"
+});
