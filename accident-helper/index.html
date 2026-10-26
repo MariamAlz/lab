@@ -50,7 +50,10 @@ legend { font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppe
 .next b { display: block; }
 @media (max-width: 440px) { #accRow { grid-template-columns: 1fr; } }
 #preview { max-width: 100%; border-radius: 10px; border: 1px solid var(--line); display: none; }
+html.ar .next div { border-left: 0; border-right: 2px solid var(--sat-b); }
+html.ar legend { font-family: "IBM Plex Sans Arabic", sans-serif; letter-spacing: 0; }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -86,7 +89,7 @@ legend { font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppe
       <legend>The accident</legend>
       <div class="two" id="accRow">
         <label class="fl">Date and time<input id="when" type="datetime-local"></label>
-        <label class="fl">Emirate<select id="emirate"><option>Abu Dhabi</option><option selected>Dubai</option><option>Sharjah</option><option>Ajman</option><option>Umm Al Quwain</option><option>Ras Al Khaimah</option><option>Fujairah</option></select></label>
+        <label class="fl">Emirate<select id="emirate"><option value="Abu Dhabi">Abu Dhabi</option><option value="Dubai" selected>Dubai</option><option value="Sharjah">Sharjah</option><option value="Ajman">Ajman</option><option value="Umm Al Quwain">Umm Al Quwain</option><option value="Ras Al Khaimah">Ras Al Khaimah</option><option value="Fujairah">Fujairah</option></select></label>
       </div>
       <label class="fl">Location (road, nearest landmark or exit)<input id="where" placeholder="e.g. Sheikh Zayed Rd, before Exit 41"></label>
       <div class="bar"><button class="sm" type="button" id="gps">📍 Add GPS coordinates</button><span class="msg" id="gpsMsg"></span></div>
@@ -218,7 +221,7 @@ legend { font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppe
     ['ins', 'Insurer'], ['pol', 'Policy number'], ['dmg', 'Damage on this car']
   ];
   var EMS = ['Abu Dhabi', 'Dubai', 'Sharjah', 'Ajman', 'Umm Al Quwain', 'Ras Al Khaimah', 'Fujairah', 'Other'];
-  function opt(v) { return EMS.map(function (e) { return '<option' + (e === v ? ' selected' : '') + '>' + e + '</option>'; }).join(''); }
+  function opt(v) { return EMS.map(function (e) { return '<option value="' + e + '"' + (e === v ? ' selected' : '') + '>' + e + '</option>'; }).join(''); }
   function driverBox(side, title) {
     var h = '<fieldset><legend>' + title + '</legend>';
     h += '<div class="two"><label class="fl">Driver name<input data-f="' + side + 'name" autocomplete="off"></label><label class="fl">Mobile<input data-f="' + side + 'phone" type="tel" autocomplete="off"></label></div>';
@@ -249,18 +252,20 @@ legend { font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppe
     }, function () { $('gpsMsg').textContent = 'Location was not shared.'; }, { timeout: 10000, enableHighAccuracy: true });
   };
 
+  // Arabic mode: option values stay English (logic and saved data), shown text is translated by ../assets/i18n.js; exports go through the same dictionary
+  var AR = !!(window.LabAr && LabAr.on), T = function (s) { return AR ? LabAr.t(s) : s; };
   function v(k) { return (st.f[k] || '').trim(); }
-  function plate(s) { var p = [v(s + 'pEm'), v(s + 'pCode'), v(s + 'pNum')]; if (!p[1] && !p[2]) return ''; return (p[0] || 'Dubai') + ' ' + p[1] + ' ' + p[2]; }
+  function plate(s) { var p = [v(s + 'pEm'), v(s + 'pCode'), v(s + 'pNum')]; if (!p[1] && !p[2]) return ''; return T(p[0] || 'Dubai') + ' ' + p[1] + ' ' + p[2]; }
   function sections() {
     var w = v('when') ? new Date(v('when')) : null;
-    var head = [['When', w && !isNaN(w) ? w.toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' }) : ''], ['Emirate', v('emirate') || 'Dubai'], ['Where', v('where')], ['GPS', st.f.gps || ''], ['What happened', v('what')]];
-    function drv(s) { return [['Name', v(s + 'name')], ['Mobile', v(s + 'phone')], ['Licence', v(s + 'lic') + (v(s + 'lic') ? ' (' + (v(s + 'licEm') || 'Dubai') + ')' : '')], ['Plate', plate(s).trim()], ['Car', v(s + 'car')], ['Owner', v(s + 'owner')], ['Insurer', v(s + 'ins')], ['Policy', v(s + 'pol')], ['Damage', v(s + 'dmg')]]; }
+    var head = [['When', w && !isNaN(w) ? w.toLocaleString(AR ? 'ar-AE-u-nu-latn' : 'en-GB', { dateStyle: 'medium', timeStyle: 'short' }) : ''], ['Emirate', T(v('emirate') || 'Dubai')], ['Where', v('where')], ['GPS', st.f.gps || ''], ['What happened', v('what')]];
+    function drv(s) { return [['Name', v(s + 'name')], ['Mobile', v(s + 'phone')], ['Licence', v(s + 'lic') + (v(s + 'lic') ? ' (' + T(v(s + 'licEm') || 'Dubai') + ')' : '')], ['Plate', plate(s).trim()], ['Car', v(s + 'car')], ['Owner', v(s + 'owner')], ['Insurer', v(s + 'ins')], ['Policy', v(s + 'pol')], ['Damage', v(s + 'dmg')]]; }
     return [['Accident', head], ['Driver A', drv('A')], ['Driver B', drv('B')]];
   }
   function asText() {
-    var out = ['CAR ACCIDENT DETAILS'];
-    sections().forEach(function (s) { out.push('', s[0].toUpperCase()); s[1].forEach(function (r) { out.push(r[0] + ': ' + (r[1] || '-')); }); });
-    out.push('', 'Photos taken: ' + PH.filter(function (p) { return st.p[p[0]]; }).length + ' of ' + PH.length);
+    var out = [T('CAR ACCIDENT DETAILS')];
+    sections().forEach(function (s) { out.push('', AR ? T(s[0]) : s[0].toUpperCase()); s[1].forEach(function (r) { out.push(T(r[0]) + ': ' + (r[1] || '-')); }); });
+    out.push('', T('Photos taken: ' + PH.filter(function (p) { return st.p[p[0]]; }).length + ' of ' + PH.length));
     return out.join('\n');
   }
   function filled() { return ['Aname', 'Bname', 'ApNum', 'BpNum', 'Bins', 'where', 'what'].some(function (k) { return v(k); }); }
@@ -272,33 +277,34 @@ legend { font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppe
   function asCanvas() {
     var W = 1080, P = 56, c = document.createElement('canvas'), ctx = c.getContext('2d');
     var secs = sections(), labelW = 230, valW = W - P * 2 - labelW;
+    function X(x) { return AR ? W - x : x; } // Arabic: mirror the layout and draw right-to-left
     function layout(draw) {
       var y = P;
-      if (draw) { ctx.fillStyle = '#E9B467'; ctx.font = '700 46px "Bricolage Grotesque", sans-serif'; ctx.fillText('Car accident details', P, y + 40); }
+      if (draw) { ctx.fillStyle = '#E9B467'; ctx.font = '700 46px "Bricolage Grotesque", sans-serif'; ctx.fillText('Car accident details', X(P), y + 40); }
       y += 64;
-      if (draw) { ctx.fillStyle = '#A7ADCB'; ctx.font = '400 24px "Instrument Sans", sans-serif'; ctx.fillText('Exchanged between drivers · not a police report', P, y + 20); }
+      if (draw) { ctx.fillStyle = '#A7ADCB'; ctx.font = '400 24px "Instrument Sans", sans-serif'; ctx.fillText('Exchanged between drivers · not a police report', X(P), y + 20); }
       y += 50;
       secs.forEach(function (s) {
         y += 16;
-        if (draw) { ctx.fillStyle = '#4FD3BD'; ctx.font = '600 26px "JetBrains Mono", monospace'; ctx.fillText(s[0].toUpperCase(), P, y + 24); ctx.fillStyle = 'rgba(120,132,190,.35)'; ctx.fillRect(P, y + 38, W - P * 2, 2); }
+        if (draw) { ctx.fillStyle = '#4FD3BD'; ctx.font = '600 26px "JetBrains Mono", monospace'; ctx.fillText(AR ? s[0] : s[0].toUpperCase(), X(P), y + 24); ctx.fillStyle = 'rgba(120,132,190,.35)'; ctx.fillRect(P, y + 38, W - P * 2, 2); }
         y += 54;
         s[1].forEach(function (r) {
           ctx.font = '500 28px "Instrument Sans", sans-serif';
           var lines = wrap(ctx, r[1] || '-', valW);
           if (draw) {
-            ctx.fillStyle = '#A7ADCB'; ctx.font = '400 24px "Instrument Sans", sans-serif'; ctx.fillText(r[0], P, y + 26);
+            ctx.fillStyle = '#A7ADCB'; ctx.font = '400 24px "Instrument Sans", sans-serif'; ctx.fillText(r[0], X(P), y + 26);
             ctx.fillStyle = r[1] ? '#EEF0FA' : '#5d6488'; ctx.font = '500 28px "Instrument Sans", sans-serif';
-            lines.forEach(function (l, i) { ctx.fillText(l, P + labelW, y + 28 + i * 38); });
+            lines.forEach(function (l, i) { ctx.fillText(l, X(P + labelW), y + 28 + i * 38); });
           }
           y += lines.length * 38 + 10;
         });
       });
       y += 20;
-      if (draw) { ctx.fillStyle = '#A7ADCB'; ctx.font = '400 22px "Instrument Sans", sans-serif'; ctx.fillText('Made with lab.mariamalzaabi.ae/accident-helper · ' + new Date().toLocaleDateString('en-GB'), P, y + 10); }
+      if (draw) { ctx.fillStyle = '#A7ADCB'; ctx.font = '400 22px "Instrument Sans", sans-serif'; ctx.fillText('Made with lab.mariamalzaabi.ae/accident-helper · ' + new Date().toLocaleDateString('en-GB'), X(P), y + 10); }
       return y + P;
     }
-    c.width = W; c.height = 10; ctx = c.getContext('2d');
-    var H = layout(false); c.height = H; ctx = c.getContext('2d');
+    c.width = W; c.height = 10; ctx = c.getContext('2d'); ctx.direction = AR ? 'rtl' : 'ltr';
+    var H = layout(false); c.height = H; ctx = c.getContext('2d'); ctx.direction = AR ? 'rtl' : 'ltr';
     ctx.fillStyle = '#070A18'; ctx.fillRect(0, 0, W, H);
     layout(true);
     return c;
@@ -319,7 +325,7 @@ legend { font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppe
     if (!navigator.share) { copy(text); return; }
     asCanvas().toBlob(function (b) {
       var file = null; try { file = new File([b], fname('png'), { type: 'image/png' }); } catch (e) {}
-      var data = file && navigator.canShare && navigator.canShare({ files: [file] }) ? { files: [file], text: text, title: 'Car accident details' } : { text: text, title: 'Car accident details' };
+      var data = file && navigator.canShare && navigator.canShare({ files: [file] }) ? { files: [file], text: text, title: T('Car accident details') } : { text: text, title: T('Car accident details') };
       navigator.share(data).then(function () { say('Shared.'); }).catch(function () { say('Sharing was cancelled.'); });
     }, 'image/png');
   };

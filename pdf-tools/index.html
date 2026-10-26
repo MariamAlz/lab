@@ -72,7 +72,10 @@ dialog::backdrop { background: rgba(3, 5, 14, 0.75); }
 .stage img[hidden] { display: none; }
 .dlg .acts { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .muted { color: var(--muted); font-size: 0.86rem; }
+html.ar .pg .src { unicode-bidi: plaintext; text-align: left; }
+html.ar .bar .count, html.ar .pg .badge { font-family: "IBM Plex Sans Arabic", var(--font-sans, sans-serif); letter-spacing: 0; }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -159,6 +162,7 @@ dialog::backdrop { background: rgba(3, 5, 14, 0.75); }
 (function () {
   'use strict';
   var $ = function (id) { return document.getElementById(id); };
+  var AR = !!(window.LabAr && LabAr.on);
   pdfjsLib.GlobalWorkerOptions.workerSrc = '../assets/vendor/pdf.worker.min.js';
   var L = PDFLib, dpr = Math.min(window.devicePixelRatio || 1, 2);
   var sources = [], items = [], nextId = 1, sig = null, dragId = null;
@@ -283,8 +287,8 @@ dialog::backdrop { background: rgba(3, 5, 14, 0.75); }
     var el = document.createElement('div'), s = sources[it.src];
     el.className = 'pg'; el.dataset.id = it.id; el.dataset.r = String(angle(it)) + $('imgFit').value; el.draggable = true;
     el.innerHTML = '<span class="badge" hidden>signed</span><div class="th" title="Select"><canvas></canvas></div>' +
-      '<div class="meta"><label><input type="checkbox" aria-label="Select page"> <span class="n"></span></label><span class="src" title="' + esc(s.name) + '">' + esc(s.name) + (s.kind === 'pdf' ? ' p' + (it.idx + 1) : '') + '</span></div>' +
-      '<div class="acts"><button type="button" data-a="left" aria-label="Move earlier">←</button><button type="button" data-a="rl" aria-label="Rotate left">⟲</button><button type="button" data-a="rr" aria-label="Rotate right">⟳</button><button type="button" data-a="del" aria-label="Delete page">✕</button><button type="button" data-a="right" aria-label="Move later">→</button></div>';
+      '<div class="meta"><label><input type="checkbox" aria-label="Select page"> <span class="n"></span></label><span class="src" data-noar title="' + esc(s.name) + '">' + esc(s.name) + (s.kind === 'pdf' ? (AR ? ' ص' : ' p') + (it.idx + 1) : '') + '</span></div>' +
+      '<div class="acts"><button type="button" data-a="left" aria-label="Move earlier">' + (AR ? '→' : '←') + '</button><button type="button" data-a="rl" aria-label="Rotate left">⟲</button><button type="button" data-a="rr" aria-label="Rotate right">⟳</button><button type="button" data-a="del" aria-label="Delete page">✕</button><button type="button" data-a="right" aria-label="Move later">' + (AR ? '←' : '→') + '</button></div>';
     var cv = el.querySelector('canvas');
     queue = queue.then(function () { return drawItem(it, cv, 124, 166); }).catch(function () {});
     return el;
@@ -318,7 +322,7 @@ dialog::backdrop { background: rgba(3, 5, 14, 0.75); }
   $('pages').addEventListener('drop', function (e) {
     if (!dragId) return; e.preventDefault(); var el = e.target.closest('.pg'); if (!el || el.dataset.id === dragId) return;
     var from = byId(dragId), it = items.splice(from, 1)[0], to = byId(el.dataset.id), r = el.getBoundingClientRect();
-    items.splice(e.clientX > r.left + r.width / 2 ? to + 1 : to, 0, it); dragId = null; render();
+    items.splice((e.clientX > r.left + r.width / 2) !== AR ? to + 1 : to, 0, it); dragId = null; render();
   });
 
   // file input and drop zone

@@ -1,0 +1,56 @@
+(function () {
+  var K = { clean: 'سليمة', jammed: 'تشويش', spoofed: 'خداع' };
+  function kind(k) { return k === 'clean' ? 'رحلة سليمة' : k === 'jammed' ? 'تشويشًا' : 'خداعًا'; }
+  LabAr.add({
+    "Spoof or Real?": "خداع أم حقيقي؟",
+    "Experiment · GNSS · Game": "تجربة · GNSS · لعبة",
+    "Spoof or real?": "خداع أم حقيقي؟",
+    "Navigation signals are faint, so they can be drowned out (jamming) or imitated (spoofing). You're watching a receiver in a car. Read its signals and call it: clean, jammed or spoofed. The sooner you're right, the more you score.": "إشارات الملاحة بالأقمار الصناعية ضعيفة، لذا يمكن إغراقها بالضجيج (التشويش) أو تقليدها (الخداع). أنت تراقب جهاز استقبال في سيارة. اقرأ إشاراته واحكم: سليمة أم مشوَّشة أم مخدوعة. كلما أصبت أبكر، زادت نقاطك.",
+    "Receiver display: signal strength for each satellite over time, a map of the reported position against the road, and receiver status": "شاشة جهاز الاستقبال: قوة إشارة كل قمر صناعي عبر الزمن، وخريطة للموقع المُبلَّغ عنه مقارنة بالطريق، وحالة الجهاز",
+    "Six drives": "ست رحلات",
+    "Each drive lasts two minutes, played fast. Some are fine. Some are not.": "كل رحلة مدتها دقيقتان تُعرض بسرعة. بعضها سليم، وبعضها لا.",
+    "Start driving": "ابدأ القيادة",
+    "Your call": "حكمك",
+    "Clean": "سليمة",
+    "Jammed": "تشويش",
+    "Spoofed": "خداع",
+    "Drive": "الرحلة",
+    "Score": "النقاط",
+    "Best": "الأفضل",
+    "Signal strength (C/N0) differs from satellite to satellite and wanders a little. That's normal.": "تختلف قوة الإشارة (C/N0) من قمر صناعي لآخر وتتذبذب قليلًا. هذا طبيعي.",
+    "Watch for changes that hit every satellite at once, a clock that jumps, or a position that leaves the road.": "انتبه للتغيرات التي تصيب كل الأقمار في وقت واحد، أو ساعة تقفز فجأة، أو موقع يخرج عن الطريق.",
+    "Calling an attack too early is a false alarm. Calling \"clean\" before the end is a gamble.": "الحكم بوجود هجوم مبكرًا جدًا إنذار كاذب، والحكم بأنها \"سليمة\" قبل النهاية مجازفة.",
+    "This is simulated and kept simple, but these tells are the real starting points for interference monitoring, the kind of thing GNSS engineers build tools for.": "هذه محاكاة مبسّطة، لكن هذه العلامات هي فعلًا نقطة البداية في رصد التداخل، وهو ما يبني مهندسو أنظمة GNSS أدواتهم لأجله.",
+    "Signal strength, C/N0 (dB-Hz)": "قوة الإشارة، C/N0 (dB-Hz)",
+    "Map": "الخريطة",
+    "Receiver": "جهاز الاستقبال",
+    "Satellites": "الأقمار الصناعية",
+    "Fix": "تحديد الموقع",
+    "Clock offset": "انحراف الساعة",
+    "3D fix": "ثلاثي الأبعاد",
+    "NO FIX": "لا تحديد",
+    "Each satellite kept its own strength, wandering slowly.": "حافظ كل قمر صناعي على قوته الخاصة مع تذبذب بطيء.",
+    "The clock drifted smoothly, and the position stayed on the road.": "انحرفت الساعة بسلاسة، وبقي الموقع على الطريق.",
+    "Signal strength fell on every satellite at the same time.": "انخفضت قوة الإشارة في كل الأقمار في الوقت نفسه.",
+    "Satellites dropped out one by one until there was no fix. Jamming drowns the signals in noise.": "اختفت الأقمار واحدًا تلو الآخر حتى تعذّر تحديد الموقع. التشويش يُغرق الإشارات في الضجيج.",
+    "Every satellite suddenly got stronger and almost exactly as strong as the others. Real signals arrive at different strengths.": "أصبحت كل الأقمار فجأة أقوى، وبقوة متساوية تقريبًا. الإشارات الحقيقية تصل بقوى مختلفة.",
+    "The clock jumped by hundreds of nanoseconds, and the position slid off the road while everything looked \"healthy\".": "قفزت الساعة مئات النانوثواني، وانزلق الموقع خارج الطريق بينما بدا كل شيء \"سليمًا\".",
+    "You called it before anything had happened, so that counts as a false alarm.": "حكمت قبل أن يحدث أي شيء، لذا يُحسب ذلك إنذارًا كاذبًا.",
+    "The drive ended clean. Calling it would have scored.": "انتهت الرحلة سليمة. لو حكمت بذلك لحصلت على نقاط.",
+    "You didn’t make a call before the drive ended.": "لم تُصدر حكمًا قبل نهاية الرحلة.",
+    "Correct.": "إجابة صحيحة.",
+    "Next drive": "الرحلة التالية",
+    "See your score": "شاهد نتيجتك",
+    "Shift over": "انتهت المناوبة",
+    "Drive again": "قُد مرة أخرى"
+  }, [
+    [/^(-?\d+) s$/, '$1 ث'],
+    [/^[+-]?\d+ ns$/, '$&'],
+    [/^Correct, (\d+) s after it started\.$/, 'إجابة صحيحة، بعد $1 ث من بدايته.'],
+    [/^Not quite\. It was (clean|jammed|spoofed)\.$/, function (m, k) { return 'ليس تمامًا. كانت ' + kind(k) + '.'; }],
+    [/^(?:\+(\d+) · )?It was (clean|jammed|spoofed)(?:, from (\d+) s)?$/, function (m, p, k, s) { return (p ? '+' + p + ' · ' : '') + 'كانت ' + kind(k) + (s ? '، بدءًا من ' + s + ' ث' : ''); }],
+    [/^All signals dipped together for a few seconds around (\d+) s and came straight back\. That was a bridge, not an attack\.$/, 'انخفضت كل الإشارات معًا لثوانٍ قليلة قرابة الثانية $1 ثم عادت فورًا. كان ذلك جسرًا، لا هجومًا.'],
+    [/^You scored (\d+) out of 6000\.( New best!)?$/, function (m, s, b) { return 'حصلت على ' + s + ' من 6000.' + (b ? ' رقم قياسي جديد!' : ''); }]
+  ]);
+  window.dispatchEvent(new Event('labar-ready'));
+})();

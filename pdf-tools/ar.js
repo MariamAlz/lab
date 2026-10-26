@@ -1,0 +1,97 @@
+(function () {
+  function pages(n) { n = +n; return n === 1 ? 'صفحة واحدة' : n === 2 ? 'صفحتان' : n <= 10 ? n + ' صفحات' : n + ' صفحة'; }
+  function files(n) { n = +n; return n === 1 ? 'ملف واحد' : n === 2 ? 'ملفين' : n <= 10 ? n + ' ملفات' : n + ' ملفًا'; }
+  var WHY = {
+    "it's password protected or encrypted, so it can't be edited here": 'الملف محمي بكلمة مرور أو مشفّر، لذا لا يمكن تعديله هنا',
+    'not a PDF or image': 'ليس ملف PDF ولا صورة',
+    "couldn't be read": 'تعذّرت قراءته'
+  };
+  LabAr.add({
+    "PDF tools": "أدوات PDF",
+    "PDF Tools": "أدوات PDF",
+    "Tool · PDF": "أداة · PDF",
+    "PDF tools.": "أدوات PDF.",
+    "Merge, split, reorder, rotate, number, watermark and sign PDFs, and turn photos into a PDF or a PDF into images. Everything happens in your browser, so your files are never uploaded anywhere.": "ادمج ملفات PDF وقسّمها وأعد ترتيب صفحاتها وتدويرها وترقيمها، وأضف إليها علامة مائية وتوقيعك، وحوّل الصور إلى PDF أو صفحات PDF إلى صور. كل ذلك يتم داخل متصفحك، فلا تُرفع ملفاتك إلى أي مكان.",
+    "Drop PDFs or images here": "أفلت ملفات PDF أو الصور هنا",
+    "or tap to choose. Add as many as you like, they're merged in order.": "أو اضغط للاختيار. أضف ما تشاء من الملفات، وستُدمج بالترتيب.",
+    "Select all": "تحديد الكل",
+    "Select none": "إلغاء التحديد",
+    "e.g. 1-3, 7": "مثال: 1-3، 7",
+    "Pages to select": "الصفحات المراد تحديدها",
+    "Select": "تحديد",
+    "Rotate selected left": "تدوير المحدد لليسار",
+    "Rotate selected right": "تدوير المحدد لليمين",
+    "⟲ Selected": "⟲ المحدد",
+    "⟳ Selected": "⟳ المحدد",
+    "Delete selected": "حذف المحدد",
+    "Start over": "البدء من جديد",
+    "No pages yet. Drag to reorder once you've added some; on a phone, use the arrows.": "لا توجد صفحات بعد. بعد الإضافة اسحب الصفحات لإعادة ترتيبها، وعلى الهاتف استخدم الأسهم.",
+    "Finish": "الإنهاء",
+    "Extras": "إضافات",
+    "Page numbers": "أرقام الصفحات",
+    "None": "بدون",
+    "Bottom centre": "أسفل الوسط",
+    "Bottom right": "أسفل اليمين",
+    "Top right": "أعلى اليمين",
+    "Style": "الشكل",
+    "Page 3": "Page 3 (بالإنجليزية)",
+    "Start at": "البدء من",
+    "Watermark text": "نص العلامة المائية",
+    "e.g. DRAFT or سري": "مثال: سري أو مسودة",
+    "Watermark strength": "قوة العلامة المائية",
+    "Image pages": "صفحات الصور",
+    "A4 with a margin": "A4 مع هامش",
+    "Page fits the image": "الصفحة بحجم الصورة",
+    "Sign…": "توقيع…",
+    "Download": "التنزيل",
+    "File name": "اسم الملف",
+    "Only the selected pages": "الصفحات المحددة فقط",
+    "Download PDF": "تنزيل PDF",
+    "Split into single pages (.zip)": "تقسيم إلى صفحات منفردة (.zip)",
+    "Save pages as images": "حفظ الصفحات كصور",
+    "Most free PDF sites ask you to upload your document to their servers. Here the libraries run on your device instead: pdf-lib edits the file and PDF.js draws the pages. Close the tab and nothing is left behind.": "تطلب معظم مواقع PDF المجانية رفع مستندك إلى خوادمها. أما هنا فتعمل المكتبات على جهازك: تعدّل pdf-lib الملف وتعرض PDF.js الصفحات. أغلق التبويب ولن يبقى أي أثر.",
+    "Sign": "التوقيع",
+    "Done": "تم",
+    "1. Draw your signature.": "1. ارسم توقيعك.",
+    "Signature pad": "لوحة التوقيع",
+    "Clear": "مسح",
+    "Black": "أسود",
+    "Blue": "أزرق",
+    "2. Choose a page, add the signature, then drag it into place.": "2. اختر صفحة وأضف التوقيع، ثم اسحبه إلى مكانه.",
+    "Page": "الصفحة",
+    "Add to this page": "أضفه إلى هذه الصفحة",
+    "Remove": "إزالة",
+    "Size": "الحجم",
+    "Your signature": "توقيعك",
+    "signed": "موقّعة",
+    "Select page": "تحديد الصفحة",
+    "Move earlier": "نقل للأمام",
+    "Move later": "نقل للخلف",
+    "Rotate left": "تدوير لليسار",
+    "Rotate right": "تدوير لليمين",
+    "Delete page": "حذف الصفحة",
+    "Type pages like 1-3, 7": "اكتب الصفحات هكذا: 1-3، 7",
+    "Building your PDF…": "جارٍ إنشاء ملف PDF…",
+    "Splitting…": "جارٍ التقسيم…",
+    "Drawing pages…": "جارٍ رسم الصفحات…",
+    "Signature placed. It's added when you download.": "تم وضع التوقيع، وسيُضاف عند التنزيل."
+  }, [
+    [/^Reading (\d+) files?…$/, function (m, n) { return 'جارٍ قراءة ' + files(n) + '…'; }],
+    [/^Added (\d+) pages?\.$/, function (m, n) { return 'تمت إضافة ' + pages(n) + '.'; }],
+    [/^(\d+) pages?(?: · (\d+) selected)?$/, function (m, n, s) { return pages(n) + (s ? ' · المحدد ' + s : ''); }],
+    [/^Drawing pages… (\d+)\/(\d+)$/, 'جارٍ رسم الصفحات… $1/$2'],
+    [/^Saved (.+\.pdf) · (\d+) pages? · ([\d.]+) (MB|KB)$/, function (m, f, n, z, u) { return 'تم حفظ ‎' + f + '‏ · ' + pages(n) + ' · ‎' + z + ' ' + u; }],
+    [/^Saved (\d+) single-page PDFs in (.+)$/, function (m, n, f) { return 'تم حفظ ' + n + ' ملفات PDF من صفحة واحدة في ‎' + f; }],
+    [/^Saved (\d+) PNG images in (.+)$/, function (m, n, f) { return 'تم حفظ ' + n + ' صور PNG في ‎' + f; }],
+    [/^Saved (.+\.png)$/, 'تم حفظ ‎$1'],
+    [/^Something went wrong: ([\s\S]*)$/, 'حدث خطأ: $1'],
+    [/^Watermark strength (\d+%)$/, 'قوة العلامة المائية $1'],
+    [/^.+?: (?:it's password protected|not a PDF or image|couldn't be read)[\s\S]*$/, function (m) {
+      return m.split(' · ').map(function (part) {
+        var i = part.lastIndexOf(': '); if (i < 0) return part;
+        var why = part.slice(i + 2);
+        return '‎' + part.slice(0, i) + '‏: ' + (WHY[why] || why);
+      }).join(' · ');
+    }]
+  ]);
+})();

@@ -46,7 +46,11 @@
 .ex i { color: var(--ink); font-style: normal; }
 .legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 0.75rem; color: var(--muted); }
 .legend span::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-inline-end: 4px; vertical-align: -1px; background: var(--c); }
+html.ar #picks .sm span, html.ar #mAr { display: none; }
+html.ar .notes, html.ar .steps, html.ar .jins, html.ar .oud { direction: ltr; }
+html.ar .jins div { direction: rtl; }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -77,13 +81,13 @@
       <p class="desc" id="jinsTxt" style="color:var(--muted);font-size:.9rem"></p>
       <span class="label">Virtual oud · tap any spot</span>
       <div class="oud" id="oud"></div>
-      <div class="row"><label><input type="checkbox" id="mark" checked> Mark this maqam's notes</label><span id="last" class="mono"></span></div>
+      <div class="row"><label><input type="checkbox" id="mark" checked> Mark this maqam's notes</label><span id="last" class="mono" data-noar></span></div>
     </div>
     <div class="panel">
       <div class="stats">
         <div><b id="sNotes">8</b><span>notes</span></div>
         <div><b id="sQt">2</b><span>quarter tones</span></div>
-        <div><b id="sTonic">C</b><span>tonic</span></div>
+        <div><b id="sTonic" data-noar>C</b><span>tonic</span></div>
       </div>
       <span class="label">Often heard in</span>
       <ul class="ex" id="ex"></ul>
@@ -168,7 +172,7 @@
     $('mName').textContent = 'Maqam ' + m.n; $('mAr').textContent = 'مقام ' + m.ar; $('mDesc').textContent = m.mood;
     $('notes').innerHTML = m.notes.map(function (n, k) {
       var pc = ((n.q % 24) + 24) % 24, ar = AR[n.q] || AR[pc] || '';
-      return '<button type="button" data-k="' + k + '" class="' + (isQt(n.q) ? 'qt' : '') + '" aria-label="Play ' + n.lab + '"><b>' + n.lab + '</b><small lang="ar">' + ar + '</small></button>';
+      return '<button type="button" data-k="' + k + '" class="' + (isQt(n.q) ? 'qt' : '') + '" aria-label="Play ' + n.lab + '"><b data-noar>' + n.lab + '</b><small lang="ar">' + ar + '</small></button>';
     }).join('');
     $('steps').innerHTML = '<span></span>' + m.notes.slice(1).map(function (n, k) { return '<span>' + stepTxt(n.q - m.notes[k].q) + '</span>'; }).join('');
     // jins bars on a 32-column grid: each note gets 4 columns, bars span from note a to note b
@@ -214,7 +218,7 @@
   function oud() {
     var m = M[cur], pcs = {}; m.notes.forEach(function (n) { pcs[((n.q % 24) + 24) % 24] = n.lab; });
     var tonic = ((m.notes[0].q % 24) + 24) % 24, mark = $('mark').checked;
-    var h = '<table><tbody>';
+    var h = '<table data-noar><tbody>';
     STR.forEach(function (s) {
       h += '<tr><th scope="row">' + s[0] + '</th>';
       for (var p = 0; p < POS; p++) {

@@ -38,7 +38,13 @@
 .opts button .a { font-family: 'IBM Plex Sans Arabic', sans-serif; font-size: 1.1rem; }
 @media (max-width: 860px) { .game > .panel.qp { order: -1; } }
 .row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.phr .en2 { display: none; }
+html.ar .phr .en2 { display: block; color: var(--muted); font-size: 0.8rem; grid-column: 1; }
+html.ar .phr .say { grid-row: 2 / span 4; }
+html.ar .phr .tr { text-align: start; }
+html.ar .tag { font-family: "IBM Plex Sans Arabic", sans-serif; letter-spacing: 0; }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -202,6 +208,8 @@
       ['ألف', 'alf', 'A thousand (1,000)', 's']
     ]]
   ];
+  // Arabic mode (?lang=ar): the UI and meanings are swapped by ../assets/i18n.js; Emirati phrases and transliterations are marked data-noar
+  var AR = !!(window.LabAr && LabAr.on), T = function (s) { return AR && s ? LabAr.t(s) : ''; };
   var ALL = [];
   CATS.forEach(function (c) { c[1].forEach(function (p) { ALL.push({ ar: p[0], tr: p[1], en: p[2], tag: p[3], nt: p[4] || '', cat: c[0] }); }); });
   $('sN').textContent = ALL.length;
@@ -239,13 +247,13 @@
   function norm(s) { return s.toLowerCase().replace(/['’\u02BF?.,!-]/g, '').replace(/[ً-ْ]/g, ''); }
   function shown() {
     var n = norm(q);
-    return ALL.filter(function (p) { return (cat === 'All' || p.cat === cat) && (!n || norm(p.ar + ' ' + p.tr + ' ' + p.en + ' ' + p.nt).indexOf(n) >= 0); });
+    return ALL.filter(function (p) { return (cat === 'All' || p.cat === cat) && (!n || norm(p.ar + ' ' + p.tr + ' ' + p.en + ' ' + p.nt + ' ' + T(p.en) + ' ' + T(p.nt)).indexOf(n) >= 0); });
   }
   function list() {
     var s = shown();
     $('list').innerHTML = s.length ? s.map(function (p) {
       var i = ALL.indexOf(p);
-      return '<li><div class="ar" dir="rtl" lang="ar">' + esc(p.ar) + '</div><span class="tr">' + esc(p.tr) + '<span class="tag ' + p.tag + '">' + (p.tag === 'e' ? 'Emirati' : 'Shared') + '</span></span><span class="en">' + esc(p.en) + '</span>' + (p.nt ? '<span class="nt">' + esc(p.nt) + '</span>' : '') + '<button class="sm say" type="button" data-say="' + i + '" aria-label="Hear ' + esc(p.en) + '"' + (voice ? '' : ' disabled') + '>🔊</button></li>';
+      return '<li><div class="ar" dir="rtl" lang="ar" data-noar>' + esc(p.ar) + '</div><span class="tr"><span dir="ltr" data-noar>' + esc(p.tr) + '</span><span class="tag ' + p.tag + '">' + (p.tag === 'e' ? 'Emirati' : 'Shared') + '</span></span><span class="en">' + esc(p.en) + '</span>' + (AR ? '<span class="en2" dir="ltr" lang="en" data-noar>' + esc(p.en) + '</span>' : '') + (p.nt ? '<span class="nt">' + esc(p.nt) + '</span>' : '') + '<button class="sm say" type="button" data-say="' + i + '" aria-label="Hear ' + esc(p.en) + '"' + (voice ? '' : ' disabled') + '>🔊</button></li>';
     }).join('') : '<li><span class="en">No phrases match. Try another word.</span></li>';
   }
   $('list').onclick = function (e) { var b = e.target.closest('[data-say]'); if (b) speak(ALL[+b.getAttribute('data-say')].ar); };
@@ -260,22 +268,24 @@
   var last = [];
   function newQ() {
     var pool = ALL.filter(function (p) { return !$('qCat').checked || cat === 'All' || p.cat === cat; });
-    var fresh = pool.filter(function (p) { return last.indexOf(p) < 0; }); if (fresh.length < 1) fresh = pool;
+    // in Arabic mode, ask about Emirati-only phrases where possible: a shared word would show the same word as its own answer
+    var qpool = AR ? pool.filter(function (p) { return p.tag === 'e'; }) : pool; if (!qpool.length) qpool = pool;
+    var fresh = qpool.filter(function (p) { return last.indexOf(p) < 0; }); if (fresh.length < 1) fresh = qpool;
     cur = fresh[(Math.random() * fresh.length) | 0];
-    last.push(cur); if (last.length > Math.min(12, pool.length - 1)) last.shift();
+    last.push(cur); if (last.length > Math.min(12, qpool.length - 1)) last.shift();
     // distractors: prefer the same category, avoid identical meanings
     var same = shuffle(pool.filter(function (p) { return p !== cur && p.cat === cur.cat && p.en !== cur.en; }));
     var other = shuffle(ALL.filter(function (p) { return p !== cur && p.cat !== cur.cat; }));
     var opts = shuffle([cur].concat(same.concat(other).slice(0, 3)));
     answered = false; $('qMsg').textContent = '';
     if (mode === 'read') {
-      $('qText').textContent = cur.ar; $('qText').setAttribute('dir', 'rtl'); $('qText').setAttribute('lang', 'ar'); $('qTr').textContent = cur.tr;
+      $('qText').textContent = cur.ar; $('qText').setAttribute('dir', 'rtl'); $('qText').setAttribute('lang', 'ar'); $('qTr').setAttribute('data-noar', ''); $('qTr').textContent = cur.tr;
       $('opts').innerHTML = opts.map(function (p) { return '<button type="button" data-i="' + ALL.indexOf(p) + '">' + esc(p.en) + '</button>'; }).join('');
     } else if (mode === 'en') {
-      $('qText').textContent = cur.en; $('qText').setAttribute('dir', 'ltr'); $('qText').setAttribute('lang', 'en'); $('qTr').textContent = '';
-      $('opts').innerHTML = opts.map(function (p) { return '<button type="button" data-i="' + ALL.indexOf(p) + '"><span class="a" dir="rtl" lang="ar">' + esc(p.ar) + '</span> · <span class="mono">' + esc(p.tr) + '</span></button>'; }).join('');
+      $('qText').textContent = cur.en; $('qText').setAttribute('dir', AR ? 'rtl' : 'ltr'); $('qText').setAttribute('lang', AR ? 'ar' : 'en'); $('qTr').textContent = '';
+      $('opts').innerHTML = opts.map(function (p) { return '<button type="button" data-i="' + ALL.indexOf(p) + '"><span class="a" dir="rtl" lang="ar" data-noar>' + esc(p.ar) + '</span> · <span class="mono" dir="ltr" data-noar>' + esc(p.tr) + '</span></button>'; }).join('');
     } else {
-      $('qText').textContent = '🔊'; $('qText').setAttribute('dir', 'ltr'); $('qTr').textContent = 'Listen, then pick the meaning';
+      $('qText').textContent = '🔊'; $('qText').setAttribute('dir', 'ltr'); $('qTr').removeAttribute('data-noar'); $('qTr').textContent = 'Listen, then pick the meaning';
       $('opts').innerHTML = opts.map(function (p) { return '<button type="button" data-i="' + ALL.indexOf(p) + '">' + esc(p.en) + '</button>'; }).join('');
       setTimeout(function () { speak(cur.ar); }, 250);
     }
@@ -290,7 +300,7 @@
     st.total++; if (ok) { st.right++; st.streak++; st.best = Math.max(st.best, st.streak); } else st.streak = 0;
     saveSt(); showSt();
     $('qMsg').textContent = ok ? (st.streak > 2 ? 'Right. ' + st.streak + ' in a row.' : 'Right.') : 'Not quite: ' + cur.ar + ' (' + cur.tr + ') means "' + cur.en + '".';
-    if (mode === 'listen') { $('qText').textContent = cur.ar; $('qText').setAttribute('dir', 'rtl'); $('qTr').textContent = cur.tr; }
+    if (mode === 'listen') { $('qText').textContent = cur.ar; $('qText').setAttribute('dir', 'rtl'); $('qTr').setAttribute('data-noar', ''); $('qTr').textContent = cur.tr; }
     else if (ok) speak(cur.ar);
   };
   $('qNext').onclick = newQ;

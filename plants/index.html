@@ -51,7 +51,14 @@
 .out { padding: 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); display: grid; gap: 4px; font-size: 0.92rem; }
 .out b.big { font-family: var(--font-display); font-size: 1.6rem; }
 section.pg[hidden] { display: none; }
+html.ar .cal { grid-template-columns: repeat(6, minmax(0, 1fr)); font-size: 0.8rem; }
+html.ar .months2 { direction: ltr; }
+html.ar .lib b { display: flex; flex-wrap: wrap; gap: 2px 8px; align-items: baseline; }
+html.ar .lib b .ar { order: -1; color: var(--ink); font-weight: 600; }
+html.ar .lib b .nm { font-weight: 400; font-size: 0.8rem; color: var(--muted); }
+html.ar .tags span, html.ar .mine .due, html.ar .cal div { font-family: "IBM Plex Sans Arabic", sans-serif; letter-spacing: 0; }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -181,6 +188,8 @@ section.pg[hidden] { display: none; }
     ['lantana', 'Lantana', 'لانتانا', 0.4, 'full', 3, 't', 'o', 'Tough and colourful but toxic berries for dogs.'],
     ['grass', 'Lawn (Bermuda or paspalum)', 'عشب', 0.8, 'full', 3, 's', 'o', 'Summer lawns can need 6 to 8 L per m² a day. Consider artificial or native ground cover.']
   ];
+  // Arabic mode: i18n.js swaps the UI; plant library keeps the English name as a small data-noar line under the Arabic one
+  var AR = !!(window.LabAr && LabAr.on), T = function (s) { return AR ? LabAr.t(s) : ''; };
   var byId = {}; PL.forEach(function (p) { byId[p[0]] = p; });
   var LOCF = { ac: 0.25, win: 0.45, shade: 0.6, sun: 1.0, ground: 0.9 }, LOCN = { ac: 'indoors with AC', win: 'by a sunny window', shade: 'on a shaded balcony', sun: 'on a sunny balcony', ground: 'in the ground' };
   var ET = [3.0, 3.9, 5.4, 7.1, 8.6, 9.5, 9.6, 9.1, 8.0, 6.4, 4.5, 3.3]; // typical Dubai mm/day by month (FAO-56 reference)
@@ -243,18 +252,19 @@ section.pg[hidden] { display: none; }
     function need(et) { return (+$('gL').value * +$('gG').value * et + +$('gS').value * 0.5 * et + +$('gT').value * 0.6 * et * 4 + +$('gP').value * 0.9 * et * 6) / eff; }
     var today = need(etNow()), yr = ET.map(need), drip = (+$('gS').value * 0.5 * etNow() / eff) / Math.max(1, +$('gS').value * 2) / (+$('gE').value || 4) * 60, cost = today * 30 / 1000 * +$('gC').value;
     $('gOut').innerHTML = '<b class="big">' + Math.round(today).toLocaleString('en') + ' L a day</b><span>About ' + Math.round(cost).toLocaleString('en') + ' AED a month at this rate. ' + (+$('gS').value ? 'With 2 drippers per m² in the beds, run them about ' + Math.max(1, Math.round(drip)) + ' minutes a day.' : '') + '</span><small>Today\'s evapotranspiration ' + etNow().toFixed(1) + ' mm' + (et0 != null ? ' (live, ' + loc.name + ')' : ' (typical for this month)') + '. Summer peak: about ' + Math.round(Math.max.apply(null, yr)).toLocaleString('en') + ' L a day.</small>';
-    var mx = Math.max.apply(null, yr); var MN = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
+    var mx = Math.max.apply(null, yr); var MN = AR ? ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'] : ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
     $('gM').innerHTML = yr.map(function (v, i) { return '<div title="' + Math.round(v) + ' L"><i style="height:' + (v / mx * 96) + 'px;' + (i === m ? 'background:var(--accent)' : '') + '"></i>' + MN[i] + '</div>'; }).join('');
   }
   ['gL', 'gS', 'gT', 'gP', 'gG', 'gI', 'gE', 'gC'].forEach(function (k) { $(k).oninput = garden; });
   // library
+  function tagsOf(p) { return [{ low: 'Low light', medium: 'Medium light', bright: 'Bright light', full: 'Full sun' }[p[4]], ['', 'Dislikes heat', 'Some heat', 'Loves heat'][p[5]], p[3] < 0.35 ? 'Rarely thirsty' : p[3] < 0.65 ? 'Average water' : 'Thirsty', p[6] === 's' ? 'Pet safe' : 'Toxic to pets']; }
   function lib() {
     var q = $('lq').value.toLowerCase().trim();
     var rows = PL.filter(function (p) {
-      if (!q) return true; var hay = (p[1] + ' ' + p[2] + ' ' + p[8] + ' ' + p[4] + ' light ' + (p[6] === 's' ? 'pet safe cat dog' : 'toxic') + ' ' + (p[5] === 3 ? 'heat tough' : '') + (p[7] === 'i' ? ' indoor' : p[7] === 'o' ? ' outdoor garden balcony' : ' indoor outdoor')).toLowerCase();
+      if (!q) return true; var hay = (p[1] + ' ' + p[2] + ' ' + p[8] + ' ' + p[4] + ' light ' + (p[6] === 's' ? 'pet safe cat dog' : 'toxic') + ' ' + (p[5] === 3 ? 'heat tough' : '') + (p[7] === 'i' ? ' indoor' : p[7] === 'o' ? ' outdoor garden balcony' : ' indoor outdoor') + (AR ? ' ' + tagsOf(p).concat([p[1], p[8], p[7] === 'i' ? 'داخلي' : p[7] === 'o' ? 'خارجي حديقة شرفة' : 'داخلي خارجي']).map(T).join(' ') : '')).toLowerCase();
       return q.split(/\s+/).every(function (w) { return hay.indexOf(w) >= 0; });
     });
-    $('lib').innerHTML = rows.map(function (p) { return '<div><b>' + esc(p[1]) + ' <span class="ar">' + p[2] + '</span></b><div class="tags"><span>' + { low: 'Low light', medium: 'Medium light', bright: 'Bright light', full: 'Full sun' }[p[4]] + '</span><span>' + ['', 'Dislikes heat', 'Some heat', 'Loves heat'][p[5]] + '</span><span>' + (p[3] < 0.35 ? 'Rarely thirsty' : p[3] < 0.65 ? 'Average water' : 'Thirsty') + '</span><span class="' + (p[6] === 's' ? 'good' : 'bad') + '">' + (p[6] === 's' ? 'Pet safe' : 'Toxic to pets') + '</span></div><span>' + esc(p[8]) + '</span></div>'; }).join('') || '<div>No match.</div>';
+    $('lib').innerHTML = rows.map(function (p) { var t = tagsOf(p); return '<div><b><span class="nm" data-noar>' + esc(p[1]) + '</span> <span class="ar">' + p[2] + '</span></b><div class="tags"><span>' + t[0] + '</span><span>' + t[1] + '</span><span>' + t[2] + '</span><span class="' + (p[6] === 's' ? 'good' : 'bad') + '">' + t[3] + '</span></div><span>' + esc(p[8]) + '</span></div>'; }).join('') || '<div>No match.</div>';
   }
   $('lq').oninput = lib;
   // calendar

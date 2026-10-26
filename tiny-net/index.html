@@ -29,6 +29,7 @@
 .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .acts { display: flex; flex-wrap: wrap; gap: 10px; }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -215,6 +216,8 @@
   $('lr').addEventListener('input', labels);
   window.addEventListener('resize', function () { fit(); draw(); });
   fit(); labels(); build(); gen('circle'); requestAnimationFrame(loop);
+  // Arabic mode: redraw the canvas labels once the Arabic dictionary has loaded (ar.js fires this)
+  window.addEventListener('labar-ready', function () { if (!training) draw(); });
 })();
 </script>
 </body>

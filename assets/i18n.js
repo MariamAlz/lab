@@ -59,7 +59,7 @@
   var st = document.createElement('style');
   st.textContent = 'html.ar body,html.ar input,html.ar select,html.ar textarea,html.ar button{font-family:"IBM Plex Sans Arabic",var(--font-body),sans-serif}' +
     'html.ar h1,html.ar h2,html.ar h3,html.ar .labbar .home{font-family:"IBM Plex Sans Arabic",var(--font-display),sans-serif;letter-spacing:0}' +
-    'html.ar .label,html.ar .mono,html.ar .k{letter-spacing:0;font-family:"IBM Plex Sans Arabic",var(--font-mono),sans-serif}' +
+    'html.ar .label,html.ar .mono,html.ar .k,html.ar .tags span,html.ar .badge{letter-spacing:0;font-family:"IBM Plex Sans Arabic",var(--font-mono),sans-serif}' +
     'html.ar .labbar nav{font-family:"IBM Plex Sans Arabic",var(--font-mono),sans-serif}html.ar .labbar .home .nm{font-family:"Reem Kufi",var(--font-ar),sans-serif}' +
     'html.ar canvas,html.ar svg,html.ar .leaflet-container,html.ar input[type=number],html.ar input[type=range],html.ar code,html.ar pre,html.ar .ltr{direction:ltr}' +
     'html.ar .fact{border-left:0;border-right:2px solid var(--sat-a);padding-left:0;padding-right:12px}' +
@@ -114,6 +114,7 @@
       document.title = tr(document.title.replace(/ · Mariam's Lab$/, '')) + (/ · Mariam's Lab$/.test(document.title) ? ' · مختبر مريم' : '');
       if (document.title === "Mariam's Lab") document.title = 'مختبر مريم';
       run(document.body); addSwitch(); hide.remove();
+      try { window.dispatchEvent(new Event('labar-ready')); } catch (e) {} // pages redraw canvases now
       new MutationObserver(function (ms) {
         ms.forEach(function (m) {
           if (m.type === 'characterData') doText(m.target);

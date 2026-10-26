@@ -43,7 +43,9 @@ body { --ar: 'IBM Plex Sans Arabic'; }
 .fair { font-size: 0.78rem; color: var(--muted); margin-top: 4px; }
 .acts { display: flex; flex-wrap: wrap; gap: 10px; }
 @media print { .labbar, .labfoot, .sec-head p, .edit, .acts, .week button { display: none !important; } .who { break-inside: avoid; background: none; } body { background: #fff; color: #000; } }
+html.ar .who h3 small, html.ar .who li span:last-child { font-family: "IBM Plex Sans Arabic", sans-serif; }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -73,6 +75,9 @@ body { --ar: 'IBM Plex Sans Arabic'; }
   var $ = function (id) { return document.getElementById(id); };
   var COLORS = ['#E9B467', '#4FD3BD', '#84A0FF', '#F08AB3', '#B79CFF', '#8FD16A'];
   var DEF = { p: [['Person A', 10], ['Person B', 6], ['Person C', 4]], c: [['Cook dinner', 45, 5, {}], ['Wash dishes', 20, 7, {}], ['Laundry', 30, 2, {}], ['Vacuum', 30, 2, {}], ['Bathrooms', 40, 1, {}], ['Take out rubbish', 5, 4, {}], ['Groceries', 60, 1, {}], ['Water plants', 5, 3, {}]] };
+  // Arabic mode starts with Arabic sample names (they are the user's own data after that, so they are never machine-swapped)
+  var AR = !!(window.LabAr && LabAr.on);
+  if (AR) DEF = { p: [['الشخص أ', 10], ['الشخص ب', 6], ['الشخص ج', 4]], c: [['طبخ العشاء', 45, 5, {}], ['غسل الأطباق', 20, 7, {}], ['غسل الملابس', 30, 2, {}], ['الكنس بالمكنسة', 30, 2, {}], ['تنظيف الحمّامات', 40, 1, {}], ['إخراج القمامة', 5, 4, {}], ['شراء الأغراض', 60, 1, {}], ['سقي النباتات', 5, 3, {}]] };
   var st = null, week = 0;
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function thisWeek() { var d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - d.getDay()); return Math.round(d / 6048e5); } // weeks start Sunday
@@ -114,15 +119,15 @@ body { --ar: 'IBM Plex Sans Arabic'; }
     if (!st.p.length || !st.c.length) { $('plan').innerHTML = '<p class="fact">Add at least one person and one chore.</p>'; return; }
     var r = assign(base + week);
     $('plan').innerHTML = st.p.map(function (p, pi) {
-      var items = Object.keys(r.got[pi]).map(function (ci) { var c = st.c[ci], n = r.got[pi][ci]; return '<li><span dir="auto">' + esc(c[0]) + (n > 1 ? ' ×' + n : '') + '</span><span>' + hm(c[1] * n) + '</span></li>'; }).join('');
+      var items = Object.keys(r.got[pi]).map(function (ci) { var c = st.c[ci], n = r.got[pi][ci]; return '<li><span dir="auto" data-noar>' + esc(c[0]) + (n > 1 ? ' ×' + n : '') + '</span><span>' + hm(c[1] * n) + '</span></li>'; }).join('');
       var pct = r.target[pi] ? r.load[pi] / r.target[pi] : 0;
-      return '<div class="who"><h3><span dir="auto">' + esc(p[0] || 'Someone') + '</span><small>' + hm(r.load[pi]) + '</small></h3><ul>' + (items || '<li><span>Nothing this week</span></li>') + '</ul><div class="bar"><i style="width:' + Math.min(100, pct * 100) + '%;background:' + COLORS[pi % COLORS.length] + '"></i></div><div class="fair">' + Math.round(pct * 100) + '% of a fair share (' + hm(r.target[pi]) + ')</div></div>';
+      return '<div class="who"><h3>' + (p[0] ? '<span dir="auto" data-noar>' + esc(p[0]) + '</span>' : '<span>Someone</span>') + '<small>' + hm(r.load[pi]) + '</small></h3><ul>' + (items || '<li><span>Nothing this week</span></li>') + '</ul><div class="bar"><i style="width:' + Math.min(100, pct * 100) + '%;background:' + COLORS[pi % COLORS.length] + '"></i></div><div class="fair">' + Math.round(pct * 100) + '% of a fair share (' + hm(r.target[pi]) + ')</div></div>';
     }).join('');
   }
   function editor() {
     $('people').innerHTML = st.p.map(function (p, i) { return '<div class="rowp" data-i="' + i + '"><input value="' + esc(p[0]) + '" data-k="0" aria-label="Name" dir="auto"><input type="number" min="0" max="80" value="' + p[1] + '" data-k="1" aria-label="Free hours a week"><button class="x" type="button" aria-label="Remove">×</button></div>'; }).join('');
     $('chores').innerHTML = st.c.map(function (c, i) {
-      var prefs = st.p.map(function (p, pi) { var v = (c[3] || {})[pi]; return '<button class="pref" type="button" data-p="' + pi + '" data-v="' + (v == null ? '0' : v) + '">' + esc(p[0] || '?') + '</button>'; }).join('');
+      var prefs = st.p.map(function (p, pi) { var v = (c[3] || {})[pi]; return '<button class="pref" type="button" data-p="' + pi + '" data-v="' + (v == null ? '0' : v) + '" data-noar>' + esc(p[0] || '?') + '</button>'; }).join('');
       return '<div class="rowc" data-i="' + i + '"><input value="' + esc(c[0]) + '" data-k="0" aria-label="Chore" dir="auto"><input type="number" min="1" max="600" value="' + c[1] + '" data-k="1" aria-label="Minutes"><input type="number" min="1" max="21" value="' + c[2] + '" data-k="2" aria-label="Times a week"><button class="x" type="button" aria-label="Remove">×</button><div class="prefs">' + prefs + '</div></div>';
     }).join('');
   }
@@ -147,8 +152,8 @@ body { --ar: 'IBM Plex Sans Arabic'; }
     });
   }
   clicks('people'); clicks('chores');
-  $('addP').onclick = function () { st.p.push(['Person ' + String.fromCharCode(65 + st.p.length), 5]); changed(true); };
-  $('addC').onclick = function () { st.c.push(['New chore', 15, 1, {}]); changed(true); var ins = $('chores').querySelectorAll('input[data-k="0"]'); ins[ins.length - 1].select(); };
+  $('addP').onclick = function () { st.p.push([AR ? 'الشخص ' + 'أبجدهوزحطيكلمنسعفصقرشت'.charAt(st.p.length % 22) : 'Person ' + String.fromCharCode(65 + st.p.length), 5]); changed(true); };
+  $('addC').onclick = function () { st.c.push([AR ? 'مهمة جديدة' : 'New chore', 15, 1, {}]); changed(true); var ins = $('chores').querySelectorAll('input[data-k="0"]'); ins[ins.length - 1].select(); };
   $('prev').onclick = function () { week--; plan(); };
   $('next').onclick = function () { week++; plan(); };
   $('print').onclick = function () { window.print(); };

@@ -25,6 +25,7 @@
 .tells { display: grid; gap: 6px; padding: 0; margin: 0; list-style: none; color: var(--muted); font-size: 0.95rem; }
 .tells li::before { content: "→ "; color: var(--accent); }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -233,6 +234,8 @@
     $('ov').hidden = true; round = 0; score = 0; $('sS').textContent = 0; newPlan(); startRound();
   });
   draw();
+  // Arabic mode: redraw the idle canvas once the Arabic dictionary has loaded (ar.js fires this)
+  window.addEventListener('labar-ready', function () { if (!running) draw(); });
 })();
 </script>
 </body>

@@ -39,6 +39,7 @@
 .tips b { color: var(--ink); }
 #sLast, #sNear, #sTrend { font-size: 1.25rem; white-space: nowrap; }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -215,6 +216,8 @@
   try { if (navigator.permissions) navigator.permissions.query({ name: 'geolocation' }).then(function (p) { if (p.state === 'granted') locate(); }).catch(function () {}); } catch (e) {}
 
   showSpeed(); render();
+  // Arabic mode: redraw the canvas once the Arabic dictionary has loaded (ar.js fires this)
+  window.addEventListener('labar-ready', render);
   setInterval(render, 30000);
   window.addEventListener('resize', drawTrend);
 })();

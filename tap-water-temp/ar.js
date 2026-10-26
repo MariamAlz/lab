@@ -1,0 +1,65 @@
+(function () {
+  var LRM = '‎';
+  var FEEL = { 'Cool': 'بارد', 'Mild': 'معتدل', 'Lukewarm': 'فاتر', 'Warm': 'دافئ', 'Hot': 'ساخن', 'Very hot': 'ساخن جدًا' };
+  var PLACE = { 'Dubai': 'دبي', 'Abu Dhabi': 'أبوظبي', 'Sharjah': 'الشارقة', 'Al Ain': 'العين', 'Ras Al Khaimah': 'رأس الخيمة', 'Fujairah': 'الفجيرة', 'Your location': 'موقعك' };
+  function hl(s) { var m = s.match(/^(\d+)(am|pm)$/); return m ? m[1] + (m[2] === 'am' ? ' ص' : ' م') : s; }
+  function day(s) { return s === 'today' ? 'اليوم' : s === 'tomorrow' ? 'غدًا' : s; }
+  LabAr.add({
+    "Hot \"Cold\" Water": "الماء \"البارد\" الساخن",
+    "Tool · Home · Weather · Live": "أداة · المنزل · الطقس · مباشر",
+    "Hot \"cold\" water.": "الماء \"البارد\" الساخن.",
+    "From June to September the cold tap in many UAE homes runs warmer than the hot one. That's because the water sits in a tank on the roof, cooking in the sun all day. This forecasts how hot your cold tap will be today and tomorrow, and the best time for a cool shower.": "من يونيو إلى سبتمبر يصبح ماء الصنبور البارد في كثير من بيوت الإمارات أسخن من الحار، لأن الماء يبقى في خزان على السطح تحت الشمس طوال اليوم. تتوقع هذه الأداة حرارة ماء الصنبور البارد اليوم وغدًا، وأفضل وقت لحمّام منعش.",
+    "📍 Use my location": "📍 استخدم موقعي",
+    "Cold tap now": "الصنبور البارد الآن",
+    "Cold tap now (estimate)": "الصنبور البارد الآن (تقدير)",
+    "No data": "لا توجد بيانات",
+    "hottest today": "الأعلى اليوم",
+    "coolest shower": "أبرد وقت للاستحمام",
+    "air temperature now": "حرارة الهواء الآن",
+    "Today and tomorrow": "اليوم وغدًا",
+    "Water in the tank": "الماء في الخزان",
+    "Outside air": "الهواء الخارجي",
+    "Forecast of tank water and air temperature": "توقعات حرارة ماء الخزان والهواء",
+    "Your tank": "خزانك",
+    "1,000 L (220 gal)": "1,000 لتر (220 غالون)",
+    "2,500 L (550 gal)": "2,500 لتر (550 غالون)",
+    "5,000 L (1,100 gal)": "5,000 لتر (1,100 غالون)",
+    "White": "أبيض", "Beige or grey": "بيج أو رمادي", "Blue or green": "أزرق أو أخضر", "Black": "أسود",
+    "In full sun": "تحت الشمس مباشرة", "Shaded": "مظلل", "Insulated jacket": "غطاء عازل", "Shaded + jacket": "مظلل + غطاء عازل",
+    "Light use": "استخدام خفيف", "Normal use": "استخدام عادي", "Heavy use": "استخدام كثيف",
+    "share of the tank used per day": "نسبة ما يُستهلك من الخزان يوميًا",
+    "Why it happens": "لماذا يحدث ذلك",
+    "Most villas and many buildings store water in a plastic or fibreglass tank on the roof. In summer the air stays above 30°C even at night, so the water never cools much. During the day the sun adds hundreds of watts to every tank. A thousand litres takes a long time to heat up or cool down, so the water ends up a few degrees above the day's average air temperature, peaking in the late afternoon. The pipes running across a hot roof and down sunny walls add a little more.": "تخزّن معظم الفلل وكثير من المباني الماء في خزان بلاستيكي أو من الألياف الزجاجية على السطح. في الصيف تبقى حرارة الهواء فوق ‎30°C حتى في الليل، فلا يبرد الماء كثيرًا. وخلال النهار تضيف الشمس مئات الواطات إلى كل خزان. ويحتاج ألف لتر من الماء وقتًا طويلًا ليسخن أو يبرد، لذا ينتهي الماء أعلى من متوسط حرارة الهواء اليومي ببضع درجات، ويبلغ ذروته في آخر العصر. وتزيده الأنابيب الممتدة على السطح الحار والجدران المشمسة قليلًا.",
+    "<b>How it works.</b> The tank is one lump of water. Each 10 minutes it gains sunlight (more for a dark tank, less in shade), swaps heat with the air through its walls (slower with an insulating jacket), loses a little to the clear night sky, and mixes in fresh mains water as you use it. It warms up on three days of past weather before forecasting. Real tanks vary, so expect it to be within a few degrees.": "<b>كيف تعمل.</b> نعامل الخزان ككتلة ماء واحدة. كل 10 دقائق يكتسب حرارة من الشمس (أكثر للخزان الداكن وأقل في الظل)، ويتبادل الحرارة مع الهواء عبر جدرانه (أبطأ مع الغطاء العازل)، ويفقد قليلًا منها إلى سماء الليل الصافية، ويختلط بماء الشبكة الجديد كلما استخدمت الماء. ويبدأ الحساب بطقس الأيام الثلاثة الماضية قبل التوقع. الخزانات الحقيقية تختلف، فتوقع أن تكون النتيجة ضمن بضع درجات.",
+    "Ways to keep it cooler": "طرق لإبقائه أبرد",
+    "Shade the tank. A simple canopy or shade cloth over it cuts the sun's heat by about three quarters.": "ظلّل الخزان. مظلة بسيطة أو قماش تظليل فوقه يقلل حرارة الشمس بنحو ثلاثة أرباع.",
+    "An insulating jacket slows heat coming in from the hot air and sun.": "الغطاء العازل يبطئ دخول الحرارة من الهواء الحار والشمس.",
+    "White or light-coloured tanks absorb far less sunlight than dark blue or black ones.": "الخزانات البيضاء أو الفاتحة تمتص أشعة شمس أقل بكثير من الزرقاء الداكنة أو السوداء.",
+    "Shower in the early morning, when the tank is at its coolest.": "استحمّ في الصباح الباكر، حين يكون الخزان في أبرد حالاته.",
+    "Fill buckets or a bath at night or before sunrise and let them sit indoors.": "املأ الدلاء أو حوض الاستحمام ليلًا أو قبل الشروق واتركها داخل البيت.",
+    "Run the cold tap for a minute. The first water out has been sitting in pipes on the roof.": "افتح الصنبور البارد لدقيقة. الماء الأول كان راكدًا في الأنابيب على السطح.",
+    "A tank water cooler (a chiller unit on the roof) is the only way to get properly cold water in August. Ask a licensed plumber.": "مبرّد ماء الخزان (وحدة تبريد على السطح) هو الطريقة الوحيدة للحصول على ماء بارد فعلًا في أغسطس. استشر سبّاكًا مرخّصًا.",
+    "Above about 50°C, water can scald, especially for children and older people. If your \"cold\" water ever gets that hot, test it before a bath. Weather from Open-Meteo.": "فوق ‎50°C تقريبًا قد يسبب الماء حروقًا، خاصة للأطفال وكبار السن. إذا وصل ماؤك \"البارد\" إلى هذه الحرارة، فاختبره قبل الاستحمام. الطقس من Open-Meteo.",
+    "Hot enough to be uncomfortable. Test it before bathing children.": "ساخن بما يكفي ليكون مزعجًا. اختبره قبل تحميم الأطفال.",
+    "Warmer than your skin, so a \"cold\" shower won't cool you down.": "أدفأ من جلدك، لذا لن يبرّدك الاستحمام \"البارد\".",
+    "Not refreshing, but fine for a shower.": "ليس منعشًا، لكنه مناسب للاستحمام.",
+    "Nicely cool.": "بارد ولطيف.",
+    "Tap water": "ماء الصنبور",
+    "Air": "الهواء",
+    "today": "اليوم",
+    "tomorrow": "غدًا",
+    "Couldn't reach the weather service. Check your connection and try again.": "تعذّر الوصول إلى خدمة الطقس. تحقق من اتصالك وحاول مرة أخرى.",
+    "Your browser can't share a location.": "متصفحك لا يستطيع مشاركة الموقع.",
+    "Asking for your location…": "جارٍ طلب موقعك…",
+    "Location was not shared. Pick a city instead.": "لم تتم مشاركة الموقع. اختر مدينة بدلًا من ذلك."
+  }, [
+    [/^-?\d+°$/, '$&'],
+    [/^-?[\d.]+°C$/, function (m) { return LRM + m; }],
+    [/^(\d+)(am|pm)$/, function (m) { return hl(m); }],
+    [/^(\d+(?:am|pm)) (today|tomorrow)$/, function (m, h, d) { return hl(h) + ' ' + day(d); }],
+    [/^(-?\d+)°C · (.+)$/, function (m, t, f) { return LRM + t + '°C · ' + (FEEL[f] || f); }],
+    [/^(-?\d+)°C at (\d+(?:am|pm))$/, function (m, t, h) { return LRM + t + '°C عند ' + hl(h); }],
+    [/^(?:Now|(\d+(?:am|pm)) (today|tomorrow)), (-?\d+)°C$/, function (m, h, d, t) { return (h ? hl(h) + ' ' + day(d) : 'الآن') + '، ' + LRM + t + '°C'; }],
+    [/^Fetching the weather for (.+)…$/, function (m, n) { return 'جارٍ جلب طقس ' + (PLACE[n] || n) + '…'; }]
+  ]);
+})();

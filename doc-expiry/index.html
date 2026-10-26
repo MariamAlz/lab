@@ -48,7 +48,12 @@
 details.nt summary { cursor: pointer; font-size: 0.88rem; padding: 4px 0; }
 .src { font-size: 0.75rem; color: var(--muted); margin: 0; }
 [hidden] { display: none !important; }
+html.ar .items li { border-left: 1px solid var(--line); border-right: 4px solid var(--c); }
+html.ar .mem span { padding: 3px 10px 3px 4px; }
+html.ar .tl .tr { direction: ltr; }
+html.ar .items .when, html.ar .tl .ax .tr span, html.ar .tl .dot { font-family: "IBM Plex Sans Arabic", sans-serif; }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -117,8 +122,10 @@ details.nt summary { cursor: pointer; font-size: 0.88rem; padding: 4px 0; }
   ];
   var TY = {}; TYPES.forEach(function (t) { TY[t[0]] = t; });
   var S = { members: [], items: [], notes: {} }, editing = null;
+  // Arabic mode: the first family member starts as "أنا", and calendar files are written through the Arabic dictionary
+  var AR = !!(window.LabAr && LabAr.on), ME = AR ? 'أنا' : 'Me', T = function (s) { return window.LabAr ? LabAr.t(s) : s; };
   function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
-  function load() { try { var o = JSON.parse(localStorage.getItem(KEY) || 'null'); if (o && o.members) S = o; } catch (e) {} if (!S.notes) S.notes = {}; if (!S.members.length) S.members.push({ id: uid(), name: 'Me' }); }
+  function load() { try { var o = JSON.parse(localStorage.getItem(KEY) || 'null'); if (o && o.members) S = o; } catch (e) {} if (!S.notes) S.notes = {}; if (!S.members.length) S.members.push({ id: uid(), name: ME }); }
   function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { $('msg').textContent = 'Could not save in this browser (private mode?). Export a backup to keep your data.'; } }
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function today() { var d = new Date(); d.setHours(0, 0, 0, 0); return d; }
@@ -176,8 +183,8 @@ details.nt summary { cursor: pointer; font-size: 0.88rem; padding: 4px 0; }
     var L = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Mariam\'s Lab//Document expiry//EN', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH'];
     list.forEach(function (it) {
       var sum = title(it) + ' expires (' + mem(it.m).name + ')';
-      L.push('BEGIN:VEVENT', 'UID:' + it.id + '@lab.mariamalzaabi.ae', 'DTSTAMP:' + stamp, 'DTSTART;VALUE=DATE:' + ymd(it.date), 'DTEND;VALUE=DATE:' + next(it.date), 'SUMMARY:' + icsEsc(sum), 'DESCRIPTION:' + icsEsc(note(it.type)), 'TRANSP:TRANSPARENT');
-      [30, 7].forEach(function (d) { L.push('BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:' + icsEsc(sum + ' in ' + d + ' days'), 'TRIGGER:-P' + d + 'D', 'END:VALARM'); });
+      L.push('BEGIN:VEVENT', 'UID:' + it.id + '@lab.mariamalzaabi.ae', 'DTSTAMP:' + stamp, 'DTSTART;VALUE=DATE:' + ymd(it.date), 'DTEND;VALUE=DATE:' + next(it.date), 'SUMMARY:' + icsEsc(T(sum)), 'DESCRIPTION:' + icsEsc(T(note(it.type))), 'TRANSP:TRANSPARENT');
+      [30, 7].forEach(function (d) { L.push('BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:' + icsEsc(T(sum + ' in ' + d + ' days')), 'TRIGGER:-P' + d + 'D', 'END:VALARM'); });
       L.push('END:VEVENT');
     });
     L.push('END:VCALENDAR');
@@ -234,12 +241,12 @@ details.nt summary { cursor: pointer; font-size: 0.88rem; padding: 4px 0; }
     };
     r.readAsText(f); this.value = '';
   };
-  $('wipe').onclick = function () { if (confirm('Delete all people, documents and notes from this browser?')) { S = { members: [{ id: uid(), name: 'Me' }], items: [], notes: {} }; save(); renderNotes(); render(); } };
+  $('wipe').onclick = function () { if (confirm('Delete all people, documents and notes from this browser?')) { S = { members: [{ id: uid(), name: ME }], items: [], notes: {} }; save(); renderNotes(); render(); } };
   $('demo').onclick = function () {
     function off(days) { var d = today(); d.setDate(d.getDate() + days); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
     var a = S.members[0].id, b = uid(), c = uid();
-    S.members.push({ id: b, name: 'Spouse' }, { id: c, name: 'Child' });
-    [[a, 'eid', '', 210], [a, 'passport', '', 600], [a, 'visa', '', 205], [a, 'licence', '', 22], [a, 'mulkiya', 'Family car', 48], [a, 'carins', 'Family car', 45], [a, 'ejari', 'Apartment', 120], [b, 'eid', '', 380], [b, 'passport', '', -6], [b, 'health', '', 75], [c, 'passport', '', 300], [c, 'eid', '', 380], [c, 'custom', 'School re-registration', 140]].forEach(function (r) { S.items.push({ id: uid(), m: r[0], type: r[1], label: r[2], date: off(r[3]) }); });
+    S.members.push({ id: b, name: T('Spouse') }, { id: c, name: T('Child') });
+    [[a, 'eid', '', 210], [a, 'passport', '', 600], [a, 'visa', '', 205], [a, 'licence', '', 22], [a, 'mulkiya', 'Family car', 48], [a, 'carins', 'Family car', 45], [a, 'ejari', 'Apartment', 120], [b, 'eid', '', 380], [b, 'passport', '', -6], [b, 'health', '', 75], [c, 'passport', '', 300], [c, 'eid', '', 380], [c, 'custom', 'School re-registration', 140]].forEach(function (r) { S.items.push({ id: uid(), m: r[0], type: r[1], label: r[2] && T(r[2]), date: off(r[3]) }); });
     save(); render();
   };
   var rz; window.addEventListener('resize', function () { clearTimeout(rz); rz = setTimeout(render, 150); });
