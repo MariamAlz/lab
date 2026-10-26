@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Instrument Tuner · Mariam's Lab</title>
+<meta name="description" content="Tune an oud, guitar, violin, ukulele or bass with your microphone, including the quarter tones of Arabic maqam.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/tuner/">
+<meta property="og:title" content="Instrument Tuner · Mariam's Lab"><meta property="og:description" content="Oud, guitar, violin and more, with Arabic quarter tones."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.btns { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.sm { font: inherit; font-size: 0.85rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 13px; cursor: pointer; }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.tun { padding: 22px; border-radius: var(--radius); border: 1px solid var(--line); background: rgba(7,10,24,.85); display: grid; gap: 14px; justify-items: center; text-align: center; }
+.note { font-family: var(--font-display); font-weight: 800; font-size: clamp(3.4rem, 16vw, 6rem); line-height: 1; }
+.note small { font-size: 0.4em; color: var(--muted); font-weight: 600; }
+.sub { color: var(--muted); font-size: 0.95rem; min-height: 1.4em; }
+.sub .ar { font-family: 'IBM Plex Sans Arabic', sans-serif; }
+.gauge { width: 100%; max-width: 460px; }
+.strs { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.strs button { font: inherit; font-family: var(--font-mono); min-width: 54px; padding: 10px 8px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; display: grid; gap: 2px; }
+.strs button small { font-size: 0.66rem; color: var(--muted); }
+.strs button.hit { border-color: var(--sat-b); box-shadow: 0 0 0 2px rgba(79,211,189,.35); }
+.strs button.ok { background: rgba(79,211,189,.18); }
+.big { font: inherit; font-weight: 600; padding: 12px 28px; border-radius: 999px; border: 0; background: var(--accent); color: var(--bg); cursor: pointer; }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: 0.9rem; }
+.row input[type=number] { width: 5em; font: inherit; font-family: var(--font-mono); color: var(--ink); background: rgba(7,10,24,.6); border: 1px solid var(--line); border-radius: 8px; padding: 5px 8px; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Sound · Music</span>
+    <h1 style="font-size:var(--step-3)">Instrument tuner.</h1>
+    <p>Pluck a string and your microphone finds its pitch. Most tuners only know the 12 Western notes. This one also knows the quarter tones of Arabic maqam, like the half-flat E in Rast and Bayati, so you can check those notes too.</p>
+  </div>
+  <div class="btns" id="inst" role="group" aria-label="Instrument"></div>
+  <div class="tun" style="margin-top:14px">
+    <div class="note" id="note">—</div>
+    <div class="sub" id="sub">Press start, then play a single string.</div>
+    <svg class="gauge" viewBox="0 0 300 126" aria-hidden="true">
+      <path d="M46 118 A104 104 0 0 1 254 118" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="10" stroke-linecap="round"/>
+      <path d="M139.13 14.57 A104 104 0 0 1 160.87 14.57" fill="none" stroke="#4fd3bd" stroke-width="10"/>
+      <g font-family="JetBrains Mono" font-size="9" fill="#8a93ad" text-anchor="middle"><text x="52" y="60">−50</text><text x="150" y="8">0</text><text x="248" y="60">+50</text></g>
+      <line id="needle" x1="150" y1="118" x2="150" y2="14" stroke="#ffc857" stroke-width="3" stroke-linecap="round" style="transform-origin:150px 118px;transition:transform .12s"/>
+      <circle cx="150" cy="118" r="5" fill="#ffc857"/>
+    </svg>
+    <div class="sub" id="cents"></div>
+    <div class="strs" id="strs"></div>
+    <button class="big" type="button" id="go">Start tuning</button>
+  </div>
+  <div class="game" style="margin-top:18px">
+    <div class="panel" style="display:grid;gap:12px">
+      <span class="label">Settings</span>
+      <label class="row"><span>Reference pitch (A4, in Hz)</span><input type="number" id="a4" min="415" max="466" step="1" value="440"></label>
+      <label class="row"><span>Show Arabic quarter tones</span><input type="checkbox" id="qt" checked></label>
+      <label class="row"><span>Tap a string to hear its note</span><input type="checkbox" id="ref" checked></label>
+      <p class="fact" style="margin:0">Arabic oud tuning (low to high): C F A D G C. Turkish oud: E A B E A D. In Arabic practice a quarter tone sits halfway between two semitones, about 50 cents. Players bend it slightly by maqam and region, so trust your ear too.</p>
+    </div>
+    <div class="panel" style="display:grid;gap:10px">
+      <span class="label">Quarter tones you'll meet</span>
+      <p class="fact" style="margin:0"><b>Rast</b> (راست): C D <b>E half-flat</b> F G A <b>B half-flat</b> C. <b>Bayati</b> (بياتي): D <b>E half-flat</b> F G A B♭ C D. <b>Sikah</b> (سيكاه) starts on E half-flat itself. <b>Saba</b> (صبا): D <b>E half-flat</b> F G♭ A B♭ C. Play one of these notes and the tuner should read "half-flat" at the centre.</p>
+      <p class="fact" style="margin:0">Pitch is found on your device by autocorrelation: the sound wave is compared with shifted copies of itself to find how often it repeats. Nothing is recorded or sent anywhere.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var N = ['C', 'C♯', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B'];
+  // quarter-tone names keyed by 24-TET step within the octave (step 0 = C)
+  var QN = { 1: 'C half-sharp', 3: 'D half-flat', 5: 'D half-sharp', 7: 'E half-flat', 9: 'E half-sharp', 11: 'F half-sharp', 13: 'G half-flat', 15: 'G half-sharp', 17: 'A half-flat', 19: 'A half-sharp', 21: 'B half-flat', 23: 'B half-sharp' };
+  var QAR = { 7: 'سيكاه', 21: 'أوج' };
+  var INST = {
+    'Oud (Arabic)': [['C2', 'Yakah'], ['F2', 'Ushayran'], ['A2', 'Dukah'], ['D3', 'Nawa'], ['G3', 'Kirdan'], ['C4', '']],
+    'Oud (Turkish)': [['E2', ''], ['A2', ''], ['B2', ''], ['E3', ''], ['A3', ''], ['D4', '']],
+    Guitar: [['E2', ''], ['A2', ''], ['D3', ''], ['G3', ''], ['B3', ''], ['E4', '']],
+    Violin: [['G3', ''], ['D4', ''], ['A4', ''], ['E5', '']],
+    Ukulele: [['G4', ''], ['C4', ''], ['E4', ''], ['A4', '']],
+    Bass: [['E1', ''], ['A1', ''], ['D2', ''], ['G2', '']],
+    'Any note': []
+  };
+  var inst = 'Oud (Arabic)', ac = null, an = null, buf = null, on = false, hold = 0;
+  try { var sv = localStorage.getItem('tunerInst'); if (sv && INST[sv]) inst = sv; } catch (e) {}
+  function a4() { return +$('a4').value || 440; }
+  function midi(n) { var m = n.match(/^([A-G])([♯#b♭]?)(\d)$/), base = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 }[m[1]] + (m[2] === '♯' || m[2] === '#' ? 1 : m[2] ? -1 : 0); return base + 12 * (+m[3] + 1); }
+  function freq(m) { return a4() * Math.pow(2, (m - 69) / 12); }
+  function strings() {
+    $('strs').innerHTML = INST[inst].map(function (s, i) { return '<button type="button" data-i="' + i + '">' + s[0] + '<small>' + (s[1] || Math.round(freq(midi(s[0]))) + ' Hz') + '</small></button>'; }).join('');
+  }
+  Object.keys(INST).forEach(function (k) { var b = document.createElement('button'); b.className = 'sm'; b.type = 'button'; b.textContent = k; b.setAttribute('aria-pressed', k === inst); b.onclick = function () { inst = k; try { localStorage.setItem('tunerInst', k); } catch (e) {} [].forEach.call($('inst').children, function (x) { x.setAttribute('aria-pressed', x === b); }); strings(); }; $('inst').appendChild(b); });
+  strings();
+  $('strs').addEventListener('click', function (e) { var b = e.target.closest('[data-i]'); if (!b || !$('ref').checked) return; tone(freq(midi(INST[inst][+b.dataset.i][0]))); });
+  function tone(f) {
+    ensure(); var t = ac.currentTime, o = ac.createOscillator(), o2 = ac.createOscillator(), g = ac.createGain();
+    o.type = 'triangle'; o.frequency.value = f; o2.type = 'sine'; o2.frequency.value = f * 2; o.connect(g); o2.connect(g); g.connect(ac.destination);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.25, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + 2.2); o.start(t); o2.start(t); o.stop(t + 2.3); o2.stop(t + 2.3);
+  }
+  function ensure() { if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)(); if (ac.state === 'suspended') ac.resume(); }
+  // autocorrelation pitch detection with parabolic interpolation
+  function detect(b, sr) {
+    var n = b.length, rms = 0, i; for (i = 0; i < n; i++) rms += b[i] * b[i]; rms = Math.sqrt(rms / n); if (rms < 0.008) return -1;
+    var minLag = Math.floor(sr / 1400), maxLag = Math.floor(sr / 35), best = -1, bestV = 0, c = new Float32Array(maxLag + 2);
+    for (var lag = minLag; lag <= maxLag + 1; lag++) { var s = 0, e1 = 0, e2 = 0; for (i = 0; i < n - lag; i++) { s += b[i] * b[i + lag]; e1 += b[i] * b[i]; e2 += b[i + lag] * b[i + lag]; } c[lag] = s / Math.sqrt(e1 * e2 || 1); }
+    for (lag = minLag + 1; lag <= maxLag; lag++) { if (c[lag] > 0.9 && c[lag] >= c[lag - 1] && c[lag] >= c[lag + 1]) { best = lag; bestV = c[lag]; break; } }
+    if (best < 0) { for (lag = minLag + 1; lag <= maxLag; lag++) if (c[lag] > bestV && c[lag] >= c[lag - 1] && c[lag] >= c[lag + 1]) { bestV = c[lag]; best = lag; } if (bestV < 0.6) return -1; }
+    var a = c[best - 1], m = c[best], z = c[best + 1], shift = (a - z) / (2 * (a - 2 * m + z) || 1);
+    return sr / (best + shift);
+  }
+  function loop() {
+    if (!on) return; requestAnimationFrame(loop);
+    an.getFloatTimeDomainData(buf); var f = detect(buf, ac.sampleRate);
+    if (f < 0) { if (++hold > 40) { $('note').innerHTML = '—'; $('sub').textContent = 'Listening… play a single string.'; $('cents').textContent = ''; setNeedle(0, true); } return; }
+    hold = 0;
+    var semis = 12 * Math.log2(f / a4()) + 69, out;
+    var list = INST[inst];
+    if (list.length) {
+      var bi = 0, bd = 1e9; list.forEach(function (s, i) { var d = Math.abs(semis - midi(s[0])); if (d < bd) { bd = d; bi = i; } });
+      var tgt = midi(list[bi][0]), cents = (semis - tgt) * 100;
+      [].forEach.call($('strs').children, function (b, i) { b.classList.toggle('hit', i === bi); if (i === bi && Math.abs(cents) < 5) b.classList.add('ok'); });
+      if (Math.abs(cents) <= 150) { out = { name: list[bi][0].replace(/\d/, ''), oct: list[bi][0].slice(-1), cents: cents, hint: Math.abs(cents) < 5 ? 'In tune' : cents < 0 ? 'Too low: tighten the string' : 'Too high: loosen the string' }; }
+    }
+    if (!out) {
+      var q = $('qt').checked, step = q ? Math.round(semis * 2) / 2 : Math.round(semis), centsQ = (semis - step) * 100, k = Math.round(((step % 12) + 12) % 12 * 2), nm, ar = '';
+      if (k % 2) { nm = QN[k]; ar = QAR[k] || ''; } else nm = N[k / 2];
+      out = { name: nm, oct: Math.floor(step / 12) - 1, cents: centsQ, hint: (k % 2 ? 'Quarter tone' : '') + (ar ? ' · <span class="ar">' + ar + '</span>' : ''), q: k % 2 };
+    }
+    $('note').innerHTML = out.name.replace(' half-flat', '<small> half-flat</small>').replace(' half-sharp', '<small> half-sharp</small>') + '<small>' + out.oct + '</small>';
+    $('sub').innerHTML = (out.hint || '') + (out.hint ? ' · ' : '') + f.toFixed(1) + ' Hz';
+    $('cents').textContent = (out.cents >= 0 ? '+' : '') + Math.round(out.cents) + ' cents';
+    setNeedle(Math.max(-50, Math.min(50, out.cents)));
+  }
+  function setNeedle(c, idle) { $('needle').style.transform = 'rotate(' + (c * 1.2) + 'deg)'; $('needle').style.stroke = idle ? '#8a93ad' : Math.abs(c) < 5 ? '#4fd3bd' : '#ffc857'; }
+  $('go').onclick = function () {
+    if (on) { on = false; $('go').textContent = 'Start tuning'; return; }
+    ensure();
+    navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } }).then(function (s) {
+      var src = ac.createMediaStreamSource(s); an = ac.createAnalyser(); an.fftSize = 4096; buf = new Float32Array(an.fftSize); src.connect(an);
+      on = true; $('go').textContent = 'Stop'; $('sub').textContent = 'Listening… play a single string.'; loop();
+    }).catch(function () { $('sub').textContent = 'Microphone access was blocked. Allow it in your browser settings.'; });
+  };
+  $('a4').onchange = strings;
+  window.TUNER_DETECT = detect;
+})();
+</script>
+</body>
+</html>
