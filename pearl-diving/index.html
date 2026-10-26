@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>A Pearl Diving Season · Mariam's Lab</title>
+<meta name="description" content="Captain a pearling boat in the Gulf in the 1920s and 30s. Choose the pearl banks, watch the water and the weather, sell to the pearl merchant, share out the season, and see how debt and the collapse of the pearl trade shaped the divers' lives.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/pearl-diving/">
+<meta property="og:title" content="A Pearl Diving Season · Mariam's Lab"><meta property="og:description" content="Captain a Gulf pearling boat through the summer season, before and after the collapse of 1929."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.arx { font-family: 'IBM Plex Sans Arabic', var(--font-display), sans-serif; }
+.sm { font: inherit; font-size: 0.85rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; cursor: pointer; }
+.sm[aria-pressed="true"], .sm.pri { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.sm:disabled { opacity: .45; cursor: default; }
+.box { padding: 16px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); display: grid; gap: 12px; min-width: 0; }
+.fld { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: 0.9rem; }
+.fld small { display: block; color: var(--muted); font-size: 0.76rem; }
+.fld input[type=number], .fld select { font: inherit; font-family: var(--font-mono); width: 6.5em; color: var(--ink); background: rgba(7, 10, 24, 0.6); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; text-align: end; }
+.fld select { font-family: inherit; width: auto; text-align: start; }
+.hint { font-size: 0.82rem; color: var(--muted); margin: 0; }
+.banks { display: grid; gap: 8px; }
+.bank { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; align-items: start; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; cursor: pointer; font-size: 0.88rem; }
+.bank input { margin-top: 4px; accent-color: var(--accent); }
+.bank b { display: block; }
+.bank small { color: var(--muted); display: block; }
+.bank:has(input:checked) { border-color: var(--accent); background: rgba(233, 180, 103, .08); }
+.gauges { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.gauge { font-size: 0.8rem; color: var(--muted); display: grid; gap: 3px; }
+.gauge i { display: block; height: 7px; border-radius: 4px; background: var(--line); overflow: hidden; }
+.gauge i span { display: block; height: 100%; background: var(--sat-b); }
+.gauge.warn i span { background: var(--accent); } .gauge.bad i span { background: var(--sat-c); }
+.shiplog { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 0.86rem; max-height: 260px; overflow-y: auto; }
+.shiplog li { padding: 6px 10px; border-inline-start: 3px solid var(--line); }
+.shiplog li.st { border-color: var(--sat-c); } .shiplog li.gd { border-color: var(--accent); }
+.hcard { padding: 14px 16px; border-radius: var(--radius); border: 1px solid var(--sat-b); background: rgba(79, 211, 189, .07); display: grid; gap: 6px; }
+.hcard p { margin: 0; font-size: 0.92rem; }
+.hcard small { color: var(--muted); font-size: 0.76rem; }
+.hcard small a { color: inherit; }
+.pearls { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.pearls div { padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; font-size: 0.84rem; }
+.pearls b { font-family: 'IBM Plex Sans Arabic', sans-serif; font-size: 1.05rem; }
+.pearls small { display: block; color: var(--muted); }
+.tbl { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+.tbl th, .tbl td { padding: 6px 6px; border-bottom: 1px solid var(--line); text-align: start; }
+.tbl td.n, .tbl th.n { text-align: end; font-family: var(--font-mono); white-space: nowrap; }
+.tbl td.neg { color: var(--sat-c); }
+.tblwrap { overflow-x: auto; }
+.big { font-family: var(--font-display); font-size: clamp(1.5rem, 5vw, 2.2rem); font-weight: 800; color: var(--accent); }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.srcs { font-size: 0.82rem; color: var(--muted); padding-inline-start: 18px; display: grid; gap: 4px; margin: 0; }
+.srcs a { color: inherit; }
+html.ar .tbl td.n, html.ar .tbl th.n { font-family: "IBM Plex Sans Arabic", var(--font-mono), sans-serif; }
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Heritage · History · Game</span>
+    <h1 style="font-size:var(--step-3)">A pearl diving season.</h1>
+    <p>Before oil, the summer pearl season, <span class="arx">الغوص الكبير</span>, was how most coastal families in the Gulf made a living. You are the nakhuda (captain) of a pearling boat in the 1920s. Choose the banks, keep the crew supplied, read the weather, sell your pearls, and share out the season. It was hard, dangerous work, and this game tries to show it honestly.</p>
+  </div>
+
+  <div class="stats" id="stats">
+    <div><b id="sDate">–</b><span id="sDateL">Season not started</span></div>
+    <div><b id="sPearls">0</b><span>Pearls in the box</span></div>
+    <div><b id="sYear">–</b><span>Season</span></div>
+  </div>
+
+  <div class="game" style="margin-top:20px">
+    <div class="panel" id="main" aria-live="polite"></div>
+    <div class="panel">
+      <div id="card"></div>
+      <div class="box">
+        <span class="label">Ship's log</span>
+        <ul class="shiplog" id="log"></ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="game" style="margin-top:28px">
+    <div class="panel">
+      <span class="label">About this game</span>
+      <p class="fact" style="margin:0">The season dates, crew roles, share system and the collapse come from the sources below. The pearl prices, catch rates and storm odds are invented to make a playable game. They follow the direction of the history, not real figures. Money is in Indian rupees, which were used across the Gulf at the time.</p>
+      <p class="fact" style="margin:0">The share-out follows a system recorded in Bahrain: after expenses, the nakhuda took a fifth, and the rest was split in shares, three for each diver and two for each puller. Advances taken during the year were then taken off each man's share, so a poor season left debt for the next one. Rules differed from port to port and boat to boat. Here the nahham gets three shares and each boy one, which is a guess.</p>
+    </div>
+    <div class="panel">
+      <span class="label">Sources</span>
+      <ol class="srcs">
+        <li><a href="https://abudhabiculture.ae/en/cultural-heritage/intangible/heritage-register/traditional-handicraft/pearl-diving" rel="noopener">Abu Dhabi Culture, pearl diving</a>: the season, crew and tools.</li>
+        <li><a href="https://www.emaratalyoum.com/life/four-sides/2024-08-01-1.1872252" rel="noopener">Emarat Al Youm (2024), divers facing danger</a>: crew roles, tools, the length of the season.</li>
+        <li><a href="https://www.emaratalyoum.com/life/culture/2020-08-31-1.1392531" rel="noopener">Emarat Al Youm (2020), pearling heritage</a>: four months at sea, the nahham.</li>
+        <li><a href="https://www.emaratalyoum.com/life/four-sides/2026-10-18-1.2093619" rel="noopener">Emarat Al Youm (2026), Ahmed bin Sharbak Al Tunaiji of Al Rams</a>: how the nakhuda financed the crew.</li>
+        <li><a href="https://qdl.qa/en/pearl-diving-inside-trade-shaped-gulf" rel="noopener">Qatar Digital Library, inside the trade</a>: shares, debt, how pearls were sold.</li>
+        <li><a href="https://www.qdl.qa/en/divers-are-pearl%E2%80%99s-best-friend-pearl-diving-gulf-1840s%E2%80%931930s" rel="noopener">Qatar Digital Library, pearl diving 1840s to 1930s</a>: fleets, finance, the collapse.</li>
+        <li><a href="https://www.aletihad.ae/articleamp/62449/2010/" rel="noopener">Al Ittihad (2010), Gulf pearls</a>: the names of pearl grades.</li>
+        <li><a href="https://areq.net/m/%D8%B7%D9%88%D8%A7%D8%B4%D8%A9.html" rel="noopener">Areq, al-Tawasha</a>: the pearl merchant and the hayrat.</li>
+        <li><a href="https://africame.factsanddetails.com/article/entry-849.html" rel="noopener">Facts and Details, pearl diving in the Persian Gulf</a>: dives per day, sharks, the two blows of the 1930s.</li>
+      </ol>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var AR = !!(window.LabAr && LabAr.on);
+  function L(en, ar) { return AR ? ar : en; }
+  function rs(v) { var s = Math.round(v).toLocaleString('en'); return L('Rs ' + s, s + ' روبية'); }
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+  var KEY = 'pearlGame', SEASON = 122; // 1 June to 30 September
+  var MON = AR ? ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'] : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  function dateOf(day, y) { var d = new Date(Date.UTC(y, 5, 1 + day)); return d.getUTCDate() + ' ' + MON[d.getUTCMonth()]; }
+
+  // Illustrative price level by year. The fall after 1929 follows the sources' direction, not real data.
+  var PRICE = { 1924: 1, 1925: 1, 1926: 0.97, 1927: 0.95, 1928: 0.92, 1929: 0.85, 1930: 0.55, 1931: 0.45, 1932: 0.38, 1933: 0.35, 1934: 0.32 };
+  var LAST = 1934;
+  // Pearl grades, best first, from Al Ittihad (2010). Values are invented for the game.
+  var GR = [
+    { k: 'dana', ar: 'دانة', en: 'Dana', d: ['A large, fine pearl, the find of a lifetime', 'لؤلؤة كبيرة نادرة، صيد العمر'], v: 900, p: 0.0008 },
+    { k: 'jiwan', ar: 'جيون', en: 'Jiwan', d: ['The most prized: round, clear, white with a pink tint', 'أثمن الأصناف: مستديرة صافية بيضاء مشوبة بحمرة'], v: 70, p: 0.05 },
+    { k: 'khashin', ar: 'خشن', en: 'Khashin', d: ['Like jiwan, but smaller', 'بصفات الجيون لكنها أصغر'], v: 30, p: 0.08 },
+    { k: 'qolwa', ar: 'قولوة', en: 'Qolwa', d: ['Good quality, not perfectly round', 'جيدة لكنها ليست تامة الاستدارة'], v: 16, p: 0.12 },
+    { k: 'badla', ar: 'بدلة', en: 'Badla', d: ['Fifth in rank, not fully round', 'الخامسة في الترتيب، غير تامة الاستدارة'], v: 9, p: 0.18 },
+    { k: 'naim', ar: 'ناعم', en: 'Naim', d: ['Round but very small', 'مستديرة لكنها صغيرة جدًا'], v: 4, p: 0.22 },
+    { k: 'boka', ar: 'بوكة', en: 'Boka', d: ['Small and not round', 'صغيرة وغير مستديرة'], v: 1.5, p: 0.346 }
+  ];
+  var BANKS = [
+    { k: 'near', en: 'The near hayr', ar: 'الهير القريب', d: ['Shallow, 5 to 7 m, close to shore. Poorer beds, easy on the men, safe from storms.', 'ضحل، من 5 إلى 7 أمتار، قريب من الساحل. محاره أفقر، وهو أخف على الرجال وآمن من العواصف.'], m: 0.8, tire: 1, risk: 0.2, far: 0 },
+    { k: 'mid', en: 'The middle hayr', ar: 'الهير الأوسط', d: ['8 to 11 m. Better shells, harder diving.', 'من 8 إلى 11 مترًا. محار أفضل وغوص أشق.'], m: 1.15, tire: 1.6, risk: 0.6, far: 1 },
+    { k: 'deep', en: 'The deep hayrat near Dalma', ar: 'الهيرات العميقة قرب دلما', d: ['12 to 15 m, a long sail west. The richest beds, but exhausting, and dangerous in a shamal.', 'من 12 إلى 15 مترًا، بعد إبحار طويل غربًا. أغنى الهيرات، لكنها مرهقة وخطرة إذا هبّ الشمال.'], m: 1.6, tire: 2.4, risk: 1, far: 2 }
+  ];
+  // Short history cards, each with its source number from the list on the page.
+  var CARDS = [
+    ['The main season, al-ghaus al-kabir, ran from 1 June to 30 September. Shorter seasons of about a month followed in October and November.', 'امتد الغوص الكبير من 1 يونيو إلى 30 سبتمبر، وتبعته مواسم أقصر نحو شهر في أكتوبر ونوفمبر.', 1],
+    ['A crew could be up to 30 people: the nakhuda, divers (ghais), pullers (saib), boys called tabbab who helped haul, and a nahham who led the songs.', 'كان طاقم السفينة يصل إلى 30 شخصًا: النوخذة، والغيص، والسيب، والتباب من الصبيان يساعدون في السحب، والنهام الذي يقود الأهازيج.', 1],
+    ['The diver wore a fitam, a nose clip of bone or turtle shell, and carried a dayyin, a woven net bag, around his neck. A stone tied to his foot took him down fast.', 'كان الغيص يضع الفطام، مشبكًا من العظم أو صدفة السلحفاة على أنفه، ويعلّق الديين، كيسًا من الحبال، في رقبته. وتنزله حصاة مربوطة في رجله بسرعة.', 2],
+    ['He tugged the yada rope when he needed air, and the saib on deck pulled him up. Divers trusted their saib with their lives.', 'كان الغيص يهز حبل اليدا حين يحتاج إلى الهواء، فيسحبه السيب إلى السطح. كانت حياة الغيص في يد سيبه.', 1],
+    ['Accounts differ on how long a dive lasted: about a minute in a 1935 newspaper report, and from one and a half to four minutes in a 1960s account. Divers reached about 14 metres.', 'تختلف الروايات في مدة الغطسة: نحو دقيقة في تقرير صحفي من عام 1935، ومن دقيقة ونصف إلى أربع دقائق في رواية من الستينيات. وكان الغواصون يبلغون نحو 14 مترًا.', [5, 9]],
+    ['One account from the 1960s describes about 40 dives a day and 200 to 400 oysters brought up. An archaeologist estimates one pearl in every 10,000 shells.', 'تصف رواية من الستينيات نحو 40 غطسة يوميًا، وإخراج 200 إلى 400 محارة. ويقدّر أحد علماء الآثار لؤلؤة واحدة في كل 10,000 صدفة.', 9],
+    ['Shells were opened under the nakhuda\'s eye, and pearls went into his locked box, the bishtakhta. In Bahrain, two thirds of the crew had to witness a sale.', 'كان المحار يُفلق تحت نظر النوخذة، ويوضع اللؤلؤ في صندوقه المقفل، البشتختة. وفي البحرين كان على ثلثي الطاقم أن يشهدوا البيع.', [5, 8]],
+    ['The nakhuda paid for the crew\'s needs through the year, then took what he had advanced out of their share of the catch.', 'كان النوخذة يموّل الطاقم ويوفّر حاجاتهم طوال السنة، ثم يقتطع ما قدّمه من حصيلتهم.', 4],
+    ['A British report of the time said that most divers were permanently in debt to their nakhudas. Debts could outlast a career.', 'ذكر تقرير بريطاني من تلك الفترة أن أغلب الغواصين كانوا مدينين لنواخذتهم بشكل دائم، وقد تبقى الديون بعد أن يترك الرجل الغوص.', 5],
+    ['The tawwash, the pearl merchant, sailed between the boats on the banks, or met the nakhudas when they came home, and bought what they had found.', 'كان الطواش، تاجر اللؤلؤ، يتنقل بين سفن الغوص في الهيرات، أو يلقى النواخذة عند عودتهم، ويشتري ما استخرجوه.', 8],
+    ['In 1905 a British survey counted 335 pearling boats at Dubai and 410 at Abu Dhabi.', 'في عام 1905 أحصى مسح بريطاني 335 سفينة غوص في دبي و410 في أبوظبي.', 6],
+    ['Many divers and sailors were poor men, and some had been enslaved and brought from Africa and South Asia.', 'كان كثير من الغواصين والبحارة فقراء، وبعضهم ممن استُعبدوا وجُلبوا من أفريقيا وجنوب آسيا.', 6],
+    ['The nahham sang work songs that the crew answered together. One UAE account says he earned more than a diver, because he eased the crew\'s hardship.', 'كان النهام يغني أهازيج العمل ويردد الطاقم خلفه. وتذكر رواية إماراتية أن نصيبه كان أكبر من نصيب الغواص لأنه يخفف عن الطاقم.', 3],
+    ['On the last day, a cannon fired from the shore called the boats home, and families hung flags and cooked for the return, the qaffal.', 'في اليوم الأخير كان يُطلق مدفع من الساحل إيذانًا بالعودة، فتعلّق العائلات الأعلام وتُعدّ الطعام لاستقبال القفال.', 1],
+    ['A pearl\'s value depended on its size, shape, colour, lustre and how clean its surface was.', 'كانت قيمة اللؤلؤة تعتمد على حجمها وشكلها ولونها وبريقها ونقاء سطحها.', 5],
+    ['From 1916, Mikimoto Kokichi in Japan produced cultured pearls. They sold for as little as a tenth of the price of Gulf pearls.', 'منذ عام 1916 أنتج ميكيموتو كوكيتشي في اليابان اللؤلؤ المزروع، وكان يُباع بعُشر سعر لؤلؤ الخليج أحيانًا.', 6],
+    ['Divers were sometimes attacked by sharks, and some kept diving after losing a limb.', 'تعرّض الغواصون أحيانًا لهجمات أسماك القرش، وواصل بعضهم الغوص بعد أن فقد أحد أطرافه.', 9]
+  ];
+
+  var S = null; // game state
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+  function load() { try { return JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { return null; } }
+  function rnd() { return Math.random(); }
+  function poisson(l) { var L0 = Math.exp(-l), k = 0, p = 1; do { k++; p *= rnd(); } while (p > L0); return k - 1; }
+  function log(t, cls) { S.log.unshift([t, cls || '']); S.log = S.log.slice(0, 60); }
+
+  function newCrew(nd, debts) {
+    var c = [];
+    for (var i = 0; i < nd; i++) c.push({ r: 'ghais', n: i + 1, debt: debts && debts.ghais[i] || 0, adv: 0, hurt: 0 });
+    for (var j = 0; j < nd; j++) c.push({ r: 'saib', n: j + 1, debt: debts && debts.saib[j] || 0, adv: 0, hurt: 0 });
+    return c;
+  }
+  function roleName(m) { return ({ ghais: L('Diver', 'غيص'), saib: L('Puller', 'سيب'), nahham: L('Nahham', 'نهام'), tabbab: L('Boy', 'تبّاب') })[m.r] + (m.r === 'nahham' ? '' : ' ' + m.n); }
+
+  // ---------- screens
+  function setup() {
+    var prev = S && S.carry;
+    var h = '<div class="box"><span class="label">' + L('Prepare the season', 'الاستعداد للموسم') + '</span>';
+    if (prev) h += '<p class="hint">' + L('Your crew returns for ' + prev.year + '. Debts from last season carry over.', 'يعود طاقمك لموسم ' + prev.year + '. ديون الموسم الماضي باقية.') + '</p>';
+    else h += '<label class="fld"><span>' + L('Year', 'السنة') + '<small>' + L('Prices fell hard after 1929', 'هبطت الأسعار بشدة بعد 1929') + '</small></span><select id="yr">' + [1925, 1926, 1927, 1928, 1929, 1930, 1931].map(function (y) { return '<option value="' + y + '"' + (y === 1927 ? ' selected' : '') + '>' + y + '</option>'; }).join('') + '</select></label>';
+    h += '<label class="fld"><span>' + L('Divers (ghais), each with a puller (saib)', 'الغواصون (الغيص)، ولكل منهم سيب') + '<small>' + L('More divers find more, but cost more to feed', 'غواصون أكثر يعني صيدًا أكثر ومؤونة أكبر') + '</small></span><input type="number" id="nd" min="4" max="14" value="' + (prev ? prev.nd : 8) + '"' + (prev ? ' disabled' : '') + '></label>';
+    h += '<label class="fld"><span>' + L('Take a nahham (singer)', 'اصطحاب نهام') + '<small>' + L('Songs keep spirits up and the men work better', 'الأهازيج ترفع المعنويات فيعمل الرجال أفضل') + '</small></span><input type="checkbox" id="nh" checked></label>';
+    h += '<label class="fld"><span>' + L('Advance (salaf) for each diver\'s family', 'السلفة لأسرة كل غيص') + '<small>' + L('Pullers get two thirds of this. It is taken off their share later', 'السيب يأخذ ثلثيها، وتُخصم من نصيبهم لاحقًا') + '</small></span><select id="adv"><option value="100">' + rs(100) + '</option><option value="150" selected>' + rs(150) + '</option><option value="200">' + rs(200) + '</option></select></label>';
+    h += '<label class="fld"><span>' + L('Water and food, days', 'الماء والزاد، بالأيام') + '<small>' + L('Rice, dates and water barrels. You can resupply ashore, but it costs days', 'رز وتمر وبراميل ماء. يمكنك التزوّد من البر لكنه يكلّف أيامًا') + '</small></span><input type="number" id="sup" min="10" max="40" value="25"></label>';
+    h += '<p class="hint">' + L('A merchant finances the advances and supplies. You repay him from the sale before the share-out.', 'يموّل تاجر السلف والمؤونة، وتسدّده من البيع قبل القسمة.') + '</p>';
+    h += '<div class="row"><button class="sm pri" type="button" id="sail">' + L('Sail out', 'أبحر') + '</button>' + (prev ? '<button class="sm" type="button" id="quit">' + L('Stop and read the epilogue', 'توقّف واقرأ الخاتمة') + '</button>' : '') + '</div></div>';
+    $('main').innerHTML = h;
+    $('sail').onclick = function () {
+      var nd = prev ? prev.nd : Math.max(4, Math.min(14, +$('nd').value || 8)), y = prev ? prev.year : +$('yr').value, adv = +$('adv').value, sup = Math.max(10, Math.min(40, +$('sup').value || 25));
+      var crew = prev ? prev.crew.filter(function (m) { return m.r === 'ghais' || m.r === 'saib'; }).map(function (m) { return { r: m.r, n: m.n, debt: m.debt, adv: 0, hurt: 0 }; }) : newCrew(nd);
+      var pn = prev && prev.crew.filter(function (m) { return m.r === 'nahham'; })[0];
+      if ($('nh').checked) crew.push({ r: 'nahham', n: 0, debt: pn ? pn.debt : 0, adv: 0, hurt: 0 });
+      crew.push({ r: 'tabbab', n: 1, debt: 0, adv: 0, hurt: 0 }, { r: 'tabbab', n: 2, debt: 0, adv: 0, hurt: 0 });
+      crew.forEach(function (m) { m.adv = m.r === 'ghais' ? adv : m.r === 'saib' ? Math.round(adv * 2 / 3) : m.r === 'nahham' ? adv : 0; });
+      var men = crew.length + 1, supCost = sup * men * 0.5;
+      S = { year: y, nd: nd, day: 0, crew: crew, water: sup, food: sup, men: men, fat: 0, morale: 70, pearls: {}, expenses: supCost + 250, loan: supCost + 250 + crew.reduce(function (a, m) { return a + m.adv; }, 0), at: 'port', log: [], cards: [], phase: 'sea', storms: 0, injuries: 0, games: (S && S.games || 0) };
+      GR.forEach(function (g) { S.pearls[g.k] = 0; });
+      log(L('Left port on 1 June ' + y + ' with ' + men + ' men aboard.', 'غادرنا الميناء في 1 يونيو ' + y + ' وعلى السفينة ' + men + ' رجلًا.'));
+      card(0); save(); render();
+    };
+    if ($('quit')) $('quit').onclick = function () { S.phase = 'epilogue'; save(); render(); };
+  }
+
+  function weatherHint() { // a noisy forecast for the next few days
+    var d = new Date(Date.UTC(S.year, 5, 1 + S.day)), mo = d.getUTCMonth();
+    var base = mo === 5 ? 0.09 : mo === 6 ? 0.07 : 0.04; // the strongest shamal winds come early in summer
+    S.stormP = base * (0.6 + rnd() * 0.9);
+    return S.stormP > 0.09 ? L('Hazy sky and a rising north-westerly. A shamal may be coming.', 'سماء مغبرة وريح شمالية غربية تشتد. قد يهبّ الشمال.') : S.stormP > 0.06 ? L('Some haze to the north-west. Hard to say.', 'بعض الغبار في الشمال الغربي. يصعب الجزم.') : L('Calm sea, clear sky.', 'بحر هادئ وسماء صافية.');
+  }
+
+  function sea() {
+    var left = SEASON - S.day, f = S.fat;
+    var h = '<div class="box"><span class="label">' + L('At sea · ', 'في البحر · ') + dateOf(S.day, S.year) + ' · ' + L(left + ' days left', 'بقي ' + left + ' يومًا') + '</span>';
+    h += '<div class="gauges">' + gauge(L('Water', 'الماء'), S.water, 40, L(S.water + ' days', S.water + ' يومًا')) + gauge(L('Food', 'الزاد'), S.food, 40, L(S.food + ' days', S.food + ' يومًا')) + gauge(L('Crew strength', 'قوة الطاقم'), 100 - f, 100, Math.round(100 - f) + '%') + gauge(L('Spirits', 'المعنويات'), S.morale, 100, Math.round(S.morale) + '%') + '</div>';
+    h += '<p class="hint">' + L('Weather: ', 'الطقس: ') + weatherHint() + '</p>';
+    h += '<div class="banks" role="radiogroup" aria-label="' + L('Where to dive', 'أين نغوص') + '">' + BANKS.map(function (b, i) { return '<label class="bank"><input type="radio" name="bk" value="' + i + '"' + (i === (S.lastBank || 0) ? ' checked' : '') + '><span><b>' + L(b.en, b.ar) + '</b><small>' + L(b.d[0], b.d[1]) + '</small></span></label>'; }).join('') + '</div>';
+    h += '<label class="fld"><span>' + L('Days to dive before deciding again', 'أيام الغوص قبل القرار التالي') + '</span><input type="number" id="days" min="1" max="10" value="' + Math.min(5, left) + '"></label>';
+    h += '<div class="row"><button class="sm pri" type="button" id="dive">' + L('Dive', 'غوصوا') + '</button><button class="sm" type="button" id="rest">' + L('Rest a day at anchor', 'استريحوا يومًا') + '</button><button class="sm" type="button" id="supply">' + L('Sail ashore to resupply (3 days)', 'تزوّدوا من البر (3 أيام)') + '</button></div></div>';
+    $('main').innerHTML = h;
+    $('dive').onclick = function () { var b = +document.querySelector('input[name=bk]:checked').value; S.lastBank = b; run(b, Math.max(1, Math.min(10, +$('days').value || 1))); };
+    $('rest').onclick = function () { pass(1, null); end(); };
+    $('supply').onclick = function () {
+      var men = S.men, d = Math.min(3, SEASON - S.day); pass(d, null, true);
+      var add = 20, cost = add * men * 0.5; S.water = Math.min(40, S.water + add); S.food = Math.min(40, S.food + add); S.expenses += cost; S.loan += cost;
+      log(L('Resupplied ashore: ' + add + ' days of water and food for ' + rs(cost) + '.', 'تزوّدنا من البر بماء وزاد ' + add + ' يومًا بكلفة ' + rs(cost) + '.'));
+      end();
+    };
+  }
+  function gauge(name, v, max, label) { var p = Math.max(0, Math.min(100, v / max * 100)); return '<div class="gauge' + (p < 20 ? ' bad' : p < 40 ? ' warn' : '') + '"><span>' + name + ' · ' + label + '</span><i><span style="width:' + p.toFixed(0) + '%"></span></i></div>'; }
+
+  // advance time by d days; bank = index or null (resting); ashore = no storm risk
+  function pass(d, bank, ashore) {
+    for (var i = 0; i < d && S.day < SEASON; i++) {
+      S.day++;
+      if (!ashore) { S.water--; S.food--; }
+      var storm = !ashore && rnd() < (S.stormP || 0.05);
+      if (storm) {
+        S.storms++;
+        var b = bank == null ? BANKS[0] : BANKS[bank];
+        if (rnd() < 0.35 * b.risk) {
+          var lost = 2 + Math.floor(rnd() * 4); S.water = Math.max(0, S.water - lost); S.food = Math.max(0, S.food - lost); S.morale -= 12;
+          log(L(dateOf(S.day, S.year) + ': a shamal caught us on ' + b.en.replace(/^The /, 'the ') + '. Barrels lost over the side, ' + lost + ' days of supplies gone.', dateOf(S.day, S.year) + ': باغتنا الشمال في ' + b.ar + '. سقطت براميل في البحر وضاع زاد ' + lost + ' أيام.'), 'st');
+        } else log(L(dateOf(S.day, S.year) + ': a shamal blew all day. No diving.', dateOf(S.day, S.year) + ': هبّ الشمال طوال اليوم. لا غوص.'), 'st');
+        continue;
+      }
+      if (bank == null) { S.fat = Math.max(0, S.fat - (ashore ? 12 : 9)); S.morale = Math.min(100, S.morale + 2); continue; }
+      dive(bank);
+    }
+  }
+  function dive(bi) {
+    var b = BANKS[bi], divers = S.crew.filter(function (m) { return m.r === 'ghais' && m.hurt <= 0; }), nah = S.crew.some(function (m) { return m.r === 'nahham'; });
+    var eff = (1 - S.fat / 130) * (0.75 + S.morale / 400) * (nah ? 1.05 : 1), found = 0;
+    divers.forEach(function (m) {
+      var n = poisson(0.7 * b.m * eff);
+      for (var j = 0; j < n; j++) {
+        var r = rnd(), acc = 0, g = GR[GR.length - 1];
+        for (var k = 0; k < GR.length; k++) { var p = GR[k].p * (k === 0 ? b.m : k <= 2 ? b.m * b.m : 1); acc += p; if (r < acc) { g = GR[k]; break; } }
+        S.pearls[g.k]++; found++;
+        if (g.k === 'dana') log(L(dateOf(S.day, S.year) + ': ' + roleName(m) + ' brought up a dana! The whole boat cheered.', dateOf(S.day, S.year) + ': ' + roleName(m) + ' أخرج دانة! هلّل الطاقم كله.'), 'gd');
+      }
+      // injury risk: deep water and tired men
+      if (rnd() < 0.002 * b.tire * (1 + S.fat / 40)) { m.hurt = 4 + Math.floor(rnd() * 6); S.injuries++; S.morale -= 6; log(L(dateOf(S.day, S.year) + ': ' + roleName(m) + ' came up bleeding from the ears. He must rest for ' + m.hurt + ' days.', dateOf(S.day, S.year) + ': صعد ' + roleName(m) + ' وأذناه تنزفان. عليه أن يستريح ' + m.hurt + ' أيام.'), 'st'); }
+    });
+    S.crew.forEach(function (m) { if (m.hurt > 0) m.hurt--; });
+    S.fat = Math.min(100, S.fat + 2.2 * b.tire * (nah ? 0.9 : 1));
+    S.morale = Math.max(5, Math.min(100, S.morale + (found > divers.length * 0.6 ? 1 : -1) - (S.fat > 60 ? 1 : 0)));
+    S.dayFound = (S.dayFound || 0) + found;
+  }
+  function run(bi, d) {
+    var travel = Math.abs(BANKS[bi].far - (S.atFar || 0)); if (travel) { pass(travel, null); log(L('Sailed ' + travel + (travel > 1 ? ' days' : ' day') + ' to ' + BANKS[bi].en.replace(/^The /, 'the ') + '.', 'أبحرنا ' + (travel > 1 ? 'يومين' : 'يومًا') + ' إلى ' + BANKS[bi].ar + '.')); }
+    S.atFar = BANKS[bi].far; S.dayFound = 0;
+    pass(d, bi);
+    log(L('Dived ' + d + (d > 1 ? ' days' : ' day') + ' on ' + BANKS[bi].en.replace(/^The /, 'the ') + ' and found ' + S.dayFound + ' pearls.', 'غصنا ' + d + ' ' + (d > 2 && d < 11 ? 'أيام' : 'يوم') + ' في ' + BANKS[bi].ar + ' ووجدنا ' + S.dayFound + ' لؤلؤة.'));
+    end();
+  }
+  function end() {
+    if (S.water <= 0 || S.food <= 0) {
+      S.water = Math.max(S.water, 0); S.food = Math.max(S.food, 0);
+      log(L('Out of ' + (S.water <= 0 ? 'water' : 'food') + '. We had to run for shore, losing 4 days, and the men are angry.', 'نفد ' + (S.water <= 0 ? 'الماء' : 'الزاد') + '. اضطررنا للعودة إلى البر وخسرنا 4 أيام، والرجال غاضبون.'), 'st');
+      S.day = Math.min(SEASON, S.day + 4); S.morale -= 15; var add = 15, cost = add * S.men * 0.6; S.water = add; S.food = add; S.expenses += cost; S.loan += cost;
+    }
+    if (S.day >= SEASON) { S.phase = 'sale'; log(L('30 September: the cannon fires on shore. Qaffal, the boats come home.', '30 سبتمبر: أُطلق المدفع على الساحل. القفال، وعادت السفن.'), 'gd'); card(13); }
+    else card();
+    save(); render();
+  }
+  function card(i) {
+    if (i == null) { var pool = CARDS.map(function (c, k) { return k; }).filter(function (k) { return S.cards.indexOf(k) < 0 && k !== 13; }); if (!pool.length) return; i = pool[Math.floor(rnd() * pool.length)]; }
+    S.cards.push(i); S.card = i;
+  }
+  function totalPearls() { return GR.reduce(function (a, g) { return a + (S.pearls[g.k] || 0); }, 0); }
+  function fairValue() { var p = PRICE[S.year] || 0.3; return GR.reduce(function (a, g) { return a + S.pearls[g.k] * g.v; }, 0) * p; }
+
+  function sale() {
+    var fair = fairValue();
+    if (S.offer == null) { S.offer = fair * (0.85 + rnd() * 0.25); S.offers = 1; save(); }
+    var h = '<div class="box"><span class="label">' + L('The tawwash comes aboard', 'الطواش يصعد إلى السفينة') + '</span><div class="pearls">' + GR.map(function (g) { return '<div><b lang="ar">' + g.ar + '</b>' + (AR ? '' : ' <span>' + g.en + '</span>') + ' × ' + S.pearls[g.k] + '<small>' + L(g.d[0], g.d[1]) + '</small></div>'; }).join('') + '</div>';
+    h += '<p>' + L('He weighs the pearls, sorts them through his brass sieves and makes an offer.', 'يزن اللؤلؤ ويفرزه بمناخله النحاسية ثم يعرض سعره.') + '</p><div class="big">' + rs(S.offer) + '</div>';
+    if (S.year >= 1930) h += '<p class="hint">' + L('He shakes his head at the prices. Buyers in Bombay and Europe are paying far less since the crash of 1929, and Japanese cultured pearls are everywhere.', 'يهز رأسه من الأسعار. المشترون في بومباي وأوروبا يدفعون أقل بكثير منذ أزمة 1929، واللؤلؤ الياباني المزروع في كل مكان.') + '</p>';
+    h += '<div class="row"><button class="sm pri" type="button" id="sell">' + L('Accept', 'اقبل') + '</button>' + (S.offers < 2 ? '<button class="sm" type="button" id="wait">' + L('Wait for another tawwash', 'انتظر طواشًا آخر') + '</button>' : '') + '</div>';
+    if (S.offers < 2) h += '<p class="hint">' + L('The next offer could be better or worse, and the crew are waiting to be paid.', 'قد يكون العرض التالي أفضل أو أسوأ، والطاقم ينتظر أجره.') + '</p>';
+    h += '</div>';
+    $('main').innerHTML = h;
+    $('sell').onclick = function () { S.sold = S.offer; S.phase = 'share'; log(L('Sold the season\'s pearls for ' + rs(S.sold) + '.', 'بعنا لؤلؤ الموسم بمبلغ ' + rs(S.sold) + '.'), 'gd'); card(7); save(); render(); };
+    if ($('wait')) $('wait').onclick = function () { S.offer = fairValue() * (0.78 + rnd() * 0.32); S.offers = 2; card(9); save(); render(); };
+  }
+
+  // The share-out, exposed for the self-check.
+  function shareOut(sold, expenses, crew) {
+    var net = Math.max(0, sold - expenses), nak = net / 5, pool = net - nak;
+    var SH = { ghais: 3, saib: 2, nahham: 3, tabbab: 1 };
+    var shares = crew.reduce(function (a, m) { return a + SH[m.r]; }, 0), one = shares ? pool / shares : 0;
+    var rows = crew.map(function (m) { var gross = SH[m.r] * one, bal = gross - m.adv - m.debt; return { m: m, sh: SH[m.r], gross: gross, adv: m.adv, old: m.debt, bal: bal }; });
+    return { net: net, nak: nak, pool: pool, one: one, rows: rows };
+  }
+  window.__pearlShare = shareOut;
+  function share() {
+    var r = shareOut(S.sold, S.expenses, S.crew);
+    var h = '<div class="box"><span class="label">' + L('The share-out', 'القسمة') + '</span><table class="tbl"><tbody>';
+    h += '<tr><td>' + L('Sale to the tawwash', 'البيع للطواش') + '</td><td class="n">' + rs(S.sold) + '</td></tr>';
+    h += '<tr><td>' + L('Supplies and boat upkeep', 'المؤونة وصيانة السفينة') + '</td><td class="n neg">−' + rs(S.expenses) + '</td></tr>';
+    h += '<tr><td>' + L('The nakhuda\'s fifth', 'خُمس النوخذة') + '</td><td class="n">' + rs(r.nak) + '</td></tr>';
+    h += '<tr><td>' + L('Left for the crew', 'الباقي للطاقم') + '</td><td class="n">' + rs(r.pool) + '</td></tr>';
+    h += '<tr><td>' + L('Value of one share', 'قيمة السهم الواحد') + '</td><td class="n">' + rs(r.one) + '</td></tr></tbody></table>';
+    h += '<div class="tblwrap"><table class="tbl"><thead><tr><th>' + L('Man', 'الرجل') + '</th><th class="n">' + L('Shares', 'الأسهم') + '</th><th class="n">' + L('Earned', 'نصيبه') + '</th><th class="n">' + L('Advance', 'السلفة') + '</th><th class="n">' + L('Old debt', 'دين سابق') + '</th><th class="n">' + L('Takes home', 'الصافي') + '</th></tr></thead><tbody>';
+    r.rows.forEach(function (x) { h += '<tr><td>' + roleName(x.m) + '</td><td class="n">' + x.sh + '</td><td class="n">' + rs(x.gross) + '</td><td class="n">' + rs(x.adv) + '</td><td class="n">' + (x.old ? rs(x.old) : '–') + '</td><td class="n' + (x.bal < 0 ? ' neg' : '') + '">' + (x.bal < 0 ? L('owes ', 'مدين ') + rs(-x.bal) : rs(x.bal)) + '</td></tr>'; });
+    h += '</tbody></table></div>';
+    var inDebt = r.rows.filter(function (x) { return x.bal < 0; }).length;
+    h += '<p>' + (inDebt ? L(inDebt + ' of ' + r.rows.length + ' men end the season owing money. Their debt carries over, and they are bound to dive for you again next year.', inDebt + ' من ' + r.rows.length + ' رجلًا ينهون الموسم مدينين. يبقى دينهم للعام القادم، ويلتزمون بالغوص معك مرة أخرى.') : L('Every man clears his advance this year.', 'سدّد كل رجل سلفته هذا العام.')) + '</p>';
+    h += '<p class="hint">' + L('This season: ' + S.storms + ' storm days, ' + S.injuries + ' injuries, ' + totalPearls() + ' pearls.', 'هذا الموسم: ' + S.storms + ' أيام عواصف، و' + S.injuries + ' إصابات، و' + totalPearls() + ' لؤلؤة.') + '</p>';
+    var next = S.year + 1;
+    h += '<div class="row">' + (next <= LAST ? '<button class="sm pri" type="button" id="again">' + L('Prepare for ' + next, 'استعد لموسم ' + next) + '</button>' : '') + '<button class="sm" type="button" id="epi">' + L('Read the epilogue', 'اقرأ الخاتمة') + '</button></div></div>';
+    $('main').innerHTML = h;
+    S.carry = { year: next, nd: S.nd, crew: r.rows.map(function (x) { return { r: x.m.r, n: x.m.n, debt: Math.max(0, -x.bal) }; }), nahDebt: 0 };
+    S.history = (S.history || []).concat([{ y: S.year, sold: Math.round(S.sold), debt: inDebt, men: r.rows.length }]);
+    save();
+    if ($('again')) $('again').onclick = function () { var c = S.carry, h2 = S.history; S.phase = 'setup'; S.carry = c; S.history = h2; S.offer = null; save(); render(); };
+    $('epi').onclick = function () { S.phase = 'epilogue'; save(); render(); };
+  }
+  function epilogue() {
+    var h = '<div class="box"><span class="label">' + L('Epilogue: the end of the pearl', 'الخاتمة: نهاية زمن اللؤلؤ') + '</span>';
+    if (S.history && S.history.length) h += '<table class="tbl"><thead><tr><th>' + L('Season', 'الموسم') + '</th><th class="n">' + L('Sale', 'البيع') + '</th><th class="n">' + L('Men in debt', 'رجال مدينون') + '</th></tr></thead><tbody>' + S.history.map(function (x) { return '<tr><td>' + x.y + '</td><td class="n">' + rs(x.sold) + '</td><td class="n">' + x.debt + ' / ' + x.men + '</td></tr>'; }).join('') + '</tbody></table>';
+    h += '<p>' + L('Two blows ended the pearl trade. From 1916, Mikimoto in Japan was producing cultured pearls that sold for a fraction of the price, and after the crash of 1929 the buyers in Bombay, Paris and London stopped paying for luxuries. From the 1920s the pearling fleets shrank, and towns that lived on them emptied. Doha fell from about 27,000 people to 16,000 in the 1930s.', 'أنهت ضربتان تجارة اللؤلؤ. فمنذ 1916 كان ميكيموتو في اليابان ينتج لؤلؤًا مزروعًا يُباع بجزء يسير من السعر، وبعد أزمة 1929 توقف المشترون في بومباي وباريس ولندن عن دفع أثمان الكماليات. ومنذ العشرينيات تقلصت أساطيل الغوص وهجر الناس المدن التي عاشت عليها، فانخفض سكان الدوحة من نحو 27,000 إلى 16,000 في الثلاثينيات.') + '</p>';
+    h += '<p>' + L('Divers left for work in Bahrain\'s and Saudi Arabia\'s new oil fields. By the early 1950s traditional pearling had nearly disappeared. In the Emirates, oil exports began in Abu Dhabi in 1962 and in Dubai in 1969, and the dhows became heritage.', 'رحل الغواصون للعمل في حقول النفط الجديدة في البحرين والسعودية. ومع أوائل الخمسينيات كاد الغوص التقليدي يختفي. وفي الإمارات بدأ تصدير النفط من أبوظبي عام 1962 ومن دبي عام 1969، وصارت سفن الغوص تراثًا.') + '</p>';
+    h += '<p class="hint">' + L('Today the songs of the nahham, the diving races and heritage festivals keep the memory of the men who did this work.', 'اليوم تحفظ أهازيج النهامين وسباقات الغوص ومهرجانات التراث ذكرى الرجال الذين عملوا في الغوص.') + '</p>';
+    h += '<div class="row"><button class="sm pri" type="button" id="newg">' + L('Start a new game', 'ابدأ لعبة جديدة') + '</button></div></div>';
+    $('main').innerHTML = h;
+    $('newg').onclick = function () { S = null; try { localStorage.removeItem(KEY); } catch (e) {} render(); };
+  }
+
+  function render() {
+    if (!S || S.phase === 'setup') { stats(); setup(); }
+    else if (S.phase === 'sea') sea();
+    else if (S.phase === 'sale') sale();
+    else if (S.phase === 'share') share();
+    else epilogue();
+    stats();
+    var c = S && S.card != null ? CARDS[S.card] : CARDS[1];
+    var as = document.querySelectorAll('.srcs li a'), ns = [].concat(c[2]);
+    $('card').innerHTML = '<div class="hcard"><span class="label">' + L('From history', 'من التاريخ') + '</span><p>' + esc(L(c[0], c[1])) + '</p><small>' + (ns.length > 1 ? L('Sources ', 'المصادر ') : L('Source ', 'المصدر ')) + ns.map(function (n) { var a = as[n - 1]; return n + (a ? ': <a href="' + a.href + '" rel="noopener">' + esc(a.textContent) + '</a>' : ''); }).join(L('; ', '؛ ')) + '</small></div>';
+    $('log').innerHTML = S && S.log.length ? S.log.map(function (l) { return '<li class="' + l[1] + '">' + esc(l[0]) + '</li>'; }).join('') : '<li>' + L('The log is empty. Prepare your boat.', 'السجل فارغ. جهّز سفينتك.') + '</li>';
+  }
+  function stats() {
+    var on = S && S.phase !== 'setup' && S.day != null;
+    $('sDate').textContent = on ? dateOf(Math.min(S.day, SEASON - 1), S.year) : '–';
+    $('sDateL').textContent = on ? L('Day ' + S.day + ' of ' + SEASON, 'اليوم ' + S.day + ' من ' + SEASON) : L('Season not started', 'لم يبدأ الموسم');
+    $('sPearls').textContent = on ? totalPearls() : 0;
+    $('sYear').textContent = S ? (S.phase === 'setup' && S.carry ? S.carry.year : S.year || '–') : '–';
+  }
+  S = load(); render();
+})();
+</script>
+</body>
+</html>

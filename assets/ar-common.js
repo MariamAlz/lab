@@ -392,3 +392,18 @@ LabAr.add({
  "Shrink photos and PDFs under a portal's size limit, turn iPhone HEIC into JPG and crop to exact pixels, all on your device.": "صغّر الصور وملفات PDF لتناسب حد الحجم في البوابات، وحوّل صور HEIC من iPhone إلى JPG، واقصّها بأبعاد دقيقة بالبكسل، وكل ذلك على جهازك.",
  "Fix a file →": "أصلح ملفًا ←"
 });
+/* index cards for newer tools */
+LabAr.add({
+ "Tool · Money · UAE": "أداة · المال · الإمارات",
+ "Credit card payoff planner": "مخطط سداد البطاقة الائتمانية",
+ "Minimum payment vs a fixed payment vs a target date, with the interest each costs, plus avalanche vs snowball for several cards.": "قارن الحد الأدنى بدفعة ثابتة وبموعد تختاره، مع الفائدة التي يكلفها كل منها، وقارن طريقتي الانهيار وكرة الثلج لعدة بطاقات.",
+ "Plan it →": "خطّط ←",
+ "Tool · Privacy": "أداة · خصوصية",
+ "Before you sell your phone": "قبل أن تبيع هاتفك",
+ "A step-by-step wipe checklist in the right order for iPhone, Android, Mac, PC, iPad, watch or console, so you never lose your authenticator codes or leave Activation Lock on.": "قائمة تحقق للمسح بالترتيب الصحيح لـ iPhone وأندرويد وMac والحاسوب وiPad والساعة وجهاز الألعاب، حتى لا تفقد رموز المصادقة ولا تترك قفل التنشيط.",
+ "Start the checklist →": "ابدأ القائمة ←",
+ "Heritage · Game": "تراث · لعبة",
+ "A pearl diving season": "موسم غوص",
+ "Captain a Gulf pearling boat from June to September, share out the catch, and live through the collapse after 1929.": "كن نوخذة سفينة غوص من يونيو إلى سبتمبر، واقسم الحصيلة، وعِش انهيار تجارة اللؤلؤ بعد 1929.",
+ "Set sail →": "أبحر ←"
+});

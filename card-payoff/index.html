@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Credit Card Payoff Planner · Mariam's Lab</title>
+<meta name="description" content="See how long a credit card balance takes to clear at the minimum payment, at a fixed payment or by a target date, and compare avalanche and snowball for several cards. Made for UAE cards quoted at a monthly rate.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/card-payoff/">
+<meta property="og:title" content="Credit Card Payoff Planner · Mariam's Lab"><meta property="og:description" content="Minimum payment vs fixed payment vs a target date, with the interest each one costs."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.form { display: grid; gap: 14px; }
+.f { display: grid; gap: 5px; min-width: 0; }
+.f > span, .sub { font-size: 0.84rem; color: var(--muted); }
+.f input, .f select, .crow input { font: inherit; color: var(--ink); background: rgba(7, 10, 24, 0.6); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; min-width: 0; width: 100%; }
+.f input[type=number], .crow input[type=number] { font-family: var(--font-mono); }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.sm { font: inherit; font-size: 0.84rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 13px; cursor: pointer; }
+.sm:hover { border-color: var(--muted); }
+.sm[aria-pressed="true"], .sm.pri { background: var(--accent); color: #1a1205; border-color: var(--accent); }
+.box { display: grid; gap: 12px; padding: 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); }
+.box h2 { font-size: 1.02rem; font-weight: 800; }
+.cmp { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+.cmp th, .cmp td { padding: 8px 6px; border-bottom: 1px solid var(--line); text-align: start; vertical-align: top; }
+.cmp th { color: var(--muted); font-weight: 500; font-size: 0.78rem; }
+.cmp td.n { font-family: var(--font-mono); font-size: 0.84rem; }
+.cmp i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-inline-end: 6px; }
+.cmp small { display: block; color: var(--muted); font-size: 0.76rem; }
+.chart { width: 100%; height: 240px; display: block; }
+.crow { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 0.8fr) 32px; gap: 6px; align-items: center; }
+.crow.hd { font-size: 0.76rem; color: var(--muted); }
+.x { font: inherit; color: var(--muted); background: transparent; border: 1px solid var(--line); border-radius: 8px; height: 36px; cursor: pointer; }
+.x:hover { color: var(--sat-c); border-color: var(--sat-c); }
+.warn { padding: 10px 12px; border-radius: 10px; border: 1px solid color-mix(in srgb, var(--sat-c) 55%, var(--line)); font-size: 0.86rem; }
+.order { margin: 0; padding-inline-start: 20px; font-size: 0.86rem; display: grid; gap: 3px; }
+.order small { color: var(--muted); }
+[hidden] { display: none !important; }
+@media (max-width: 520px) { .stats b { font-size: 1.1rem; } .stats span { font-size: 0.78rem; } }
+@media (max-width: 420px) { .cmp th, .cmp td { padding: 7px 3px; } .cmp { font-size: 0.82rem; } }
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Money · UAE</span>
+    <h1 style="font-size:var(--step-3)">Credit card payoff planner.</h1>
+    <p>Cards in the UAE usually quote interest per month, so 3.25% sounds small until you see it is about 39% a year. Enter your balance and see how long the minimum payment takes, what a fixed payment saves, and what you need to pay to be clear by a date you choose.</p>
+  </div>
+  <div class="pills" id="tabs" style="margin-bottom:18px">
+    <button class="sm" data-t="one" aria-pressed="true">One card</button>
+    <button class="sm" data-t="many" aria-pressed="false">Several cards</button>
+  </div>
+
+  <div class="game" id="one">
+    <div class="panel">
+      <div class="stats">
+        <div><b id="sMin">—</b><span>to clear at the minimum</span></div>
+        <div><b id="sInt">—</b><span>interest at the minimum</span></div>
+        <div><b id="sSave">—</b><span>saved with your fixed payment</span></div>
+      </div>
+      <div class="box">
+        <h2>Balance over time</h2>
+        <canvas class="chart" id="ch1"></canvas>
+        <table class="cmp">
+          <thead><tr><th>Plan</th><th>Monthly</th><th>Time</th><th>Interest</th></tr></thead>
+          <tbody id="cmp"></tbody>
+        </table>
+        <div class="warn" id="warn1" hidden></div>
+      </div>
+      <p class="fact">Why the minimum takes so long: when the minimum is a percentage of what you owe, it shrinks as the balance shrinks. At 5% of the balance and 3.25% interest, only about 1.7% of the debt goes away each month, so the last part drags on for years.</p>
+    </div>
+    <div class="panel form">
+      <label class="f"><span>Balance you owe (AED)</span><input type="number" id="bal" min="0" step="100" value="15000"></label>
+      <div class="two">
+        <label class="f"><span>Interest rate (%)</span><input type="number" id="rate" min="0" step="0.05" value="3.25"></label>
+        <label class="f"><span>Quoted</span><select id="per"><option value="m">per month</option><option value="y">per year</option></select></label>
+      </div>
+      <span class="sub" id="rateNote"></span>
+      <span class="sub">Around 3 to 3.5% a month is typical for UAE cards, not an official figure. Your statement shows your own rate.</span>
+      <div class="two">
+        <label class="f"><span>Minimum payment (% of balance)</span><input type="number" id="minPct" min="0" step="0.5" value="5"></label>
+        <label class="f"><span>or at least (AED)</span><input type="number" id="minFloor" min="0" step="10" value="100"></label>
+      </div>
+      <span class="sub">Whichever is higher. Banks set their own rule, so copy yours from the statement.</span>
+      <label class="f"><span>Fixed payment you could make each month (AED)</span><input type="number" id="fixed" min="0" step="50" value="1500"></label>
+      <label class="f"><span>Or be debt-free in (months)</span><input type="number" id="target" min="1" max="120" step="1" value="12"></label>
+    </div>
+  </div>
+
+  <div class="game" id="many" hidden>
+    <div class="panel">
+      <div class="stats">
+        <div><b id="mAv">—</b><span>avalanche: time to clear</span></div>
+        <div><b id="mSn">—</b><span>snowball: time to clear</span></div>
+        <div><b id="mDiff">—</b><span>interest saved by avalanche</span></div>
+      </div>
+      <div class="box">
+        <h2>Total balance over time</h2>
+        <canvas class="chart" id="ch2"></canvas>
+        <table class="cmp">
+          <thead><tr><th>Method</th><th>Time</th><th>Interest</th></tr></thead>
+          <tbody id="cmp2"></tbody>
+        </table>
+        <div class="two">
+          <div><span class="sub">Avalanche pays off</span><ol class="order" id="ordAv"></ol></div>
+          <div><span class="sub">Snowball pays off</span><ol class="order" id="ordSn"></ol></div>
+        </div>
+        <div class="warn" id="warn2" hidden></div>
+      </div>
+      <p class="fact">Both methods pay every card's minimum and put the rest of your budget on one card. Avalanche picks the highest rate first, which always costs the least interest. Snowball picks the smallest balance first, so a card disappears sooner, and many people find that easier to stick with.</p>
+    </div>
+    <div class="panel form">
+      <div class="crow hd"><span>Card</span><span>Balance (AED)</span><span>% a month</span><span></span></div>
+      <div id="cards" style="display:grid;gap:8px"></div>
+      <button class="sm" id="addCard" style="justify-self:start">+ Add a card</button>
+      <label class="f"><span>Total you can pay each month, all cards (AED)</span><input type="number" id="budget" min="0" step="100" value="2500"></label>
+      <span class="sub">Minimum rule uses the same % and floor as the one-card tab.</span>
+    </div>
+  </div>
+
+  <div class="box" style="margin-top:28px">
+    <h2>Balance transfers and instalment plans</h2>
+    <p class="sub" style="font-size:0.9rem">Many UAE banks offer to move a balance to a 0% or low-rate plan for a few months, or to split a big purchase into instalments. They can save a lot, but check three things first: the one-time processing fee, the rate once the offer ends, and whether new spending on the card is still charged the full rate. Work out the fee as a monthly cost and compare it with the rate above.</p>
+    <p class="sub" style="font-size:0.9rem">This is an estimate, not financial advice. Banks charge interest daily and add late fees, so your statement will differ a little. If repayments are hard, talk to your bank early.</p>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var KEY = 'cardPayoff.v1', MAXM = 600;
+  var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  function aed(v) { return 'AED ' + Math.round(v).toLocaleString('en'); }
+  function dur(n) {
+    if (n == null) return 'Never';
+    var y = Math.floor(n / 12), m = n % 12, s = [];
+    if (y) s.push(y + (y === 1 ? ' year' : ' years'));
+    if (m || !y) s.push(m + (m === 1 ? ' month' : ' months'));
+    return s.join(' ');
+  }
+  function when(n) { if (n == null) return ''; var d = new Date(); d.setDate(1); d.setMonth(d.getMonth() + n); return MONTHS[d.getMonth()] + ' ' + d.getFullYear(); }
+  function css(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim() || '#ccc'; }
+  function monthly(rate, per) { return per === 'y' ? rate / 100 / 12 : rate / 100; }
+  function minRule(b) { return Math.max(b * (+$('minPct').value || 0) / 100, +$('minFloor').value || 0); }
+
+  // ---------- one card ----------
+  function sim(B, r, payFn) {
+    var b = B, interest = 0, pts = [b], m = 0;
+    while (b > 0.005 && m < MAXM) {
+      var i = b * r; b += i; interest += i;
+      var p = Math.min(b, payFn(b));
+      if (p <= i - 1e-9 && m > 2) return { months: null, interest: interest, pts: pts };
+      b -= p; m++; pts.push(Math.max(0, b));
+    }
+    return { months: b > 0.005 ? null : m, interest: interest, pts: pts };
+  }
+  function calcOne() {
+    var B = Math.max(0, +$('bal').value || 0), rate = +$('rate').value || 0, per = $('per').value, r = monthly(rate, per);
+    var eff = (Math.pow(1 + r, 12) - 1) * 100;
+    $('rateNote').textContent = per === 'm' ? '= ' + (r * 1200).toFixed(1) + '% a year, ' + eff.toFixed(1) + '% with monthly compounding' : '= ' + (r * 100).toFixed(2) + '% a month';
+    var fixed = +$('fixed').value || 0, n = Math.max(1, Math.round(+$('target').value || 12));
+    var need = r > 0 ? B * r / (1 - Math.pow(1 + r, -n)) : B / n;
+    var a = sim(B, r, minRule), b = sim(B, r, function (bb) { return Math.max(fixed, 0); }), c = sim(B, r, function () { return need; });
+    var firstMin = Math.min(B * (1 + r), minRule(B * (1 + r)));
+    var rows = [
+      { k: 'Minimum only', col: css('--sat-c'), pay: 'from ' + aed(firstMin), s: a },
+      { k: 'Fixed payment', col: css('--accent'), pay: aed(fixed), s: b },
+      { k: 'Debt-free in ' + dur(n), col: css('--sat-b'), pay: aed(need), s: c }
+    ];
+    $('cmp').innerHTML = rows.map(function (x) {
+      return '<tr><td><i style="background:' + x.col + '"></i>' + x.k + '</td><td class="n">' + x.pay + '</td><td>' + dur(x.s.months) + (x.s.months != null ? '<small>' + when(x.s.months) + '</small>' : '') + '</td><td class="n">' + (x.s.months != null ? aed(x.s.interest) : '—') + '</td></tr>';
+    }).join('');
+    $('sMin').textContent = a.months != null ? dur(a.months) : 'Never';
+    $('sInt').textContent = a.months != null ? aed(a.interest) : '—';
+    $('sSave').textContent = a.months != null && b.months != null ? aed(Math.max(0, a.interest - b.interest)) : '—';
+    var w = [];
+    if (a.months == null) w.push('At this minimum the interest is bigger than the payment, so the balance never clears. Raise the minimum % or pay a fixed amount.');
+    if (b.months == null && B > 0) w.push('Your fixed payment of ' + aed(fixed) + ' does not cover the monthly interest of ' + aed(B * r) + '. Pay more than that to make progress.');
+    $('warn1').hidden = !w.length; $('warn1').textContent = w.join(' ');
+    chart($('ch1'), rows.map(function (x) { return { col: x.col, pts: x.s.pts, label: x.k === 'Minimum only' ? 'Minimum' : x.k === 'Fixed payment' ? 'Fixed' : 'Target' }; }));
+    save();
+  }
+
+  // ---------- several cards ----------
+  var cards = [{ n: 'Card A', b: 12000, r: 3.25 }, { n: 'Card B', b: 4000, r: 2.99 }, { n: 'Card C', b: 8000, r: 3.45 }];
+  function drawCards() {
+    $('cards').innerHTML = '';
+    cards.forEach(function (c, i) {
+      var row = document.createElement('div'); row.className = 'crow';
+      row.innerHTML = '<input type="text" aria-label="Card name"><input type="number" min="0" step="100" aria-label="Balance (AED)"><input type="number" min="0" step="0.05" aria-label="% a month"><button class="x" aria-label="Remove card">×</button>';
+      var ins = row.querySelectorAll('input');
+      ins[0].value = c.n; ins[1].value = c.b; ins[2].value = c.r;
+      ins[0].addEventListener('input', function () { c.n = ins[0].value; calcMany(); });
+      ins[1].addEventListener('input', function () { c.b = +ins[1].value || 0; calcMany(); });
+      ins[2].addEventListener('input', function () { c.r = +ins[2].value || 0; calcMany(); });
+      row.querySelector('button').addEventListener('click', function () { cards.splice(i, 1); drawCards(); calcMany(); });
+      $('cards').appendChild(row);
+    });
+  }
+  $('addCard').addEventListener('click', function () { cards.push({ n: 'Card ' + String.fromCharCode(65 + cards.length % 26), b: 3000, r: 3.25 }); drawCards(); calcMany(); });
+  function simMany(method, budget) {
+    var cs = cards.filter(function (c) { return c.b > 0; }).map(function (c, i) { return { n: c.n || ('Card ' + (i + 1)), b: c.b, r: c.r / 100, done: null }; });
+    var m = 0, interest = 0, pts = [cs.reduce(function (s, c) { return s + c.b; }, 0)], short = false;
+    while (cs.some(function (c) { return c.b > 0.005; }) && m < MAXM) {
+      var left = budget, before = 0;
+      cs.forEach(function (c) { if (c.b > 0.005) { var i = c.b * c.r; c.b += i; interest += i; before += i; } });
+      cs.forEach(function (c) { if (c.b > 0.005) { var p = Math.min(c.b, minRule(c.b)); c.b -= p; left -= p; } });
+      if (left < 0) short = true;
+      var open = cs.filter(function (c) { return c.b > 0.005; });
+      open.sort(method === 'av' ? function (x, y) { return y.r - x.r || x.b - y.b; } : function (x, y) { return x.b - y.b || y.r - x.r; });
+      for (var k = 0; k < open.length && left > 0; k++) { var q = Math.min(open[k].b, left); open[k].b -= q; left -= q; }
+      m++;
+      cs.forEach(function (c) { if (c.b <= 0.005 && c.done == null) { c.b = 0; c.done = m; } });
+      var tot = cs.reduce(function (s, c) { return s + c.b; }, 0); pts.push(tot);
+      if (m > 3 && tot >= pts[m - 1] - 0.01 && tot >= pts[m - 3] - 0.01) return { months: null, interest: interest, pts: pts, cs: cs, short: short };
+    }
+    return { months: cs.some(function (c) { return c.b > 0.005; }) ? null : m, interest: interest, pts: pts, cs: cs, short: short };
+  }
+  function calcMany() {
+    var budget = +$('budget').value || 0, av = simMany('av', budget), sn = simMany('sn', budget);
+    $('mAv').textContent = dur(av.months); $('mSn').textContent = dur(sn.months);
+    $('mDiff').textContent = av.months != null && sn.months != null ? aed(Math.max(0, sn.interest - av.interest)) : '—';
+    var rows = [{ k: 'Avalanche (highest rate first)', col: css('--sat-b'), s: av }, { k: 'Snowball (smallest balance first)', col: css('--accent'), s: sn }];
+    $('cmp2').innerHTML = rows.map(function (x) {
+      return '<tr><td><i style="background:' + x.col + '"></i>' + x.k + '</td><td>' + dur(x.s.months) + (x.s.months != null ? '<small>' + when(x.s.months) + '</small>' : '') + '</td><td class="n">' + (x.s.months != null ? aed(x.s.interest) : '—') + '</td></tr>';
+    }).join('');
+    function ord(s, el) {
+      el.innerHTML = '';
+      s.cs.slice().sort(function (a, b) { return (a.done == null ? 1e9 : a.done) - (b.done == null ? 1e9 : b.done); }).forEach(function (c) {
+        var li = document.createElement('li'), nm = document.createElement('span'); nm.textContent = c.n; nm.setAttribute('data-noar', '');
+        var sm = document.createElement('small'); sm.textContent = c.done != null ? ' · month ' + c.done : ' · not cleared';
+        li.appendChild(nm); li.appendChild(sm); el.appendChild(li);
+      });
+    }
+    ord(av, $('ordAv')); ord(sn, $('ordSn'));
+    var w = [];
+    if (av.short) w.push('Your budget is less than the minimums on all cards, so some months will fall short. Raise the monthly total.');
+    if (av.months == null) w.push('At this budget the balances never clear. Pay more than the monthly interest.');
+    $('warn2').hidden = !w.length; $('warn2').textContent = w.join(' ');
+    chart($('ch2'), [{ col: rows[0].col, pts: av.pts, label: 'Avalanche' }, { col: rows[1].col, pts: sn.pts, label: 'Snowball' }]);
+    save();
+  }
+
+  // ---------- chart ----------
+  function chart(cv, series) {
+    if (cv.offsetParent === null) return;
+    var dpr = Math.min(window.devicePixelRatio || 1, 2), W = cv.clientWidth, H = cv.clientHeight;
+    cv.width = W * dpr; cv.height = H * dpr;
+    var x = cv.getContext('2d'); x.setTransform(dpr, 0, 0, dpr, 0, 0); x.clearRect(0, 0, W, H);
+    var L = 52, R = 10, T = 12, Bm = 26, maxN = 1, maxY = 1;
+    series.forEach(function (s) { maxN = Math.max(maxN, Math.min(s.pts.length - 1, 240)); s.pts.forEach(function (v) { maxY = Math.max(maxY, v); }); });
+    var step = Math.pow(10, Math.floor(Math.log10(maxY))), top = Math.ceil(maxY / step) * step;
+    if (top / step < 3) { step /= 2; top = Math.ceil(maxY / step) * step; }
+    var muted = css('--muted'), line = css('--line');
+    x.font = '11px ' + (css('--font-mono') || 'monospace'); x.fillStyle = muted; x.strokeStyle = line; x.lineWidth = 1;
+    x.textAlign = 'right'; x.textBaseline = 'middle';
+    for (var v = 0; v <= top + 1e-6; v += step) {
+      var y = T + (H - T - Bm) * (1 - v / top);
+      x.beginPath(); x.moveTo(L, y); x.lineTo(W - R, y); x.stroke();
+      x.fillText(v >= 1000 ? (v / 1000) + 'k' : String(v), L - 6, y);
+    }
+    var yrs = maxN / 12, ystep = yrs > 20 ? 5 : yrs > 8 ? 2 : 1;
+    x.textAlign = 'center'; x.textBaseline = 'top'; var lastX = -1e9;
+    for (var mm = 0; mm <= maxN; mm += (yrs < 1.5 ? 3 : 12 * ystep)) {
+      var px = L + (W - L - R) * mm / maxN, lb = yrs < 1.5 ? 'm' + mm : 'y' + (mm / 12), tw = x.measureText(window.LabAr ? LabAr.t(lb) : lb).width;
+      if (px - lastX < tw + 10 || px + tw / 2 > W) continue;
+      x.fillText(lb, px, H - Bm + 6); lastX = px;
+    }
+    series.forEach(function (s, k) {
+      x.strokeStyle = s.col; x.lineWidth = 2; x.beginPath();
+      var n = Math.min(s.pts.length - 1, maxN);
+      for (var i = 0; i <= n; i++) { var px = L + (W - L - R) * i / maxN, py = T + (H - T - Bm) * (1 - s.pts[i] / top); if (i) x.lineTo(px, py); else x.moveTo(px, py); }
+      x.stroke();
+      x.fillStyle = s.col; x.textAlign = 'right'; x.textBaseline = 'top'; x.font = '600 12px ' + (css('--font-body') || 'sans-serif');
+      x.fillText(s.label, W - R, T + k * 16);
+    });
+  }
+
+  // ---------- state ----------
+  var IDS = ['bal', 'rate', 'per', 'minPct', 'minFloor', 'fixed', 'target', 'budget'];
+  function save() { try { var o = { cards: cards }; IDS.forEach(function (k) { o[k] = $(k).value; }); localStorage.setItem(KEY, JSON.stringify(o)); } catch (e) {} }
+  try { var st = JSON.parse(localStorage.getItem(KEY) || 'null'); if (st) { IDS.forEach(function (k) { if (st[k] != null) $(k).value = st[k]; }); if (Array.isArray(st.cards) && st.cards.length) cards = st.cards; } } catch (e) {}
+  $('per').addEventListener('change', function () {
+    var v = +$('rate').value || 0; $('rate').value = $('per').value === 'y' ? +(v * 12).toFixed(2) : +(v / 12).toFixed(3); calcOne();
+  });
+  IDS.forEach(function (k) { if (k !== 'per') $(k).addEventListener('input', function () { calcOne(); calcMany(); }); });
+  $('tabs').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    [].forEach.call($('tabs').children, function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+    $('one').hidden = b.dataset.t !== 'one'; $('many').hidden = b.dataset.t !== 'many';
+    calcOne(); calcMany();
+  });
+  var rt; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { calcOne(); calcMany(); }, 150); });
+  drawCards();
+  function init() { calcOne(); calcMany(); }
+  if (window.LabAr && LabAr.on && document.readyState !== 'complete') window.addEventListener('load', init); else init();
+})();
+</script>
+</body>
+</html>

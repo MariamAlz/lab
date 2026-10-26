@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Before You Sell Your Phone · Mariam's Lab</title>
+<meta name="description" content="A step-by-step checklist, in the right order, for wiping an iPhone, Android, Mac, Windows PC, iPad, watch or console before you sell or give it away. Covers authenticator apps, eSIM, UAE Pass, banking apps and Activation Lock.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/sell-device/">
+<meta property="og:title" content="Before You Sell Your Phone · Mariam's Lab"><meta property="og:description" content="Wipe your phone or laptop in the right order, without locking yourself out."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.85rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 7px 14px; cursor: pointer; }
+.sm.pri { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 600; }
+.sd-devs { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
+.sd-dev { font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px 10px; cursor: pointer; display: grid; gap: 4px; justify-items: center; text-align: center; font-size: 0.9rem; }
+.sd-dev i { font-style: normal; font-size: 1.6rem; line-height: 1; }
+.sd-dev[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.sd-dev small { color: var(--muted); font-size: 0.72rem; }
+.sd-brand { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 10px; font-size: 0.85rem; color: var(--muted); }
+.sd-brand .sm[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
+.sd-prog { display: grid; gap: 6px; margin: 18px 0 6px; }
+.sd-bar { height: 10px; border-radius: 99px; background: var(--line); overflow: hidden; }
+.sd-bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--sat-b), var(--accent)); transition: width .25s; }
+.sd-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: space-between; font-size: 0.88rem; color: var(--muted); }
+.sd-phase { margin-top: 22px; display: grid; gap: 8px; }
+.sd-phase h2 { font-size: 1.15rem; display: flex; gap: 10px; align-items: baseline; }
+.sd-phase h2 span { font-family: var(--font-mono); font-size: 0.75rem; color: var(--accent); }
+.sd-item { display: grid; grid-template-columns: 1.6em minmax(0, 1fr); gap: 10px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.sd-item input { width: 1.25em; height: 1.25em; margin-top: 3px; accent-color: var(--sat-b); cursor: pointer; }
+.sd-item.sd-done { opacity: .62; }
+.sd-item.sd-done .sd-t { text-decoration: line-through; text-decoration-color: var(--muted); }
+.sd-t { font-weight: 600; cursor: pointer; }
+.sd-d { color: var(--muted); font-size: 0.88rem; margin-top: 4px; }
+.sd-tags { display: inline-flex; gap: 6px; flex-wrap: wrap; margin-inline-start: 6px; vertical-align: 1px; }
+.sd-tag { font-size: 0.68rem; font-weight: 600; letter-spacing: .02em; padding: 1px 8px; border-radius: 99px; border: 1px solid; white-space: nowrap; }
+.sd-irrev { color: var(--sat-c); border-color: var(--sat-c); }
+.sd-before { color: var(--accent); border-color: var(--accent); }
+.sd-erase { color: var(--sat-b); border-color: var(--sat-b); }
+.sd-warn { margin-top: 8px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--sat-c); background: rgba(240,138,179,.08); font-size: 0.88rem; }
+.sd-warn ul { margin: 6px 0 0; padding-inline-start: 1.1em; }
+.sd-printhead { display: none; }
+[hidden] { display: none !important; }
+@media print {
+  body { background: #fff; color: #000; }
+  *, *::before, *::after { text-shadow: none !important; box-shadow: none !important; }
+  h1, h2, .sd-t { color: #000; }
+  .labbar, .labfoot, .sd-noprint { display: none !important; }
+  .labmain { padding-top: 0; }
+  .sd-printhead { display: block; font-size: 12pt; margin-bottom: 8pt; }
+  .sd-item { background: #fff; border-color: #999; break-inside: avoid; color: #000; }
+  .sd-d, .sd-row { color: #333; }
+  .sd-item.sd-done { opacity: 1; }
+  .sd-phase h2 span { color: #000; }
+  .sec-head p, .fact { color: #333; }
+  .sd-tag { color: #000; border-color: #000; }
+}
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Security · Privacy</span>
+    <h1 style="font-size:var(--step-3)">Before you sell your phone or laptop.</h1>
+    <p>A factory reset takes one tap. Doing it in the wrong order can lock you out of your bank, your authenticator codes or your WhatsApp chats, or leave the buyer with a device that's locked to your account. Pick the device and work down the list. Your ticks are saved on this device.</p>
+  </div>
+
+  <div class="sd-noprint">
+    <div class="sd-devs" id="devs" role="group" aria-label="Device"></div>
+    <div class="sd-brand" id="brand" hidden><span>Which Android?</span><button class="sm" type="button" data-brand="samsung">Samsung</button><button class="sm" type="button" data-brand="pixel">Google Pixel</button><button class="sm" type="button" data-brand="other">Other</button></div>
+  </div>
+  <p class="sd-printhead" id="printHead"></p>
+
+  <div class="sd-prog">
+    <div class="sd-row"><span id="count">0 of 0 done</span><span class="sd-noprint" style="display:flex;gap:8px;flex-wrap:wrap"><button class="sm" type="button" id="print">Print or save as PDF</button><button class="sm" type="button" id="reset">Untick all</button></span></div>
+    <div class="sd-bar"><i id="bar"></i></div>
+  </div>
+  <div id="list"></div>
+
+  <div class="game" style="margin-top:28px">
+    <div class="panel" style="display:grid;gap:10px">
+      <span class="label">Why the order matters</span>
+      <p class="fact" style="margin:0">Authenticator apps keep their secret keys only on the phone. Once you erase it, those six-digit codes are gone for good, and getting back into each account means slow identity checks with every service. Activation Lock and Android's Factory Reset Protection work the other way round: they survive the reset on purpose, to make stolen phones useless. That's why you sign out first, or the buyer ends up with a locked device and you get a call.</p>
+    </div>
+    <div class="panel" style="display:grid;gap:10px">
+      <span class="label">Good to know</span>
+      <ul style="margin:0;padding-inline-start:1.1em;display:grid;gap:6px;color:var(--muted);font-size:.9rem">
+        <li>Menu names change between software versions. If a path doesn't match, search the Settings app for the key word.</li>
+        <li>Modern phones encrypt everything. A proper reset throws away the key, so "special wiping apps" aren't needed.</li>
+        <li>Selling a work or school device? It isn't yours to wipe. Ask the IT team first.</li>
+        <li>Nothing on this page is sent anywhere. The ticks live in this browser only.</li>
+      </ul>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var KEY = 'sellDeviceV1';
+  var DEV = [['iphone', '📱', 'iPhone'], ['android', '📱', 'Android phone'], ['ipad', '📲', 'iPad or tablet'], ['mac', '💻', 'Mac'], ['windows', '🖥️', 'Windows PC'], ['watch', '⌚', 'Smartwatch'], ['console', '🎮', 'Game console']];
+  var PHASES = ['Save what is yours', 'Move your accounts and security', 'Unlink the device', 'Erase', 'After the wipe'];
+  var PHONES = ['iphone', 'android'], APPLE = ['iphone', 'ipad', 'mac', 'watch'], ALL = ['iphone', 'android', 'ipad', 'mac', 'windows', 'watch', 'console'];
+  // [id, phase, devices, title, details by device (all / device / brand), flags]
+  // flags: irrev = can't be undone after the erase; before = do it before erasing; erase = the erase step itself
+  var ITEMS = [
+    ['backup', 0, ALL, 'Back up everything', {
+      iphone: 'Settings > [your name] > iCloud > iCloud Backup > Back Up Now, or back up to a computer. Wait until it says the backup is complete.',
+      ipad: 'Settings > [your name] > iCloud > iCloud Backup > Back Up Now, or back up to a computer. Wait until it says the backup is complete.',
+      android: 'Settings > Google > Backup > Back up now. Check Google Photos has finished uploading.',
+      samsung: 'Settings > Google > Backup > Back up now, and use Samsung Cloud or Smart Switch too (to a computer, or straight to your new phone).',
+      mac: 'Run a Time Machine backup to an external drive, or copy your files. Check iCloud Drive and Photos have finished syncing.',
+      windows: 'Copy your files to OneDrive or an external drive. Make sure browser bookmarks and saved passwords are synced to your account.',
+      watch: 'An Apple Watch backs up to your iPhone when you unpair it. Galaxy and Wear OS watches back up from the Galaxy Wearable or watch app.',
+      console: 'Make sure game saves are in cloud storage, or copy them to a USB drive. Screenshots and clips too.'
+    }, 'irrev'],
+    ['photos', 0, ['iphone', 'android', 'ipad', 'mac', 'windows'], 'Check the backup really worked', { all: 'Open your photos and files on another device or on the web and check the newest ones are there. A backup that stopped halfway is the most common way people lose photos.' }, 'irrev'],
+    ['whatsapp', 0, PHONES, 'Back up WhatsApp and note your PIN', { all: 'WhatsApp > Settings > Chats > Chat backup > Back up now (iCloud on iPhone, Google Drive on Android). Also check you know your two-step verification PIN (Settings > Account > Two-step verification). Switching between iPhone and Android? Use the transfer option in WhatsApp when setting up the new phone, with both phones next to each other.' }, 'irrev'],
+    ['auth', 1, ['iphone', 'android', 'ipad'], 'Move your authenticator codes (critical)', { all: 'Google Authenticator: use "Transfer accounts" to show a QR code and scan it with the new phone. Microsoft Authenticator: turn on cloud backup, then restore on the new phone. For any other app, sign in to each account (email, work, social media, crypto, government portals) and add the new phone as an authenticator. Test a code from the new phone before you go on. Save each account\'s backup codes somewhere safe.' }, 'irrev'],
+    ['uaepass', 1, PHONES, 'Set up UAE Pass on the new phone', { all: 'UAE Pass belongs to the phone it was set up on. Install it on the new phone and sign in again; expect to verify yourself, for example with your Emirates ID and a face check. Keep the old phone working until the new one is fully set up, and remove the old device if the app offers it.' }, 'before'],
+    ['bank', 1, ['iphone', 'android', 'ipad'], 'Deregister your banking apps', { all: 'In each banking app, log out and deregister this device (often under Settings, Devices or Security). On the new phone you will register again with a code sent to your mobile number, so keep that number active.' }, 'before'],
+    ['wallet', 1, ['iphone', 'android', 'ipad', 'mac', 'watch'], 'Remove your cards from the wallet', {
+      iphone: 'Wallet app > tap each card > Remove Card. Erasing removes them too, but removing them first is cleaner. Your actual bank card keeps working.',
+      ipad: 'Settings > Wallet & Apple Pay > tap each card > Remove Card.',
+      mac: 'System Settings > Wallet & Apple Pay > remove each card.',
+      watch: 'Watch app on the phone > Wallet & Apple Pay > remove each card. Galaxy or Wear OS: remove cards in the watch\'s wallet app.',
+      android: 'Google Wallet > tap each card > Remove. Your actual bank card keeps working.',
+      samsung: 'Samsung Wallet and Google Wallet > tap each card > Remove. Your actual bank card keeps working.'
+    }],
+    ['unpairwatch', 2, ['iphone', 'watch'], 'Unpair the watch', {
+      iphone: 'Have an Apple Watch? Watch app > All Watches > (i) > Unpair Apple Watch. This backs up the watch and removes its Activation Lock. Do it before erasing the iPhone.',
+      watch: 'Unpair it from the phone app (the Watch app on iPhone, or the Galaxy Wearable or Pixel Watch app on Android). That makes a backup and removes the lock tied to your account.'
+    }, 'before'],
+    ['esim', 2, ['iphone', 'android', 'ipad', 'watch'], 'Move or deactivate your eSIM', { all: 'Using an eSIM? Transfer it to the new device (on iPhone: Settings > Mobile Service > Transfer, or your operator\'s app), or ask your operator (e&, du or virgin mobile) to move the number. When you erase, you will be asked whether to keep or remove the eSIM: only remove it once your number works on the new device. A cellular watch has its own plan to cancel or move.' }, 'before'],
+    ['imessage', 2, ['iphone', 'ipad', 'mac'], 'Sign out of iMessage and FaceTime', {
+      all: 'Settings > Apps > Messages: turn off iMessage. Do the same for FaceTime.',
+      iphone: 'Settings > Apps > Messages: turn off iMessage, and FaceTime too. Moving to Android? Also deregister your phone number from iMessage on Apple\'s website, or texts from iPhone users may never reach you.',
+      mac: 'Messages > Settings > iMessage > Sign Out. FaceTime > Settings > Sign Out.'
+    }, 'before'],
+    ['account', 2, ALL, 'Sign out of your account and turn off the lock', {
+      iphone: 'Settings > [your name] > Sign Out, then enter your Apple Account password. This turns off Find My and Activation Lock. Skip it and the buyer cannot set up the phone.',
+      ipad: 'Settings > [your name] > Sign Out, then enter your Apple Account password. This turns off Find My and Activation Lock.',
+      mac: 'System Settings > [your name] > Sign Out. This turns off Find My Mac and Activation Lock.',
+      watch: 'Unpairing an Apple Watch removes Activation Lock. Check in Find My that it is gone from your devices.',
+      android: 'Settings > Accounts > remove your Google account. This removes Factory Reset Protection (FRP), which otherwise locks the phone to your account even after a reset.',
+      samsung: 'Settings > Accounts and backup > Manage accounts: remove your Google account and your Samsung account. Both have their own reset lock.',
+      windows: 'Settings > Accounts: sign out of your Microsoft account, and turn off Find my device (Settings > Privacy & security).',
+      console: 'PlayStation: turn off Console Sharing and Offline Play. Xbox: stop it being your home Xbox. Nintendo Switch: deregister it in the eShop. Remove saved payment methods from the console.'
+    }, 'before'],
+    ['encrypt', 2, ['iphone', 'android', 'ipad', 'mac', 'windows'], 'Check encryption is on', {
+      iphone: 'iPhones are always encrypted. The erase throws away the key, so nothing can be recovered.',
+      ipad: 'iPads are always encrypted. The erase throws away the key, so nothing can be recovered.',
+      android: 'Phones from the last several years are encrypted by default. On an old phone, check Settings > Security > Encryption before the reset.',
+      mac: 'FileVault should be on (System Settings > Privacy & Security > FileVault). On Apple silicon and T2 Macs, erasing deletes the keys instantly.',
+      windows: 'Check BitLocker or Device encryption is on (Settings > Privacy & security > Device encryption). Then the reset works as a secure erase. Save the recovery key first if you are keeping the drive.'
+    }],
+    ['laptop', 2, ['mac', 'windows'], 'Firmware password and work management', {
+      mac: 'Older Intel Macs: turn off any firmware password in Recovery > Startup Security Utility. In the Music app, deauthorise the computer (Account > Authorisations). If it came from work or school, ask IT to release it from device management (MDM), or it will lock itself to them again after the wipe.',
+      windows: 'Remove any BIOS or UEFI password. If it came from work or school, ask IT to remove it from device management (Intune or MDM), or it will enrol itself again after the wipe.'
+    }, 'before'],
+    ['erase', 3, ALL, 'Erase it properly', {
+      iphone: 'Settings > General > Transfer or Reset iPhone > Erase All Content and Settings.',
+      ipad: 'Settings > General > Transfer or Reset iPad > Erase All Content and Settings.',
+      android: 'Settings > System > Reset options > Erase all data (factory reset).',
+      samsung: 'Settings > General management > Reset > Factory data reset.',
+      mac: 'System Settings > General > Transfer or Reset > Erase All Content and Settings. Older Macs: erase the disk in Recovery, then reinstall macOS.',
+      windows: 'Settings > System > Recovery > Reset this PC > Remove everything. When asked, choose to clean the drive as well.',
+      watch: 'Unpairing already erased an Apple Watch. Other watches: Settings > System > Reset, if unpairing didn\'t do it.',
+      console: 'PlayStation 5: Settings > System > System Software > Reset Options > Reset Your Console. Xbox: Settings > System > Console info > Reset console > Reset and remove everything. Switch: System Settings > System > Formatting Options > Initialise Console.'
+    }, 'erase'],
+    ['sim', 3, ['iphone', 'android', 'ipad', 'mac', 'windows', 'console'], 'Take out the SIM and memory cards', {
+      all: 'Remove the SIM card and any microSD card.',
+      mac: 'Remove any SD card, USB drive or disc.',
+      windows: 'Remove any SD card, USB drive or disc. Check the DVD drive if it has one.',
+      console: 'Remove any memory card, USB drive or game disc.'
+    }],
+    ['devlist', 4, ALL, 'Remove it from your account\'s device list', {
+      iphone: 'On another device or at account.apple.com, open Devices and remove the old one. Also check Find My.', ipad: 'On another device or at account.apple.com, open Devices and remove the old one. Also check Find My.', mac: 'On another device or at account.apple.com, open Devices and remove the old one. Also check Find My.', watch: 'Check Find My and your Apple Account device list, or the Google or Samsung account, and remove the watch.',
+      android: 'myaccount.google.com > Security > Your devices: sign out of the old phone.', samsung: 'myaccount.google.com > Security > Your devices: sign out of the old phone. Remove it from your Samsung account devices too.',
+      windows: 'account.microsoft.com > Devices: remove the PC.', console: 'Remove the console from the device list in your PlayStation, Xbox or Nintendo account.'
+    }],
+    ['hello', 4, ALL, 'Check it starts like new', { all: 'Turn it on. It should show the setup ("Hello") screen and never ask for your account or password. If it asks, you missed a sign-out step: fix it before handing it over.' }],
+    ['handover', 4, ALL, 'Keep records and sell safely', { all: 'Note the serial number (and the IMEI on a phone: dial *#06#) and keep the receipt. Meet buyers in a busy public place, check that the money has really arrived in your account before you hand over the device, and never open a "payment link" a buyer sends you.' }]
+  ];
+
+  var state = { dev: 'iphone', brand: 'samsung', done: {} };
+  try { var s = JSON.parse(localStorage.getItem(KEY) || 'null'); if (s && s.done) state = s; } catch (e) {}
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function detail(it) {
+    var d = it[4], dev = state.dev;
+    if (dev === 'android' && state.brand === 'samsung' && d.samsung) return d.samsung;
+    return d[dev] || d.all || '';
+  }
+  function items() { return ITEMS.filter(function (it) { return it[2].indexOf(state.dev) >= 0; }); }
+  function doneMap() { var k = state.dev + (state.dev === 'android' ? ':' + state.brand : ''); return state.done[k] || (state.done[k] = {}); }
+
+  $('devs').innerHTML = DEV.map(function (d) { return '<button class="sd-dev" type="button" data-dev="' + d[0] + '" aria-pressed="false"><i aria-hidden="true">' + d[1] + '</i><span>' + d[2] + '</span><small data-c="' + d[0] + '"></small></button>'; }).join('');
+  [].forEach.call(document.querySelectorAll('[data-dev]'), function (b) { b.onclick = function () { state.dev = b.getAttribute('data-dev'); save(); render(); }; });
+  [].forEach.call(document.querySelectorAll('[data-brand]'), function (b) { b.onclick = function () { state.brand = b.getAttribute('data-brand'); save(); render(); }; });
+
+  function render() {
+    [].forEach.call(document.querySelectorAll('[data-dev]'), function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-dev') === state.dev ? 'true' : 'false'); });
+    $('brand').hidden = state.dev !== 'android';
+    [].forEach.call(document.querySelectorAll('[data-brand]'), function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-brand') === state.brand ? 'true' : 'false'); });
+    var list = items(), dm = doneMap(), html = '';
+    PHASES.forEach(function (ph, i) {
+      var its = list.filter(function (it) { return it[1] === i; }); if (!its.length) return;
+      html += '<section class="sd-phase"><h2><span>' + (i + 1) + '</span>' + esc(ph) + '</h2>' + its.map(function (it) {
+        var tags = (it[5] === 'irrev' ? '<span class="sd-tag sd-irrev">Can\'t undo after erasing</span>' : it[5] === 'before' ? '<span class="sd-tag sd-before">Do before erasing</span>' : it[5] === 'erase' ? '<span class="sd-tag sd-erase">The point of no return</span>' : '');
+        return '<div class="sd-item' + (dm[it[0]] ? ' sd-done' : '') + '" data-id="' + it[0] + '"><input type="checkbox" id="c-' + it[0] + '"' + (dm[it[0]] ? ' checked' : '') + '><div><label class="sd-t" for="c-' + it[0] + '">' + esc(it[3]) + '</label>' + (tags ? '<span class="sd-tags">' + tags + '</span>' : '') + '<p class="sd-d">' + esc(detail(it)) + '</p><div class="sd-w"></div></div></div>';
+      }).join('') + '</section>';
+    });
+    $('list').innerHTML = html;
+    [].forEach.call(document.querySelectorAll('.sd-item input'), function (c) { c.onchange = function () { tick(c.parentNode.getAttribute('data-id'), c.checked); }; });
+    progress(); warnErase();
+    var dv = DEV.filter(function (d) { return d[0] === state.dev; })[0];
+    $('printHead').textContent = 'Checklist for: ' + dv[2] + (state.dev === 'android' ? ' (' + { samsung: 'Samsung', pixel: 'Google Pixel', other: 'Other' }[state.brand] + ')' : '');
+  }
+  function progress() {
+    var list = items(), dm = doneMap(), n = list.filter(function (it) { return dm[it[0]]; }).length;
+    $('count').textContent = n + ' of ' + list.length + ' done';
+    $('bar').style.width = (list.length ? n / list.length * 100 : 0) + '%';
+    DEV.forEach(function (d) {
+      var k = d[0] + (d[0] === 'android' ? ':' + state.brand : ''), m = state.done[k] || {}, tot = ITEMS.filter(function (it) { return it[2].indexOf(d[0]) >= 0; }), c = tot.filter(function (it) { return m[it[0]]; }).length;
+      var el = document.querySelector('[data-c="' + d[0] + '"]'); if (el) el.textContent = c ? c + ' / ' + tot.length : '';
+    });
+  }
+  function missingBeforeErase() { var dm = doneMap(); return items().filter(function (it) { return (it[5] === 'irrev' || it[5] === 'before') && !dm[it[0]]; }); }
+  function warnErase() {
+    var el = document.querySelector('[data-id="erase"] .sd-w'); if (!el) return;
+    var miss = missingBeforeErase(), dm = doneMap();
+    if (!miss.length) { el.innerHTML = ''; return; }
+    var irrev = miss.filter(function (it) { return it[5] === 'irrev'; });
+    el.innerHTML = '<div class="sd-warn"><b>' + (dm.erase ? 'You ticked this, but these are still open:' : 'Not yet. Finish these first:') + '</b><ul>' + miss.map(function (it) { return '<li><span>' + esc(it[3]) + '</span>' + (it[5] === 'irrev' ? ' <span class="sd-bad" style="color:var(--sat-c)">(can\'t undo)</span>' : '') + '</li>'; }).join('') + '</ul>' + (dm.erase && irrev.length ? '<p style="margin-top:6px">If you already erased, check your backups and the authenticator transfer worked on the new phone. Codes that weren\'t moved have to be recovered account by account.</p>' : '') + '</div>';
+  }
+  function tick(id, on) {
+    var dm = doneMap(); if (on) dm[id] = 1; else delete dm[id]; save();
+    var row = document.querySelector('[data-id="' + id + '"]'); if (row) row.classList.toggle('sd-done', on);
+    progress(); warnErase();
+    if (id === 'erase' && on && missingBeforeErase().length) document.querySelector('[data-id="erase"]').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+  $('print').onclick = function () { window.print(); };
+  $('reset').onclick = function () { if (confirm('Untick every step for this device?')) { var k = state.dev + (state.dev === 'android' ? ':' + state.brand : ''); state.done[k] = {}; save(); render(); } };
+  render();
+  window.__sell = { state: function () { return state; }, items: items };
+})();
+</script>
+</body>
+</html>
