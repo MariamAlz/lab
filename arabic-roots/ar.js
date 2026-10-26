@@ -1,0 +1,20 @@
+LabAr.add({
+  "Arabic Root Explorer": "مستكشف الجذور العربية",
+  "Language · Arabic · Game": "لغة · عربية · لعبة",
+  "Arabic root explorer.": "مستكشف الجذور العربية.",
+  "Most Arabic words grow from a root of three letters. Pour the root into a pattern (وزن) and you get a word with a predictable kind of meaning: a doer, a place, a tool, a plural. Pick a root to see the real words made from it, then test yourself by guessing the root of a word.": "تنبت أكثر الكلمات العربية من جذر من ثلاثة أحرف. ضع الجذر في وزن تحصل على كلمة نوع معناها متوقع: فاعل، أو مكان، أو آلة، أو جمع. اختر جذرًا لترى الكلمات الحقيقية المشتقة منه، ثم اختبر نفسك بتخمين جذر كلمة.",
+  "Type a three-letter root": "اكتب جذرًا من ثلاثة أحرف",
+  "Show words": "اعرض الكلمات",
+  "Random root": "جذر عشوائي",
+  "Roots in the list": "الجذور في القائمة",
+  "Guess the root": "خمّن الجذر",
+  "Next word": "الكلمة التالية",
+  "Strip the extra letters that patterns add: the م of places and participles, the ت and ا of verb forms, the س and ت of اسْتَفْعَلَ, and the و or ي of long vowels. What is left, in order, is usually the root.": "احذف الأحرف الزائدة التي تضيفها الأوزان: ميم أسماء المكان والمشتقات، وتاء الأفعال المزيدة وألفها، وسين اسْتَفْعَلَ وتاءها، وواو المد أو ياءه. وما يبقى بترتيبه هو الجذر في الغالب.",
+  "How patterns work, with ف ع ل": "كيف تعمل الأوزان، مع ف ع ل",
+  "Grammarians describe every pattern with the dummy root <span class=\"arx\"><b class=\"cF\">ف</b> <b class=\"cA\">ع</b> <b class=\"cL\">ل</b></span> (\"to do\"). The first root letter goes where <b class=\"cF\">ف</b> is, the second where <b class=\"cA\">ع</b> is, the third where <b class=\"cL\">ل</b> is. Everything else in the pattern stays. So <span class=\"arx\">كاتِب</span> is <span class=\"arx\">فاعِل</span> with ك ت ب poured in: the one who writes.": "يصف علماء الصرف كل وزن بالجذر <span class=\"arx\"><b class=\"cF\">ف</b> <b class=\"cA\">ع</b> <b class=\"cL\">ل</b></span>. يوضع الحرف الأول من الجذر مكان <b class=\"cF\">الفاء</b>، والثاني مكان <b class=\"cA\">العين</b>، والثالث مكان <b class=\"cL\">اللام</b>، ويبقى باقي الوزن كما هو. فكلمة <span class=\"arx\">كاتِب</span> هي <span class=\"arx\">فاعِل</span> بعد وضع ك ت ب فيها: من يكتب.",
+  "Pattern": "الوزن",
+  "What it usually means": "معناه الغالب",
+  "Example": "مثال",
+  "Roots with و, ي or a hamza (ء) are called weak or hamzated. Their letters change shape or drop out in many patterns, as in <span class=\"arx\">قالَ</span> from ق و ل or <span class=\"arx\">بائِع</span> from ب ي ع. A few are in the list, marked, but the pattern rules on this page are written for sound roots.": "الجذور التي فيها واو أو ياء أو همزة تُسمى معتلة أو مهموزة، وتتغير حروفها أو تسقط في كثير من الأوزان، كما في <span class=\"arx\">قالَ</span> من ق و ل، و<span class=\"arx\">بائِع</span> من ب ي ع. في القائمة بعض منها مع تنبيه، أما قواعد الأوزان في هذه الصفحة فمكتوبة للجذور الصحيحة.",
+  "Words and meanings are a hand-picked list of common, attested Modern Standard Arabic words, checked against the patterns by the page itself. Only words in the list are shown, so a missing form means it is rare or not used, not that it can't exist. For the full picture use a dictionary such as Hans Wehr or <a href=\"https://www.almaany.com/\" rel=\"noopener\">Almaany ↗</a>.": "الكلمات ومعانيها قائمة مختارة يدويًا من كلمات فصيحة شائعة وموثقة، وتتحقق الصفحة نفسها من مطابقتها للأوزان. لا تظهر إلا الكلمات الموجودة في القائمة، فغياب صيغة يعني أنها نادرة أو غير مستعملة، لا أنها مستحيلة. وللصورة الكاملة ارجع إلى معجم مثل هانز فير أو <a href=\"https://www.almaany.com/\" rel=\"noopener\">المعاني ↗</a>. المعاني الإنجليزية مقصودة لمتعلمي العربية."
+});

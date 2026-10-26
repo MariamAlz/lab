@@ -350,3 +350,10 @@ LabAr.add({
  "Build molecules from atoms and lone pairs and see their 3D VSEPR shape, angles and polarity.": "ابنِ جزيئات من الذرات والأزواج الحرة وشاهد شكلها الثلاثي الأبعاد وزواياها وقطبيتها.",
  "Build →": "ابنِ ←"
 });
+/* index cards for newer tools */
+LabAr.add({
+ "Language · Arabic": "لغة · عربية",
+ "Arabic root explorer": "مستكشف الجذور العربية",
+ "Pick a root like ك ت ب and see the real words its patterns make, then guess the root of a word.": "اختر جذرًا مثل ك ت ب وشاهد الكلمات الحقيقية التي تصنعها أوزانه، ثم خمّن جذر كلمة.",
+ "Explore roots →": "استكشف الجذور ←"
+});

@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Arabic Root Explorer · Mariam's Lab</title>
+<meta name="description" content="Pick an Arabic root like ك ت ب and see the real words built from it with the classic patterns (أوزان), from verb forms to places, tools and plurals, with English meanings. Then guess the root of a word.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/arabic-roots/">
+<meta property="og:title" content="Arabic Root Explorer · Mariam's Lab"><meta property="og:description" content="Real words from one Arabic root, pattern by pattern, and a guess-the-root game."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.arx { font-family: 'IBM Plex Sans Arabic', var(--font-display), sans-serif; }
+.pick { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.pick input { font: inherit; font-family: 'IBM Plex Sans Arabic', sans-serif; font-size: 1.3rem; width: 7.5em; color: var(--ink); background: rgba(7, 10, 24, 0.6); border: 1px solid var(--line); border-radius: 10px; padding: 6px 12px; text-align: center; direction: rtl; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.rootlist { display: flex; gap: 6px; flex-wrap: wrap; direction: rtl; max-height: 210px; overflow-y: auto; padding: 2px; }
+.rootlist button { font-family: 'IBM Plex Sans Arabic', sans-serif; font-size: 1rem; padding: 3px 11px; }
+.rhead { display: flex; gap: 14px; align-items: baseline; flex-wrap: wrap; }
+.rhead .rk { font-size: clamp(2.2rem, 7vw, 3.2rem); font-weight: 700; color: var(--accent); letter-spacing: .15em; }
+.rhead span.m { color: var(--muted); }
+.forms { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+.fm { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; display: grid; gap: 2px; background: var(--surface); min-width: 0; }
+.fm .w { font-family: 'IBM Plex Sans Arabic', sans-serif; font-size: 1.55rem; font-weight: 600; direction: rtl; text-align: right; line-height: 1.5; }
+.fm .w b.rl { color: var(--accent); font-weight: 700; }
+.fm .pt { display: flex; justify-content: space-between; gap: 8px; font-size: 0.74rem; color: var(--muted); }
+.fm .pt .arx { font-size: 0.95rem; color: var(--sat-b); }
+.fm .gl { font-size: 0.88rem; }
+.grp-h { grid-column: 1 / -1; margin-top: 8px; font-size: 0.78rem; color: var(--muted); font-family: var(--font-mono); letter-spacing: .06em; text-transform: uppercase; }
+html.ar .grp-h { font-family: 'IBM Plex Sans Arabic', sans-serif; letter-spacing: 0; }
+.msg { font-size: 0.88rem; color: var(--muted); margin: 0; min-height: 1.2em; }
+.pat { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+.pat th, .pat td { padding: 7px 6px; border-bottom: 1px solid var(--line); text-align: start; vertical-align: top; }
+.pat th { color: var(--muted); font-weight: 600; font-size: 0.76rem; }
+.pat td.wz { font-family: 'IBM Plex Sans Arabic', sans-serif; font-size: 1.2rem; white-space: nowrap; direction: rtl; }
+.pat td.wz i { font-style: normal; }
+.pat td.ex { font-family: 'IBM Plex Sans Arabic', sans-serif; font-size: 1.1rem; direction: rtl; }
+.cF { color: #ef6f5e; } .cA { color: #4fd3bd; } .cL { color: #e0a458; }
+.tblwrap { overflow-x: auto; }
+.quiz { display: grid; gap: 12px; padding: 16px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+.quiz .qw { font-family: 'IBM Plex Sans Arabic', sans-serif; font-size: clamp(2.2rem, 8vw, 3rem); font-weight: 700; text-align: center; direction: rtl; }
+.quiz .qg { text-align: center; color: var(--muted); font-size: 0.9rem; }
+.qopts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.qopts button { font: inherit; font-family: 'IBM Plex Sans Arabic', sans-serif; font-size: 1.35rem; padding: 10px; border-radius: 12px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; direction: rtl; }
+.qopts button.ok { background: rgba(79, 211, 189, .25); border-color: var(--sat-b); }
+.qopts button.no { background: rgba(255, 79, 109, .2); border-color: var(--sat-c); }
+.qopts button:disabled { cursor: default; }
+.score { display: flex; justify-content: space-between; gap: 10px; font-size: 0.85rem; color: var(--muted); flex-wrap: wrap; }
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Language · Arabic · Game</span>
+    <h1 style="font-size:var(--step-3)">Arabic root explorer.</h1>
+    <p>Most Arabic words grow from a root of three letters. Pour the root into a pattern (وزن) and you get a word with a predictable kind of meaning: a doer, a place, a tool, a plural. Pick a root to see the real words made from it, then test yourself by guessing the root of a word.</p>
+  </div>
+
+  <div class="panel">
+    <div class="pick">
+      <input id="rootIn" type="text" maxlength="9" placeholder="ك ت ب" aria-label="Type a three-letter root" autocomplete="off" lang="ar">
+      <button class="sm" type="button" id="go">Show words</button>
+      <button class="sm" type="button" id="rnd">Random root</button>
+    </div>
+    <p class="msg" id="rmsg" role="status"></p>
+    <div class="rootlist" id="rootlist" aria-label="Roots in the list"></div>
+  </div>
+
+  <div class="panel" style="margin-top:22px" id="out" aria-live="polite"></div>
+
+  <div class="game" style="margin-top:28px">
+    <div class="panel">
+      <span class="label">Guess the root</span>
+      <div class="quiz">
+        <div class="qw" id="qw" lang="ar">…</div>
+        <div class="qg" id="qg"></div>
+        <div class="qopts" id="qopts"></div>
+        <p class="msg" id="qmsg" role="status" style="text-align:center"></p>
+        <div class="score"><span id="qscore"></span><button class="sm" type="button" id="qnext">Next word</button></div>
+      </div>
+      <p class="fact" style="margin:0">Strip the extra letters that patterns add: the م of places and participles, the ت and ا of verb forms, the س and ت of اسْتَفْعَلَ, and the و or ي of long vowels. What is left, in order, is usually the root.</p>
+    </div>
+    <div class="panel">
+      <span class="label">How patterns work, with ف ع ل</span>
+      <p class="fact" style="margin:0">Grammarians describe every pattern with the dummy root <span class="arx"><b class="cF">ف</b> <b class="cA">ع</b> <b class="cL">ل</b></span> ("to do"). The first root letter goes where <b class="cF">ف</b> is, the second where <b class="cA">ع</b> is, the third where <b class="cL">ل</b> is. Everything else in the pattern stays. So <span class="arx">كاتِب</span> is <span class="arx">فاعِل</span> with ك ت ب poured in: the one who writes.</p>
+      <div class="tblwrap"><table class="pat">
+        <thead><tr><th>Pattern</th><th>What it usually means</th><th id="exH">Example</th></tr></thead>
+        <tbody id="pats"></tbody>
+      </table></div>
+      <p class="fact" style="margin:0">Roots with و, ي or a hamza (ء) are called weak or hamzated. Their letters change shape or drop out in many patterns, as in <span class="arx">قالَ</span> from ق و ل or <span class="arx">بائِع</span> from ب ي ع. A few are in the list, marked, but the pattern rules on this page are written for sound roots.</p>
+    </div>
+  </div>
+
+  <p class="fact" style="margin-top:22px">Words and meanings are a hand-picked list of common, attested Modern Standard Arabic words, checked against the patterns by the page itself. Only words in the list are shown, so a missing form means it is rare or not used, not that it can't exist. For the full picture use a dictionary such as Hans Wehr or <a href="https://www.almaany.com/" rel="noopener">Almaany ↗</a>.</p>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var AR = !!(window.LabAr && LabAr.on);
+  function L(en, ar) { return AR ? ar : en; }
+
+  // Patterns: key -> [wazn shown, English meaning, Arabic meaning, template with F A L or null]
+  var P = {
+    I: ['فَعَلَ', 'Form I, the basic verb', 'الفعل الثلاثي المجرد', null],
+    II: ['فَعَّلَ', 'Form II: make someone do it, or do it a lot', 'الوزن الثاني: للتعدية أو التكثير', 'Fَ' + 'Aَّ' + 'Lَ'],
+    III: ['فاعَلَ', 'Form III: do it with or to someone', 'الوزن الثالث: للمشاركة أو التوجه إلى الآخر', 'Fا' + 'Aَ' + 'Lَ'],
+    IV: ['أَفْعَلَ', 'Form IV: cause it to happen', 'الوزن الرابع: للتعدية', 'أَFْ' + 'Aَ' + 'Lَ'],
+    V: ['تَفَعَّلَ', 'Form V: do it to yourself, or step by step', 'الوزن الخامس: مطاوعة فعّل والتدرج', 'تَFَ' + 'Aَّ' + 'Lَ'],
+    VI: ['تَفاعَلَ', 'Form VI: do it together, to each other', 'الوزن السادس: التشارك بين أكثر من طرف', 'تَFا' + 'Aَ' + 'Lَ'],
+    VII: ['اِنْفَعَلَ', 'Form VII: get done, the passive feel', 'الوزن السابع: المطاوعة', 'اِنْF' + 'َAَLَ'],
+    VIII: ['اِفْتَعَلَ', 'Form VIII: do it for yourself', 'الوزن الثامن: الافتعال والمطاوعة', 'اِFْتَAَLَ'],
+    X: ['اِسْتَفْعَلَ', 'Form X: ask for it, or find it so', 'الوزن العاشر: الطلب أو الاعتبار', 'اِسْتَFْAَLَ'],
+    msd: ['المصدر', 'Verbal noun: the action itself', 'المصدر: اسم الحدث نفسه', null],
+    ap: ['فاعِل', 'Active participle: the one who does it', 'اسم الفاعل: من يقوم بالفعل', 'Fا' + 'Aِ' + 'L'],
+    pp: ['مَفْعُول', 'Passive participle: the thing it is done to', 'اسم المفعول: ما وقع عليه الفعل', 'مَFْAُوL'],
+    plc: ['مَفْعَل / مَفْعَلة / مَفْعِل', 'Noun of place: where it happens', 'اسم المكان: مكان حدوث الفعل', null],
+    ins: ['مِفْعال / مِفْعَل / مِفْعَلة', 'Noun of instrument: the tool for it', 'اسم الآلة: أداة الفعل', null],
+    fail: ['فَعِيل', 'A lasting quality, or a doer', 'صفة مشبهة أو صيغة مبالغة', 'Fَ' + 'Aِي' + 'L'],
+    fuul: ['فُعُول', 'Often a plural or a verbal noun', 'غالبًا جمع تكسير أو مصدر', 'Fُ' + 'Aُو' + 'L'],
+    pl: ['جمع التكسير', 'Broken plural: the word changes inside', 'جمع التكسير: يتغير بناء الكلمة', null],
+    oth: ['صيغ أخرى', 'Other common patterns', 'صيغ شائعة أخرى', null]
+  };
+  var ORDER = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'X', 'msd', 'ap', 'pp', 'plc', 'ins', 'fail', 'fuul', 'pl', 'oth'];
+  var GROUPS = [['Verbs', 'الأفعال', ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'X']], ['Nouns and adjectives', 'الأسماء والصفات', ['msd', 'ap', 'pp', 'plc', 'ins', 'fail', 'fuul', 'oth']], ['Plurals', 'الجموع', ['pl']]];
+
+  // Curated roots. Entry: "pattern key|word|English gloss|wazn (for msd, plc, ins, pl, oth)". weak: true for weak or hamzated roots.
+  var R = [
+    ['ك ت ب', 'writing', 'الكتابة', 0, ['I|كَتَبَ|wrote', 'III|كاتَبَ|wrote to, corresponded with', 'VI|تَكاتَبَ|wrote to each other', 'VIII|اِكْتَتَبَ|subscribed (to shares)', 'X|اِسْتَكْتَبَ|asked someone to write', 'msd|كِتابة|writing|فِعالة', 'ap|كاتِب|writer', 'pp|مَكْتُوب|written; a letter', 'plc|مَكْتَب|office, desk|مَفْعَل', 'plc|مَكْتَبة|library, bookshop|مَفْعَلة', 'oth|كِتاب|book|فِعال', 'oth|مُكاتَبة|correspondence|مُفاعَلة', 'oth|اِكْتِتاب|subscription (IPO)|اِفْتِعال', 'pl|كُتُب|books|فُعُل', 'pl|كُتّاب|writers|فُعّال']],
+    ['د ر س', 'studying', 'الدراسة', 0, ['I|دَرَسَ|studied', 'II|دَرَّسَ|taught', 'VI|تَدارَسَ|studied together', 'msd|دِراسة|study|فِعالة', 'ap|دارِس|learner, student', 'pp|مَدْرُوس|studied, well considered', 'plc|مَدْرَسة|school|مَفْعَلة', 'oth|دَرْس|lesson|فَعْل', 'oth|مُدَرِّس|teacher|مُفَعِّل', 'fuul|دُرُوس|lessons', 'pl|مَدارِس|schools|مَفاعِل']],
+    ['ع ل م', 'knowing', 'العلم', 0, ['I|عَلِمَ|knew', 'II|عَلَّمَ|taught', 'IV|أَعْلَمَ|informed', 'V|تَعَلَّمَ|learned', 'X|اِسْتَعْلَمَ|inquired', 'msd|عِلْم|knowledge, science|فِعْل', 'ap|عالِم|scholar, scientist', 'pp|مَعْلُوم|known', 'plc|مَعْلَم|landmark|مَفْعَل', 'fail|عَلِيم|all-knowing', 'oth|مُعَلِّم|teacher|مُفَعِّل', 'oth|تَعْلِيم|education|تَفْعِيل', 'oth|إِعْلام|media, informing|إِفْعال', 'oth|عالَم|world|فاعَل', 'oth|عَلَم|flag|فَعَل', 'pl|عُلَماء|scholars|فُعَلاء', 'pl|مَعالِم|landmarks|مَفاعِل']],
+    ['ق ر أ', 'reading', 'القراءة', 1, ['I|قَرَأَ|read', 'IV|أَقْرَأَ|taught to read, made recite', 'X|اِسْتَقْرَأَ|examined, reasoned from cases', 'msd|قِراءة|reading|فِعالة', 'ap|قارِئ|reader', 'pp|مَقْرُوء|legible, read', 'oth|قُرْآن|the Quran, a recitation|فُعْلان', 'oth|اِسْتِقْراء|induction (logic)|اِسْتِفْعال', 'pl|قُرّاء|readers, reciters|فُعّال']],
+    ['ج م ل', 'beauty', 'الجمال', 0, ['I|جَمُلَ|was beautiful', 'II|جَمَّلَ|beautified', 'III|جامَلَ|was courteous to', 'IV|أَجْمَلَ|summed up', 'V|تَجَمَّلَ|adorned oneself', 'msd|جَمال|beauty|فَعال', 'fail|جَمِيل|beautiful', 'oth|جُمْلة|sentence; total|فُعْلة', 'oth|مُجامَلة|courtesy, compliment|مُفاعَلة', 'oth|تَجْمِيل|beautifying, cosmetic|تَفْعِيل', 'oth|جَمَل|camel|فَعَل', 'pl|جُمَل|sentences|فُعَل', 'pl|جِمال|camels|فِعال']],
+    ['ف ت ح', 'opening', 'الفتح', 0, ['I|فَتَحَ|opened', 'II|فَتَّحَ|opened wide', 'VII|اِنْفَتَحَ|opened up, was opened', 'VIII|اِفْتَتَحَ|inaugurated', 'X|اِسْتَفْتَحَ|began, started off', 'msd|فَتْح|opening; conquest|فَعْل', 'ap|فاتِح|light (colour); opener', 'pp|مَفْتُوح|open', 'ins|مِفْتاح|key|مِفْعال', 'oth|فاتِحة|the Opening (first sura); a start|فاعِلة', 'oth|اِفْتِتاح|opening ceremony|اِفْتِعال', 'oth|اِنْفِتاح|openness|اِنْفِعال', 'pl|مَفاتِيح|keys|مَفاعِيل']],
+    ['ع م ل', 'working', 'العمل', 0, ['I|عَمِلَ|worked, did', 'III|عامَلَ|treated, dealt with', 'VI|تَعامَلَ|dealt with each other', 'X|اِسْتَعْمَلَ|used', 'msd|عَمَل|work|فَعَل', 'ap|عامِل|worker; factor', 'pp|مَعْمُول|done; in force (مَعْمُول بِهِ)', 'plc|مَعْمَل|workshop, laboratory|مَفْعَل', 'fail|عَمِيل|client; agent', 'oth|مُعامَلة|transaction, treatment|مُفاعَلة', 'oth|اِسْتِعْمال|use|اِسْتِفْعال', 'oth|عُمْلة|currency|فُعْلة', 'pl|أَعْمال|works, business|أَفْعال', 'pl|عُمّال|workers|فُعّال']],
+    ['ك ر م', 'generosity', 'الكرم', 0, ['I|كَرُمَ|was noble, generous', 'II|كَرَّمَ|honoured', 'IV|أَكْرَمَ|treated generously', 'V|تَكَرَّمَ|was kind enough to', 'msd|كَرَم|generosity|فَعَل', 'fail|كَرِيم|generous, noble', 'oth|كَرامة|dignity|فَعالة', 'oth|تَكْرِيم|honouring, award|تَفْعِيل', 'oth|إِكْرام|hospitality|إِفْعال', 'pl|كِرام|noble ones|فِعال']],
+    ['س ل م', 'safety, peace', 'السلامة', 0, ['I|سَلِمَ|was safe', 'II|سَلَّمَ|handed over; greeted', 'III|سالَمَ|made peace with', 'IV|أَسْلَمَ|submitted; became Muslim', 'V|تَسَلَّمَ|received', 'X|اِسْتَسْلَمَ|surrendered', 'msd|سَلام|peace|فَعال', 'ap|سالِم|safe, sound', 'oth|سَلامة|safety|فَعالة', 'oth|إِسْلام|Islam, submission|إِفْعال', 'oth|مُسْلِم|Muslim|مُفْعِل', 'oth|تَسْلِيم|delivery, handover|تَفْعِيل', 'oth|اِسْتِسْلام|surrender|اِسْتِفْعال', 'oth|سُلَّم|ladder, scale|فُعَّل']],
+    ['ح ك م', 'judging, ruling', 'الحكم', 0, ['I|حَكَمَ|ruled, judged', 'II|حَكَّمَ|appointed as judge, refereed', 'IV|أَحْكَمَ|perfected, tightened', 'VI|تَحاكَمَ|took a case to court', 'msd|حُكْم|rule, verdict|فُعْل', 'ap|حاكِم|ruler, governor', 'pp|مَحْكُوم|governed; sentenced', 'plc|مَحْكَمة|court|مَفْعَلة', 'fail|حَكِيم|wise', 'oth|حِكْمة|wisdom|فِعْلة', 'oth|حُكُومة|government|فُعُولة', 'oth|تَحْكِيم|arbitration, refereeing|تَفْعِيل', 'pl|حُكّام|rulers|فُعّال', 'pl|مَحاكِم|courts|مَفاعِل']],
+    ['ذ ه ب', 'going', 'الذهاب', 0, ['I|ذَهَبَ|went', 'msd|ذَهاب|going|فَعال', 'ap|ذاهِب|going, on the way', 'plc|مَذْهَب|school of thought, way|مَفْعَل', 'oth|ذَهَب|gold|فَعَل', 'pl|مَذاهِب|schools of thought|مَفاعِل']],
+    ['ج ل س', 'sitting', 'الجلوس', 0, ['I|جَلَسَ|sat', 'III|جالَسَ|sat with, kept company', 'IV|أَجْلَسَ|seated someone', 'msd|جُلُوس|sitting|فُعُول', 'ap|جالِس|sitting', 'plc|مَجْلِس|council; majlis, sitting room|مَفْعِل', 'fail|جَلِيس|companion', 'oth|جَلْسة|session, sitting|فَعْلة', 'pl|مَجالِس|councils|مَفاعِل']],
+    ['د خ ل', 'entering', 'الدخول', 0, ['I|دَخَلَ|entered', 'IV|أَدْخَلَ|brought in, entered (data)', 'V|تَدَخَّلَ|interfered, intervened', 'msd|دُخُول|entry|فُعُول', 'ap|داخِل|inside; entering', 'plc|مَدْخَل|entrance|مَفْعَل', 'oth|دَخْل|income|فَعْل', 'oth|تَدَخُّل|intervention|تَفَعُّل', 'oth|إِدْخال|input, insertion|إِفْعال', 'pl|مَداخِل|entrances|مَفاعِل']],
+    ['خ ر ج', 'going out', 'الخروج', 0, ['I|خَرَجَ|went out', 'II|خَرَّجَ|trained and graduated (students)', 'IV|أَخْرَجَ|took out; directed (a film)', 'V|تَخَرَّجَ|graduated', 'X|اِسْتَخْرَجَ|extracted', 'msd|خُرُوج|exit, going out|فُعُول', 'ap|خارِج|outside; going out', 'plc|مَخْرَج|exit|مَفْعَل', 'oth|مُخْرِج|(film) director|مُفْعِل', 'oth|تَخَرُّج|graduation|تَفَعُّل', 'oth|اِسْتِخْراج|extraction|اِسْتِفْعال', 'pl|مَخارِج|exits|مَفاعِل']],
+    ['س ك ن', 'dwelling, stillness', 'السكن', 0, ['I|سَكَنَ|lived (in a place); was still', 'II|سَكَّنَ|calmed, soothed', 'IV|أَسْكَنَ|housed', 'msd|سَكَن|housing, home|فَعَل', 'ap|ساكِن|resident; still', 'plc|مَسْكَن|dwelling|مَفْعَل', 'fuul|سُكُون|stillness; the sukun mark', 'oth|إِسْكان|housing (provision)|إِفْعال', 'oth|مُسَكِّن|painkiller|مُفَعِّل', 'oth|مِسْكِين|poor, wretched|مِفْعِيل', 'pl|سُكّان|residents, population|فُعّال', 'pl|مَساكِن|dwellings|مَفاعِل']],
+    ['ش ر ب', 'drinking', 'الشرب', 0, ['I|شَرِبَ|drank', 'V|تَشَرَّبَ|soaked up, absorbed', 'msd|شُرْب|drinking|فُعْل', 'ap|شارِب|drinker; moustache', 'pp|مَشْرُوب|a drink', 'plc|مَشْرَب|drinking place; taste, leaning|مَفْعَل', 'oth|شَراب|beverage, syrup|فَعال']],
+    ['أ ك ل', 'eating', 'الأكل', 1, ['I|أَكَلَ|ate', 'VI|تَآكَلَ|corroded, wore away', 'msd|أَكْل|eating, food|فَعْل', 'ap|آكِل|eater', 'pp|مَأْكُول|eaten; food', 'oth|أَكْلة|a meal, a dish|فَعْلة', 'oth|مَأْكُولات|foods|مَفْعُولات']],
+    ['ع ر ف', 'knowing, recognising', 'المعرفة', 0, ['I|عَرَفَ|knew, recognised', 'II|عَرَّفَ|introduced, defined', 'V|تَعَرَّفَ|got to know', 'VI|تَعارَفَ|got acquainted', 'VIII|اِعْتَرَفَ|confessed, recognised', 'msd|مَعْرِفة|knowledge|مَفْعِلة', 'ap|عارِف|knower, expert', 'pp|مَعْرُوف|known; a kindness', 'oth|تَعْرِيف|definition, introduction|تَفْعِيل', 'oth|اِعْتِراف|confession, recognition|اِفْتِعال', 'oth|عُرْف|custom|فُعْل', 'oth|تَعارُف|getting acquainted|تَفاعُل']],
+    ['ف ه م', 'understanding', 'الفهم', 0, ['I|فَهِمَ|understood', 'II|فَهَّمَ|made someone understand', 'V|تَفَهَّمَ|came to understand, empathised', 'VI|تَفاهَمَ|reached an understanding', 'X|اِسْتَفْهَمَ|asked, inquired', 'msd|فَهْم|understanding|فَعْل', 'pp|مَفْهُوم|concept; understood', 'oth|تَفاهُم|mutual understanding|تَفاعُل', 'oth|اِسْتِفْهام|question, interrogation|اِسْتِفْعال', 'pl|مَفاهِيم|concepts|مَفاعِيل']],
+    ['ن ظ ر', 'looking', 'النظر', 0, ['I|نَظَرَ|looked', 'III|ناظَرَ|debated', 'VIII|اِنْتَظَرَ|waited', 'msd|نَظَر|sight, looking|فَعَل', 'ap|ناظِر|onlooker; headmaster', 'pp|مَنْظُور|seen; perspective', 'plc|مَنْظَر|view, scene|مَفْعَل', 'oth|اِنْتِظار|waiting|اِفْتِعال', 'oth|نَظّارة|glasses|فَعّالة', 'oth|مُناظَرة|debate|مُفاعَلة', 'pl|مَناظِر|views|مَفاعِل']],
+    ['س م ع', 'hearing', 'السمع', 0, ['I|سَمِعَ|heard', 'IV|أَسْمَعَ|made someone hear', 'VIII|اِسْتَمَعَ|listened', 'msd|سَمْع|hearing|فَعْل', 'ap|سامِع|hearer', 'pp|مَسْمُوع|audible, heard', 'fail|سَمِيع|all-hearing', 'oth|سَمّاعة|headphones, speaker|فَعّالة', 'oth|مُسْتَمِع|listener|مُفْتَعِل', 'oth|اِسْتِماع|listening|اِفْتِعال']],
+    ['ح م ل', 'carrying', 'الحمل', 0, ['I|حَمَلَ|carried', 'II|حَمَّلَ|loaded; downloaded', 'V|تَحَمَّلَ|endured, took on', 'VIII|اِحْتَمَلَ|bore; was possible', 'msd|حَمْل|carrying; pregnancy|فَعْل', 'ap|حامِل|carrier, holder; pregnant', 'pp|مَحْمُول|carried; mobile (phone)', 'oth|حَمّال|porter|فَعّال', 'oth|حَمْلة|campaign|فَعْلة', 'oth|اِحْتِمال|probability|اِفْتِعال', 'oth|تَحْمِيل|loading, download|تَفْعِيل']],
+    ['ص ن ع', 'making', 'الصنع', 0, ['I|صَنَعَ|made', 'II|صَنَّعَ|manufactured', 'VIII|اِصْطَنَعَ|faked, put on', 'msd|صُنْع|making|فُعْل', 'ap|صانِع|maker', 'pp|مَصْنُوع|made, manufactured', 'plc|مَصْنَع|factory|مَفْعَل', 'oth|صِناعة|industry|فِعالة', 'oth|اِصْطِناعِيّ|artificial|اِفْتِعالِيّ', 'pl|مَصانِع|factories|مَفاعِل']],
+    ['ر س م', 'drawing', 'الرسم', 0, ['I|رَسَمَ|drew', 'msd|رَسْم|drawing; fee|فَعْل', 'pp|مَرْسُوم|decree; drawn', 'plc|مَرْسَم|studio|مَفْعَل', 'oth|رَسّام|painter, artist|فَعّال', 'oth|رَسْمِيّ|official|فَعْلِيّ', 'fuul|رُسُوم|fees; drawings']],
+    ['ل ع ب', 'playing', 'اللعب', 0, ['I|لَعِبَ|played', 'III|لاعَبَ|played with', 'VI|تَلاعَبَ|manipulated, toyed with', 'msd|لَعِب|play|فَعِل', 'ap|لاعِب|player', 'plc|مَلْعَب|playing field, stadium|مَفْعَل', 'oth|لُعْبة|toy, game|فُعْلة', 'oth|تَلاعُب|manipulation|تَفاعُل', 'pl|أَلْعاب|games, toys|أَفْعال', 'pl|مَلاعِب|stadiums|مَفاعِل']],
+    ['ط ب خ', 'cooking', 'الطبخ', 0, ['I|طَبَخَ|cooked', 'msd|طَبْخ|cooking|فَعْل', 'pp|مَطْبُوخ|cooked', 'plc|مَطْبَخ|kitchen|مَفْعَل', 'oth|طَبّاخ|cook, chef|فَعّال', 'pl|مَطابِخ|kitchens|مَفاعِل']],
+    ['غ س ل', 'washing', 'الغسل', 0, ['I|غَسَلَ|washed', 'VIII|اِغْتَسَلَ|bathed, did ghusl', 'msd|غَسْل|washing|فَعْل', 'pp|مَغْسُول|washed', 'plc|مَغْسَلة|washbasin; laundry|مَفْعَلة', 'oth|غُسْل|ritual bath|فُعْل', 'oth|غَسّالة|washing machine|فَعّالة']],
+    ['ن ز ل', 'coming down', 'النزول', 0, ['I|نَزَلَ|came down; stayed at', 'II|نَزَّلَ|brought down; downloaded; reduced', 'IV|أَنْزَلَ|sent down', 'VI|تَنازَلَ|gave up, conceded', 'msd|نُزُول|descent|فُعُول', 'ap|نازِل|going down', 'plc|مَنْزِل|house, home|مَفْعِل', 'oth|تَنْزِيل|download; revelation|تَفْعِيل', 'oth|تَنازُل|concession, waiver|تَفاعُل', 'pl|مَنازِل|houses|مَفاعِل']],
+    ['ش ك ر', 'thanking', 'الشكر', 0, ['I|شَكَرَ|thanked', 'msd|شُكْر|thanks|فُعْل', 'ap|شاكِر|grateful', 'pp|مَشْكُور|thanked (said as "thank you")', 'oth|شَكُور|very grateful|فَعُول']],
+    ['ص ب ر', 'patience', 'الصبر', 0, ['I|صَبَرَ|was patient', 'msd|صَبْر|patience|فَعْل', 'ap|صابِر|patient', 'oth|صَبُور|very patient|فَعُول']],
+    ['ن ص ر', 'helping to win', 'النصر', 0, ['I|نَصَرَ|helped to victory', 'III|ناصَرَ|supported', 'VIII|اِنْتَصَرَ|won', 'msd|نَصْر|victory|فَعْل', 'ap|ناصِر|helper, supporter', 'pp|مَنْصُور|victorious', 'fail|نَصِير|supporter, ally', 'oth|اِنْتِصار|victory|اِفْتِعال']],
+    ['ح ف ظ', 'keeping', 'الحفظ', 0, ['I|حَفِظَ|kept; memorised', 'III|حافَظَ|preserved, kept up', 'V|تَحَفَّظَ|was reserved, had reservations', 'msd|حِفْظ|keeping; memorising|فِعْل', 'ap|حافِظ|keeper; one who knows the Quran by heart', 'pp|مَحْفُوظ|kept, preserved', 'ins|مِحْفَظة|wallet; portfolio|مِفْعَلة', 'fail|حَفِيظ|guardian', 'oth|مُحافِظ|governor|مُفاعِل', 'oth|مُحافَظة|governorate; preserving|مُفاعَلة']],
+    ['خ د م', 'serving', 'الخدمة', 0, ['I|خَدَمَ|served', 'X|اِسْتَخْدَمَ|used; employed', 'ap|خادِم|servant; server', 'oth|خِدْمة|service|فِعْلة', 'oth|مُسْتَخْدِم|user|مُسْتَفْعِل', 'oth|اِسْتِخْدام|use, employment|اِسْتِفْعال']],
+    ['س ج د', 'prostrating', 'السجود', 0, ['I|سَجَدَ|prostrated', 'msd|سُجُود|prostration|فُعُول', 'ap|ساجِد|prostrating', 'plc|مَسْجِد|mosque|مَفْعِل', 'oth|سَجّادة|prayer rug, carpet|فَعّالة', 'pl|مَساجِد|mosques|مَفاعِل']],
+    ['ك س ر', 'breaking', 'الكسر', 0, ['I|كَسَرَ|broke', 'II|كَسَّرَ|smashed', 'VII|اِنْكَسَرَ|got broken', 'msd|كَسْر|breaking; fraction|فَعْل', 'pp|مَكْسُور|broken', 'oth|كَسْرة|the vowel i (kasra); a crumb|فَعْلة', 'oth|اِنْكِسار|breaking; refraction|اِنْفِعال']],
+    ['ق ط ع', 'cutting', 'القطع', 0, ['I|قَطَعَ|cut', 'II|قَطَّعَ|cut into pieces', 'III|قاطَعَ|boycotted; interrupted', 'VI|تَقاطَعَ|intersected', 'VII|اِنْقَطَعَ|was cut off', 'msd|قَطْع|cutting|فَعْل', 'pp|مَقْطُوع|cut off', 'plc|مَقْطَع|section, clip, syllable|مَفْعَل', 'oth|قِطْعة|piece|فِعْلة', 'oth|تَقاطُع|intersection|تَفاعُل', 'oth|اِنْقِطاع|interruption, outage|اِنْفِعال', 'oth|مُقاطَعة|boycott; province|مُفاعَلة', 'pl|قِطَع|pieces|فِعَل']],
+    ['ج م ع', 'gathering', 'الجمع', 0, ['I|جَمَعَ|gathered, added', 'II|جَمَّعَ|assembled, collected', 'IV|أَجْمَعَ|agreed unanimously', 'V|تَجَمَّعَ|gathered together', 'VIII|اِجْتَمَعَ|met', 'msd|جَمْع|gathering; plural|فَعْل', 'ap|جامِع|comprehensive; main mosque', 'plc|مَجْمَع|complex; academy|مَفْعَل', 'fail|جَمِيع|all', 'oth|جامِعة|university|فاعِلة', 'oth|جُمْعة|Friday|فُعْلة', 'oth|اِجْتِماع|meeting|اِفْتِعال', 'oth|مُجْتَمَع|society|مُفْتَعَل', 'oth|إِجْماع|consensus|إِفْعال']],
+    ['ر ج ع', 'returning', 'الرجوع', 0, ['I|رَجَعَ|returned', 'III|راجَعَ|revised, checked', 'VI|تَراجَعَ|retreated, fell back', 'X|اِسْتَرْجَعَ|got back, recovered', 'msd|رُجُوع|return|فُعُول', 'plc|مَرْجِع|reference|مَفْعِل', 'oth|مُراجَعة|review, revision|مُفاعَلة', 'oth|تَراجُع|decline, retreat|تَفاعُل', 'oth|اِسْتِرْجاع|refund, recovery|اِسْتِفْعال', 'pl|مَراجِع|references|مَفاعِل']],
+    ['ق د م', 'coming forward', 'التقدم', 0, ['I|قَدِمَ|arrived, came', 'II|قَدَّمَ|presented, offered', 'V|تَقَدَّمَ|moved forward; applied', 'X|اِسْتَقْدَمَ|brought in (workers)', 'ap|قادِم|coming, next', 'fail|قَدِيم|old, ancient', 'oth|قَدَم|foot|فَعَل', 'oth|مُقَدِّم|presenter|مُفَعِّل', 'oth|تَقَدُّم|progress|تَفَعُّل', 'oth|تَقْدِيم|presentation; applying|تَفْعِيل']],
+    ['س ف ر', 'travel', 'السفر', 0, ['III|سافَرَ|travelled', 'msd|سَفَر|travel|فَعَل', 'fail|سَفِير|ambassador', 'oth|مُسافِر|traveller|مُفاعِل', 'oth|سِفارة|embassy|فِعالة', 'oth|سُفْرة|dining spread|فُعْلة']],
+    ['ر ك ب', 'riding', 'الركوب', 0, ['I|رَكِبَ|rode, boarded', 'II|رَكَّبَ|assembled, installed', 'V|تَرَكَّبَ|was made up of', 'msd|رُكُوب|riding|فُعُول', 'ap|راكِب|passenger, rider', 'oth|مَرْكَب|boat|مَفْعَل', 'oth|مَرْكَبة|vehicle|مَفْعَلة', 'oth|تَرْكِيب|installation; structure|تَفْعِيل', 'oth|مُرَكَّب|compound|مُفَعَّل', 'pl|رُكّاب|passengers|فُعّال']],
+    ['ب ح ر', 'the sea', 'البحر', 0, ['IV|أَبْحَرَ|set sail', 'oth|بَحْر|sea|فَعْل', 'oth|بَحّار|sailor|فَعّال', 'oth|بُحَيْرة|lake (a small sea)|فُعَيْلة', 'oth|بَحْرِيّ|marine, naval|فَعْلِيّ', 'pl|بِحار|seas|فِعال']],
+    ['ب ح ث', 'searching', 'البحث', 0, ['I|بَحَثَ|searched, researched', 'VI|تَباحَثَ|held talks', 'msd|بَحْث|research, search|فَعْل', 'ap|باحِث|researcher', 'plc|مَبْحَث|topic, field of study|مَفْعَل', 'fuul|بُحُوث|research papers', 'pl|أَبْحاث|research studies|أَفْعال']],
+    ['ص د ق', 'truth', 'الصدق', 0, ['I|صَدَقَ|told the truth', 'II|صَدَّقَ|believed; certified', 'III|صادَقَ|befriended', 'V|تَصَدَّقَ|gave charity', 'msd|صِدْق|truthfulness|فِعْل', 'ap|صادِق|truthful', 'fail|صَدِيق|friend', 'oth|صَداقة|friendship|فَعالة', 'oth|صَدَقة|charity|فَعَلة', 'oth|تَصْدِيق|belief; attestation|تَفْعِيل', 'pl|أَصْدِقاء|friends|أَفْعِلاء']],
+    ['ح س ب', 'counting', 'الحساب', 0, ['I|حَسَبَ|counted, reckoned', 'III|حاسَبَ|held to account', 'msd|حِساب|account, calculation|فِعال', 'oth|حاسُوب|computer|فاعُول', 'oth|مُحاسِب|accountant|مُفاعِل', 'oth|مُحاسَبة|accounting; accountability|مُفاعَلة']],
+    ['س ب ح', 'swimming; praising', 'السباحة والتسبيح', 0, ['I|سَبَحَ|swam', 'II|سَبَّحَ|glorified God', 'ap|سابِح|swimmer', 'plc|مَسْبَح|swimming pool|مَفْعَل', 'ins|مِسْبَحة|prayer beads|مِفْعَلة', 'oth|سِباحة|swimming|فِعالة', 'oth|تَسْبِيح|glorifying God|تَفْعِيل', 'oth|سُبْحان|glory be (to God)|فُعْلان']],
+    ['ن ج ح', 'success', 'النجاح', 0, ['I|نَجَحَ|succeeded, passed', 'msd|نَجاح|success|فَعال', 'ap|ناجِح|successful']],
+    ['ش ر ح', 'explaining', 'الشرح', 0, ['I|شَرَحَ|explained', 'VII|اِنْشَرَحَ|felt glad, at ease', 'msd|شَرْح|explanation|فَعْل', 'pp|مَشْرُوح|explained', 'oth|شَرِيحة|slice; slide; SIM card|فَعِيلة', 'oth|تَشْرِيح|anatomy, dissection|تَفْعِيل']],
+    ['ط ل ب', 'asking for', 'الطلب', 0, ['I|طَلَبَ|asked for, ordered', 'III|طالَبَ|demanded, claimed', 'V|تَطَلَّبَ|required', 'msd|طَلَب|request, order|فَعَل', 'ap|طالِب|student; one who asks', 'pp|مَطْلُوب|required; wanted', 'oth|مُطالَبة|claim, demand|مُفاعَلة', 'pl|طُلّاب|students|فُعّال']],
+    ['س ر ق', 'stealing', 'السرقة', 0, ['I|سَرَقَ|stole', 'VIII|اِسْتَرَقَ|stole (a glance), eavesdropped', 'msd|سَرِقة|theft|فَعِلة', 'ap|سارِق|thief', 'pp|مَسْرُوق|stolen']],
+    ['ز ر ع', 'planting', 'الزراعة', 0, ['I|زَرَعَ|planted', 'msd|زِراعة|agriculture|فِعالة', 'ap|زارِع|planter', 'plc|مَزْرَعة|farm|مَفْعَلة', 'oth|زَرْع|crops, planting|فَعْل', 'oth|مُزارِع|farmer|مُفاعِل', 'pl|مَزارِع|farms|مَفاعِل']],
+    ['ر ح ل', 'departing', 'الرحيل', 0, ['I|رَحَلَ|departed, moved on', 'II|رَحَّلَ|deported', 'msd|رَحِيل|departure|فَعِيل', 'oth|رِحْلة|trip, flight|فِعْلة', 'oth|مَرْحَلة|stage, phase|مَفْعَلة', 'oth|رَحّالة|explorer, great traveller|فَعّالة']],
+    ['ط ب ع', 'printing; nature', 'الطبع', 0, ['I|طَبَعَ|printed, stamped', 'VII|اِنْطَبَعَ|was imprinted', 'msd|طَبْع|printing; temperament|فَعْل', 'plc|مَطْبَعة|printing house|مَفْعَلة', 'oth|طَبِيعِيّ|natural|فَعِيلِيّ', 'oth|طَبِيعة|nature|فَعِيلة', 'oth|طِباعة|printing|فِعالة', 'oth|طابِعة|printer|فاعِلة', 'oth|اِنْطِباع|impression|اِنْفِعال']],
+    ['ن ش ر', 'spreading', 'النشر', 0, ['I|نَشَرَ|published, spread', 'VIII|اِنْتَشَرَ|spread (out)', 'msd|نَشْر|publishing|فَعْل', 'ap|ناشِر|publisher', 'pp|مَنْشُور|post; leaflet', 'oth|نَشْرة|bulletin|فَعْلة', 'oth|اِنْتِشار|spread|اِفْتِعال']],
+    ['غ ف ر', 'forgiving', 'المغفرة', 0, ['I|غَفَرَ|forgave', 'X|اِسْتَغْفَرَ|asked forgiveness', 'msd|مَغْفِرة|forgiveness|مَفْعِلة', 'ap|غافِر|forgiver', 'oth|غُفْران|forgiveness|فُعْلان', 'oth|غَفُور|all-forgiving|فَعُول', 'oth|اِسْتِغْفار|asking forgiveness|اِسْتِفْعال']],
+    ['ر ح م', 'mercy', 'الرحمة', 0, ['I|رَحِمَ|had mercy on', 'V|تَرَحَّمَ|prayed for mercy (on the dead)', 'msd|رَحْمة|mercy|فَعْلة', 'pp|مَرْحُوم|the late (deceased)', 'fail|رَحِيم|merciful', 'oth|رَحْمٰن|the Most Merciful|فَعْلان']],
+    ['خ ل ق', 'creating', 'الخلق', 0, ['I|خَلَقَ|created', 'msd|خَلْق|creation|فَعْل', 'ap|خالِق|creator', 'pp|مَخْلُوق|creature', 'oth|خُلُق|character, manners|فُعُل', 'pl|أَخْلاق|morals, manners|أَفْعال']],
+    ['ف ك ر', 'thinking', 'الفكر', 0, ['II|فَكَّرَ|thought', 'V|تَفَكَّرَ|reflected, pondered', 'oth|فِكْر|thought|فِعْل', 'oth|فِكْرة|idea|فِعْلة', 'oth|تَفْكِير|thinking|تَفْعِيل', 'oth|مُفَكِّر|thinker|مُفَعِّل', 'pl|أَفْكار|ideas|أَفْعال']],
+    ['ع ب د', 'worship', 'العبادة', 0, ['I|عَبَدَ|worshipped', 'II|عَبَّدَ|paved (a road)', 'V|تَعَبَّدَ|devoted oneself to worship', 'msd|عِبادة|worship|فِعالة', 'ap|عابِد|worshipper', 'pp|مَعْبُود|worshipped one', 'plc|مَعْبَد|temple|مَفْعَل', 'oth|عَبْد|servant (of God)|فَعْل']],
+    ['ش غ ل', 'occupying', 'الشغل', 0, ['I|شَغَلَ|occupied, kept busy', 'II|شَغَّلَ|switched on, operated', 'VIII|اِشْتَغَلَ|worked', 'msd|شُغْل|work, occupation|فُعْل', 'pp|مَشْغُول|busy', 'oth|تَشْغِيل|operation, running|تَفْعِيل', 'oth|مُشَغِّل|operator|مُفَعِّل']],
+    ['ق و ل', 'saying (hollow root)', 'القول (فعل أجوف)', 1, ['I|قالَ|said', 'III|قاوَلَ|contracted, negotiated', 'msd|قَوْل|saying, statement|فَعْل', 'ap|قائِل|speaker, the one who said', 'pp|مَقُول|said', 'plc|مَقال|article|مَفْعَل', 'oth|مَقالة|essay, article|مَفْعَلة', 'oth|مُقاوِل|contractor|مُفاعِل', 'pl|أَقْوال|sayings, statements|أَفْعال']],
+    ['ب ي ع', 'selling (hollow root)', 'البيع (فعل أجوف)', 1, ['I|باعَ|sold', 'III|بايَعَ|pledged allegiance to', 'VIII|اِبْتاعَ|bought', 'msd|بَيْع|selling|فَعْل', 'ap|بائِع|seller', 'pp|مَبِيع|sold', 'oth|مَبِيعات|sales|مَفْعُولات', 'oth|بَيْعة|oath of allegiance|فَعْلة']]
+  ].map(function (r) {
+    return { key: r[0], letters: r[0].split(' '), en: r[1], ar: r[2], weak: !!r[3], w: r[4].map(function (s) { var p = s.split('|'); return { p: p[0], w: p[1], en: p[2], wz: p[3] || null }; }) };
+  });
+  var BY = {}; R.forEach(function (r) { BY[r.letters.map(base).join('')] = r; });
+
+  // ---- letters
+  var DIAC = /[ً-ْٰ]/g;
+  function base(ch) { return ch === 'أ' || ch === 'إ' || ch === 'آ' || ch === 'ؤ' || ch === 'ئ' || ch === 'ء' ? 'ء' : ch === 'ى' ? 'ي' : ch; }
+  function cleanRoot(s) { return s.replace(DIAC, '').replace(/[\sـ,،\-ـ]/g, '').split('').map(base).join(''); }
+  // Generate a word from a pattern template for a sound root (used to check the list).
+  function gen(tpl, f, a, l) {
+    var g = tpl.replace('F', f).replace('A', a).replace('L', l);
+    if (tpl.indexOf('تَA') > 0 && tpl.indexOf('اِF') === 0) { // Form VIII assimilation
+      if ('صضطظ'.indexOf(f) >= 0) g = g.replace(f + 'ْتَ', f + 'ْطَ');
+      else if ('دذز'.indexOf(f) >= 0) g = g.replace(f + 'ْتَ', f + 'ْدَ');
+    }
+    return g;
+  }
+  function norm(s) { return s.normalize('NFC').replace(/^اِ/, 'ا'); }
+  window.__rootsCheck = function () { // every listed word that follows a fixed template matches it
+    var bad = [];
+    R.forEach(function (r) { if (r.weak) return; r.w.forEach(function (e) { var t = P[e.p][3]; if (!t) return; var g = gen(t, r.letters[0], r.letters[1], r.letters[2]); if (norm(g) !== norm(e.w)) bad.push(r.key + ' ' + e.p + ' ' + e.w + ' ≠ ' + g); }); });
+    return { roots: R.length, words: R.reduce(function (n, r) { return n + r.w.length; }, 0), bad: bad };
+  };
+
+  // Mark the root letters inside a word: choose the tightest in-order match.
+  function mark(word, letters) {
+    var chars = Array.from(word), idx = [];
+    chars.forEach(function (c, i) { if (!DIAC.test(c)) idx.push(i); DIAC.lastIndex = 0; });
+    var want = letters.map(base), best = null;
+    function eq(c, w) { var b = base(c); return b === w || (w === 'و' && (b === 'ا' || b === 'ء')) || (w === 'ي' && (b === 'ا' || b === 'ء')); }
+    for (var i = 0; i < idx.length; i++) {
+      if (!eq(chars[idx[i]], want[0])) continue;
+      for (var j = i + 1; j < idx.length; j++) {
+        if (!eq(chars[idx[j]], want[1])) continue;
+        for (var k = j + 1; k < idx.length; k++) {
+          if (!eq(chars[idx[k]], want[2])) continue;
+          var span = k - i; if (!best || span <= best.s) best = { s: span, a: [idx[i], idx[j], idx[k]] }; break;
+        }
+      }
+    }
+    if (!best) return esc(word);
+    var out = '', set = best.a;
+    for (var n = 0; n < chars.length; n++) {
+      if (set.indexOf(n) >= 0) { var m = chars[n]; while (n + 1 < chars.length && /[ً-ْٰ]/.test(chars[n + 1])) { m += chars[++n]; } out += '<b class="rl">' + esc(m) + '</b>'; }
+      else out += esc(chars[n]);
+    }
+    return out;
+  }
+  function formI(w) { var ch = Array.from(w.normalize('NFC')), n = 0; for (var i = 0; i < ch.length; i++) { if (!/[\u064B-\u0652\u0670]/.test(ch[i])) { n++; if (n === 2) { var v = ch[i + 1]; return v === '\u0650' ? 'فَعِلَ' : v === '\u064F' ? 'فَعُلَ' : 'فَعَلَ'; } } } return 'فَعَلَ'; }
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+
+  // ---- show a root
+  var cur = null;
+  function show(r) {
+    cur = r;
+    [].forEach.call(document.querySelectorAll('#rootlist button'), function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-k') === r.key ? 'true' : 'false'); });
+    var h = '<div class="rhead"><span class="arx rk" dir="rtl" lang="ar">' + r.key + '</span><span class="m">' + (AR ? esc(r.ar) : '<span data-noar lang="en">' + esc(r.en) + '</span> · <bdi class="arx" lang="ar">' + esc(r.ar) + '</bdi>') + ' · ' + L(r.w.length + ' words', r.w.length + ' كلمة') + '</span></div>';
+    if (r.weak) h += '<p class="msg">' + L('A weak or hamzated root: its letters change in some patterns, so these words are listed one by one rather than built from the rules.', 'جذر معتل أو مهموز: تتغير حروفه في بعض الأوزان، لذلك وُضعت كلماته واحدة واحدة ولم تُبنَ من القواعد.') + '</p>';
+    h += '<div class="forms">';
+    GROUPS.forEach(function (g) {
+      var ws = r.w.filter(function (e) { return g[2].indexOf(e.p) >= 0; }).sort(function (a, b) { return ORDER.indexOf(a.p) - ORDER.indexOf(b.p); });
+      if (!ws.length) return;
+      h += '<div class="grp-h">' + L(g[0], g[1]) + '</div>';
+      ws.forEach(function (e) {
+        var pt = P[e.p], wz = e.wz || pt[0], label = /^(I|II|III|IV|V|VI|VII|VIII|X)$/.test(e.p) ? L('Form ' + e.p, 'الوزن ' + ({ I: 'الأول', II: 'الثاني', III: 'الثالث', IV: 'الرابع', V: 'الخامس', VI: 'السادس', VII: 'السابع', VIII: 'الثامن', X: 'العاشر' })[e.p]) : L(({ msd: 'Verbal noun', ap: 'Doer', pp: 'Done to', plc: 'Place', ins: 'Tool', fail: 'Quality', fuul: 'Plural or noun', pl: 'Plural', oth: 'Pattern' })[e.p], ({ msd: 'مصدر', ap: 'اسم فاعل', pp: 'اسم مفعول', plc: 'اسم مكان', ins: 'اسم آلة', fail: 'صفة', fuul: 'جمع أو مصدر', pl: 'جمع تكسير', oth: 'وزن' })[e.p]);
+        if (e.p === 'I') wz = formI(e.w); else if (e.p === 'msd') wz = e.wz || '';
+        h += '<div class="fm"><div class="pt"><span>' + label + '</span><span class="arx" dir="rtl" lang="ar">' + esc(wz) + '</span></div><div class="w" lang="ar">' + mark(e.w, r.letters) + '</div><div class="gl" data-noar lang="en">' + esc(e.en) + '</div></div>';
+      });
+    });
+    h += '</div>';
+    $('out').innerHTML = h;
+    $('exH').textContent = L('Example from ', 'مثال من ') + r.key;
+    pats();
+    try { localStorage.setItem('arRoot', r.key); } catch (e) {}
+  }
+  function pats() {
+    var rows = '';
+    ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'X', 'ap', 'pp', 'plc', 'ins', 'fail', 'fuul'].forEach(function (k) {
+      var p = P[k], wz = p[0];
+      var col = wz.replace(/ف/g, '<b class="cF">ف</b>').replace(/ع/g, '<b class="cA">ع</b>').replace(/ل/g, '<b class="cL">ل</b>');
+      var ex = cur && cur.w.filter(function (e) { return e.p === k; })[0];
+      rows += '<tr><td class="wz">' + col + '</td><td>' + esc(L(p[1], p[2])) + '</td><td class="ex">' + (ex ? mark(ex.w, cur.letters) : '<span style="color:var(--muted)">–</span>') + '</td></tr>';
+    });
+    $('pats').innerHTML = rows;
+  }
+  function find(raw) {
+    var c = cleanRoot(raw);
+    if (!c) return;
+    if (c.length !== 3) { $('rmsg').textContent = L('Type exactly three letters, like ك ت ب.', 'اكتب ثلاثة أحرف بالضبط، مثل ك ت ب.'); return; }
+    if (/[^ء-ي]/.test(c)) { $('rmsg').textContent = L('Use Arabic letters, like ك ت ب.', 'استخدم حروفًا عربية، مثل ك ت ب.'); return; }
+    var r = BY[c];
+    if (r) { $('rmsg').textContent = ''; show(r); return; }
+    var weak = /[اويء]/.test(c);
+    var near = R.filter(function (x) { var l = x.letters.join(''); return l[0] === c[0] && l[1] === c[1] || l[1] === c[1] && l[2] === c[2] || l[0] === c[0] && l[2] === c[2]; }).map(function (x) { return x.key; }).slice(0, 6);
+    $('rmsg').textContent = (weak ? L(c.split('').join(' ') + ' is a weak or hamzated root and isn\'t in the list.', 'الجذر ' + c.split('').join(' ') + ' معتل أو مهموز وليس في القائمة.') : L(c.split('').join(' ') + ' isn\'t in the list yet, so no words are shown. Only checked words appear here.', 'الجذر ' + c.split('').join(' ') + ' ليس في القائمة بعد، فلا تظهر له كلمات. تظهر هنا الكلمات الموثقة فقط.')) + (near.length ? L(' Similar roots: ', ' جذور قريبة: ') + near.join('، ') : '');
+  }
+  R.forEach(function (r) {
+    var b = document.createElement('button'); b.className = 'sm'; b.type = 'button'; b.textContent = r.key; b.setAttribute('data-k', r.key); b.setAttribute('aria-pressed', 'false'); b.lang = 'ar';
+    b.onclick = function () { $('rootIn').value = r.key; $('rmsg').textContent = ''; show(r); };
+    $('rootlist').appendChild(b);
+  });
+  $('go').onclick = function () { find($('rootIn').value); };
+  $('rootIn').addEventListener('keydown', function (e) { if (e.key === 'Enter') find($('rootIn').value); });
+  $('rnd').onclick = function () { var r = R[Math.floor(Math.random() * R.length)]; $('rootIn').value = r.key; $('rmsg').textContent = ''; show(r); };
+
+  // ---- game
+  var score = 0, tries = 0, best = 0, q = null;
+  try { best = +localStorage.getItem('arRootBest') || 0; } catch (e) {}
+  function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function ask() {
+    var pool = R.filter(function (r) { return !r.weak; }), r = pool[Math.floor(Math.random() * pool.length)];
+    var ws = r.w.filter(function (e) { return e.p !== 'I'; }), e = ws[Math.floor(Math.random() * ws.length)];
+    // distractors: roots sharing a letter make it harder
+    var others = shuffle(R.filter(function (x) { return x !== r && x.letters.some(function (l) { return r.letters.indexOf(l) >= 0; }); })).slice(0, 3);
+    while (others.length < 3) { var o = R[Math.floor(Math.random() * R.length)]; if (o !== r && others.indexOf(o) < 0) others.push(o); }
+    q = { r: r, e: e, opts: shuffle([r].concat(others)) };
+    $('qw').textContent = e.w;
+    $('qg').innerHTML = AR ? '' : '<span data-noar lang="en">"' + esc(e.en) + '"</span>';
+    $('qmsg').textContent = '';
+    $('qopts').innerHTML = q.opts.map(function (o, i) { return '<button type="button" data-i="' + i + '" lang="ar">' + o.key + '</button>'; }).join('');
+    $('qnext').textContent = L('Skip', 'تخطَّ');
+  }
+  $('qopts').addEventListener('click', function (ev) {
+    var b = ev.target.closest('button'); if (!b || b.disabled) return;
+    var o = q.opts[+b.getAttribute('data-i')], right = o === q.r;
+    tries++; if (right) score++; if (score > best) { best = score; try { localStorage.setItem('arRootBest', best); } catch (e) {} }
+    [].forEach.call($('qopts').children, function (x, i) { x.disabled = true; if (q.opts[i] === q.r) x.className = 'ok'; else if (x === b) x.className = 'no'; });
+    var P2 = P[q.e.p], wz = q.e.wz || P2[0];
+    $('qmsg').innerHTML = (right ? L('Right. ', 'صحيح. ') : L('Not quite. ', 'ليس تمامًا. ')) + L('<span class="arx">' + esc(q.e.w) + '</span> comes from <span class="arx">' + q.r.key + '</span> on the pattern <span class="arx">' + esc(wz) + '</span>.', '<span class="arx">' + esc(q.e.w) + '</span> من الجذر <span class="arx">' + q.r.key + '</span> على وزن <span class="arx">' + esc(wz) + '</span>.') + (AR ? '' : ' <span data-noar>' + esc(q.e.en) + '.</span>');
+    $('qscore').textContent = L('Score ' + score + ' of ' + tries + ' · best ' + best, 'النتيجة ' + score + ' من ' + tries + ' · الأفضل ' + best);
+    $('qnext').textContent = L('Next word', 'الكلمة التالية');
+  });
+  $('qnext').onclick = ask;
+  $('qscore').textContent = L('Score 0 of 0 · best ' + best, 'النتيجة 0 من 0 · الأفضل ' + best);
+
+  var start = BY['كتب']; try { var s = localStorage.getItem('arRoot'); if (s && BY[cleanRoot(s)]) start = BY[cleanRoot(s)]; } catch (e) {}
+  $('rootIn').value = start.key; show(start); ask();
+})();
+</script>
+</body>
+</html>
