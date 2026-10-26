@@ -42,8 +42,21 @@
 .legend span::before { content: ''; display: inline-block; width: 12px; height: 3px; border-radius: 2px; margin-inline-end: 5px; vertical-align: 3px; background: var(--c); }
 .verdict { padding: 12px 14px; border-radius: 10px; border: 1px solid var(--line); font-size: 0.92rem; }
 .verdict b { color: var(--accent); }
+.wetrows { overflow-x: auto; display: grid; gap: 3px; padding-bottom: 4px; }
+.wetrow { display: grid; grid-template-columns: 6.5em repeat(36, minmax(12px, 1fr)); gap: 2px; align-items: center; min-width: 560px; }
+.wetrow > span { font-size: 0.72rem; color: var(--muted); }
+.wetrow i { height: 18px; border-radius: 3px; background: rgba(255,255,255,.05); font-style: normal; }
+.wetrow i.y { background: var(--c); }
+.wetrow.hrs i { height: auto; background: none; font-family: var(--font-mono); font-size: 0.6rem; color: var(--muted); text-align: center; }
+.wetsum { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.wetsum li { padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; font-size: 0.9rem; }
+.wetsum li b { color: var(--accent); }
+.wetsum li small { display: block; color: var(--muted); font-size: 0.8rem; margin-top: 2px; }
 [hidden] { display: none !important; }
+html.ar .wetrows { direction: ltr; }
+html.ar .wetrow > span { text-align: left; }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -62,6 +75,15 @@
       <div class="grp"><span class="label">Your AC as a dehumidifier</span><div id="acOut"></div></div>
       <div class="grp"><span class="label">Fog watch · next 36 hours</span><svg class="chart" id="chart" viewBox="0 0 640 220" role="img" aria-label="Temperature and dew point"></svg><div class="legend"><span style="--c:#F08AB3">Temperature</span><span style="--c:#4FD3BD">Dew point</span><span style="--c:rgba(132,160,255,.5)">Fog likely (gap under 1.5°C)</span></div><div class="verdict" id="fog"></div></div>
       <div class="verdict" id="glass"></div>
+      <div class="grp" id="wetBox"><span class="label">Wet car and sweating windows</span>
+        <div class="two">
+          <label class="f"><span>Your AC at home (°C)</span><input type="number" id="acT" min="16" max="30" step="0.5" value="23"></label>
+          <label class="f"><span>Your car's AC (°C)</span><input type="number" id="carT" min="16" max="30" step="0.5" value="21"></label>
+        </div>
+        <ul class="wetsum" id="wetSum"></ul>
+        <div class="wetrows" id="wetRows" aria-label="Hour by hour: wet windscreen, sweating windows, fogging glasses"></div>
+        <p class="src">Tips: a windscreen wet on the <b>outside</b> needs wipers, not cold air. Blowing AC onto it chills the glass and makes it worse, so point the vents away or set the screen to warm. Misting on the <b>inside</b> (cool, damp winter mornings) is the opposite: AC on the windscreen setting dries the air and clears it. Before stepping out with glasses or a camera, let them warm up in a pocket or bag for a few minutes.</p>
+      </div>
       <p class="fact"><b>Why mornings get foggy.</b> The dew point is the temperature at which the air is full and can't hold its water as vapour any more. On clear, calm nights the ground loses heat to the sky and the air above it cools. If it cools down to the dew point, the extra water condenses on dust and salt particles as tiny droplets: fog. Coastal UAE gets it most from September to March, when nights are cool and sea air is moist. It usually burns off within a couple of hours of sunrise.</p>
       <p class="fact"><b>Why glasses and car windows steam up.</b> Any surface colder than the dew point collects water. Step out of a 22°C car into air with a 28°C dew point and your sunglasses fog instantly. In winter it flips: your breath makes the air inside the car more humid than the cold windscreen can handle, so it mists on the inside. Point the AC at the glass: it dries the air first.</p>
     </div>
@@ -113,10 +135,10 @@
 
   function load(lat, lon, nm) {
     name = nm; $('msg').textContent = 'Fetching live conditions for ' + nm + '…';
-    var u = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon + '&current=temperature_2m,relative_humidity_2m,dew_point_2m&hourly=temperature_2m,relative_humidity_2m,dew_point_2m,wind_speed_10m,visibility&timezone=auto&forecast_days=3';
+    var u = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon + '&current=temperature_2m,relative_humidity_2m,dew_point_2m&hourly=temperature_2m,relative_humidity_2m,dew_point_2m,wind_speed_10m,visibility,cloud_cover&timezone=auto&forecast_days=3';
     fetch(u).then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(function (j) {
       var H = j.hourly, off = j.utc_offset_seconds || 0;
-      hourly = H.time.map(function (t, i) { return { t: t, ms: Date.parse(t + ':00Z') - off * 1000, T: H.temperature_2m[i], RH: H.relative_humidity_2m[i], Td: H.dew_point_2m ? H.dew_point_2m[i] : dew(H.temperature_2m[i], H.relative_humidity_2m[i]), w: H.wind_speed_10m ? H.wind_speed_10m[i] : null, vis: H.visibility ? H.visibility[i] : null }; }).filter(function (h) { return h.T != null && h.RH != null; });
+      hourly = H.time.map(function (t, i) { return { t: t, ms: Date.parse(t + ':00Z') - off * 1000, T: H.temperature_2m[i], RH: H.relative_humidity_2m[i], Td: H.dew_point_2m ? H.dew_point_2m[i] : dew(H.temperature_2m[i], H.relative_humidity_2m[i]), w: H.wind_speed_10m ? H.wind_speed_10m[i] : null, vis: H.visibility ? H.visibility[i] : null, c: H.cloud_cover ? H.cloud_cover[i] : null }; }).filter(function (h) { return h.T != null && h.RH != null; });
       var k = 0; for (var i = 0; i < hourly.length; i++) if (hourly[i].ms <= Date.now()) k = i;
       if (j.current && j.current.temperature_2m != null) cur = { T: j.current.temperature_2m, RH: j.current.relative_humidity_2m, t: j.current.time };
       else cur = { T: hourly[k].T, RH: hourly[k].RH, t: hourly[k].t };
@@ -145,6 +167,7 @@
     renderFog();
   }
   function renderFog() {
+    renderWet();
     if (!hourly || !hourly.length) { $('chart').innerHTML = ''; $('fog').textContent = 'The fog forecast needs live data.'; return; }
     var W = Math.max(300, Math.round($('chart').getBoundingClientRect().width) || 640), H = 200, pl = 30, pr = 6, pt = 10, pb = 24;
     var vals = []; hourly.forEach(function (h) { vals.push(h.T, h.Td); });
@@ -168,6 +191,45 @@
     var risk = spread < 1.5 && calm ? 'Fog is likely' : spread < 3 ? 'Mist or patchy fog is possible' : 'Fog is unlikely';
     $('fog').innerHTML = '<b>' + risk + '</b>. The closest the air gets to its dew point is around <b>' + m.t.slice(11, 16) + '</b> ' + (m.t.slice(0, 10) === hourly[0].t.slice(0, 10) ? 'today' : 'tomorrow') + ': ' + fmt(m.T, 1) + '°C against a dew point of ' + fmt(m.Td, 1) + '°C, a gap of ' + fmt(spread, 1) + '°C' + (m.w != null ? ', with ' + Math.round(m.w) + ' km/h wind' : '') + (m.vis != null && m.vis < 2000 ? ', and the model expects visibility down to ' + fmt(m.vis / 1000, 1) + ' km' : '') + '. ' + (spread < 3 ? 'Drive with low beams and keep your distance; watch for NCM fog alerts.' : 'Fog needs the gap to close to about 1°C, ideally with little wind.');
   }
+  // ---- wet car and sweating windows ----
+  // glass under a clear, calm night sky radiates heat away and runs a few degrees colder than the air
+  function glassMargin(h) { var clear = h.c == null ? 50 : h.c, calm = h.w == null || h.w < 12; return clear < 30 && calm ? 3 : clear < 70 ? 2 : 1; }
+  function ranges(list, flag) {
+    var out = [], cur = null;
+    list.forEach(function (h, i) { if (flag(h)) { if (cur && cur.b === i - 1) cur.b = i; else { cur = { a: i, b: i }; out.push(cur); } } });
+    return out;
+  }
+  function when(r) {
+    var a = hourly[r.a], b = hourly[r.b], d0 = hourly[0].t.slice(0, 10);
+    var dw = function (t) { return t.slice(0, 10) === d0 ? 'today' : 'tomorrow'; };
+    var end = (+b.t.slice(11, 13) + 1) % 24;
+    var e = (end < 10 ? '0' : '') + end + ':00', da = dw(a.t), db = end === 0 ? da : dw(b.t);
+    return da === db ? a.t.slice(11, 16) + '–' + e + ' ' + da : 'from ' + a.t.slice(11, 16) + ' ' + da + ' to ' + e + ' ' + db;
+  }
+  function renderWet() {
+    try { localStorage.setItem('waterAirGlass', JSON.stringify({ acT: $('acT').value, carT: $('carT').value })); } catch (x) {}
+    if (!hourly || !hourly.length) { $('wetSum').innerHTML = '<li>This needs the live hourly forecast.</li>'; $('wetRows').innerHTML = ''; return; }
+    var acT = parseFloat($('acT').value), carT = parseFloat($('carT').value); if (!isFinite(acT)) acT = 23; if (!isFinite(carT)) carT = 21;
+    var night = function (h) { var hr = +h.t.slice(11, 13); return hr >= 19 || hr <= 9; };
+    var screen = function (h) { return night(h) && h.T - h.Td <= glassMargin(h); };
+    var win = function (h) { return h.Td > acT; }, specs = function (h) { return h.Td > carT; };
+    var rS = ranges(hourly, screen), rW = ranges(hourly, win), rG = ranges(hourly, specs);
+    var maxTd = Math.max.apply(null, hourly.map(function (h) { return h.Td; }));
+    var closest = null; hourly.forEach(function (h) { if (night(h) && (!closest || h.T - h.Td < closest.T - closest.Td)) closest = h; });
+    var li = [];
+    li.push(rS.length ? 'Windscreen: <b>wet in the morning</b>, ' + rS.slice(0, 2).map(when).join(' and ') + '.<small>The air drops to within about ' + glassMargin(hourly[rS[0].a]) + '°C of its dew point, and car glass under an open sky cools below the air. Expect dew, or a coat of muddy drops if there\'s dust about.</small>'
+      : 'Windscreen: <b>should stay dry</b> overnight.<small>' + (closest ? 'The closest the air gets to its dew point is ' + fmt(closest.T - closest.Td, 1) + '°C at ' + closest.t.slice(11, 16) + '.' : '') + '</small>');
+    li.push(rW.length ? 'Windows: the <b>outside of your AC\'d windows will sweat</b> ' + rW.slice(0, 2).map(when).join(' and ') + '.<small>The outdoor dew point reaches ' + fmt(maxTd, 1) + '°C, warmer than glass cooled to about ' + acT + '°C by your AC. Single glazing sweats most; it\'s harmless and clears by itself.</small>'
+      : 'Windows: <b>no sweating</b> on the outside.<small>The outdoor dew point stays below ' + acT + '°C, so glass at AC temperature stays dry.</small>');
+    li.push(rG.length ? 'Glasses and phone cameras: <b>will fog</b> stepping out of a ' + carT + '°C car or room ' + rG.slice(0, 2).map(when).join(' and ') + '.<small>Give them a few minutes to warm up before you take a photo.</small>'
+      : 'Glasses and phone cameras: <b>stay clear</b> stepping out of a ' + carT + '°C car or room.<small>The dew point stays below ' + carT + '°C.</small>');
+    $('wetSum').innerHTML = li.map(function (x) { return '<li>' + x + '</li>'; }).join('');
+    var rows = [['Windscreen', screen, '#84a0ff'], ['Windows', win, '#4FD3BD'], ['Glasses', specs, '#F08AB3']];
+    var hrs = '<div class="wetrow hrs"><span></span>' + hourly.slice(0, 36).map(function (h) { var hr = +h.t.slice(11, 13); return '<i>' + (hr % 6 === 0 ? hr : '') + '</i>'; }).join('') + '</div>';
+    $('wetRows').innerHTML = rows.map(function (r) { return '<div class="wetrow" style="--c:' + r[2] + '"><span>' + r[0] + '</span>' + hourly.slice(0, 36).map(function (h) { return '<i class="' + (r[1](h) ? 'y' : '') + '" title="' + h.t.slice(11, 16) + ' · dew point ' + fmt(h.Td, 1) + '°C"></i>'; }).join('') + '</div>'; }).join('') + hrs;
+  }
+  try { var wg = JSON.parse(localStorage.getItem('waterAirGlass') || 'null'); if (wg) { if (wg.acT) $('acT').value = wg.acT; if (wg.carT) $('carT').value = wg.carT; } } catch (x) {}
+  ['acT', 'carT'].forEach(function (id) { $(id).addEventListener('input', renderWet); });
   PLACES.forEach(function (p, i) {
     var b = document.createElement('button'); b.className = 'sm'; b.type = 'button'; b.textContent = p[0]; b.setAttribute('aria-pressed', 'false');
     b.onclick = function () { pick(b); saveState(i); load(p[1], p[2], p[0]); };
