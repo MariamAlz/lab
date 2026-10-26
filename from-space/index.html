@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Abu Dhabi from Space · Mariam's Lab</title>
+<meta name="description" content="Mix real Sentinel-2 satellite bands of Abu Dhabi to reveal mangroves, water, sand and city, the way remote sensing analysts do.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/from-space/">
+<meta property="og:title" content="Abu Dhabi from Space · Mariam's Lab"><meta property="og:description" content="Real Sentinel-2 bands of Abu Dhabi. Mix them to see what your eyes can't."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.left { display: grid; gap: 14px; min-width: 0; }
+.img { position: relative; border-radius: var(--radius); border: 1px solid var(--line); overflow: hidden; background: #070A18; }
+.img canvas { display: block; width: 100%; height: auto; cursor: crosshair; touch-action: manipulation; }
+.img .load { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-family: var(--font-mono); }
+.ping { position: absolute; width: 22px; height: 22px; margin: -11px 0 0 -11px; border: 2px solid var(--accent); border-radius: 50%; pointer-events: none; }
+.presets { display: flex; flex-wrap: wrap; gap: 8px; }
+.presets button { padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--muted); font: inherit; font-size: 0.9rem; cursor: pointer; }
+.presets button[aria-pressed="true"] { color: var(--bg); background: var(--ink); border-color: var(--ink); }
+.presets button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mix { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.mix label { display: grid; gap: 4px; font-size: 0.82rem; font-family: var(--font-mono); }
+.mix select { width: 100%; min-width: 0; font: inherit; font-family: var(--font-body); font-size: 0.9rem; padding: 8px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+.desc { color: var(--muted); }
+.desc b { color: var(--ink); font-weight: 600; }
+.sig { padding: 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); display: grid; gap: 8px; }
+.sig canvas { width: 100%; height: auto; display: block; }
+.quest { display: grid; gap: 8px; padding: 16px; border-radius: 12px; border: 1px solid var(--accent); background: var(--surface); }
+.quest b { font-family: var(--font-display); font-size: 1.15rem; }
+.credit { font-size: 0.8rem; color: var(--muted); font-family: var(--font-mono); }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Experiment · Earth observation</span>
+    <h1 style="font-size:var(--step-3)">Abu Dhabi from space.</h1>
+    <p>A real Sentinel-2 image of Abu Dhabi, split into six bands of light, including infrared your eyes can't see. Mix them the way remote sensing analysts do, and hidden things jump out.</p>
+  </div>
+  <div class="game">
+    <div class="left">
+      <div class="img" id="imgbox"><canvas id="cv" width="880" height="660" role="img" aria-label="Satellite image of Abu Dhabi in the selected band combination"></canvas><div class="load" id="load">Loading the scene…</div></div>
+      <div class="presets" id="presets" role="group" aria-label="Band combinations"></div>
+      <div class="mix">
+        <label for="mr">Red shows<select id="mr"></select></label>
+        <label for="mg">Green shows<select id="mg"></select></label>
+        <label for="mb">Blue shows<select id="mb"></select></label>
+      </div>
+      <p class="credit" id="credit"></p>
+    </div>
+    <div class="panel">
+      <p class="desc" id="desc"></p>
+      <div class="sig"><span class="label">Spectral signature · tap the image</span><canvas id="sig" width="420" height="190" aria-hidden="true"></canvas><span class="desc" id="sigtxt">Tap anywhere to see how much of each kind of light that spot reflects.</span></div>
+      <div class="quest" id="quest" aria-live="polite"></div>
+      <p class="fact">This is the kind of work I did in the UAE Space Agency's Space Applications programme: geospatial analytics and remote sensing, turning bands of light into answers about the ground.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  function css(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+  var BANDS = [
+    { k: 'blue', name: 'Blue', nm: 490 }, { k: 'green', name: 'Green', nm: 560 }, { k: 'red', name: 'Red', nm: 665 },
+    { k: 'nir', name: 'Near infrared', nm: 842 }, { k: 'swir16', name: 'Shortwave IR 1', nm: 1610 }, { k: 'swir22', name: 'Shortwave IR 2', nm: 2190 }
+  ];
+  var PRESETS = [
+    { id: 'true', name: 'True colour', rgb: ['red', 'green', 'blue'], d: '<b>What your eyes would see</b> from orbit: turquoise shallows, pale sand, grey city. The mangroves are there, but hard to tell from the shallow water.' },
+    { id: 'cir', name: 'Infrared', rgb: ['nir', 'red', 'green'], d: '<b>Plants glow red.</b> Healthy leaves reflect near infrared strongly, so the mangroves, parks and golf courses light up. Water, which absorbs infrared, turns almost black.' },
+    { id: 'urban', name: 'Urban', rgb: ['swir22', 'swir16', 'red'], d: '<b>Built-up areas stand out</b> in shortwave infrared. Concrete and asphalt look purple and grey, sand looks warm, and vegetation turns green.' },
+    { id: 'water', name: 'Land and water', rgb: ['nir', 'swir16', 'red'], d: '<b>The coastline becomes razor sharp</b>, because water absorbs infrared almost completely. Good for mapping shorelines and new reclaimed land.' },
+    { id: 'ndvi', name: 'Vegetation index', idx: 'ndvi', d: '<b>NDVI</b> = (NIR − Red) / (NIR + Red). Green means plants, and the stronger the green, the healthier. It is how scientists track the mangroves over time.' },
+    { id: 'ndwi', name: 'Water index', idx: 'ndwi', d: '<b>NDWI</b> = (Green − NIR) / (Green + NIR). Blue means water. It separates sea, lagoons and wet sand from dry land.' }
+  ];
+  var cv = $('cv'), g = cv.getContext('2d'), W = 0, H = 0, px = {}, meta = null, cur = 'true', mixRGB = null;
+
+  // challenges: tap a pixel that matches
+  var QUESTS = [
+    { q: 'Tap a mangrove or a park.', hint: 'Try the Infrared view: plants glow red.', ok: function (v) { return !isWater(v) && ndvi(v) > 0.3; } },
+    { q: 'Tap the open sea.', hint: 'In the Land and water view, water is black.', ok: function (v) { return isWater(v); } },
+    { q: 'Tap somewhere built-up: roads or buildings.', hint: 'In the Urban view, the city looks purple and grey.', ok: function (v) { return !isWater(v) && ndwi(v) < 0 && ndvi(v) < 0.15 && (v.swir16 - v.nir) / (v.swir16 + v.nir + 1e-6) > -0.05 && v.blue > 0.08 && v.swir16 < 0.32; } },
+    { q: 'Tap bare sand.', hint: 'Sand is bright in every band, with no plant or water signal.', ok: function (v) { return ndvi(v) < 0.15 && ndwi(v) < -0.1 && v.swir16 > 0.3; } }
+  ];
+  var qi = 0, found = 0;
+  function ndvi(v) { return (v.nir - v.red) / (v.nir + v.red + 1e-6); }
+  function ndwi(v) { return (v.green - v.nir) / (v.green + v.nir + 1e-6); }
+  // deep water is so dark that its bands round to zero, so treat "almost no light at all" as water too
+  function isWater(v) { return ndwi(v) > 0.1 || (v.green + v.blue < 0.03 && v.nir < 0.02); }
+  function quest(msg) {
+    if (qi >= QUESTS.length) { $('quest').innerHTML = '<b>All four found.</b><span>You read the ground from its light alone. That’s remote sensing.</span>'; return; }
+    $('quest').innerHTML = '<span class="label">Challenge ' + (qi + 1) + ' of ' + QUESTS.length + '</span><b>' + QUESTS[qi].q + '</b><span class="desc">' + (msg || QUESTS[qi].hint) + '</span>';
+  }
+
+  function loadImg(src) { return new Promise(function (res, rej) { var i = new Image(); i.onload = function () { res(i); }; i.onerror = rej; i.src = src; }); }
+  fetch('../assets/s2/meta.json').then(function (r) { return r.json(); }).then(function (m) {
+    meta = m; W = cv.width = m.width; H = cv.height = m.height;
+    return Promise.all(BANDS.map(function (b) { return loadImg('../assets/s2/' + b.k + '.png'); }));
+  }).then(function (imgs) {
+    var off = document.createElement('canvas'); off.width = W; off.height = H; var o = off.getContext('2d', { willReadFrequently: true });
+    imgs.forEach(function (im, i) {
+      o.clearRect(0, 0, W, H); o.drawImage(im, 0, 0);
+      var d = o.getImageData(0, 0, W, H).data, a = new Float32Array(W * H);
+      for (var p = 0; p < W * H; p++) a[p] = d[p * 4] / 255 * meta.scale;
+      px[BANDS[i].k] = a;
+    });
+    $('load').hidden = true;
+    $('credit').textContent = 'Contains modified Copernicus Sentinel-2 data, ' + meta.date + '. Each pixel is 25 m across.';
+    render(); quest();
+  }).catch(function () { $('load').textContent = 'The satellite scene could not be loaded.'; });
+
+  // build controls
+  PRESETS.forEach(function (p) {
+    var b = document.createElement('button'); b.type = 'button'; b.textContent = p.name; b.dataset.id = p.id;
+    b.setAttribute('aria-pressed', p.id === cur);
+    b.addEventListener('click', function () { cur = p.id; mixRGB = null; sync(); render(); });
+    $('presets').appendChild(b);
+  });
+  ['mr', 'mg', 'mb'].forEach(function (id, ch) {
+    var s = $(id);
+    BANDS.forEach(function (b) { var o = document.createElement('option'); o.value = b.k; o.textContent = b.name + ' (' + b.nm + ' nm)'; s.appendChild(o); });
+    s.addEventListener('change', function () { mixRGB = [$('mr').value, $('mg').value, $('mb').value]; cur = 'custom'; sync(); render(); });
+  });
+  function sync() {
+    document.querySelectorAll('#presets button').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.id === cur); });
+    var p = PRESETS.filter(function (x) { return x.id === cur; })[0];
+    var rgb = mixRGB || (p && p.rgb) || ['red', 'green', 'blue'];
+    ['mr', 'mg', 'mb'].forEach(function (id, i) { $(id).value = rgb[i]; $(id).disabled = !!(p && p.idx); });
+    $('desc').innerHTML = p ? p.d : '<b>Your own mix.</b> Try putting near infrared in different channels and see what jumps out.';
+  }
+
+  // percentile stretch so every combination fills the display range
+  function stretch(a) {
+    var s = Array.prototype.slice.call(a.filter(function (_, i) { return i % 37 === 0; })).sort(function (x, y) { return x - y; });
+    return [s[Math.floor(s.length * 0.02)], s[Math.floor(s.length * 0.98)]];
+  }
+  function ramp(stops, v) {
+    v = Math.max(0, Math.min(1, v));
+    for (var k = 1; k < stops.length; k++) if (v <= stops[k][0]) {
+      var a = stops[k - 1], b = stops[k], t = (v - a[0]) / (b[0] - a[0] || 1);
+      return [0, 1, 2].map(function (n) { return a[1][n] + (b[1][n] - a[1][n]) * t; });
+    }
+    return stops[stops.length - 1][1];
+  }
+  var NDVI_RAMP = [[0, [30, 50, 100]], [0.44, [80, 100, 140]], [0.5, [236, 226, 192]], [0.6, [175, 210, 125]], [0.8, [45, 145, 65]], [1, [10, 80, 30]]];
+  var NDWI_RAMP = [[0, [120, 90, 60]], [0.45, [220, 210, 180]], [0.55, [150, 200, 230]], [1, [10, 50, 140]]];
+  function render() {
+    if (!px.red) return;
+    var img = g.createImageData(W, H), d = img.data, p = PRESETS.filter(function (x) { return x.id === cur; })[0], n = W * H, i;
+    if (p && p.idx) {
+      var A = p.idx === 'ndvi' ? px.nir : px.green, B = p.idx === 'ndvi' ? px.red : px.nir, rmp = p.idx === 'ndvi' ? NDVI_RAMP : NDWI_RAMP;
+      for (i = 0; i < n; i++) { var v = (A[i] - B[i]) / (A[i] + B[i] + 1e-6), c = ramp(rmp, (v + 1) / 2);
+        // in the vegetation view, show water as water rather than as 'no plants'
+        var wv = { green: px.green[i], blue: px.blue[i], nir: px.nir[i] };
+        if (isWater(wv)) c = p.idx === 'ndvi' ? [40, 62, 110] : [10, 50, 140]; d[i * 4] = c[0]; d[i * 4 + 1] = c[1]; d[i * 4 + 2] = c[2]; d[i * 4 + 3] = 255; }
+    } else {
+      var rgb = mixRGB || p.rgb, ch = rgb.map(function (k) { return px[k]; }), st = ch.map(stretch);
+      // natural colour keeps one shared scale, so the sea stays blue instead of being stretched to black
+      if (cur === 'true') st = [[0, 0.26], [0, 0.26], [0, 0.26]];
+      for (i = 0; i < n; i++) for (var c2 = 0; c2 < 3; c2++) d[i * 4 + c2] = Math.max(0, Math.min(255, Math.pow(Math.max(0, (ch[c2][i] - st[c2][0]) / (st[c2][1] - st[c2][0])), cur === 'true' ? 0.65 : 1) * 255));
+      for (i = 0; i < n; i++) d[i * 4 + 3] = 255;
+    }
+    g.putImageData(img, 0, 0);
+  }
+
+  // spectral signature of a tapped pixel
+  var sg = $('sig'), s2 = sg.getContext('2d');
+  function sig(v) {
+    var SW = sg.width, SH = sg.height, muted = css('--muted'), acc = css('--accent');
+    s2.clearRect(0, 0, SW, SH);
+    var bw = (SW - 40) / 6;
+    s2.font = '500 11px "JetBrains Mono", monospace'; s2.textAlign = 'center'; s2.fillStyle = muted;
+    BANDS.forEach(function (b, i) {
+      var h = Math.min(1, v[b.k] / 0.4) * (SH - 46), x = 20 + i * bw;
+      s2.fillStyle = ['#5C7CFF', '#4FD3BD', '#F06B6B', '#E9B467', '#C08AF0', '#8A6BD9'][i];
+      s2.fillRect(x + 6, SH - 30 - h, bw - 12, h);
+      s2.fillStyle = muted; s2.fillText(['Blue', 'Green', 'Red', 'NIR', 'SWIR1', 'SWIR2'][i], x + bw / 2, SH - 14);
+    });
+    var kind = isWater(v) ? 'water: it absorbs infrared, so the bars drop to nothing on the right.' :
+      ndvi(v) > 0.3 ? 'plants: low red (chlorophyll eats it) and a big jump in near infrared.' :
+      v.swir16 > 0.3 && ndvi(v) < 0.15 ? 'sand or bare ground: bright and rising toward the infrared.' : 'mixed or built-up: fairly flat, without the plant or water pattern.';
+    $('sigtxt').textContent = 'This looks like ' + kind;
+  }
+  var ping = null;
+  cv.addEventListener('click', function (e) {
+    if (!px.red) return;
+    var b = cv.getBoundingClientRect(), x = Math.floor((e.clientX - b.left) / b.width * W), y = Math.floor((e.clientY - b.top) / b.height * H), i = y * W + x, v = {};
+    BANDS.forEach(function (bd) { v[bd.k] = px[bd.k][i]; });
+    sig(v);
+    if (!ping) { ping = document.createElement('div'); ping.className = 'ping'; $('imgbox').appendChild(ping); }
+    ping.style.left = (e.clientX - b.left) + 'px'; ping.style.top = (e.clientY - b.top) + 'px';
+    if (qi < QUESTS.length) {
+      if (QUESTS[qi].ok(v)) { qi++; found++; quest('Yes!'); if (qi < QUESTS.length) quest('Yes! Next one.'); }
+      else quest('Not quite. ' + QUESTS[qi].hint);
+    }
+  });
+  sync();
+})();
+</script>
+</body>
+</html>
