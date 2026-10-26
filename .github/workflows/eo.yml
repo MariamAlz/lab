@@ -1,0 +1,32 @@
+name: UAE earth observation data
+on:
+  workflow_dispatch:
+    inputs:
+      job:
+        description: "all, thennow, mangrove or spot"
+        default: all
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pystac-client planetary-computer rasterio pillow numpy shapely
+      - run: python .github/scripts/eo.py "$JOB"
+        env:
+          JOB: ${{ inputs.job }}
+      - name: Commit the data
+        env:
+          JOB: ${{ inputs.job }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add assets/eo
+          git diff --cached --quiet || git commit -m "Update UAE earth observation data ($JOB)"
+          git pull --rebase
+          git push
