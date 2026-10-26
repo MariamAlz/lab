@@ -1,0 +1,30 @@
+LabAr.add({
+  "Password Breach Check": "فحص تسريب كلمة المرور",
+  "Mariam's Lab": "مختبر مريم",
+  "Tool · Security": "أداة · الأمان",
+  "Has my password leaked?": "هل تسرّبت كلمة مروري؟",
+  "Billions of passwords from past data breaches are public, and attackers try them first. Check yours against the Have I Been Pwned list without ever sending it: your device turns the password into a fingerprint and shares only its first five characters.": "مليارات كلمات المرور من تسريبات البيانات السابقة منشورة للعلن، والمهاجمون يجرّبونها أولًا. افحص كلمة مرورك في قائمة Have I Been Pwned دون أن ترسلها أبدًا: يحوّل جهازك كلمة المرور إلى بصمة، ولا يشارك إلا أول خمسة أحرف منها.",
+  "Type a password to check": "اكتب كلمة مرور لفحصها",
+  "Password": "كلمة المرور",
+  "Check": "افحص",
+  "Show what I'm typing": "أظهر ما أكتبه",
+  "What happens when you press Check": "ماذا يحدث عند الضغط على «افحص»",
+  "Your browser turns the password into a SHA-1 fingerprint, here on your device.": "يحوّل متصفحك كلمة المرور إلى بصمة SHA-1، هنا على جهازك.",
+  "Only the first 5 characters are sent. About a million different passwords share them.": "تُرسَل أول 5 أحرف فقط، ويشترك فيها نحو مليون كلمة مرور مختلفة.",
+  "The service sends back every leaked fingerprint that starts that way, plus decoys, so it can't tell which one you wanted.": "تُعيد الخدمة كل بصمة مسرّبة تبدأ بهذه الأحرف، ومعها بصمات وهمية، فلا تعرف أيّها تبحث عنه.",
+  "Your device looks for the rest of your fingerprint in that list.": "يبحث جهازك عن بقية بصمتك في تلك القائمة.",
+  "This is called k-anonymity, and it's how password managers and browsers check passwords too. Want to know whether your <b>email</b> was in a breach? Check it on <a href=\"https://haveibeenpwned.com/\" target=\"_blank\" rel=\"noopener\">haveibeenpwned.com</a> directly; that search needs a key that can't be put safely in a public page.": "تُسمّى هذه الطريقة k-anonymity، وبها تفحص برامج إدارة كلمات المرور والمتصفحات كلمات المرور أيضًا. هل تريد معرفة ما إذا كان <b>بريدك الإلكتروني</b> ضمن تسريب؟ افحصه مباشرة على <a href=\"https://haveibeenpwned.com/\" target=\"_blank\" rel=\"noopener\">haveibeenpwned.com</a>؛ فذلك البحث يحتاج إلى مفتاح لا يمكن وضعه بأمان في صفحة عامة.",
+  "Checking…": "جارٍ الفحص…",
+  "Not in the list": "غير موجودة في القائمة",
+  "Found": "وُجدت",
+  "Not found in any known breach.": "لم تُعثر عليها في أي تسريب معروف.",
+  "Good sign, though not a guarantee it's strong.": "علامة جيدة، لكنها لا تضمن أنها قوية.",
+  "Use it for one site only.": "استخدمها لموقع واحد فقط.",
+  "This password is in breach lists that attackers try automatically. Stop using it everywhere, and change it first on your email and bank. A password manager can make a unique one for every site.": "كلمة المرور هذه موجودة في قوائم تسريب يجرّبها المهاجمون تلقائيًا. توقّف عن استخدامها في كل مكان، وغيّرها أولًا في بريدك الإلكتروني وحسابك المصرفي. يمكن لبرنامج إدارة كلمات المرور أن ينشئ كلمة فريدة لكل موقع.",
+  "Couldn't reach the breach list. Check your connection or content blocker and try again.": "تعذّر الوصول إلى قائمة التسريبات. تحقّق من اتصالك أو من أداة حظر المحتوى، ثم حاول مرة أخرى."
+}, [
+  [/^([\d,]+) fingerprints came back \(([\d,]+) real, the rest decoys\)$/, 'عادت $1 بصمة ($2 حقيقية، والباقي وهمية)'],
+  [/^→ seen ([\d,]+) times?$/, '← ظهرت $1 مرة'],
+  [/^Leaked ([\d,]+) times?\.$/, function (m, n) { return n === '1' ? 'تسرّبت مرة واحدة.' : 'تسرّبت ' + n + ' مرة.'; }],
+  [/^It's short \((\d+) characters?\); 14 or more is much safer\.$/, 'إنها قصيرة ($1 أحرف)؛ 14 حرفًا أو أكثر أكثر أمانًا بكثير.']
+]);

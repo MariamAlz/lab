@@ -33,6 +33,7 @@
 .note { font-size: 0.82rem; color: var(--muted); }
 .cnt { font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted); }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -45,11 +46,11 @@
   <div class="game">
     <div>
       <div class="wheelbox">
-        <canvas id="cv" tabindex="0" role="button" aria-label="Spin the wheel"></canvas>
+        <canvas id="cv" data-noar tabindex="0" role="button" aria-label="Spin the wheel"></canvas>
         <div class="pointer"></div>
         <div class="hub" id="hub">SPIN</div>
       </div>
-      <div class="winner" aria-live="polite"><span class="label" id="wl">&nbsp;</span><b id="win">&nbsp;</b></div>
+      <div class="winner" aria-live="polite"><span class="label" id="wl">&nbsp;</span><b id="win" data-noar>&nbsp;</b></div>
       <div class="wacts">
         <button class="btn primary" type="button" id="spin">Spin</button>
         <button class="btn ghost" type="button" id="remove" hidden>Remove it and spin again</button>
@@ -90,6 +91,7 @@
     yesno: 'Yes\nNo', coin: 'Heads\nTails', dice: '1\n2\n3\n4\n5\n6',
     ten: '1\n2\n3\n4\n5\n6\n7\n8\n9\n10', days: 'Monday\nTuesday\nWednesday\nThursday\nFriday\nSaturday\nSunday'
   };
+  if (window.LabAr && LabAr.on) { PRESETS.yesno = 'نعم\nلا'; PRESETS.coin = 'صورة\nكتابة'; PRESETS.days = 'الاثنين\nالثلاثاء\nالأربعاء\nالخميس\nالجمعة\nالسبت\nالأحد'; }
   var items = [], angle = 0, spinning = false, lastWin = -1, hist = [], audio = null;
 
   function rnd() { var b = new Uint32Array(1); crypto.getRandomValues(b); return b[0] / 4294967296; }
@@ -164,7 +166,7 @@
     var t = items[k].t;
     $('wl').textContent = 'The wheel says'; $('win').textContent = t; $('hub').textContent = 'SPIN';
     hist.unshift(t); hist = hist.slice(0, 12);
-    $('hist').innerHTML = hist.map(function (h) { var li = document.createElement('li'); li.textContent = h; return li.outerHTML; }).join('');
+    $('hist').innerHTML = hist.map(function (h) { var li = document.createElement('li'); li.setAttribute('data-noar', ''); li.textContent = h; return li.outerHTML; }).join('');
     if ($('auto').checked) removeLine(k); else $('remove').hidden = items.length < 3;
   }
   function removeLine(k) {

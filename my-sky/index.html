@@ -11,6 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Reem+Kufi:wght@500;700&display=swap">
 <link rel="stylesheet" href="../assets/site.css">
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -121,7 +122,7 @@ function css(n) { return getComputedStyle(document.documentElement).getPropertyV
     [0, 30, 60].forEach(function (el) { ctx.beginPath(); ctx.arc(c, c, R * (90 - el) / 90, 0, Math.PI * 2); ctx.stroke(); });
     for (var a = 0; a < 360; a += 30) { var p = pos(a, 0); ctx.beginPath(); ctx.moveTo(c, c); ctx.lineTo(p[0], p[1]); ctx.stroke(); }
     ctx.fillStyle = v('--muted'); ctx.font = '500 11px "JetBrains Mono", monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    [['N', 0], ['E', 90], ['S', 180], ['W', 270]].forEach(function (d) { var p = pos(d[1], -9); ctx.fillText(d[0], p[0], p[1]); });
+    [['N', 0], ['E', 90], ['S', 180], ['W', 270]].forEach(function (d) { var p = pos(d[1], -9); ctx.fillText(window.LabAr ? LabAr.t(d[0]) : d[0], p[0], p[1]); });
     ctx.textAlign = 'left';
     var cols = { a: v('--sat-a'), b: v('--sat-b'), c: v('--sat-c') }, muted = v('--muted'), placed = [];
     this.tracks.forEach(function (T) {

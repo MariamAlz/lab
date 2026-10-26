@@ -47,7 +47,12 @@ details p, details li { color: var(--muted); font-size: 0.88rem; }
 details ol { margin: 8px 0 0; padding-inline-start: 20px; display: grid; gap: 4px; }
 .msg { color: var(--muted); font-size: 0.88rem; min-height: 1.3em; }
 .sec { margin-top: 34px; }
+html.ar .q input { direction: ltr; text-align: right; }
+html.ar .recs td { unicode-bidi: plaintext; }
+html.ar .res li span:first-child { unicode-bidi: plaintext; text-align: right; }
+html.ar .res li span:nth-child(2) { unicode-bidi: plaintext; }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -184,7 +189,7 @@ details ol { margin: 8px 0 0; padding-inline-start: 20px; display: grid; gap: 4p
       (r[k[0] + ' ' + k[1]].Answer || []).forEach(function (a) { rows.push([TYPES[a.type] || a.type, a.name.replace(/\.$/, ''), a.data]); });
     });
     var seen = {}; rows = rows.filter(function (x) { var key = x.join('|'); if (seen[key]) return false; seen[key] = 1; return true; });
-    $('recs').innerHTML = '<thead><tr><th>Type</th><th>Name</th><th>Value</th></tr></thead><tbody>' + (rows.map(function (x) { return '<tr><td>' + esc(x[0]) + '</td><td>' + esc(x[1]) + '</td><td>' + esc(x[2]) + '</td></tr>'; }).join('') || '<tr><td colspan="3">No records found.</td></tr>') + '</tbody>';
+    $('recs').innerHTML = '<thead><tr><th>Type</th><th>Name</th><th>Value</th></tr></thead><tbody>' + (rows.map(function (x) { return '<tr data-noar><td>' + esc(x[0]) + '</td><td>' + esc(x[1]) + '</td><td>' + esc(x[2]) + '</td></tr>'; }).join('') || '<tr><td colspan="3">No records found.</td></tr>') + '</tbody>';
   }
 
   $('form').addEventListener('submit', function (e) { e.preventDefault(); var d = clean($('dom').value); if (!d) { $('status').textContent = 'That doesn\'t look like a domain. Try something like example.com.'; return; } $('dom').value = d; check(d); });

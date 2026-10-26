@@ -43,7 +43,10 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
 .cheat { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 4px 12px; font-family: var(--font-mono); font-size: 0.82rem; color: var(--muted); }
 .cheat b { color: var(--ink); font-weight: 500; display: inline-block; width: 1.4em; }
 details summary { cursor: pointer; color: var(--accent); font-family: var(--font-mono); font-size: 0.85rem; }
+html.ar .cheat b { font-family: "IBM Plex Sans Arabic", sans-serif; }
+html.ar .code, html.ar .sym { direction: ltr; text-align: right; }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -72,7 +75,7 @@ details summary { cursor: pointer; color: var(--accent); font-family: var(--font
         <button class="btn ghost" id="share" type="button">Copy a hidden link</button>
         <button class="btn ghost" id="reveal" type="button" hidden>Reveal</button>
       </div>
-      <p class="code" id="code" aria-live="off"></p>
+      <p class="code" id="code" aria-live="off" data-noar></p>
       <p class="note" id="note" aria-live="polite"></p>
     </div>
 
@@ -81,9 +84,9 @@ details summary { cursor: pointer; color: var(--accent); font-family: var(--font
       <p class="note">Hold the key for a dash, tap it for a dot. Pause to finish a letter. Space bar works too.</p>
       <button class="key" id="key" type="button">Hold to send</button>
       <div class="sym" id="sym" aria-hidden="true"></div>
-      <div class="typed" id="typed" aria-live="polite"></div>
+      <div class="typed" id="typed" aria-live="polite" data-noar></div>
       <div class="acts"><button class="btn ghost" id="clr" type="button">Clear</button></div>
-      <details><summary>Cheat sheet</summary><div class="cheat" id="cheat"></div></details>
+      <details><summary>Cheat sheet</summary><div class="cheat" id="cheat" data-noar></div></details>
     </div>
   </div>
 
@@ -108,12 +111,16 @@ details summary { cursor: pointer; color: var(--accent); font-family: var(--font
     'ل': '.-..', 'م': '--', 'ن': '-.', 'ه': '..-..', 'و': '.--', 'ي': '..', 'ء': '.' };
   var FOLD = { 'أ': 'ا', 'إ': 'ا', 'آ': 'ا', 'ٱ': 'ا', 'ة': 'ه', 'ى': 'ي', 'ئ': 'ي', 'ؤ': 'و', '،': ',', '؟': '?', '؛': ';' };
   var BACK = {}; Object.keys(MORSE).forEach(function (k) { BACK[MORSE[k]] = k; }); BACK['...---...'] = 'SOS';
+  // in Arabic mode the key decodes Arabic Morse and the sample message is Arabic
+  var ARMODE = !!(window.LabAr && LabAr.on);
+  if (ARMODE) { BACK = {}; Object.keys(AR).forEach(function (k) { BACK[AR[k]] = k; }); BACK['...---...'] = 'SOS'; }
 
   var cv = $('mc'), g = cv.getContext('2d'), W = cv.width, H = cv.height, PH = 300;
   // narrow screens get a shorter canvas so the letters stay readable
   function fit() { W = cv.width = window.innerWidth <= 640 ? 560 : 1000; PH = Math.round(W * 0.3); }
   fit(); window.addEventListener('resize', fit);
   var msg = $('msg'), wpm = $('wpm'), hz = $('hz'), playB = $('play'), note = $('note'), code = $('code');
+  if (ARMODE && !new URLSearchParams(location.search).get('m')) msg.value = 'مرحبا من أبوظبي';
   function mode() { return document.querySelector('input[name=mode]:checked').value; }
 
   // Build the timeline: tone on/off events plus the span of each character
@@ -288,7 +295,8 @@ details summary { cursor: pointer; color: var(--accent); font-family: var(--font
   keyEl.addEventListener('click', function (e) { e.preventDefault(); });
   keyEl.addEventListener('blur', keyUp);
   $('clr').addEventListener('click', function () { typed.textContent = ''; sym = ''; symEl.textContent = ''; clearTimeout(gapT); clearTimeout(wordT); });
-  $('cheat').innerHTML = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'.split('').map(function (c) { return '<span><b>' + c + '</b>' + MORSE[c] + '</span>'; }).join('');
+  $('cheat').innerHTML = ARMODE ? Object.keys(AR).concat('0123456789'.split('')).map(function (c) { return '<span><b>' + c + '</b><bdo dir="ltr">' + (AR[c] || MORSE[c]) + '</bdo></span>'; }).join('')
+    : 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'.split('').map(function (c) { return '<span><b>' + c + '</b>' + MORSE[c] + '</span>'; }).join('');
 })();
 </script>
 </body>

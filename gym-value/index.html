@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Membership Worth It? · Mariam's Lab</title>
+<meta name="description" content="Is your gym, pool, club or class membership worth it? Cost per visit, break-even against a day pass or class pack, what-if sliders and a tap-to-log visit counter.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/gym-value/">
+<meta property="og:title" content="Membership Worth It? · Mariam's Lab"><meta property="og:description" content="Cost per visit and break-even for any gym, pool, club or class membership."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;600&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.85rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 13px; cursor: pointer; }
+.sm:hover { border-color: var(--muted); }
+.sm[aria-pressed="true"], .sm.pri { background: var(--accent); color: #1a1205; border-color: var(--accent); }
+.pills { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.box { padding: 16px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); display: grid; gap: 12px; min-width: 0; }
+.txt { font: inherit; color: var(--ink); background: rgba(7,10,24,.6); border: 1px solid var(--line); border-radius: 8px; padding: 7px 9px; min-width: 0; box-sizing: border-box; }
+.txt.num { font-family: var(--font-mono); width: 6.5em; text-align: end; }
+.fr { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; font-size: 0.9rem; }
+.fr small { display: block; color: var(--muted); font-size: 0.76rem; }
+.fr .in2 { display: flex; gap: 6px; align-items: center; justify-content: flex-end; flex-wrap: wrap; }
+.sl { display: grid; gap: 4px; font-size: 0.9rem; }
+.sl div { display: flex; justify-content: space-between; gap: 8px; }
+.sl b { font-family: var(--font-mono); font-weight: 500; }
+.sl input { width: 100%; accent-color: var(--accent); }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 0; }
+.vrd { padding: 16px 18px; border-radius: var(--radius); border: 1px solid var(--line); border-inline-start: 4px solid var(--muted); background: rgba(7,10,24,.82); display: grid; gap: 4px; }
+.vrd b { font-family: var(--font-display); font-size: clamp(1.3rem, 4vw, 1.9rem); font-weight: 800; line-height: 1.15; }
+.vrd p { margin: 0; color: var(--muted); font-size: 0.92rem; }
+.wi { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+.wi th, .wi td { padding: 6px 8px; border-bottom: 1px solid var(--line); text-align: end; }
+.wi th:first-child, .wi td:first-child { text-align: start; }
+.wi th { color: var(--muted); font-weight: 500; font-size: 0.78rem; }
+.wi td { font-family: var(--font-mono); }
+.wi tr.me td { color: var(--accent); }
+.wi td.up { color: var(--sat-b); } .wi td.dn { color: var(--sat-c); }
+.tap { font: inherit; font-family: var(--font-display); font-weight: 800; font-size: 1.25rem; padding: 18px; border-radius: 16px; border: 0; background: var(--sat-b); color: #04201b; cursor: pointer; width: 100%; }
+.tap:active { transform: scale(.98); }
+.cnt { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.cnt b { font-family: var(--font-display); font-size: 2.4rem; font-weight: 800; line-height: 1; }
+.cnt span { color: var(--muted); font-size: 0.9rem; }
+.chart { width: 100%; height: 200px; display: block; }
+.lg { display: flex; gap: 12px; flex-wrap: wrap; font-size: 0.75rem; color: var(--muted); }
+.lg i { display: inline-block; width: 12px; height: 8px; border-radius: 2px; margin-inline-end: 5px; vertical-align: 0; background: var(--sat-b); }
+.lg i.ln { height: 0; border-top: 2px dashed var(--accent); background: none; }
+.vlist { list-style: none; margin: 0; padding: 0; display: flex; gap: 6px; flex-wrap: wrap; }
+.vlist li { font-family: var(--font-mono); font-size: 0.78rem; border: 1px solid var(--line); border-radius: 999px; padding: 3px 4px 3px 10px; display: inline-flex; gap: 4px; align-items: center; }
+.vlist button { background: none; border: 0; color: var(--muted); cursor: pointer; font-size: 1rem; line-height: 1; padding: 0 4px; }
+[hidden] { display: none !important; }
+.stats b { font-size: clamp(1.05rem, 4.6vw, 1.5rem); white-space: nowrap; }
+.wi td { white-space: nowrap; }
+@media (max-width: 520px) { .fr.wide { grid-template-columns: 1fr; } .fr.wide .in2 { justify-content: flex-start; } .wi th, .wi td { padding: 6px 4px; } }
+html.ar .vlist li { padding: 3px 10px 3px 4px; }
+html.ar .vrd b, html.ar .stats b { unicode-bidi: plaintext; }
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Money · Fitness</span>
+    <h1 style="font-size:var(--step-3)">Is my membership worth it?</h1>
+    <p>Type in what your gym, pool, club or class membership costs and how often you really go. You get the cost per visit and the number of visits a week where it beats paying for a day pass or a class pack. Tap the counter each time you go, and the log tells you the truth after a month.</p>
+  </div>
+
+  <div class="game">
+    <div class="panel">
+      <div class="box">
+        <span class="label">1 · The membership</span>
+        <div class="pills" id="kind">
+          <button class="sm" type="button" data-k="gym" aria-pressed="true">Gym</button>
+          <button class="sm" type="button" data-k="pool" aria-pressed="false">Pool</button>
+          <button class="sm" type="button" data-k="club" aria-pressed="false">Club</button>
+          <button class="sm" type="button" data-k="class" aria-pressed="false">Classes</button>
+        </div>
+        <div class="fr"><span>Price</span><span class="in2"><input class="txt num" type="number" id="price" min="0" step="1" inputmode="decimal" placeholder="AED"><select class="txt" id="bill"><option value="m">per month</option><option value="t">for the whole term</option></select></span></div>
+        <div class="fr"><span>Term<small>How many months you commit to</small></span><span class="in2"><input class="txt num" type="number" id="term" min="1" max="60" step="1" value="12"> <span>months</span></span></div>
+        <div class="fr"><span>Joining or admin fee<small>Leave at 0 if none</small></span><span class="in2"><input class="txt num" type="number" id="join" min="0" step="1" value="0" placeholder="AED"></span></div>
+        <div class="fr"><span>Free freeze allowed<small>Months you can pause, added to the end</small></span><span class="in2"><input class="txt num" type="number" id="frz" min="0" max="12" step="1" value="0"> <span>months</span></span></div>
+        <div class="fr"><span>Freeze fee<small>Per frozen month, if they charge one</small></span><span class="in2"><input class="txt num" type="number" id="frzFee" min="0" step="1" value="0" placeholder="AED"></span></div>
+      </div>
+
+      <div class="box">
+        <span class="label">2 · What you'd pay without it</span>
+        <div class="fr"><span>Day pass or single class<small>Price of one visit, if you didn't join</small></span><span class="in2"><input class="txt num" type="number" id="day" min="0" step="1" inputmode="decimal" placeholder="AED"></span></div>
+        <div class="fr wide"><span>Or a class pack<small>Optional. The cheaper per visit is used</small></span><span class="in2"><input class="txt num" type="number" id="packN" min="0" step="1" placeholder="10" style="width:4.5em"> <span>visits for</span> <input class="txt num" type="number" id="packP" min="0" step="1" placeholder="AED"></span></div>
+        <p class="msg" id="altMsg"></p>
+      </div>
+
+      <div class="box">
+        <span class="label">3 · How often you go</span>
+        <div class="pills" id="src">
+          <button class="sm" type="button" data-s="est" aria-pressed="true">My estimate</button>
+          <button class="sm" type="button" data-s="log" aria-pressed="false">From my visit log</button>
+        </div>
+        <div class="sl"><div><span>Visits a week</span><b id="vpwV">2</b></div><input type="range" id="vpw" min="0" max="7" step="0.5" value="2" aria-label="Visits a week"></div>
+        <div class="sl"><div><span>Months away during the term<small style="display:block;color:var(--muted);font-size:0.76rem">Travel, summer, Ramadan, injury</small></span><b id="awayV">0</b></div><input type="range" id="away" min="0" max="12" step="1" value="0" aria-label="Months away"></div>
+        <div class="sl"><div><span>What if you got a discount?</span><b id="discV">0%</b></div><input type="range" id="disc" min="0" max="50" step="5" value="0" aria-label="Discount"></div>
+        <p class="msg" id="srcMsg"></p>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="vrd" id="vrd"><b>Enter a price to start</b><p>Or try it with made-up round numbers first.</p><div class="pills" style="margin-top:6px"><button class="sm" type="button" id="ex">Try example numbers</button></div></div>
+      <div class="stats">
+        <div><b id="sCpv">—</b><span>per visit</span></div>
+        <div><b id="sBe">—</b><span>visits a week to break even</span></div>
+        <div><b id="sTot">—</b><span>total for the term</span></div>
+      </div>
+      <div class="box">
+        <span class="label">What if you went more or less?</span>
+        <table class="wi"><thead><tr><th>Visits a week</th><th>Per visit</th><th>vs paying each time</th></tr></thead><tbody id="wi"></tbody></table>
+      </div>
+
+      <div class="box">
+        <span class="label">Visit log · saved on this device</span>
+        <button class="tap" type="button" id="tapBtn">+ I went today</button>
+        <div class="cnt"><b id="mCount">0</b><span id="mLbl">visits this month</span></div>
+        <p class="msg" id="logMsg"></p>
+        <canvas class="chart" id="chart" aria-label="Visits per month, last 12 months"></canvas>
+        <div class="lg"><span><i></i>Visits</span><span><i class="ln"></i>Break-even visits a month</span></div>
+        <div class="pills"><input class="txt" type="date" id="pastD" aria-label="Date of a past visit"><button class="sm" type="button" id="pastAdd">Add past visit</button><button class="sm" type="button" id="undo">Undo last</button><button class="sm" type="button" id="clr">Clear log</button></div>
+        <ul class="vlist" id="vlist"></ul>
+      </div>
+      <p class="fact" style="margin:0"><b>The sunk cost trap.</b> Once you've paid for a year, the money is gone whether you go or not. So "I paid, I should go" is a good nudge, but "I paid, so it was worth it" isn't. The honest number is the cost per visit you actually make. A membership only beats day passes once you pass the break-even line.</p>
+      <p class="fact" style="margin:0">A month here is 4.35 weeks (52 weeks ÷ 12). A free freeze moves your unused months to the end, so you still get them. Months away with no freeze are paid for but not used. Before you sign, check the notice period, auto-renewal and what happens if you move. This is an estimate to help you decide, not financial advice.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var KEY = 'gymValue', WPM = 52 / 12, arReady = false;
+  var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  var FIELDS = ['price', 'bill', 'term', 'join', 'frz', 'frzFee', 'day', 'packN', 'packP', 'vpw', 'away', 'disc'];
+  var S = { kind: 'gym', src: 'est', log: [] };
+  function load() { try { var o = JSON.parse(localStorage.getItem(KEY) || 'null'); if (o) { S = o; S.log = S.log || []; } } catch (e) {} }
+  function save() { try { FIELDS.forEach(function (f) { S[f] = $(f).value; }); localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+  function num(id) { var v = parseFloat($(id).value); return isFinite(v) && v >= 0 ? v : 0; }
+  function aed(v) { return 'AED ' + (v < 100 ? (Math.round(v * 10) / 10).toFixed(v < 10 ? 2 : 1).replace(/\.0+$/, '') : Math.round(v).toLocaleString('en-US')); }
+  function fmtN(v) { return (Math.round(v * 10) / 10).toString(); }
+  function iso(d) { return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+  function pressed(wrap, attr, val) { [].forEach.call($(wrap).querySelectorAll('button'), function (b) { b.setAttribute('aria-pressed', b.getAttribute(attr) === val); }); }
+
+  // average visits a week from the log: last 8 weeks, or since the first visit if newer
+  function logRate() {
+    if (!S.log.length) return null;
+    var now = new Date(), today = iso(now), sorted = S.log.slice().sort();
+    var first = new Date(sorted[0] + 'T00:00:00'), cut = new Date(now.getTime() - 56 * 864e5);
+    var start = first > cut ? first : cut;
+    var days = Math.max(7, Math.round((new Date(today + 'T00:00:00') - start) / 864e5) + 1);
+    var n = S.log.filter(function (d) { return d >= iso(start); }).length;
+    return { rate: n / (days / 7), days: days, n: n };
+  }
+
+  function model(vpw) {
+    var price = num('price') * (1 - num('disc') / 100), T = Math.max(1, Math.round(num('term')) || 1);
+    var a = Math.min(T, num('away')), f = num('frz'), frozen = Math.min(a, f);
+    var fees = $('bill').value === 'm' ? price * (T - frozen) : price;
+    var total = fees + num('join') + frozen * num('frzFee');
+    var usable = T - (a - frozen);
+    var day = num('day'), pn = num('packN'), pp = num('packP'), pack = pn > 0 && pp > 0 ? pp / pn : 0;
+    var alt = day && pack ? Math.min(day, pack) : day || pack;
+    var visits = vpw * WPM * usable;
+    return { T: T, total: total, usable: usable, alt: alt, day: day, pack: pack, visits: visits, cpv: visits ? total / visits : null, be: alt && usable ? total / (alt * WPM * usable) : null, payg: visits * alt };
+  }
+
+  function render() {
+    var lr = logRate(), useLog = S.src === 'log' && lr;
+    var vpw = useLog ? lr.rate : num('vpw');
+    $('vpwV').textContent = fmtN(useLog ? lr.rate : num('vpw'));
+    $('vpw').disabled = !!useLog;
+    $('awayV').textContent = $('away').value; $('discV').textContent = $('disc').value + '%';
+    $('srcMsg').textContent = S.src === 'log' ? (lr ? 'Using your log: ' + lr.n + ' visits in the last ' + lr.days + ' days.' : 'No visits logged yet, so your estimate is used. Tap the counter each time you go.') : '';
+    var m = model(vpw);
+    $('altMsg').textContent = m.day && m.pack ? (m.pack < m.day ? 'The class pack is cheaper: ' + aed(m.pack) + ' a visit.' : 'The day pass is cheaper: ' + aed(m.day) + ' a visit.') : m.pack ? 'Class pack works out at ' + aed(m.pack) + ' a visit.' : '';
+    var has = num('price') > 0;
+    $('sTot').textContent = has ? aed(m.total) : '—';
+    $('sCpv').textContent = has && m.cpv != null ? aed(m.cpv) : '—';
+    $('sBe').textContent = has && m.be != null ? fmtN(m.be) : '—';
+    var v = $('vrd');
+    if (!has) {
+      v.style.borderInlineStartColor = 'var(--muted)';
+      v.querySelector('b').textContent = 'Enter a price to start';
+      v.querySelector('p').textContent = 'Or try it with made-up round numbers first.';
+      $('ex').parentNode.hidden = false;
+    } else {
+      $('ex').parentNode.hidden = true;
+      var b, p;
+      if (!m.alt) { b = aed(m.total) + ' over ' + m.T + ' months'; p = 'Add a day pass or class pack price to see if it beats paying each time.'; v.style.borderInlineStartColor = 'var(--accent)'; }
+      else if (!m.visits) { b = 'Not worth it at zero visits'; p = 'Going ' + fmtN(m.be) + ' times a week is where it starts to pay off.'; v.style.borderInlineStartColor = 'var(--sat-c)'; }
+      else if (m.payg >= m.total) { b = 'Worth it'; p = 'You save ' + aed(m.payg - m.total) + ' over the term compared with paying ' + aed(m.alt) + ' each visit.'; v.style.borderInlineStartColor = 'var(--sat-b)'; }
+      else { b = 'Not yet worth it'; p = 'You pay ' + aed(m.total - m.payg) + ' more than paying each visit. Go ' + fmtN(m.be) + ' times a week to break even.'; v.style.borderInlineStartColor = 'var(--sat-c)'; }
+      v.querySelector('b').textContent = b; v.querySelector('p').textContent = p;
+    }
+    // what-if table
+    var rows = [0.5, 1, 2, 3, 4, 5, 6], cur = Math.round(vpw * 2) / 2;
+    if (rows.indexOf(cur) < 0 && cur > 0) { rows.push(cur); rows.sort(function (x, y) { return x - y; }); }
+    $('wi').innerHTML = has ? rows.map(function (r) {
+      var q = model(r), d = q.payg - q.total;
+      return '<tr' + (r === cur ? ' class="me"' : '') + '><td>' + fmtN(r) + '</td><td>' + aed(q.cpv) + '</td><td class="' + (q.alt ? (d >= 0 ? 'up' : 'dn') : '') + '">' + (q.alt ? (d >= 0 ? '+' : '−') + aed(Math.abs(d)) : '—') + '</td></tr>';
+    }).join('') : '<tr><td colspan="3" style="text-align:start;color:var(--muted);font-family:inherit">Enter a price above.</td></tr>';
+    renderLog(m);
+  }
+
+  function renderLog(m) {
+    var now = new Date(), ym = iso(now).slice(0, 7);
+    var mc = S.log.filter(function (d) { return d.slice(0, 7) === ym; }).length;
+    $('mCount').textContent = mc;
+    $('mLbl').textContent = mc === 1 ? 'visit this month' : 'visits this month';
+    var today = iso(now), tc = S.log.filter(function (d) { return d === today; }).length;
+    $('logMsg').textContent = tc ? (tc === 1 ? 'Logged today.' : 'Logged ' + tc + ' times today.') : S.log.length ? '' : 'Tap the button each time you go. It stays on this phone only.';
+    var recent = S.log.slice().sort().reverse().slice(0, 12);
+    $('vlist').innerHTML = recent.map(function (d) { var x = new Date(d + 'T00:00:00'); return '<li>' + x.getDate() + ' ' + MON[x.getMonth()] + '<button type="button" data-d="' + d + '" aria-label="Remove this visit">×</button></li>'; }).join('');
+    drawChart(m);
+  }
+
+  function drawChart(m) {
+    var c = $('chart'), dpr = window.devicePixelRatio || 1, W = c.clientWidth, H = c.clientHeight;
+    if (!W || (window.LabAr && LabAr.on && !arReady)) return;
+    c.width = W * dpr; c.height = H * dpr;
+    var g = c.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+    var now = new Date(), months = [];
+    for (var i = 11; i >= 0; i--) { var d = new Date(now.getFullYear(), now.getMonth() - i, 1); months.push({ k: iso(d).slice(0, 7), m: d.getMonth(), n: 0 }); }
+    S.log.forEach(function (d) { months.forEach(function (x) { if (d.slice(0, 7) === x.k) x.n++; }); });
+    var be = m && m.be != null && num('price') > 0 ? m.be * WPM : null;
+    var max = Math.max(4, be ? be * 1.15 : 0, Math.max.apply(null, months.map(function (x) { return x.n; })));
+    var cs = getComputedStyle(document.body), ink = cs.getPropertyValue('--muted').trim() || '#999', bar = cs.getPropertyValue('--sat-b').trim() || '#4fd3bd', gold = cs.getPropertyValue('--accent').trim() || '#e9b467';
+    var L = 26, B = 22, T = 8, cw = (W - L - 4) / 12;
+    g.font = '11px "JetBrains Mono", monospace'; g.fillStyle = ink; g.strokeStyle = 'rgba(128,128,128,.25)'; g.lineWidth = 1;
+    var step = max > 20 ? 10 : max > 10 ? 5 : 2;
+    for (var y = 0; y <= max; y += step) { var py = H - B - (y / max) * (H - B - T); g.beginPath(); g.moveTo(L, py); g.lineTo(W, py); g.stroke(); g.textAlign = 'right'; g.fillText(String(y), L - 5, py + 4); }
+    months.forEach(function (x, i) {
+      var h = (x.n / max) * (H - B - T), px = L + i * cw;
+      g.fillStyle = bar; g.globalAlpha = i === 11 ? 1 : 0.7; g.fillRect(px + cw * 0.18, H - B - h, cw * 0.64, h); g.globalAlpha = 1;
+      g.fillStyle = ink; g.textAlign = 'center';
+      if (W > 420 || i % 2 === 1) g.fillText(MON[x.m], px + cw / 2, H - 6);
+      if (x.n) { g.fillStyle = cs.getPropertyValue('--ink').trim() || '#fff'; g.fillText(String(x.n), px + cw / 2, H - B - h - 4); }
+    });
+    if (be) { var by = H - B - (be / max) * (H - B - T); g.strokeStyle = gold; g.setLineDash([5, 4]); g.lineWidth = 2; g.beginPath(); g.moveTo(L, by); g.lineTo(W, by); g.stroke(); g.setLineDash([]); }
+  }
+
+  function addVisit(d) { S.log.push(d); save(); render(); }
+
+  // events
+  [].forEach.call($('kind').querySelectorAll('button'), function (b) { b.onclick = function () { S.kind = b.getAttribute('data-k'); pressed('kind', 'data-k', S.kind); var cls = S.kind === 'class'; $('day').closest('.fr').querySelector('span').firstChild.nodeValue = cls ? 'Single class (drop-in)' : 'Day pass or single class'; save(); render(); }; });
+  [].forEach.call($('src').querySelectorAll('button'), function (b) { b.onclick = function () { S.src = b.getAttribute('data-s'); pressed('src', 'data-s', S.src); save(); render(); }; });
+  FIELDS.forEach(function (f) { $(f).addEventListener('input', function () { save(); render(); }); $(f).addEventListener('change', function () { save(); render(); }); });
+  $('ex').onclick = function () { $('price').value = 300; $('bill').value = 'm'; $('term').value = 12; $('join').value = 100; $('day').value = 50; $('packN').value = 10; $('packP').value = 400; save(); render(); };
+  $('tapBtn').onclick = function () { addVisit(iso(new Date())); $('tapBtn').textContent = '✓ Logged'; setTimeout(function () { $('tapBtn').textContent = '+ I went today'; }, 1200); };
+  $('pastAdd').onclick = function () { var d = $('pastD').value; if (!/^\d{4}-\d\d-\d\d$/.test(d)) { $('logMsg').textContent = 'Pick a date first.'; return; } if (d > iso(new Date())) { $('logMsg').textContent = 'That date is in the future.'; return; } addVisit(d); };
+  $('undo').onclick = function () { if (S.log.length) { S.log.pop(); save(); render(); } };
+  $('clr').onclick = function () { if (S.log.length && confirm('Delete all logged visits?')) { S.log = []; save(); render(); } };
+  $('vlist').onclick = function (e) { var d = e.target.getAttribute && e.target.getAttribute('data-d'); if (!d) return; var i = S.log.lastIndexOf(d); if (i >= 0) { S.log.splice(i, 1); save(); render(); } };
+  window.addEventListener('resize', function () { render(); });
+  window.addEventListener('labar-ready', function () { arReady = true; render(); });
+
+  load();
+  FIELDS.forEach(function (f) { if (S[f] != null && S[f] !== '') $(f).value = S[f]; });
+  $('pastD').max = iso(new Date());
+  pressed('kind', 'data-k', S.kind || 'gym'); pressed('src', 'data-s', S.src || 'est');
+  if (S.kind === 'class') $('day').closest('.fr').querySelector('span').firstChild.nodeValue = 'Single class (drop-in)';
+  render();
+  window.__gym = { model: model, logRate: logRate, S: function () { return S; } };
+})();
+</script>
+</body>
+</html>

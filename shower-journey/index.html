@@ -41,7 +41,11 @@
 .src a { color: var(--sat-b); }
 @media (max-width: 520px) { .journey li { grid-template-columns: 56px minmax(0, 1fr); gap: 10px; } .journey .ic { width: 56px; height: 54px; border-radius: 12px; } .journey .ic svg { width: 40px; height: 36px; } .journey li::before { left: 27px; top: 54px; } }
 [hidden] { display: none !important; }
+html.ar .journey li::before { left: auto; right: 36px; }
+@media (max-width: 520px) { html.ar .journey li::before { left: auto; right: 27px; } }
+html.ar .num b, html.ar #litres { unicode-bidi: isolate; }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>

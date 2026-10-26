@@ -1,0 +1,165 @@
+(function () {
+  var M = '(?:AED )?(−?-?[\\d,]+)';
+  function A(x) { return '⁦' + x + '⁩ درهم'; }
+  function yrs(n) { n = +n; return n === 1 ? 'سنة واحدة' : n === 2 ? 'سنتين' : n <= 10 ? n + ' سنوات' : n + ' سنة'; }
+  var WHO = { 'Expats': 'يمكن للوافدين', 'UAE nationals': 'يمكن للمواطنين' };
+  var FEES = {
+    'Transfer fee (ADREC / DARI)': 'رسوم نقل الملكية (ADREC / DARI)',
+    'Registration and service fees': 'رسوم التسجيل والخدمات',
+    'Mortgage registration (of loan)': 'تسجيل الرهن (من القرض)',
+    'Agent commission + VAT': 'عمولة الوسيط + ضريبة القيمة المضافة',
+    'Bank arrangement fee + VAT': 'رسوم ترتيب التمويل البنكي + ضريبة القيمة المضافة',
+    'Valuation fee + VAT': 'رسوم التقييم + ضريبة القيمة المضافة',
+    'Early mortgage settlement (1%, max 10,000)': 'السداد المبكر للرهن (1%، بحد أقصى 10,000)',
+    'Developer NOC and admin': 'شهادة عدم ممانعة من المطوّر ورسوم إدارية',
+    'DLD transfer fee': 'رسوم نقل الملكية لدى دائرة الأراضي والأملاك',
+    'DLD admin and title deed': 'رسوم دائرة الأراضي الإدارية وسند الملكية',
+    'Mortgage registration (0.25% + 290)': 'تسجيل الرهن (\u20660.25% + 290\u2069)',
+    'Trustee office fee + VAT': 'رسوم مكتب أمين التسجيل + ضريبة القيمة المضافة'
+  };
+  var D = {
+    "Rent or Buy in Dubai": "الإيجار أم الشراء في دبي",
+    "Tool · Money · UAE": "أداة · المال · الإمارات",
+    "Rent or buy in Dubai.": "الإيجار أم الشراء في دبي.",
+    "Buying a home in the UAE costs about 7 to 8% of the price before you get the keys, and more again when you sell. Renting means paying a landlord, but your cash keeps working. Enter a home you're looking at and see which leaves you better off, year by year, with UAE mortgage caps and fees built in. Abu Dhabi is here too.": "شراء منزل في الإمارات يكلّف نحو 7 إلى 8% من السعر قبل أن تستلم المفاتيح، ثم المزيد عند البيع. والإيجار يعني أن تدفع للمالك، لكن أموالك تبقى تعمل لصالحك. أدخل بيانات منزل تفكّر فيه، وانظر أي الخيارين أفضل لك سنة بعد سنة، مع حدود التمويل العقاري والرسوم المعمول بها في الإمارات. وأبوظبي موجودة أيضًا.",
+    "Working it out…": "جارٍ الحساب…",
+    "Net worth if you sell at the end of each year": "صافي الثروة إن بعت في نهاية كل سنة",
+    "Buy": "الشراء",
+    "Rent and invest": "الإيجار والاستثمار",
+    "Net worth for buying and renting by year": "صافي الثروة للشراء والإيجار حسب السنة",
+    "Buy = home value minus selling costs and what's left on the mortgage, plus any cash the owner saves. Rent = the upfront cash invested, plus whatever renting saves each month, invested too.": "الشراء = قيمة المنزل ناقص تكاليف البيع وما تبقى من الرهن، زائد أي مبالغ يوفّرها المالك. الإيجار = المبلغ المدفوع مقدمًا مستثمرًا، زائد ما يوفّره الإيجار كل شهر، مستثمرًا هو أيضًا.",
+    "Show the numbers as a table": "اعرض الأرقام في جدول",
+    "Monthly cash in year 1": "المصروف الشهري في السنة الأولى",
+    "What if prices grow differently?": "ماذا لو نمت الأسعار بشكل مختلف؟",
+    "Rent growth, rates and fees stay as you set them. Only house price growth changes.": "يبقى نمو الإيجار والفوائد والرسوم كما حددتها. يتغيّر نمو أسعار المنازل فقط.",
+    "Buying and selling costs · Dubai": "تكاليف الشراء والبيع · دبي",
+    "Buying and selling costs · Abu Dhabi": "تكاليف الشراء والبيع · أبوظبي",
+    "The real cost of buying isn't the mortgage interest alone. It's interest, plus fees, plus service charges and upkeep, plus what your down payment would have earned somewhere else. Rent is a cost too, but it's the whole cost. Buying usually wins only if you stay long enough for price growth and the paid-down loan to cover the money spent going in and out. That's the break-even year.": "التكلفة الحقيقية للشراء ليست فائدة الرهن وحدها، بل الفائدة، زائد الرسوم، زائد رسوم الخدمات والصيانة، زائد ما كانت ستكسبه دفعتك الأولى لو استُثمرت في مكان آخر. الإيجار تكلفة أيضًا، لكنه التكلفة كاملة. وعادةً لا يتفوّق الشراء إلا إذا بقيت مدة كافية ليغطي نمو السعر وما سدّدته من القرض المال الذي أنفقته عند الدخول والخروج. وتلك هي سنة التعادل.",
+    "An estimate to help you think, not financial advice. Fees, caps and rates here are approximate, based on rules as generally published. Check the current figures with the Dubai Land Department, Abu Dhabi's ADREC or DARI, your bank and a licensed mortgage adviser before you decide.": "تقدير يساعدك على التفكير، وليس نصيحة مالية. الرسوم والحدود والفوائد هنا تقريبية، ومبنية على القواعد كما تُنشر عمومًا. تحقّق من الأرقام الحالية لدى دائرة الأراضي والأملاك في دبي، أو مركز أبوظبي العقاري (ADREC) أو منصة DARI، ولدى بنكك ومستشار تمويل عقاري مرخّص قبل أن تقرر.",
+    "The home": "المنزل",
+    "Property price (AED)": "سعر العقار (درهم)",
+    "Annual rent for the same home": "الإيجار السنوي للمنزل نفسه",
+    "Size (sq ft)": "المساحة (قدم مربع)",
+    "Service charge (AED/sq ft/yr)": "رسوم الخدمات (درهم/قدم مربع/سنة)",
+    "Off-plan (buying from a developer before it's built)": "على الخارطة (الشراء من المطوّر قبل البناء)",
+    "You": "أنت",
+    "Nationality": "الجنسية",
+    "Expat resident": "مقيم وافد",
+    "UAE national": "مواطن إماراتي",
+    "Your age": "عمرك",
+    "This would be my first home in the UAE": "سيكون هذا أول منزل أملكه في الإمارات",
+    "How long you'd stay (years)": "مدة بقائك (سنوات)",
+    "Mortgage": "التمويل العقاري",
+    "Down payment (% of price)": "الدفعة الأولى (% من السعر)",
+    "Fixed rate (%)": "الفائدة الثابتة (%)",
+    "Fixed for (years)": "مدة التثبيت (سنوات)",
+    "3-month EIBOR, assumed (%)": "إيبور 3 أشهر، مفترض (%)",
+    "Bank margin over EIBOR (%)": "هامش البنك فوق إيبور (%)",
+    "Term (years)": "المدة (سنوات)",
+    "Assumptions": "الافتراضات",
+    "Home price growth (%/yr)": "نمو سعر المنزل (%/سنة)",
+    "Rent growth (%/yr)": "نمو الإيجار (%/سنة)",
+    "In Dubai, rent rises on renewal are limited by the RERA rental index: none if your rent is within 10% of the market average for the area, then up to 5, 10, 15 or 20% the further below it you are. Over many years, rents still track the market.": "في دبي، تُقيَّد زيادات الإيجار عند التجديد بمؤشر الإيجارات الصادر عن مؤسسة التنظيم العقاري (ريرا): لا زيادة إن كان إيجارك ضمن 10% من متوسط السوق في المنطقة، ثم حتى 5 أو 10 أو 15 أو 20% كلما كان أقل منه. ومع مرور السنوات تبقى الإيجارات تتبع السوق.",
+    "Return on invested cash (%/yr)": "عائد الأموال المستثمرة (%/سنة)",
+    "Running costs growth (%/yr)": "نمو التكاليف الجارية (%/سنة)",
+    "Maintenance (% of value/yr)": "الصيانة (% من القيمة/سنة)",
+    "Home insurance (AED/yr)": "تأمين المنزل (درهم/سنة)",
+    "Housing fee applies to me": "رسوم السكن تنطبق عليّ",
+    "Dubai 5% housing fee applies to me": "رسوم السكن 5% في دبي تنطبق عليّ",
+    "Abu Dhabi municipality fee applies to me": "رسوم البلدية في أبوظبي تنطبق عليّ",
+    "Reset to defaults": "استعادة القيم الافتراضية",
+    "Most you can borrow:": "أقصى ما يمكنك اقتراضه:",
+    "· minimum down": "· أدنى دفعة أولى",
+    "Abu Dhabi charges expat tenants a municipality fee of about 3% of the annual rent through the water and electricity bill. Owner-occupiers are not usually charged, so it is 0% for buying here. UAE nationals are generally exempt.": "تفرض أبوظبي على المستأجرين الوافدين رسوم بلدية تبلغ نحو 3% من الإيجار السنوي عبر فاتورة الماء والكهرباء. ولا يُحاسَب عادةً الملّاك الساكنون، لذا فهي 0% للشراء هنا. والمواطنون معفون عمومًا.",
+    "Dubai adds a 5% housing fee to the DEWA bill. Tenants pay 5% of the annual rent. Owners who live in their home pay 5% of its assessed annual rental value, so both sides pay it here. UAE nationals are generally exempt.": "تضيف دبي رسوم سكن بنسبة 5% إلى فاتورة هيئة كهرباء ومياه دبي. يدفع المستأجرون 5% من الإيجار السنوي، ويدفع الملّاك الساكنون 5% من القيمة الإيجارية السنوية المقدّرة لمنازلهم، فالطرفان يدفعانها هنا. والمواطنون معفون عمومًا.",
+    "The short answer": "الجواب المختصر",
+    "Break-even year": "سنة التعادل",
+    "Fees to buy (AED)": "رسوم الشراء (درهم)",
+    "Mortgage / month (AED)": "القسط / شهر (درهم)",
+    "Rent": "الإيجار",
+    "Service charges": "رسوم الخدمات",
+    "Maintenance": "الصيانة",
+    "Insurance": "التأمين",
+    "Housing fee": "رسوم السكن",
+    "Year": "السنة",
+    "Home value": "قيمة المنزل",
+    "Loan left": "المتبقي من القرض",
+    "Price growth": "نمو السعر",
+    "Buy minus rent": "الشراء ناقص الإيجار",
+    "Break-even": "التعادل",
+    "Buying": "الشراء",
+    "Rate": "النسبة",
+    "AED": "درهم",
+    "Total to buy": "إجمالي الشراء",
+    "Total to sell": "إجمالي البيع",
+    "Each year": "كل سنة",
+    "Housing fee, renter (% of rent)": "رسوم السكن، المستأجر (% من الإيجار)",
+    "Housing fee, owner (% of rental value)": "رسوم السكن، المالك (% من القيمة الإيجارية)",
+    "Housing fee renter": "رسوم السكن للمستأجر",
+    "Housing fee owner": "رسوم السكن للمالك",
+    "you move": "تنتقل",
+    "Today": "اليوم",
+    "Now": "الآن"
+  };
+  Object.keys(FEES).forEach(function (k) { D[k] = FEES[k]; });
+  // sentences that appear inside longer paragraphs
+  var S = {
+    "Off-plan homes: banks lend at most 50%, so at least half is paid in cash.": "العقارات على الخارطة: تموّل البنوك 50% كحد أقصى، فيُدفع النصف على الأقل نقدًا.",
+    "UAE Central Bank caps as generally published.": "حدود مصرف الإمارات العربية المتحدة المركزي كما تُنشر عمومًا.",
+    "Your bank may ask for more and will also check that loan payments stay under half your income.": "قد يطلب بنكك أكثر، وسيتحقق أيضًا من أن أقساط القرض أقل من نصف دخلك.",
+    "With these numbers, buying never catches up within 25 years.": "بهذه الأرقام، لا يلحق الشراء بالإيجار خلال 25 سنة.",
+    "Your money earns more invested than the home gains in value, which favours renting.": "أموالك تكسب من الاستثمار أكثر مما ترتفع قيمة المنزل، وهذا يرجّح الإيجار.",
+    "The model invests that gap for the renter.": "ويستثمر النموذج هذا الفرق لصالح المستأجر.",
+    "The model invests that saving for the owner.": "ويستثمر النموذج هذا التوفير لصالح المالك.",
+    "Rent is shown monthly, though most landlords take 1 to 4 cheques a year.": "يُعرض الإيجار شهريًا، مع أن أغلب الملّاك يأخذون من 1 إلى 4 شيكات سنويًا.",
+    "All approximate.": "كل الأرقام تقريبية.",
+    "Edit any rate to match a real quote.": "عدّل أي نسبة لتطابق عرض سعر حقيقي.",
+    "Dubai figures follow commonly quoted DLD fees: 4% transfer, AED 4,000 admin plus AED 580 title deed for homes over AED 500,000, mortgage registration 0.25% of the loan plus AED 290, and a trustee office fee.": "أرقام دبي تتبع رسوم دائرة الأراضي والأملاك الشائعة: 4% لنقل الملكية، و4,000 درهم رسومًا إدارية زائد 580 درهمًا لسند الملكية للمنازل التي تزيد على 500,000 درهم، وتسجيل الرهن 0.25% من القرض زائد 290 درهمًا، ورسوم مكتب أمين التسجيل.",
+    "Check with DLD and your bank.": "تحقّق لدى دائرة الأراضي والأملاك وبنكك.",
+    "Abu Dhabi figures follow commonly quoted ADREC / DARI fees: 2% transfer and 0.1% of the loan to register a mortgage.": "أرقام أبوظبي تتبع رسوم ADREC / DARI الشائعة: 2% لنقل الملكية و0.1% من القرض لتسجيل الرهن.",
+    "There is no Dubai-style trustee office.": "لا يوجد مكتب أمين تسجيل كما في دبي.",
+    "Check with ADREC and your bank.": "تحقّق لدى ADREC وبنكك.",
+    "Bank arrangement fees are capped at 1% of the loan.": "رسوم ترتيب التمويل البنكي محدودة بـ 1% من القرض.",
+    "Early settlement is capped at 1% of what's left, up to AED 10,000.": "رسوم السداد المبكر محدودة بـ 1% من المتبقي، بحد أقصى 10,000 درهم."
+  };
+  var SP = [
+    [/^(Expats|UAE nationals) buying a first home can borrow up to (\d+)% of a price up to AED 5M, and (\d+)% above that\.$/, function (m, w, a, b) { return WHO[w] + ' عند شراء أول منزل اقتراض حتى ' + a + '% من سعر يصل إلى 5 ملايين درهم، و' + b + '% لما يزيد على ذلك.'; }],
+    [/^(Expats|UAE nationals) buying a second or later home can borrow up to (\d+)%\.$/, function (m, w, a) { return WHO[w] + ' عند شراء منزل ثانٍ أو أكثر اقتراض حتى ' + a + '%.'; }],
+    [/^Buying catches up with renting in year (\d+)\.$/, 'يلحق الشراء بالإيجار في السنة $1.'],
+    [/^You plan to stay (\d+), so you would move before that point\.$/, function (m, n) { return 'تنوي البقاء ' + yrs(n) + '، أي أنك ستنتقل قبل ذلك.'; }],
+    [/^You plan to stay (\d+), which is past that point\.$/, function (m, n) { return 'تنوي البقاء ' + yrs(n) + '، أي بعد تلك النقطة.'; }],
+    [new RegExp('^Getting in costs ' + M + ' in cash: ' + M + ' down plus ' + M + ' in fees\\.$'), function (m, a, b, c) { return 'يكلّفك الدخول ' + A(a) + ' نقدًا: ' + A(b) + ' دفعة أولى زائد ' + A(c) + ' رسومًا.'; }],
+    [new RegExp('^Owning costs ' + M + ' (more|less) a month at first\\.$'), function (m, a, w) { return 'التملّك يكلّف في البداية ' + A(a) + (w === 'more' ? ' أكثر' : ' أقل') + ' شهريًا.'; }],
+    [new RegExp('^After (\\d+) fixed years? the rate moves to EIBOR \\+ margin \\(([\\d.]+)%\\) and the mortgage becomes about ' + M + ' a month\\.$'), function (m, y, r, a) { return 'بعد ' + yrs(y) + ' من الفائدة الثابتة تنتقل الفائدة إلى إيبور + الهامش (' + r + '%)، ويصبح القسط نحو ' + A(a) + ' شهريًا.'; }],
+    [/^Up to 25 years, and repaid by age (\d+) for (expats|UAE nationals)\.$/, function (m, a, w) { return 'حتى 25 سنة، على أن يُسدَّد القرض قبل سن ' + a + ' ' + (w === 'expats' ? 'للوافدين' : 'للمواطنين') + '.'; }],
+    [/^Longest for you: (\d+) years\.$/, function (m, n) { return 'أطول مدة متاحة لك: ' + (n === '2' ? 'سنتان' : yrs(n)) + '.'; }],
+    [/^Using (\d+)\.$/, function (m, n) { return 'سنستخدم ' + yrs(n) + '.'; }]
+  ];
+  function sent(s) {
+    if (S[s] != null) return S[s];
+    for (var i = 0; i < SP.length; i++) { var m = s.match(SP[i][0]); if (m) { var r = SP[i][1]; return typeof r === 'function' ? r.apply(null, m) : s.replace(SP[i][0], r); } }
+    return null;
+  }
+  LabAr.add(D, [
+    [/^(−?-?[\d.]+[Mk]?)$/, function (m) { return m; }],
+    [/^[+]?(−?-?[\d.]+[Mk]?)$/, function (m) { return m; }],
+    [new RegExp('^AED (−?-?[\\d,]+)$'), function (m, a) { return A(a); }],
+    [/^\((?:AED )?([\d,]+)\)$/, function (m, a) { return '(' + A(a) + ')'; }],
+    [/^Raised your down payment to the (\d+)% minimum\.$/, 'رفعنا دفعتك الأولى إلى الحد الأدنى $1%.'],
+    [/^Banks usually want the loan repaid by age (\d+), so a mortgage may not be possible at this age\.$/, 'تشترط البنوك عادةً سداد القرض قبل سن $1، لذا قد لا يكون التمويل العقاري ممكنًا في هذا العمر.'],
+    [/^About even after (\d+) years?\.$/, function (m, n) { return 'متعادلان تقريبًا بعد ' + yrs(n) + '.'; }],
+    [new RegExp('^(Buying|Renting) comes out about ' + M + ' ahead after (\\d+) years?\\.$'), function (m, w, a, n) { return (w === 'Buying' ? 'الشراء' : 'الإيجار') + ' يتفوّق بنحو ' + A(a) + ' بعد ' + yrs(n) + '.'; }],
+    [/^Year (\d+)$/, 'السنة $1'],
+    [/^Yr (\d+)$/, 'س $1'],
+    [/^End of year (\d+)$/, 'نهاية السنة $1'],
+    [/^Home value yr (\d+)$/, 'قيمة المنزل في السنة $1'],
+    [/^([+]?-?[\d.]+)% a year$/, '\u2066$1%\u2069 سنويًا'],
+    [/^Selling in year (\d+)$/, 'البيع في السنة $1'],
+    [/^Service charges \(([\d.]+) × ([\d,]+) sq ft\)$/, 'رسوم الخدمات ($1 × $2 قدم مربع)'],
+    [/^[\s\S]+$/, function (m) {
+      var parts = m.split(/(?<=\.) (?=[A-Z])/), out = [];
+      for (var i = 0; i < parts.length; i++) { var t = sent(parts[i]); if (t == null) { if (/i18ndebug/.test(location.search)) window.__i18nMissing.add(parts[i]); return m; } out.push(t); }
+      return out.join(' ');
+    }]
+  ]);
+})();

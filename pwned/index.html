@@ -27,7 +27,9 @@
 .step code b { color: var(--accent); font-weight: 500; }
 .step code i { font-style: normal; color: var(--sat-b); }
 .msg { font-size: 0.85rem; color: var(--muted); margin-top: 8px; min-height: 1.2em; }
+html.ar #c3, html.ar #c4 { direction: rtl; font-family: "IBM Plex Sans Arabic", var(--font-mono), sans-serif; }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -76,8 +78,8 @@
       return fetch('https://api.pwnedpasswords.com/range/' + pre, { headers: { 'Add-Padding': 'true' } }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); }).then(function (t) {
         var lines = t.split('\n'), real = 0, count = 0;
         lines.forEach(function (l) { var p = l.trim().split(':'); var n = +p[1]; if (n > 0) real++; if (p[0] === suf) count = n; });
-        $('c3').textContent = lines.length.toLocaleString('en') + ' fingerprints came back (' + real.toLocaleString('en') + ' real, the rest decoys)';
-        $('c4').innerHTML = count ? 'Found <i>' + pre + '</i><b>' + suf + '</b> → seen ' + count.toLocaleString('en') + ' times' : 'Not in the list';
+        $('c3').innerHTML = '<span>' + lines.length.toLocaleString('en') + ' fingerprints came back (' + real.toLocaleString('en') + ' real, the rest decoys)</span>';
+        $('c4').innerHTML = count ? '<span>Found</span> <i>' + pre + '</i><b>' + suf + '</b> <span>→ seen ' + count.toLocaleString('en') + ' times</span>' : '<span>Not in the list</span>';
         var v = $('verdict'); v.hidden = false;
         if (count) v.innerHTML = '<h2 class="bad">Leaked ' + count.toLocaleString('en') + ' time' + (count === 1 ? '' : 's') + '.</h2><p>This password is in breach lists that attackers try automatically. Stop using it everywhere, and change it first on your email and bank. A password manager can make a unique one for every site.</p>';
         else v.innerHTML = '<h2 class="ok">Not found in any known breach.</h2><p>Good sign, though not a guarantee it\'s strong. ' + (pw.length < 12 ? '<span class="meh">It\'s short (' + pw.length + ' characters); 14 or more is much safer.</span> ' : '') + 'Use it for one site only.</p>';

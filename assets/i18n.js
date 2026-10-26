@@ -108,7 +108,7 @@
   setTimeout(function () { hide.remove(); }, 1500);
   function start() {
     var go = function () {
-      ready = true;
+      ready = true; missing.clear(); // drop early canvas draws logged before the dictionaries were in
       var home = document.querySelector('.labbar .home');
       if (home) home.innerHTML = 'مختبر <span class="nm">مريم</span>';
       document.title = tr(document.title.replace(/ · Mariam's Lab$/, '')) + (/ · Mariam's Lab$/.test(document.title) ? ' · مختبر مريم' : '');

@@ -31,7 +31,10 @@
 .up li span:last-child { font-family: var(--font-mono); font-size: 0.78rem; color: var(--muted); }
 .suhail { padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); font-size: 0.9rem; }
 .suhail b { color: var(--accent); }
+html.ar #up li span:first-child, html.ar #pick h3 span:first-child:not(:only-child) { display: none; }
+html.ar .up li { grid-template-columns: minmax(0, 1fr) auto; }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -171,7 +174,7 @@
     // horizon ring and compass (east on the left)
     c.strokeStyle = 'rgba(79,211,189,0.5)'; c.lineWidth = 1.5; c.beginPath(); c.arc(W / 2, W / 2, rad, 0, 7); c.stroke();
     c.fillStyle = '#4FD3BD'; c.font = '600 12px "JetBrains Mono", monospace'; c.textAlign = 'center'; c.textBaseline = 'middle';
-    [['N', 0], ['E', 90], ['S', 180], ['W', 270]].forEach(function (d) { var a = d[1] * R; c.fillText(d[0], W / 2 - Math.sin(a) * (rad + 12), W / 2 - Math.cos(a) * (rad + 12)); });
+    [['N', 0], ['E', 90], ['S', 180], ['W', 270]].forEach(function (d) { var a = d[1] * R; c.fillText(window.LabAr ? LabAr.t(d[0]) : d[0], W / 2 - Math.sin(a) * (rad + 12), W / 2 - Math.cos(a) * (rad + 12)); });
     c.textAlign = 'start'; c.textBaseline = 'alphabetic';
     if (day > 0.6) { c.fillStyle = 'rgba(7,10,24,0.65)'; c.fillRect(W / 2 - 120, W / 2 - 18, 240, 32); c.fillStyle = '#EEF0FA'; c.font = '14px "Instrument Sans", sans-serif'; c.textAlign = 'center'; c.fillText('Daytime. Try "Tonight 9 pm".', W / 2, W / 2 + 3); c.textAlign = 'start'; }
   }
@@ -220,6 +223,7 @@
   window.addEventListener('resize', function () { fit(); draw(); });
   fit(); update();
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(draw);
+  window.addEventListener('load', function () { draw(); }); window.addEventListener('labar-ready', function () { draw(); }); // redraw once the Arabic dictionary is in
   setInterval(function () { if (off === 0) { base = Date.now(); update(); } }, 60000);
 })();
 </script>

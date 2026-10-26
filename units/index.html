@@ -40,7 +40,12 @@
 .copied { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--accent); color: var(--bg); padding: 6px 14px; border-radius: 99px; font-size: 0.85rem; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 9; }
 .copied.on { opacity: 1; }
 [hidden] { display: none !important; }
+html.ar .cv b, html.ar .fav small { direction: ltr; text-align: right; }
+html.ar .qin { unicode-bidi: plaintext; text-align: right; }
+html.ar .ex button { direction: ltr; unicode-bidi: isolate; }
+html.ar .fav i { display: inline-block; transform: scaleX(-1); }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -227,7 +232,7 @@
     $('q').value = def; run(); $('q').focus();
   };
   var EX = ['5 tola', '1450 sqft', '1200 aed/sqft', '24000 btu/h', '30 mpg', '45 °C to f', '2 cups', '500 usd', '20 imp gal', '10 tt'];
-  $('ex').innerHTML = 'Try ' + EX.map(function (x) { return '<button type="button">' + x + '</button>'; }).join('');
+  $('ex').innerHTML = 'Try ' + EX.map(function (x) { return '<button type="button" data-noar>' + x + '</button>'; }).join('');
   $('ex').onclick = function (e) { if (e.target.tagName === 'BUTTON') { $('q').value = e.target.textContent; run(); } };
   $('q').oninput = run;
   $('q').value = S.last || '10 tola';

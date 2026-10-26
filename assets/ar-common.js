@@ -426,3 +426,14 @@ LabAr.add({
  "Resigning in the UAE? Your last day from the notice period, the leave you have built up and what unused days pay, as a timeline you can copy.": "ستستقيل في الإمارات؟ اعرف آخر يوم عمل من مدة الإشعار، ورصيد إجازتك المتراكم، وبدل الأيام غير المستخدمة، في جدول زمني يمكنك نسخه.",
  "Work it out →": "احسبها ←"
 });
+/* index cards for newer tools */
+LabAr.add({
+ "Tool · Vision": "أداة · رؤية حاسوبية",
+ "Was this photo edited?": "هل عُدّلت هذه الصورة؟",
+ "Error levels, noise maps, copy-paste detection, JPEG quality tables, hidden thumbnails and editing-app tags, all in your browser.": "مستويات الخطأ وخرائط الضوضاء وكشف النسخ واللصق وجداول جودة JPEG والصور المصغّرة المخفية وعلامات تطبيقات التحرير، كلها داخل متصفحك.",
+ "Check a photo →": "افحص صورة ←",
+ "Tool · Money": "أداة · المال",
+ "Is my membership worth it?": "هل يستحق اشتراكي ثمنه؟",
+ "Cost per visit and break-even for any gym, pool, club or class membership, with a tap-to-log visit counter.": "تكلفة الزيارة الواحدة ونقطة التعادل لأي اشتراك في نادٍ رياضي أو مسبح أو نادٍ أو حصص، مع عدّاد لتسجيل زياراتك بلمسة.",
+ "Check →": "تحقّق ←"
+});

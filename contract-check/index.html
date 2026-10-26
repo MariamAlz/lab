@@ -40,6 +40,7 @@
 .tips { margin: 0; padding-inline-start: 18px; font-size: 0.9rem; display: grid; gap: 6px; }
 select.sm { appearance: auto; background: var(--bg); }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -70,7 +71,7 @@ select.sm { appearance: auto; background: var(--bg); }
       <div class="panel">
         <span class="label">Your contract, marked up</span>
         <div class="legend"><span style="--c:#ff4f6d">Hard look</span><span style="--c:#ffc857">Check this</span><span style="--c:#84A0FF">Good to know</span></div>
-        <div class="doc" id="doc"></div>
+        <div class="doc" id="doc" data-noar></div>
       </div>
       <div class="panel">
         <span class="label">What each flag means</span>
@@ -273,7 +274,7 @@ select.sm { appearance: auto; background: var(--bg); }
     $('doc').innerHTML = html;
     $('flags').innerHTML = a.found.length ? a.found.map(function (f) {
       var quote = a.segs[f.segs[0]].t; if (quote.length > 220) quote = quote.slice(0, 217) + '…';
-      return '<div class="flag" id="f' + f.n + '" style="--c:' + COL[f.sev] + '"><h3>' + f.n + '. ' + f.r[1] + ' <small>' + SEV[f.sev] + (f.segs.length > 1 ? ' · ' + f.segs.length + ' places' : '') + '</small></h3><q data-seg="' + f.segs[0] + '">' + esc(quote) + '</q><p>' + f.r[5] + '</p>' + (f.extra ? '<p class="extra">' + esc(f.extra) + '</p>' : '') + '<span class="label">Ask</span><ul>' + f.r[6].map(function (q) { return '<li>' + q + '</li>'; }).join('') + '</ul></div>';
+      return '<div class="flag" id="f' + f.n + '" style="--c:' + COL[f.sev] + '"><h3>' + f.n + '. ' + f.r[1] + ' <small>' + SEV[f.sev] + (f.segs.length > 1 ? ' · ' + f.segs.length + ' places' : '') + '</small></h3><q data-noar data-seg="' + f.segs[0] + '">' + esc(quote) + '</q><p>' + f.r[5] + '</p>' + (f.extra ? '<p class="extra">' + esc(f.extra) + '</p>' : '') + '<span class="label">Ask</span><ul>' + f.r[6].map(function (q) { return '<li>' + q + '</li>'; }).join('') + '</ul></div>';
     }).join('') : '<p class="msg">Nothing from the list was found. That can mean a plain, fair contract, or wording this tool doesn\'t know. Still read it all.</p>';
     var hi = a.found.filter(function (f) { return f.sev === 3; }).length;
     $('sScore').textContent = a.score; $('sFlags').textContent = a.found.length; $('sHigh').textContent = hi;

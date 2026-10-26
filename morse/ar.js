@@ -1,0 +1,32 @@
+LabAr.add({
+  "Morse Message": "رسالة مورس",
+  "Experiment · Signals · Sound": "تجربة · الإشارات · الصوت",
+  "Morse message.": "رسالة مورس.",
+  "Type something and hear it as Morse code, or as a data signal at the speed GPS satellites talk. Then send it to a friend as a hidden message.": "اكتب شيئًا واستمع إليه بشفرة مورس، أو كإشارة بيانات بالسرعة التي تتحدث بها أقمار GPS. ثم أرسله إلى صديق كرسالة مخفية. تعمل الحروف العربية بشفرة مورس العربية.",
+  "Timeline of the signal. Each bar is a tone, with letters underneath.": "الخط الزمني للإشارة. كل شريط نغمة، والحروف تحتها.",
+  "Send": "أرسل",
+  "Someone sent you a hidden message. Press play and try to read it, then reveal it.": "أرسل إليك أحدهم رسالة مخفية. اضغط «تشغيل» وحاول قراءتها، ثم اكشفها.",
+  "Your message": "رسالتك",
+  "Send it as": "أرسلها بصيغة",
+  "Morse code": "شفرة مورس",
+  "Data, 50 bits/s": "بيانات، 50 بت/ث",
+  "Speed": "السرعة",
+  "Pitch": "طبقة الصوت",
+  "Play": "تشغيل",
+  "Copy a hidden link": "انسخ رابطًا مخفيًا",
+  "Reveal": "اكشف",
+  "Key it yourself": "أرسلها بنفسك",
+  "Hold the key for a dash, tap it for a dot. Pause to finish a letter. Space bar works too.": "اضغط مطولًا على المفتاح للشَّرطة، وانقر نقرة للنقطة. توقّف قليلًا لإنهاء الحرف. يعمل مفتاح المسافة أيضًا. المفتاح هنا يفكّ شفرة مورس العربية.",
+  "Hold to send": "اضغط مطولًا للإرسال",
+  "Cheat sheet": "جدول الشفرة",
+  "Morse is still on air. Aircraft navigation beacons spell their names in Morse, and GPS satellites send their navigation message at just 50 bits per second, so a full almanac of every satellite takes 12.5 minutes to arrive.": "ما زالت شفرة مورس على الهواء. منارات الملاحة الجوية تتهجّى أسماءها بشفرة مورس، وأقمار GPS ترسل رسالتها الملاحية بسرعة 50 بت في الثانية فقط، لذا يستغرق وصول التقويم الكامل لكل الأقمار 12.5 دقيقة.",
+  "Type something first.": "اكتب شيئًا أولًا.",
+  "Link copied. Whoever opens it hears the message before they see it.": "تم نسخ الرابط. من يفتحه يسمع الرسالة قبل أن يراها.",
+  "FSK · 50 BIT/S": "FSK · 50 بت/ث"
+}, [
+  [/^(\d+) wpm$/, '$1 كلمة/دقيقة'],
+  [/^(\d+) Hz$/, '\u2066$1 Hz\u2069'],
+  [/^MORSE · (\d+) WPM$/, 'مورس · $1 كلمة/دقيقة'],
+  [/^Skipped characters Morse has no code for: (.*)$/, 'تم تجاوز رموز ليس لها شفرة مورس: $1'],
+  [/^The message was: ([\s\S]*)$/, 'كانت الرسالة: $1']
+]);
