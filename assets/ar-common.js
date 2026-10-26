@@ -290,3 +290,10 @@ LabAr.add({
  "Minutes until you burn from live UV, your skin type and sunscreen, with reapply reminders.": "كم دقيقة حتى تحترق بشرتك حسب الأشعة الحالية ونوع بشرتك والواقي، مع تذكير بإعادة وضعه.",
  "Start the timer →": "شغّل المؤقت ←"
 });
+/* index cards for newer tools */
+LabAr.add({
+ "Tool · Security": "أداة · أمان",
+ "What a stranger can learn from your profile": "ما الذي يستطيع غريب معرفته من حسابك؟",
+ "Describe what you post and see the dossier a stranger could build: home area, weekly routine, security answers, with a fix for each.": "صِف ما تنشره وشاهد الملف الذي قد يجمعه غريب عنك: منطقة سكنك وروتينك الأسبوعي وإجابات أسئلة الأمان، مع حل لكل منها.",
+ "See my dossier →": "اعرض ملفي ←"
+});

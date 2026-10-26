@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Profile Exposure · Mariam's Lab</title>
+<meta name="description" content="Describe what you post publicly, and see the dossier a stranger could build from it: your home area, weekly routine, when you are out, likely security answers and more. With a fix for each.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/profile-exposure/">
+<meta property="og:title" content="Profile Exposure · Mariam's Lab"><meta property="og:description" content="What a stranger can learn from your public posts."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.sm { font: inherit; font-size: 0.84rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 13px; cursor: pointer; }
+.sm:hover { border-color: var(--accent); }
+.sm.pri { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.inp { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); padding: 12px 14px; display: grid; gap: 10px; scroll-margin-top: 90px; transition: box-shadow .3s, border-color .3s; }
+.inp.on { border-color: rgba(233,180,103,.5); }
+.inp.flash { box-shadow: 0 0 0 3px var(--accent); }
+.inp > label.top { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; cursor: pointer; align-items: start; }
+.inp > label.top input { width: 18px; height: 18px; margin: 2px 0 0; accent-color: var(--accent); }
+.inp > label.top small { display: block; color: var(--muted); font-size: 0.82rem; }
+.flds { display: grid; gap: 10px; padding-inline-start: 32px; }
+.flds[hidden] { display: none; }
+.fld { display: grid; gap: 4px; font-size: 0.8rem; color: var(--muted); }
+.fld input[type=text], .fld input[type=time], .fld input[type=number] { font: inherit; font-size: 0.9rem; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 6px 9px; width: 100%; min-width: 0; color-scheme: dark; }
+.row2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); gap: 10px; }
+.days { display: flex; flex-wrap: wrap; gap: 4px; }
+.days label { cursor: pointer; }
+.days input { position: absolute; opacity: 0; pointer-events: none; }
+.days span { display: inline-block; min-width: 38px; text-align: center; font-size: 0.78rem; padding: 4px 6px; border-radius: 8px; border: 1px solid var(--line); color: var(--muted); }
+.days input:checked + span { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.days input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+.cb { display: inline-flex; gap: 8px; align-items: center; font-size: 0.86rem; color: var(--ink); cursor: pointer; }
+.cb input { accent-color: var(--accent); margin: 0; }
+.dossier { border: 1px solid var(--accent); border-radius: var(--radius); background: rgba(7,10,24,.88); padding: 18px; display: grid; gap: 14px; position: relative; }
+.dossier::before { content: ''; position: absolute; top: -1px; inset-inline-start: 22px; width: 90px; height: 6px; background: var(--accent); border-radius: 0 0 6px 6px; }
+.dh { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: baseline; }
+.dh h2 { font-size: 1.35rem; }
+.stamp { font-family: var(--font-mono); font-size: 0.72rem; color: var(--sat-c); border: 1px solid var(--sat-c); padding: 2px 8px; border-radius: 6px; transform: rotate(-2deg); }
+html.ar .stamp, html.ar .conf { font-family: inherit; }
+.inf { border-top: 1px solid var(--line); padding-top: 12px; display: grid; gap: 6px; }
+.ih { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.ih b { font-family: var(--font-display); font-size: 1.02rem; }
+.conf { font-family: var(--font-mono); font-size: 0.68rem; padding: 1px 8px; border-radius: 999px; border: 1px solid; white-space: nowrap; }
+.conf.h { color: var(--sat-c); } .conf.m { color: var(--accent); } .conf.l { color: var(--muted); }
+.iv { font-size: 1.05rem; font-weight: 600; margin: 0; color: var(--ink); }
+.iv.none { color: var(--muted); font-weight: 400; font-size: 0.9rem; }
+.why { margin: 0; padding-inline-start: 1.1em; color: var(--muted); font-size: 0.85rem; display: grid; gap: 3px; }
+.src { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 0.76rem; color: var(--muted); }
+.src button { font: inherit; font-size: 0.76rem; color: var(--sat-a); background: transparent; border: 1px solid rgba(132,160,255,.4); border-radius: 999px; padding: 1px 9px; cursor: pointer; }
+.fx { margin: 0; font-size: 0.85rem; padding: 8px 10px; border-radius: 8px; background: rgba(79,211,189,.08); border: 1px solid rgba(79,211,189,.35); }
+.fx b { color: var(--sat-b); }
+.kv { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 0.9rem; }
+.kv li { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; border-bottom: 1px dashed var(--line); padding-bottom: 3px; }
+.kv span { color: var(--muted); }
+.heat { display: grid; grid-template-columns: 34px repeat(24, minmax(0, 1fr)); gap: 2px; font-family: var(--font-mono); font-size: 0.62rem; color: var(--muted); direction: ltr; }
+.heat i { display: block; height: 16px; border-radius: 2px; background: rgba(120,132,190,.12); }
+.heat .dl { font-size: 0.68rem; align-self: center; font-family: var(--font-body); }
+.heat .hl { text-align: start; }
+.legend { display: flex; gap: 6px 12px; flex-wrap: wrap; font-size: 0.74rem; color: var(--muted); }
+.legend span::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-inline-end: 5px; vertical-align: -1px; background: var(--c); }
+.away { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; font-size: 0.86rem; }
+.away b { display: inline-block; min-width: 48px; }
+.away .t { font-family: var(--font-mono); font-size: 0.8rem; direction: ltr; unicode-bidi: isolate; }
+.meter { height: 10px; border-radius: 999px; background: var(--line); overflow: hidden; }
+.meter i { display: block; height: 100%; }
+.pre { margin: 0; padding-inline-start: 1.1em; display: grid; gap: 5px; font-size: 0.86rem; }
+.hint { font-size: 0.8rem; color: var(--muted); margin: 0; }
+.msg { font-size: 0.84rem; color: var(--muted); margin: 0; min-height: 1.2em; }
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Security</span>
+    <h1 style="font-size:var(--step-3)">What a stranger can learn from your profile.</h1>
+    <p>One post says little. A month of posts says where you live, when you're out and what your security answers are. Describe what you posted publicly in the last month, and see the dossier a patient stranger could build. Nothing is looked up or scraped. Everything stays in this browser and nothing is uploaded.</p>
+  </div>
+  <div class="game">
+    <div class="panel" style="align-content:start">
+      <div class="btns"><button class="sm pri" type="button" id="demo">Try a made-up example</button><button class="sm" type="button" id="clear">Start empty</button></div>
+      <p class="msg" id="msg"></p>
+      <div class="inp" id="in-global">
+        <span class="label">Your account</span>
+        <label class="cb"><input type="checkbox" data-g="public"> My profile is public</label>
+        <label class="cb"><input type="checkbox" data-g="geo"> I usually add location tags</label>
+        <label class="cb"><input type="checkbox" data-g="live"> I post while I'm still there</label>
+      </div>
+      <span class="label">In the last month I posted…</span>
+      <div id="form" style="display:grid;gap:10px"></div>
+    </div>
+    <div class="panel" style="align-content:start">
+      <div class="dossier" id="dossier"></div>
+      <p class="fact">How it works: simple rules, the same kind of reasoning a stalker or scammer uses. A gym check-in at 06:30 three days a week becomes a timetable. A pet's name and a throwback school photo become security answers. Each line links back to the posts that gave it away, so you can see exactly what to change.</p>
+      <p class="hint">An illustration, not a prediction. Real people combine posts from friends, tags and old photos, so they may learn more.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var T = function (s) { return window.LabAr ? LabAr.t(s) : s; };
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  var DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  // field: [type, key, label, placeholder]
+  var SEC = [
+    ['gym', 'Gym check-ins', 'Workout selfies, check-ins, class bookings.', [['days', 'days'], ['time', 'time', 'Usual time'], ['text', 'place', 'Gym or area shown', 'e.g. a gym name'], ['cb', 'tag', 'Location tagged']]],
+    ['cafe', 'Café photos', 'Coffee, breakfast, the same corner table.', [['days', 'days'], ['time', 'time', 'Usual time'], ['text', 'place', 'Café or area shown', 'e.g. a café name'], ['cb', 'same', 'Usually the same place']]],
+    ['run', 'Running or cycling routes', 'Maps from a fitness app, shared publicly.', [['days', 'days'], ['time', 'time', 'Usual time'], ['cb', 'home', 'Routes start and end at the same spot']]],
+    ['school', 'Kids in school uniform', 'First-day photos, school events, the school run.', [['text', 'school', 'School name or logo visible', 'e.g. the school name'], ['time', 'time', 'Drop-off time'], ['text', 'kid', 'Child\'s first name mentioned', 'e.g. a first name']]],
+    ['car', 'Car photos', 'New car, car wash, road trips.', [['text', 'model', 'Car model shown', 'e.g. a car model'], ['cb', 'plate', 'Number plate visible'], ['cb', 'home', 'Parked outside home or building']]],
+    ['work', 'Workplace hints', 'Office views, team lunches, a lanyard in a selfie.', [['text', 'name', 'Workplace named or shown', 'e.g. a company or sector'], ['cb', 'badge', 'Badge or lanyard visible'], ['cb', 'bio', 'Employer in my bio'], ['days', 'days'], ['time', 'start', 'Start time'], ['time', 'end', 'Finish time']]],
+    ['travel', 'Travel posts while away', 'Airport, hotel, beach, "two weeks of this!"', [['cb', 'live', 'Posted during the trip'], ['cb', 'ahead', 'Shared the dates before leaving']]],
+    ['pet', 'Pet photos', 'With the pet\'s name in captions.', [['text', 'name', 'Pet\'s name', 'e.g. a pet name']]],
+    ['bday', 'Birthday posts', 'Cakes, wishes, a countdown.', [['cb', 'date', 'The date is visible'], ['cb', 'year', 'The age or year is visible']]],
+    ['home', 'Neighbourhood views', 'Balcony sunsets, the view from home, the community pool.', [['text', 'area', 'Area or community named', 'e.g. an area name'], ['cb', 'view', 'Landmarks visible from home'], ['cb', 'bldg', 'Building name or villa number visible']]],
+    ['family', 'Family tags', 'Partner, parents, siblings, kids.', [['cb', 'tagged', 'Family members tagged'], ['cb', 'kids', 'Kids\' names used'], ['text', 'maiden', 'Mother\'s family name visible', 'e.g. a family name']]],
+    ['old', 'Throwback posts', '"Class of…", old school photos, hometown.', [['text', 'school', 'First school named', 'e.g. a school name'], ['text', 'town', 'Hometown named', 'e.g. a town']]]
+  ];
+  var NAMES = {}; SEC.forEach(function (s) { NAMES[s[0]] = s[1]; }); NAMES.global = 'Your account';
+  var KEY = 'profexp.v1', S = {};
+  function blank() { S = { g: {} }; SEC.forEach(function (s) { S[s[0]] = { on: false, days: [] }; }); }
+  blank();
+  try { var sv = JSON.parse(localStorage.getItem(KEY) || 'null'); if (sv && sv.g) { SEC.forEach(function (s) { if (sv[s[0]]) S[s[0]] = sv[s[0]]; }); S.g = sv.g; } } catch (e) {}
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+
+  $('form').innerHTML = SEC.map(function (s) {
+    var f = s[3].map(function (x) {
+      var id = s[0] + '-' + x[1];
+      if (x[0] === 'days') return '<div class="fld"><span>Which days</span><div class="days">' + DAYS.map(function (d, i) { return '<label><input type="checkbox" data-s="' + s[0] + '" data-k="days" value="' + i + '"><span>' + d + '</span></label>'; }).join('') + '</div></div>';
+      if (x[0] === 'time') return '<label class="fld"><span>' + esc(x[2]) + '</span><input type="time" id="' + id + '" data-s="' + s[0] + '" data-k="' + x[1] + '"></label>';
+      if (x[0] === 'text') return '<label class="fld"><span>' + esc(x[2]) + '</span><input type="text" maxlength="40" id="' + id + '" data-s="' + s[0] + '" data-k="' + x[1] + '" placeholder="' + esc(x[3]) + '"></label>';
+      return '<label class="cb"><input type="checkbox" data-s="' + s[0] + '" data-k="' + x[1] + '"> ' + esc(x[2]) + '</label>';
+    });
+    // put short fields side by side
+    var out = [], buf = [];
+    s[3].forEach(function (x, i) { if (x[0] === 'time' || x[0] === 'text') buf.push(f[i]); else { if (buf.length) { out.push('<div class="row2">' + buf.join('') + '</div>'); buf = []; } out.push(f[i]); } });
+    if (buf.length) out.push('<div class="row2">' + buf.join('') + '</div>');
+    return '<div class="inp" id="in-' + s[0] + '"><label class="top"><input type="checkbox" data-on="' + s[0] + '"><span><b>' + esc(s[1]) + '</b><small>' + esc(s[2]) + '</small></span></label><div class="flds" hidden>' + out.join('') + '</div></div>';
+  }).join('');
+
+  function fill() {
+    [].forEach.call(document.querySelectorAll('[data-g]'), function (c) { c.checked = !!S.g[c.getAttribute('data-g')]; });
+    SEC.forEach(function (s) {
+      var o = S[s[0]], box = $('in-' + s[0]);
+      box.querySelector('[data-on]').checked = !!o.on; box.classList.toggle('on', !!o.on); box.querySelector('.flds').hidden = !o.on;
+      [].forEach.call(box.querySelectorAll('[data-k]'), function (c) {
+        var k = c.getAttribute('data-k');
+        if (k === 'days') c.checked = (o.days || []).indexOf(+c.value) >= 0;
+        else if (c.type === 'checkbox') c.checked = !!o[k];
+        else c.value = o[k] || '';
+      });
+    });
+  }
+  function onEdit(e) {
+    var t = e.target;
+    if (t.hasAttribute('data-g')) S.g[t.getAttribute('data-g')] = t.checked;
+    else if (t.hasAttribute('data-on')) { var k0 = t.getAttribute('data-on'); S[k0].on = t.checked; var b = $('in-' + k0); b.classList.toggle('on', t.checked); b.querySelector('.flds').hidden = !t.checked; }
+    else if (t.hasAttribute('data-k')) {
+      var o = S[t.getAttribute('data-s')], k = t.getAttribute('data-k');
+      if (k === 'days') { o.days = (o.days || []).filter(function (d) { return d !== +t.value; }); if (t.checked) o.days.push(+t.value); o.days.sort(); }
+      else if (t.type === 'checkbox') o[k] = t.checked; else o[k] = t.value.slice(0, 40);
+    } else return;
+    save(); render();
+  }
+  document.addEventListener('change', onEdit);
+  document.addEventListener('input', function (e) { if (e.target.type === 'text' || e.target.type === 'time') onEdit(e); });
+
+  // ---- the rules
+  function hm(s) { var m = /^(\d{1,2}):(\d{2})/.exec(s || ''); return m ? +m[1] + (+m[2]) / 60 : null; }
+  function has(o, k) { return o.on && o[k] && String(o[k]).trim(); }
+  function infer() {
+    var I = [], g = S.g, A = function (o) { I.push(o); return o; };
+    // home area
+    var hw = [], hsrc = [], hval = '', hc = 0;
+    if (has(S.home, 'area')) { hval = S.home.area; hc = 2; hsrc.push('home'); hw.push('You name your area or community.'); }
+    if (S.home.on && S.home.view) { hc = Math.max(hc, 2); if (hsrc.indexOf('home') < 0) hsrc.push('home'); hw.push('Landmarks seen from home narrow it to a few buildings.'); }
+    if (S.home.on && S.home.bldg) { hc = 3; if (hsrc.indexOf('home') < 0) hsrc.push('home'); hw.push('Your building name or villa number is visible.'); }
+    if (S.run.on && S.run.home) { hc = 3; hsrc.push('run'); hw.push('Routes that start and end at the same spot usually start at your door.'); }
+    if (has(S.gym, 'place') || has(S.cafe, 'place')) { hc = Math.max(hc, 1); if (S.gym.on && S.gym.place) hsrc.push('gym'); if (S.cafe.on && S.cafe.place) hsrc.push('cafe'); hw.push('Places you visit often, especially early, tend to be near home.'); if (!hval) hval = [S.gym.on && S.gym.place, S.cafe.on && S.cafe.place].filter(Boolean).join(' · '); }
+    if (has(S.school, 'school')) { hc = Math.max(hc, 1); hsrc.push('school'); hw.push('Families usually live near their children\'s school.'); }
+    if (S.car.on && S.car.home) { hc = Math.max(hc, 1) + (S.car.plate ? 1 : 0); hsrc.push('car'); hw.push('Your car outside your home shows the street' + (S.car.plate ? ', and the plate confirms it is yours.' : '.')); }
+    hc = Math.min(hc, 3);
+    if (hc) A({ k: 'home', t: 'Likely home area', v: hval, vn: hval ? '' : 'Narrowed down, even without a name', c: hc, why: hw, src: hsrc, fx: 'Post neighbourhood views without landmarks, set fitness maps to hide the start and end of routes, and never show a building name, villa number or plate.' });
+    // routine
+    var grid = [], used = {};
+    for (var d = 0; d < 7; d++) { grid.push([]); for (var h = 0; h < 24; h++) grid[d].push(''); }
+    function mark(key, cat, days, from, to) {
+      if (from == null) return;
+      (days && days.length ? days : []).forEach(function (dd) { for (var x = Math.floor(from); x < Math.max(Math.ceil(to), Math.floor(from) + 1); x++) if (x < 24 && !grid[dd][x]) grid[dd][x] = cat; });
+      if (days && days.length) used[key] = 1;
+    }
+    var wk = [0, 1, 2, 3, 4];
+    if (S.work.on) { var ws = hm(S.work.start), we = hm(S.work.end); if (ws != null && we != null && we > ws) mark('work', 'work', S.work.days && S.work.days.length ? S.work.days : wk, ws, we); }
+    if (S.school.on) { var st = hm(S.school.time); if (st != null) mark('school', 'school', wk, st, st + 0.5); }
+    ['gym', 'cafe', 'run'].forEach(function (k) { var o = S[k]; if (o.on) { var t0 = hm(o.time); if (t0 != null) mark(k, k, o.days, t0, t0 + (k === 'cafe' ? 1 : 1.25)); } });
+    var rs = Object.keys(used);
+    if (rs.length) A({ k: 'routine', t: 'Weekly routine', grid: grid, c: rs.length >= 2 || g.live ? 3 : 2, why: [g.live ? 'You post while you are still there, so the pattern is live.' : 'Regular posts at regular times become a timetable.'], src: rs, fx: 'Post after you leave, not while you are there. Vary times, and drop the location tag on routine places.' });
+    // away windows
+    if (rs.length) {
+      var away = [];
+      for (d = 0; d < 7; d++) { var spans = [], s0 = -1; for (h = 0; h <= 24; h++) { var on = h < 24 && grid[d][h]; if (on && s0 < 0) s0 = h; if (!on && s0 >= 0) { spans.push([s0, h]); s0 = -1; } } if (spans.length) away.push([d, spans]); }
+      A({ k: 'away', t: 'When you are predictably out', away: away, c: g.live ? 3 : 2, why: ['If you live alone, these are the hours your home is empty. If not, tags and school runs may show when the others are out too.'], src: rs, fx: 'Keep routine posts for close friends, or post them a day later.' });
+    }
+    if (S.travel.on && (S.travel.live || S.travel.ahead)) A({ k: 'trip', t: 'Home empty while you travel', vn: S.travel.ahead ? 'Dates announced before you left' : 'Announced while you were away', c: 3, why: ['Travel posts tell anyone watching that the home is empty, and for how long.', 'They also set up the classic "stuck abroad, send money" scam on your family.'], src: ['travel'], fx: 'Share trip photos after you are home. Tell family privately where you are.' });
+    // security answers
+    var qa = [];
+    if (has(S.pet, 'name')) qa.push(['Name of your first pet', S.pet.name, 'pet']);
+    if (has(S.old, 'school')) qa.push(['Name of your first school', S.old.school, 'old']);
+    if (has(S.old, 'town')) qa.push(['City where you were born', S.old.town, 'old']);
+    if (S.bday.on && S.bday.date) qa.push(['Date of birth', S.bday.year ? 'Day, month and year' : 'Day and month', 'bday']);
+    if (has(S.family, 'maiden')) qa.push(['Mother\'s family name', S.family.maiden, 'family']);
+    if (has(S.car, 'model')) qa.push(['Your first car', S.car.model, 'car']);
+    if (has(S.school, 'kid')) qa.push(['Child\'s name (common in passwords)', S.school.kid, 'school']);
+    if (qa.length) A({ k: 'qa', t: 'Likely security answers', qa: qa, c: qa.length >= 2 ? 3 : 2, why: ['Banks, carriers and old accounts still ask these questions.'], src: qa.map(function (x) { return x[2]; }).filter(function (v, i, a) { return a.indexOf(v) === i; }), fx: 'Where a service asks security questions, give made-up answers and keep them in your password manager.' });
+    // workplace
+    if (S.work.on && (S.work.badge || S.work.bio || S.work.name)) {
+      var ww = []; if (S.work.bio) ww.push('Your bio names your employer.'); if (S.work.badge) ww.push('A badge or lanyard is readable in a photo.'); if (S.work.name && !S.work.bio) ww.push('Office photos name or show the workplace.');
+      if (S.work.start) ww.push('Your hours show when you commute.');
+      A({ k: 'work', t: 'Workplace', v: S.work.name || '', vn: S.work.name ? '' : 'Identifiable from your photos', c: S.work.bio || S.work.badge ? 3 : 2, why: ww, src: ['work'], fx: 'Take badges off before photos, keep your employer to professional networks, and avoid shots that show the building or screens.' });
+    }
+    // family
+    var fam = [];
+    if (S.family.on && S.family.tagged) fam.push('Partner, parents or siblings, through tags');
+    if (S.family.on && S.family.kids) fam.push('Your children\'s names');
+    if (S.school.on && (S.school.school || S.school.time)) fam.push('Which school your children attend and when');
+    if (fam.length) A({ k: 'family', t: 'Family members', list: fam, c: fam.length >= 2 ? 3 : 2, why: ['Tags turn your profile into a map of the people a scammer can contact, or pretend to be.'], src: [S.family.on ? 'family' : null, S.school.on ? 'school' : null].filter(Boolean), fx: 'Ask family not to tag you publicly, keep kids\' names and uniforms out of public posts, and review who can tag you.' });
+    // social engineering
+    var pts = 0, pre = [], ssrc = [];
+    if (g.public) { pts += 15; ssrc.push('global'); }
+    if (fam.length) { pts += 15; ssrc.push('family'); }
+    if (S.work.on && (S.work.badge || S.work.bio)) { pts += 15; pre.push('An email to a colleague or HR that seems to come from you, asking to change the bank account for your salary.'); }
+    if (S.travel.on && S.travel.live) { pts += 15; pre.push('A message to your family while you are abroad: "I lost my phone and wallet, please send money to this number."'); }
+    if (S.school.on && (S.school.school || S.school.kid)) { pts += 10; pre.push('A call to the school pretending to be a relative, using your child\'s name and routine.'); }
+    if (qa.length) { pts += 10 + Math.min(10, qa.length * 3); pre.push('A call to your bank or carrier that passes security questions with your birthday and your pet\'s name.'); }
+    if (rs.length) { pts += 10; pre.push('A "delivery" or visit timed for when your home is empty.'); }
+    if (g.live) pts += 5;
+    pts = Math.min(100, pts);
+    if (pts) A({ k: 'se', t: 'Open to impersonation and scams', score: pts, pre: pre, c: pts >= 60 ? 3 : pts >= 30 ? 2 : 1, why: ['The more a stranger knows, the more convincing their story sounds to you, your family and the people who serve you.'], src: ssrc.concat(I.filter(function (x) { return x.k !== 'se'; }).reduce(function (a, x) { return a.concat(x.src); }, [])).filter(function (v, i, a) { return a.indexOf(v) === i; }), fx: g.public ? 'Make your profile private, or split it: a public one with nothing personal and a private one for friends.' : 'Agree a family code word for urgent money requests, and call back on a number you already have.' });
+    return I;
+  }
+
+  var CAT = { work: ['At work', '#84A0FF'], school: ['School run', '#F08AB3'], gym: ['Gym', '#E9B467'], cafe: ['Café', '#C89B6D'], run: ['Run or ride', '#4FD3BD'] };
+  var CONF = { 3: ['h', 'High confidence'], 2: ['m', 'Likely'], 1: ['l', 'A hint'] };
+  function pad(n) { return (n < 10 ? '0' : '') + n + ':00'; }
+  function render() {
+    var I = infer(), h = '<div class="dh"><h2>A stranger\'s dossier</h2><span class="stamp">Built only from public posts</span></div>';
+    if (!I.length) { h += '<p class="hint">Tick what you posted on the left, or try the made-up example. The dossier fills in as you go.</p>'; $('dossier').innerHTML = h; return; }
+    var lvl = I.reduce(function (a, x) { return a + x.c; }, 0);
+    h += '<div class="stats"><div><b>' + I.length + '</b><span>Things inferred</span></div><div><b>' + I.filter(function (x) { return x.c === 3; }).length + '</b><span>High confidence</span></div><div><b>' + (lvl >= 14 ? 'High' : lvl >= 7 ? 'Medium' : 'Low') + '</b><span>Exposure</span></div></div>';
+    I.forEach(function (x) {
+      var cf = CONF[x.c];
+      h += '<div class="inf"><div class="ih"><b>' + esc(x.t) + '</b><span class="conf ' + cf[0] + '">' + cf[1] + '</span></div>';
+      if (x.v) h += '<p class="iv" data-noar>' + esc(x.v) + '</p>';
+      else if (x.vn) h += '<p class="iv none">' + esc(x.vn) + '</p>';
+      if (x.grid) {
+        h += '<div class="heat" aria-label="Weekly routine, Monday to Sunday by hour"><span></span>';
+        for (var hh = 0; hh < 24; hh++) h += '<span class="hl">' + (hh % 6 === 0 ? hh : '') + '</span>';
+        x.grid.forEach(function (row, d) { h += '<span class="dl">' + DAYS[d] + '</span>' + row.map(function (c) { return '<i' + (c ? ' style="background:' + CAT[c][1] + '"' : '') + '></i>'; }).join(''); });
+        h += '</div><div class="legend">' + Object.keys(CAT).filter(function (k) { return x.grid.some(function (r) { return r.indexOf(k) >= 0; }); }).map(function (k) { return '<span style="--c:' + CAT[k][1] + '">' + CAT[k][0] + '</span>'; }).join('') + '</div>';
+      }
+      if (x.away) h += '<ul class="away">' + x.away.map(function (a) { return '<li><b>' + DAYS[a[0]] + '</b> <span class="t">' + a[1].map(function (s) { return pad(s[0]) + '–' + pad(s[1]); }).join(' · ') + '</span></li>'; }).join('') + '</ul>';
+      if (x.qa) h += '<ul class="kv">' + x.qa.map(function (q) { return '<li><span>' + esc(q[0]) + '</span><b' + (q[2] === 'bday' ? '' : ' data-noar') + '>' + esc(q[1]) + '</b></li>'; }).join('') + '</ul>';
+      if (x.list) h += '<ul class="why" style="color:var(--ink)">' + x.list.map(function (l) { return '<li>' + esc(l) + '</li>'; }).join('') + '</ul>';
+      if (x.score != null) h += '<div class="meter"><i style="width:' + x.score + '%;background:' + (x.score >= 60 ? 'var(--sat-c)' : x.score >= 30 ? 'var(--accent)' : 'var(--sat-b)') + '"></i></div>' + (x.pre.length ? '<span class="hint">What a scammer could try:</span><ul class="pre">' + x.pre.map(function (p) { return '<li>' + esc(p) + '</li>'; }).join('') + '</ul>' : '');
+      h += '<ul class="why">' + x.why.map(function (w) { return '<li>' + esc(w) + '</li>'; }).join('') + '</ul>';
+      h += '<div class="src"><span>From:</span>' + x.src.filter(function (v, i, a) { return a.indexOf(v) === i; }).map(function (s) { return '<button type="button" data-go="' + s + '">' + esc(NAMES[s]) + '</button>'; }).join('') + '</div>';
+      h += '<p class="fx"><b>Fix:</b> <span>' + esc(x.fx) + '</span></p></div>';
+    });
+    $('dossier').innerHTML = h;
+  }
+  $('dossier').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-go]'); if (!b) return; var el = $('in-' + b.getAttribute('data-go')); if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.classList.add('flash'); setTimeout(function () { el.classList.remove('flash'); }, 1600);
+  });
+  $('demo').onclick = function () {
+    blank();
+    S.g = { public: true, geo: true, live: true };
+    S.gym = { on: true, days: [0, 2, 4], time: '06:30', place: T('FitHub Al Barsha'), tag: true };
+    S.cafe = { on: true, days: [5], time: '10:00', place: T('Corner café, Barsha Heights'), same: true };
+    S.run = { on: true, days: [1, 3], time: '19:00', home: true };
+    S.school = { on: true, school: T('Al Noor Primary'), time: '07:15', kid: T('Omar') };
+    S.car = { on: true, model: T('White SUV'), plate: true, home: true };
+    S.work = { on: true, name: T('A bank in DIFC'), badge: true, bio: false, days: [0, 1, 2, 3, 4], start: '08:30', end: '16:30' };
+    S.travel = { on: true, live: true, ahead: false };
+    S.pet = { on: true, name: T('Luna') };
+    S.bday = { on: true, date: true, year: true };
+    S.home = { on: true, area: T('Al Barsha'), view: true, bldg: false };
+    S.family = { on: true, tagged: true, kids: true, maiden: '' };
+    S.old = { on: true, school: T('Al Noor Primary'), town: '' };
+    save(); fill(); render(); $('msg').textContent = 'Loaded Noura, a made-up person. Change anything to see the dossier update.';
+  };
+  $('clear').onclick = function () { blank(); save(); fill(); render(); $('msg').textContent = ''; };
+  fill(); render();
+  window.addEventListener('labar-ready', render);
+})();
+</script>
+</body>
+</html>
