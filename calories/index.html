@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Calorie Counter · Mariam's Lab</title>
+<meta name="description" content="A private calorie and macro counter with over 200 foods including Emirati and Arab dishes, barcode lookup, recipes, water and weight trend. Everything stays in your browser.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/calories/">
+<meta property="og:title" content="Calorie Counter · Mariam's Lab"><meta property="og:description" content="Count calories and macros with machboos, karak and dates in the list. Private, in your browser."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.tabsP { display: flex; gap: 6px; flex-wrap: wrap; }
+.sm { font: inherit; font-size: 0.84rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 13px; cursor: pointer; }
+.sm[aria-pressed="true"], .sm.pri { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.sm.x { padding: 2px 9px; font-size: 0.78rem; }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: 0.9rem; }
+.inp, .row input, .row select { font: inherit; color: var(--ink); background: rgba(7,10,24,.6); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; max-width: 13em; }
+.row input[type=number] { width: 6em; font-family: var(--font-mono); }
+.search { width: 100%; font: inherit; color: var(--ink); background: rgba(7,10,24,.7); border: 1px solid var(--line); border-radius: 999px; padding: 9px 16px; }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 0; }
+section.pg[hidden], [hidden] { display: none !important; }
+.rings { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.rings figure { margin: 0; display: grid; justify-items: center; gap: 2px; text-align: center; font-size: 0.78rem; color: var(--muted); }
+.rings svg { width: 100%; max-width: 110px; height: auto; }
+.rings b { color: var(--ink); font-family: var(--font-mono); font-weight: 500; font-size: 0.8rem; }
+.meal { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; display: grid; gap: 6px; background: var(--surface); }
+.meal h3 { margin: 0; font-size: 0.95rem; display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.meal h3 span { font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted); font-weight: 400; }
+.ent { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.ent li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; align-items: center; font-size: 0.86rem; }
+.ent small { color: var(--muted); display: block; font-size: 0.76rem; }
+.ent b { font-family: var(--font-mono); font-weight: 500; font-size: 0.8rem; }
+.res { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; max-height: 340px; overflow: auto; }
+.res li { padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; font-size: 0.86rem; cursor: pointer; display: grid; gap: 2px; }
+.res li:hover, .res li.on { border-color: var(--accent); }
+.res small { color: var(--muted); font-size: 0.76rem; }
+.pickbox { display: grid; gap: 8px; padding: 10px 12px; border: 1px solid var(--accent); border-radius: 12px; background: rgba(255,200,87,.06); }
+.pickbox .line { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; font-size: 0.86rem; }
+.pickbox input[type=number] { width: 5.5em; font-family: var(--font-mono); }
+.quick { display: flex; gap: 6px; flex-wrap: wrap; }
+.quick button { font: inherit; font-size: 0.78rem; padding: 4px 10px; border-radius: 99px; border: 1px dashed var(--line); background: transparent; color: var(--ink); cursor: pointer; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.water { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
+.water i { width: 18px; height: 24px; border: 1.5px solid #7fb4ff; border-radius: 3px 3px 6px 6px; display: inline-block; }
+.water i.f { background: #7fb4ff; }
+.chart svg { width: 100%; height: auto; display: block; }
+.macro { font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted); }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.grid2 label { display: grid; gap: 3px; font-size: 0.8rem; color: var(--muted); }
+.grid2 input { font: inherit; color: var(--ink); background: rgba(7,10,24,.6); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; min-width: 0; width: 100%; }
+.vid { width: 100%; max-height: 260px; border-radius: 12px; background: #000; object-fit: cover; }
+.note { padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(255,200,87,.4); background: rgba(255,200,87,.08); font-size: 0.86rem; }
+.stats span { font-size: 0.76rem; color: var(--muted); }
+.wlist { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 0.84rem; max-height: 200px; overflow: auto; }
+.wlist li { display: flex; justify-content: space-between; gap: 8px; padding: 4px 8px; border-radius: 6px; background: rgba(255,255,255,.04); font-family: var(--font-mono); }
+.dateNav { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.dateNav b { font-family: var(--font-display); font-size: 1.1rem; min-width: 8em; text-align: center; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Health · Food · UAE</span>
+    <h1 style="font-size:var(--step-3)">Calorie counter.</h1>
+    <p>Most calorie apps don't know what machboos, harees or a cup of karak is, and they want an account. This one has over 200 foods with plenty of Emirati and Arab dishes, looks up packaged food by barcode, and builds your own recipes. Your log, water and weight stay in this browser.</p>
+  </div>
+  <p class="note">An estimate, not medical advice. Dish values vary a lot with the cook and the portion. If you're pregnant, under 18, have diabetes, kidney disease or a history of eating disorders, set targets with your doctor or a dietitian.</p>
+  <div class="tabsP" id="tabs" style="margin-top:12px">
+    <button class="sm" type="button" data-tab="today" aria-pressed="true">Today</button>
+    <button class="sm" type="button" data-tab="foods" aria-pressed="false">My foods &amp; recipes</button>
+    <button class="sm" type="button" data-tab="progress" aria-pressed="false">Progress</button>
+    <button class="sm" type="button" data-tab="profile" aria-pressed="false">Profile &amp; data</button>
+  </div>
+
+  <!-- TODAY -->
+  <section class="pg" id="pg-today" style="margin-top:14px">
+    <div class="dateNav"><button class="sm" type="button" id="dPrev" aria-label="Previous day">←</button><b id="dLab"></b><button class="sm" type="button" id="dNext" aria-label="Next day">→</button><button class="sm" type="button" id="dToday">Today</button></div>
+    <div class="game" style="margin-top:12px">
+      <div class="panel" style="gap:12px">
+        <div class="rings" id="rings"></div>
+        <p class="macro" id="fibre" style="margin:0"></p>
+        <div id="meals" style="display:grid;gap:8px"></div>
+        <div class="meal"><h3>Water <span id="wTxt"></span></h3><div class="water" id="water"></div><div style="display:flex;gap:6px"><button class="sm" type="button" id="wMinus">− glass</button><button class="sm" type="button" id="wPlus">+ glass (250 ml)</button></div></div>
+      </div>
+      <div class="panel" style="gap:10px">
+        <span class="label">Add food</span>
+        <label class="row"><span>To</span><select id="meal"><option value="breakfast">Breakfast</option><option value="lunch">Lunch</option><option value="dinner">Dinner</option><option value="snacks">Snacks</option></select></label>
+        <input class="search" id="q" type="search" placeholder="Search: machboos, karak, khalas, egg…" aria-label="Search foods" autocomplete="off">
+        <div class="pickbox" id="pick" hidden></div>
+        <ul class="res" id="res"></ul>
+        <span class="label" style="margin-top:4px">Recent</span>
+        <div class="quick" id="recent"><span class="msg">Foods you add show up here for one-tap adding.</span></div>
+        <span class="label" style="margin-top:4px">Packaged food</span>
+        <div style="display:flex;gap:6px;flex-wrap:wrap"><input class="inp" id="bc" inputmode="numeric" placeholder="Barcode number" aria-label="Barcode number" style="flex:1;min-width:0;max-width:none"><button class="sm" type="button" id="bcGo">Look up</button><button class="sm" type="button" id="bcScan">Scan</button></div>
+        <video class="vid" id="bcVid" playsinline muted hidden></video>
+        <p class="msg" id="bcMsg"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOODS -->
+  <section class="pg" id="pg-foods" style="margin-top:14px" hidden>
+    <div class="game">
+      <div class="panel" style="gap:10px">
+        <span class="label">Add a custom food (per portion)</span>
+        <div class="grid2">
+          <label style="grid-column:1/-1">Name<input id="cfN" maxlength="50" placeholder="Mum's chicken saloona"></label>
+          <label>Portion description<input id="cfP" maxlength="30" placeholder="1 bowl"></label>
+          <label>Portion weight (g)<input id="cfG" type="number" min="1" value="100"></label>
+          <label>Calories (kcal)<input id="cfK" type="number" min="0"></label>
+          <label>Protein (g)<input id="cfPr" type="number" min="0" step="0.1"></label>
+          <label>Carbs (g)<input id="cfC" type="number" min="0" step="0.1"></label>
+          <label>Fat (g)<input id="cfF" type="number" min="0" step="0.1"></label>
+          <label>Fibre (g)<input id="cfFb" type="number" min="0" step="0.1"></label>
+        </div>
+        <button class="sm pri" type="button" id="cfSave" style="justify-self:start">Save food</button>
+        <p class="msg" id="cfMsg"></p>
+        <span class="label" style="margin-top:8px">My foods</span>
+        <ul class="ent" id="myFoods"></ul>
+      </div>
+      <div class="panel" style="gap:10px">
+        <span class="label">Build a recipe</span>
+        <div class="grid2"><label>Recipe name<input id="rcN" maxlength="50" placeholder="Lentil soup, big pot"></label><label>Servings it makes<input id="rcS" type="number" min="1" value="4"></label></div>
+        <input class="search" id="rcQ" type="search" placeholder="Search an ingredient to add" aria-label="Search ingredient" autocomplete="off">
+        <ul class="res" id="rcRes" style="max-height:200px"></ul>
+        <ul class="ent" id="rcList"></ul>
+        <p class="macro" id="rcTot" style="margin:0"></p>
+        <button class="sm pri" type="button" id="rcSave" style="justify-self:start">Save recipe as a food</button>
+        <p class="msg" id="rcMsg"></p>
+        <p class="fact" style="margin:0">Weigh ingredients raw where you can, and use the raw entry (for example rice cooked versus dry is a three-times difference). The recipe's per-serving values are its totals divided by the servings.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROGRESS -->
+  <section class="pg" id="pg-progress" style="margin-top:14px" hidden>
+    <div class="stats"><div><b id="pAvg">–</b><span>avg kcal, 7 days</span></div><div><b id="pTrend">–</b><span>trend weight</span></div><div><b id="pRate">–</b><span>per week</span></div></div>
+    <div class="game" style="margin-top:14px">
+      <div class="panel" style="gap:10px">
+        <span class="label">Last 7 days · calories against your target</span>
+        <div class="chart" id="c7"></div>
+        <p class="macro" id="m7" style="margin:0"></p>
+        <span class="label" style="margin-top:8px">Weight · daily readings and smoothed trend</span>
+        <div class="chart" id="cw"></div>
+      </div>
+      <div class="panel" style="gap:10px">
+        <span class="label">Log your weight</span>
+        <div style="display:flex;gap:6px;flex-wrap:wrap"><input class="inp" type="date" id="wD" aria-label="Date"><input class="inp" type="number" id="wKg" step="0.1" min="25" max="300" placeholder="kg" aria-label="Weight in kg" style="width:6em"><button class="sm pri" type="button" id="wAdd">Save</button></div>
+        <ul class="wlist" id="wList"></ul>
+        <p class="fact" style="margin:0">Daily weight swings by 1 to 2 kg with water, salt and food in your stomach. The trend line is an exponentially smoothed average: each day it moves 10% of the way toward the new reading. It shows the real direction weeks before the raw numbers do. Weigh at the same time each morning.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROFILE -->
+  <section class="pg" id="pg-profile" style="margin-top:14px" hidden>
+    <div class="game">
+      <div class="panel" style="gap:10px">
+        <span class="label">About you</span>
+        <label class="row"><span>Sex</span><select id="pSex"><option value="f">Female</option><option value="m">Male</option></select></label>
+        <label class="row"><span>Age</span><input type="number" id="pAge" min="15" max="100" value="30"></label>
+        <label class="row"><span>Height (cm)</span><input type="number" id="pH" min="120" max="230" value="165"></label>
+        <label class="row"><span>Weight (kg)</span><input type="number" id="pW" min="30" max="300" step="0.1" value="70"></label>
+        <label class="row"><span>Activity</span><select id="pAct"><option value="1.2">Mostly sitting</option><option value="1.375" selected>Light (walks, 1 to 3 workouts a week)</option><option value="1.55">Moderate (3 to 5 a week)</option><option value="1.725">Very active (daily hard training)</option><option value="1.9">Physical job plus training</option></select></label>
+        <label class="row"><span>Goal</span><select id="pGoal"><option value="lose">Lose weight</option><option value="keep" selected>Keep weight</option><option value="gain">Gain weight</option></select></label>
+        <label class="row"><span>Rate (kg per week)</span><select id="pRateSel"><option value="0.25">0.25</option><option value="0.5" selected>0.5</option><option value="0.75">0.75</option></select></label>
+      </div>
+      <div class="panel" style="gap:10px">
+        <span class="label">Your targets</span>
+        <div class="stats"><div><b id="tBmr">–</b><span>BMR kcal</span></div><div><b id="tTdee">–</b><span>maintenance</span></div><div><b id="tKcal">–</b><span>daily target</span></div></div>
+        <p class="macro" id="tMac" style="margin:0"></p>
+        <p class="msg" id="tNote"></p>
+        <p class="fact" style="margin:0">BMR is the energy you burn at complete rest, from the Mifflin-St Jeor equation: 10 × weight + 6.25 × height − 5 × age, plus 5 for men or minus 161 for women. Multiplying by your activity gives maintenance. Weight loss targets are capped at a 25% deficit and never go below 1,200 kcal (women) or 1,500 kcal (men). Protein is set by body weight, fat at about 28% of calories and carbs fill the rest.</p>
+        <span class="label" style="margin-top:8px">Your data</span>
+        <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="sm" type="button" id="exp">Export JSON</button><label class="sm" style="display:inline-block">Import JSON<input type="file" id="imp" accept="application/json,.json" hidden></label><button class="sm" type="button" id="wipe">Delete everything</button></div>
+        <p class="msg" id="dMsg"></p>
+        <p class="fact" style="margin:0">Everything is saved in this browser only. Barcode lookups send just the barcode number to Open Food Facts, a free public food database. There's no photo recognition here: guessing a dish's calories from a photo is unreliable, especially for rice dishes.</p>
+      </div>
+    </div>
+  </section>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  // ---- food database: [name, portion, grams per portion, kcal, protein, carbs, fat, fibre] (nutrients per 100 g) ----
+  var DB = [
+    // Emirati and Arab dishes
+    ['Chicken machboos', '1 plate', 400, 150, 9, 18, 4.5, 1], ['Lamb machboos', '1 plate', 400, 175, 9, 18, 7.5, 1], ['Fish machboos', '1 plate', 400, 140, 9, 18, 3.5, 1],
+    ['Harees', '1 bowl', 300, 120, 7, 13, 4.5, 1.5], ['Thareed (chicken)', '1 bowl', 350, 115, 7, 11, 4.5, 1.5], ['Saloona (chicken stew)', '1 bowl', 300, 85, 7, 6, 3.5, 1.5],
+    ['Madrooba (fish)', '1 bowl', 300, 120, 8, 13, 4, 1], ['Luqaimat', '5 pieces', 75, 380, 5, 50, 18, 1], ['Balaleet', '1 plate', 200, 230, 5, 38, 7, 1],
+    ['Chebab (Emirati pancake)', '1 piece', 60, 260, 6, 40, 8, 1], ['Regag with egg and cheese', '1 piece', 90, 300, 11, 33, 13, 1.5], ['Khameer bread', '1 piece', 90, 290, 8, 52, 5, 2],
+    ['Chicken mandi', '1 plate', 450, 165, 10, 18, 5.5, 0.8], ['Lamb mandi', '1 plate', 450, 190, 10, 18, 8.5, 0.8], ['Chicken kabsa', '1 plate', 400, 160, 9, 19, 5, 1],
+    ['Lamb ouzi with rice', '1 plate', 450, 200, 10, 18, 10, 1], ['Maqluba', '1 plate', 400, 165, 8, 18, 7, 2], ['Mansaf', '1 plate', 450, 190, 10, 15, 10, 0.5],
+    ['Chicken shawarma wrap', '1 wrap', 250, 230, 12, 22, 10, 1.5], ['Meat shawarma wrap', '1 wrap', 250, 250, 12, 21, 13, 1.5], ['Chicken shawarma plate', '1 plate', 450, 190, 11, 18, 8, 2],
+    ['Falafel', '5 pieces', 85, 333, 13, 32, 18, 5], ['Falafel sandwich', '1 sandwich', 220, 240, 8, 30, 10, 4], ['Hummus', '3 tbsp', 75, 166, 7.9, 14.3, 9.6, 6],
+    ['Moutabal', '3 tbsp', 75, 130, 3, 8, 10, 3], ['Tabbouleh', '1 bowl', 150, 120, 2, 9, 9, 2.5], ['Fattoush', '1 bowl', 200, 95, 2, 10, 5.5, 2],
+    ['Arabic salad (lemon and oil)', '1 bowl', 150, 70, 1, 5, 5, 1.5], ['Fatayer, cheese', '1 piece', 60, 300, 10, 35, 13, 1.5], ['Fatayer, spinach', '1 piece', 60, 260, 6, 33, 11, 3],
+    ['Manakish, zaatar', '1 piece', 130, 360, 8, 45, 17, 3], ['Manakish, cheese', '1 piece', 150, 330, 13, 37, 15, 2], ['Kibbeh, fried', '1 piece', 60, 280, 11, 22, 16, 3],
+    ['Sambousa, meat', '1 piece', 40, 300, 10, 25, 18, 1.5], ['Sambousa, cheese', '1 piece', 40, 310, 9, 26, 19, 1], ['Mixed grill', '1 plate', 300, 220, 25, 2, 13, 0.3],
+    ['Shish tawook', '1 skewer plate', 200, 165, 25, 3, 6, 0.5], ['Lamb kofta', '3 pieces', 150, 250, 17, 5, 18, 0.5], ['Mutabbaq, meat', '1 piece', 200, 270, 11, 22, 15, 1],
+    ['Foul medames', '1 bowl', 250, 110, 7, 14, 3, 5], ['Shakshuka', '1 pan', 250, 95, 6, 5, 6, 1.5], ['Lentil soup (shorbat adas)', '1 bowl', 300, 60, 3.5, 9, 1.2, 2.5],
+    ['Chicken soup (shorba)', '1 bowl', 300, 45, 4, 4, 1.5, 0.5], ['Molokhia with chicken', '1 bowl', 300, 75, 7, 4, 3.5, 2], ['Okra stew (bamya)', '1 bowl', 250, 85, 4, 8, 4.5, 3],
+    ['Vegetable stew in tomato', '1 bowl', 250, 60, 2, 8, 2.5, 2.5], ['Stuffed vine leaves (warak enab)', '6 pieces', 120, 150, 3, 20, 7, 3], ['Kunafa', '1 slice', 150, 360, 7, 40, 19, 1],
+    ['Umm Ali', '1 bowl', 200, 245, 6, 28, 12, 1], ['Basbousa', '1 piece', 80, 350, 4, 55, 13, 1], ['Baklava', '2 pieces', 50, 430, 6, 50, 24, 2],
+    ['Mohalabiya', '1 cup', 150, 120, 3.5, 19, 3.5, 0], ['Qatayef', '2 pieces', 100, 280, 6, 38, 11, 1], ['Emirati halwa', '2 tbsp', 50, 350, 2, 55, 14, 0.5],
+    ['Maamoul, date', '1 piece', 35, 420, 5, 60, 18, 3], ['Labneh', '2 tbsp', 40, 160, 6, 4, 13, 0], ['Zaatar and olive oil dip', '1 tbsp', 15, 520, 4, 18, 48, 8],
+    // South Asian and other staples common in the UAE
+    ['Chicken biryani', '1 plate', 400, 165, 8, 20, 6, 1], ['Chicken curry', '1 bowl', 300, 140, 13, 5, 8, 1], ['Butter chicken', '1 bowl', 300, 155, 12, 6, 9, 1],
+    ['Dal (lentil curry)', '1 bowl', 250, 105, 6, 15, 2.5, 4], ['Chapati', '1 piece', 40, 297, 9, 46, 7.5, 5], ['Paratha', '1 piece', 80, 326, 6, 45, 13, 4],
+    ['Vegetable samosa', '1 piece', 60, 260, 5, 30, 14, 3], ['Masala dosa', '1 piece', 200, 165, 4, 25, 6, 2], ['Idli', '2 pieces', 80, 130, 4, 27, 0.5, 1.5],
+    ['Chicken adobo', '1 bowl', 250, 190, 18, 3, 12, 0.3], ['Pancit (stir-fried noodles)', '1 plate', 250, 140, 6, 20, 4, 1.5], ['Sushi, California roll', '8 pieces', 200, 145, 4, 23, 4, 1.5],
+    // dates
+    ['Dates, Khalas', '3 dates', 24, 285, 2, 75, 0.3, 6.5], ['Dates, Sukkari', '3 dates', 27, 290, 2, 77, 0.3, 6], ['Dates, Ajwa', '3 dates', 24, 280, 2.4, 73, 0.4, 7],
+    ['Dates, Medjool', '1 date', 24, 277, 1.8, 75, 0.2, 6.7], ['Dates, Khenaizi', '3 dates', 24, 282, 2.2, 74, 0.3, 7], ['Dates, Lulu', '3 dates', 21, 280, 2, 74, 0.3, 7],
+    ['Dates, Fard', '3 dates', 24, 278, 2, 73, 0.3, 7.5], ['Dates, Deglet Nour', '3 dates', 21, 282, 2.5, 75, 0.4, 8], ['Dates, Barhi (fresh rutab)', '5 dates', 50, 165, 1.5, 40, 0.2, 4],
+    ['Date syrup (dibs)', '1 tbsp', 20, 290, 1, 72, 0, 0.5],
+    // drinks
+    ['Karak chai', '1 cup', 150, 75, 2, 11, 2.5, 0], ['Arabic coffee (gahwa)', '1 finjan', 50, 2, 0.1, 0.3, 0, 0], ['Tea with 1 sugar', '1 mug', 250, 16, 0, 4, 0, 0],
+    ['Black tea or coffee, no sugar', '1 mug', 250, 1, 0.1, 0.2, 0, 0], ['Cappuccino, full milk', '1 regular', 250, 40, 2.2, 3.5, 2, 0], ['Latte, full milk', '1 regular', 350, 55, 3, 4.5, 2.8, 0],
+    ['Spanish latte', '1 regular', 350, 95, 3, 13, 3.3, 0], ['Iced coffee, sweetened', '1 large', 400, 85, 1.8, 14, 2.5, 0], ['Laban (buttermilk)', '1 bottle', 250, 37, 3, 4, 1, 0],
+    ['Vimto, diluted', '1 glass', 250, 40, 0, 10, 0, 0], ['Jallab', '1 glass', 250, 55, 0.2, 14, 0, 0], ['Qamar al-din drink', '1 glass', 250, 70, 0.3, 17, 0, 0.5],
+    ['Tamarind drink', '1 glass', 250, 50, 0, 12.5, 0, 0], ['Orange juice, fresh', '1 glass', 250, 45, 0.7, 10.4, 0.2, 0.2], ['Mango lassi', '1 glass', 300, 95, 3, 16, 2.3, 0.3],
+    ['Avocado juice (cafeteria style)', '1 large', 400, 140, 2.5, 20, 6, 2], ['Cola', '1 can', 330, 42, 0, 10.6, 0, 0], ['Diet cola', '1 can', 330, 0.4, 0, 0, 0, 0],
+    ['Energy drink', '1 can', 250, 45, 0, 11, 0, 0], ['Water', '1 glass', 250, 0, 0, 0, 0, 0], ['Milk, full fat', '1 glass', 250, 64, 3.3, 4.8, 3.6, 0],
+    ['Milk, skimmed', '1 glass', 250, 35, 3.4, 5, 0.1, 0], ['Camel milk', '1 glass', 250, 58, 3.1, 4.6, 3, 0], ['Protein shake (whey, water)', '1 shake', 330, 37, 7.3, 1, 0.5, 0],
+    ['Berry smoothie', '1 glass', 300, 60, 1, 13, 0.5, 1.5], ['Coconut water', '1 bottle', 330, 19, 0.7, 3.7, 0.2, 1.1], ['Fresh lemon mint', '1 glass', 350, 40, 0.1, 10, 0, 0.2],
+    // grains, bread, potatoes
+    ['White rice, cooked', '1 cup', 160, 130, 2.7, 28, 0.3, 0.4], ['Basmati rice, cooked', '1 cup', 160, 121, 3.5, 25, 0.4, 0.4], ['Brown rice, cooked', '1 cup', 160, 112, 2.3, 23, 0.8, 1.8],
+    ['Rice, uncooked', '1/4 cup', 50, 360, 6.6, 80, 0.6, 1.3], ['Pasta, cooked', '1 cup', 140, 158, 5.8, 31, 0.9, 1.8], ['Pasta, dry', '1 portion', 80, 371, 13, 75, 1.5, 3.2],
+    ['Bulgur, cooked', '1 cup', 180, 83, 3.1, 18.6, 0.2, 4.5], ['Quinoa, cooked', '1 cup', 185, 120, 4.4, 21.3, 1.9, 2.8], ['Oats, dry', '1/2 cup', 40, 389, 16.9, 66, 6.9, 10.6],
+    ['Arabic bread (khubz)', '1 round', 60, 275, 9, 55, 1.2, 2.2], ['Arabic bread, wholewheat', '1 round', 60, 265, 10, 50, 2.5, 6], ['White toast', '1 slice', 30, 265, 9, 49, 3.2, 2.7],
+    ['Wholegrain bread', '1 slice', 35, 250, 12, 43, 3.5, 7], ['Croissant', '1 piece', 60, 406, 8, 46, 21, 2.6], ['Cornflakes', '1 bowl', 30, 357, 7.5, 84, 0.4, 3.3],
+    ['Granola', '1/2 cup', 50, 470, 10, 64, 20, 6], ['Potato, boiled', '1 medium', 150, 87, 1.9, 20, 0.1, 1.8], ['Sweet potato, baked', '1 medium', 150, 90, 2, 21, 0.2, 3.3],
+    ['French fries', '1 medium', 117, 312, 3.4, 41, 15, 3.8],
+    // meat, fish, eggs, legumes
+    ['Chicken breast, grilled', '1 fillet', 150, 165, 31, 0, 3.6, 0], ['Chicken thigh, grilled', '2 thighs', 150, 209, 26, 0, 10.9, 0], ['Rotisserie chicken, quarter', '1 quarter', 200, 190, 27, 0, 9, 0],
+    ['Beef steak, grilled', '1 steak', 200, 250, 26, 0, 15, 0], ['Beef burger patty', '1 patty', 100, 254, 17, 0, 20, 0], ['Lamb chops, grilled', '3 chops', 150, 280, 25, 0, 20, 0],
+    ['Lamb, boiled (on rice)', '1 portion', 150, 258, 25, 0, 17, 0], ['Hammour, grilled', '1 fillet', 150, 115, 24, 0, 1.5, 0], ['Hammour, fried', '1 fillet', 150, 200, 20, 7, 10, 0.3],
+    ['Kingfish (kanaad), grilled', '1 steak', 150, 135, 22, 0, 5, 0], ['Salmon, baked', '1 fillet', 150, 208, 20, 0, 13, 0], ['Tuna, canned in water', '1 can', 100, 116, 26, 0, 0.8, 0],
+    ['Shrimp, grilled', '1 portion', 150, 99, 24, 0.2, 0.3, 0], ['Sardines, canned', '1 can', 90, 208, 25, 0, 11, 0], ['Egg, boiled', '1 egg', 50, 155, 12.6, 1.1, 10.6, 0],
+    ['Egg, fried', '1 egg', 46, 196, 13.6, 0.8, 15, 0], ['Omelette (2 eggs)', '1 omelette', 120, 154, 10.6, 0.6, 11.7, 0], ['Lentils, cooked', '1 cup', 200, 116, 9, 20, 0.4, 7.9],
+    ['Chickpeas, cooked', '1 cup', 160, 164, 8.9, 27.4, 2.6, 7.6], ['Tofu', '1 portion', 100, 76, 8, 1.9, 4.8, 0.3],
+    // dairy, fats, spreads
+    ['Greek yoghurt, 0%', '1 pot', 170, 59, 10, 3.6, 0.4, 0], ['Plain yoghurt, full fat', '1 pot', 170, 61, 3.5, 4.7, 3.3, 0], ['Halloumi, grilled', '2 slices', 50, 320, 21, 2, 25, 0],
+    ['Feta cheese', '1 slice', 30, 264, 14, 4, 21, 0], ['Akkawi cheese', '1 slice', 30, 300, 20, 2, 24, 0], ['Cheddar cheese', '1 slice', 30, 403, 25, 1.3, 33, 0],
+    ['Processed cheese triangle', '1 triangle', 17, 240, 10, 6, 20, 0], ['Butter', '1 tsp', 5, 717, 0.9, 0.1, 81, 0], ['Ghee', '1 tbsp', 13, 900, 0, 0, 99.8, 0],
+    ['Olive oil', '1 tbsp', 14, 884, 0, 0, 100, 0], ['Tahini', '1 tbsp', 15, 595, 17, 21, 54, 9], ['Honey', '1 tbsp', 21, 304, 0.3, 82, 0, 0.2],
+    ['Peanut butter', '1 tbsp', 16, 588, 25, 20, 50, 6], ['Sugar', '1 tsp', 4, 387, 0, 100, 0, 0], ['Chocolate hazelnut spread', '1 tbsp', 19, 539, 6.3, 57.5, 31, 3.4],
+    // fruit and vegetables
+    ['Banana', '1 medium', 118, 89, 1.1, 22.8, 0.3, 2.6], ['Apple', '1 medium', 182, 52, 0.3, 13.8, 0.2, 2.4], ['Orange', '1 medium', 130, 47, 0.9, 11.8, 0.1, 2.4],
+    ['Mango', '1 cup', 165, 60, 0.8, 15, 0.4, 1.6], ['Watermelon', '1 slice', 280, 30, 0.6, 7.6, 0.2, 0.4], ['Grapes', '1 cup', 150, 69, 0.7, 18, 0.2, 0.9],
+    ['Pomegranate seeds', '1/2 cup', 87, 83, 1.7, 18.7, 1.2, 4], ['Strawberries', '1 cup', 150, 32, 0.7, 7.7, 0.3, 2], ['Figs, fresh', '2 figs', 100, 74, 0.8, 19, 0.3, 2.9],
+    ['Guava', '1 fruit', 55, 68, 2.6, 14, 1, 5.4], ['Papaya', '1 cup', 145, 43, 0.5, 11, 0.3, 1.7], ['Avocado', '1/2 fruit', 100, 160, 2, 8.5, 14.7, 6.7],
+    ['Dried apricots', '5 pieces', 35, 241, 3.4, 63, 0.5, 7.3], ['Raisins', '1 small box', 40, 299, 3.1, 79, 0.5, 3.7], ['Cucumber', '1 medium', 200, 15, 0.7, 3.6, 0.1, 0.5],
+    ['Tomato', '1 medium', 123, 18, 0.9, 3.9, 0.2, 1.2], ['Green salad, no dressing', '1 bowl', 150, 17, 1.2, 3.3, 0.2, 1.6], ['Carrot', '1 medium', 61, 41, 0.9, 9.6, 0.2, 2.8],
+    ['Broccoli, steamed', '1 cup', 156, 35, 2.4, 7.2, 0.4, 3.3], ['Grilled vegetables', '1 portion', 150, 70, 1.5, 7, 4, 2.5],
+    // snacks and sweets
+    ['Almonds', '1 handful', 30, 579, 21, 22, 50, 12.5], ['Pistachios', '1 handful', 30, 562, 20, 28, 45, 10], ['Cashews', '1 handful', 30, 553, 18, 30, 44, 3.3],
+    ['Mixed nuts, salted', '1 handful', 30, 607, 20, 21, 54, 7], ['Sunflower seeds (bizr)', '1 handful', 30, 584, 21, 20, 51, 8.6], ['Potato chips', '1 bag', 40, 536, 7, 53, 35, 4.8],
+    ['Popcorn, plain', '1 bowl', 30, 387, 13, 78, 4.5, 15], ['Dark chocolate', '2 squares', 20, 546, 4.9, 61, 31, 7], ['Milk chocolate bar', '1 bar', 45, 535, 7.7, 59, 30, 3.4],
+    ['Chocolate chip cookie', '1 cookie', 30, 488, 5, 64, 24, 2], ['Ice cream', '1 scoop', 70, 207, 3.5, 24, 11, 0.7], ['Glazed doughnut', '1 doughnut', 60, 452, 4.9, 51, 25, 1.4],
+    ['Muffin', '1 muffin', 110, 377, 5, 53, 16, 1.5], ['Cake', '1 slice', 80, 370, 4.5, 50, 17, 1], ['Protein bar', '1 bar', 60, 333, 33, 35, 12, 8],
+    ['Rice cake', '1 cake', 9, 387, 8, 82, 3, 4],
+    // fast food
+    ['Cheeseburger', '1 burger', 120, 252, 13, 27, 10.6, 1.3], ['Double burger', '1 burger', 220, 250, 13, 20, 13, 1.5], ['Fried chicken burger', '1 burger', 200, 250, 12, 24, 12, 1.5],
+    ['Fried chicken', '2 pieces', 200, 260, 20, 9, 16, 0.5], ['Chicken nuggets', '6 pieces', 100, 296, 15, 18, 18, 1], ['Chicken wings', '6 wings', 180, 290, 26, 2, 20, 0.2],
+    ['Pizza, margherita', '1 slice', 105, 266, 11, 33, 10, 2.3], ['Pizza, pepperoni', '1 slice', 110, 290, 12, 31, 13, 2], ['Club sandwich', '1 sandwich', 250, 225, 12, 18, 12, 1.5],
+    ['Chicken Caesar salad', '1 bowl', 300, 130, 9, 5, 8.5, 1.3], ['Instant noodles, cooked', '1 pack', 300, 128, 2.8, 17, 5.5, 0.8], ['Hot dog', '1 hot dog', 100, 290, 10, 22, 18, 0.8]
+  ];
+  var MEALS = [['breakfast', 'Breakfast'], ['lunch', 'Lunch'], ['dinner', 'Dinner'], ['snacks', 'Snacks']];
+  function foodObj(a, src) { return { n: a[0], por: a[1], g: a[2], k: a[3], p: a[4], c: a[5], f: a[6], fb: a[7], src: src || 'db' }; }
+
+  // ---- state ----
+  var KEY = 'calorieCounter.v1', S;
+  function blank() { return { profile: { sex: 'f', age: 30, h: 165, w: 70, act: 1.375, goal: 'keep', rate: 0.5 }, days: {}, weights: [], custom: [], recent: [] }; }
+  function load() { try { S = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { S = null; } if (!S || typeof S !== 'object') S = blank(); var b = blank(); Object.keys(b).forEach(function (k) { if (S[k] == null) S[k] = b[k]; }); }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+  function allFoods() { return S.custom.map(function (c) { return { n: c.n, por: c.por, g: c.g, k: c.k, p: c.p, c: c.c, f: c.f, fb: c.fb, src: c.src || 'custom' }; }).concat(DB.map(function (a) { return foodObj(a); })); }
+
+  // ---- maths ----
+  function bmr(p) { return 10 * p.w + 6.25 * p.h - 5 * p.age + (p.sex === 'm' ? 5 : -161); }
+  function targets(p) {
+    var B = bmr(p), T = B * p.act, k = T, note = '';
+    var floor = p.sex === 'm' ? 1500 : 1200;
+    if (p.goal === 'lose') {
+      var want = p.rate * 7700 / 7, cap = Math.min(T * 0.25, 1000);
+      var d = Math.min(want, cap); k = T - d;
+      if (want > cap) note = 'Your chosen rate needs a ' + Math.round(want) + ' kcal daily deficit. It\'s capped at ' + Math.round(cap) + ' kcal so you keep muscle and energy, which works out at about ' + (cap * 7 / 7700).toFixed(2) + ' kg a week.';
+      if (k < floor) { k = floor; note = 'Your target is held at ' + floor + ' kcal, the usual safe minimum without medical supervision. Expect slower loss, or add activity.'; }
+    } else if (p.goal === 'gain') { k = T + Math.min(p.rate * 7700 / 7, 500); if (p.rate * 7700 / 7 > 500) note = 'Gain is capped at a 500 kcal surplus a day (about 0.45 kg a week) to keep it mostly lean.'; }
+    var protPerKg = p.goal === 'keep' ? 1.4 : 1.8, prot = Math.round(protPerKg * p.w);
+    var fat = Math.round(k * 0.28 / 9), carbs = Math.max(0, Math.round((k - prot * 4 - fat * 9) / 4));
+    return { bmr: B, tdee: T, kcal: Math.round(k), p: prot, c: carbs, f: fat, fb: Math.round(k / 1000 * 14), water: Math.round(p.w * 35 / 250), note: note, protPerKg: protPerKg };
+  }
+  function scaled(food, grams) { var m = grams / 100; return { n: food.n, g: Math.round(grams), k: Math.round(food.k * m), p: +(food.p * m).toFixed(1), c: +(food.c * m).toFixed(1), f: +(food.f * m).toFixed(1), fb: +(food.fb * m).toFixed(1) }; }
+  function sum(list) { return list.reduce(function (s, e) { s.k += e.k; s.p += e.p; s.c += e.c; s.f += e.f; s.fb += e.fb; return s; }, { k: 0, p: 0, c: 0, f: 0, fb: 0 }); }
+
+  // ---- dates ----
+  function iso(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+  var cur = iso(new Date());
+  function shift(ds, n) { var p = ds.split('-'), d = new Date(+p[0], +p[1] - 1, +p[2] + n); return iso(d); }
+  function day(ds) { var d = S.days[ds]; if (!d) d = S.days[ds] = { meals: { breakfast: [], lunch: [], dinner: [], snacks: [] }, water: 0 }; return d; }
+  function peekDay(ds) { return S.days[ds] || { meals: { breakfast: [], lunch: [], dinner: [], snacks: [] }, water: 0 }; }
+  function dayTotal(ds) { var d = peekDay(ds), all = []; MEALS.forEach(function (m) { all = all.concat(d.meals[m[0]] || []); }); return sum(all); }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  // ---- today ----
+  function ringSvg(v, t, col) {
+    var r = 40, C = 2 * Math.PI * r, f = t ? Math.min(1, v / t) : 0, over = t && v > t * 1.05;
+    return '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="' + r + '" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="10"/><circle cx="50" cy="50" r="' + r + '" fill="none" stroke="' + (over ? '#ff4f6d' : col) + '" stroke-width="10" stroke-linecap="round" stroke-dasharray="' + (C * f).toFixed(1) + ' ' + C.toFixed(1) + '" transform="rotate(-90 50 50)"/><text x="50" y="55" text-anchor="middle" font-size="18" font-weight="700" fill="currentColor" font-family="Bricolage Grotesque, sans-serif">' + Math.round(f * 100) + '%</text></svg>';
+  }
+  function renderToday() {
+    var T = targets(S.profile), d = peekDay(cur), tot = dayTotal(cur);
+    var dd = new Date(cur + 'T12:00'); $('dLab').textContent = cur === iso(new Date()) ? 'Today' : dd.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+    $('rings').innerHTML = [['Calories', tot.k, T.kcal, '#ffc857', ''], ['Protein', tot.p, T.p, '#4fd3bd', ' g'], ['Carbs', tot.c, T.c, '#7fb4ff', ' g'], ['Fat', tot.f, T.f, '#ff9ad5', ' g']].map(function (r) {
+      return '<figure style="color:var(--ink)">' + ringSvg(r[1], r[2], r[3]) + '<span>' + r[0] + '</span><b>' + Math.round(r[1]) + ' / ' + r[2] + r[4] + '</b></figure>';
+    }).join('');
+    $('fibre').textContent = 'Fibre ' + tot.fb.toFixed(0) + ' of ' + T.fb + ' g · ' + Math.max(0, T.kcal - Math.round(tot.k)) + ' kcal left';
+    $('meals').innerHTML = MEALS.map(function (m) {
+      var list = d.meals[m[0]] || [], s = sum(list);
+      return '<div class="meal"><h3>' + m[1] + ' <span>' + Math.round(s.k) + ' kcal</span></h3>' + (list.length ? '<ul class="ent">' + list.map(function (e, i) {
+        return '<li><span>' + esc(e.n) + '<small>' + e.g + ' g · P ' + Math.round(e.p) + ' C ' + Math.round(e.c) + ' F ' + Math.round(e.f) + '</small></span><b>' + e.k + '</b><button class="sm x" type="button" data-del="' + m[0] + ':' + i + '" aria-label="Remove ' + esc(e.n) + '">×</button></li>';
+      }).join('') + '</ul>' : '<button class="sm x" type="button" data-addto="' + m[0] + '" style="justify-self:start">+ Add to ' + m[1].toLowerCase() + '</button>') + '</div>';
+    }).join('');
+    var w = d.water || 0, wt = T.water; $('wTxt').textContent = (w * 0.25).toFixed(2).replace(/0$/, '') + ' of ' + (wt * 0.25).toFixed(1) + ' L';
+    var cups = ''; for (var i = 0; i < Math.max(wt, w); i++) cups += '<i class="' + (i < w ? 'f' : '') + '"></i>'; $('water').innerHTML = cups;
+    $('recent').innerHTML = S.recent.length ? S.recent.slice(0, 12).map(function (r, i) { return '<button type="button" data-rec="' + i + '" title="Add ' + esc(r.n) + '">+ ' + esc(r.n) + ' · ' + r.k + '</button>'; }).join('') : '<span class="msg">Foods you add show up here for one-tap adding.</span>';
+  }
+  function addEntry(meal, e) {
+    day(cur).meals[meal].push(e);
+    S.recent = [e].concat(S.recent.filter(function (r) { return !(r.n === e.n && r.g === e.g); })).slice(0, 20);
+    save(); renderToday();
+  }
+  $('meals').addEventListener('click', function (ev) {
+    var b = ev.target.closest('button'); if (!b) return;
+    if (b.dataset.del) { var p = b.dataset.del.split(':'); day(cur).meals[p[0]].splice(+p[1], 1); save(); renderToday(); }
+    if (b.dataset.addto) { $('meal').value = b.dataset.addto; $('q').focus(); $('q').scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+  });
+  $('recent').addEventListener('click', function (ev) { var b = ev.target.closest('[data-rec]'); if (!b) return; var r = S.recent[+b.dataset.rec]; addEntry($('meal').value, JSON.parse(JSON.stringify(r))); });
+  $('wPlus').onclick = function () { day(cur).water = (day(cur).water || 0) + 1; save(); renderToday(); };
+  $('wMinus').onclick = function () { day(cur).water = Math.max(0, (day(cur).water || 0) - 1); save(); renderToday(); };
+  $('dPrev').onclick = function () { cur = shift(cur, -1); renderToday(); };
+  $('dNext').onclick = function () { cur = shift(cur, 1); renderToday(); };
+  $('dToday').onclick = function () { cur = iso(new Date()); renderToday(); };
+  // default meal by time of day
+  (function () { var h = new Date().getHours(); $('meal').value = h < 11 ? 'breakfast' : h < 16 ? 'lunch' : h < 21 ? 'dinner' : 'snacks'; })();
+
+  // ---- search and pick ----
+  function search(q, lim) {
+    q = q.trim().toLowerCase(); if (!q) return [];
+    var words = q.split(/\s+/);
+    return allFoods().map(function (f) { var n = f.n.toLowerCase(), sc = 0; for (var i = 0; i < words.length; i++) { var k = n.indexOf(words[i]); if (k < 0) return null; sc += k === 0 ? 3 : (n.charAt(k - 1) === ' ' || n.charAt(k - 1) === '(' ? 2 : 1); } return { f: f, sc: sc + (f.src !== 'db' ? 1 : 0) }; })
+      .filter(Boolean).sort(function (a, b) { return b.sc - a.sc || a.f.n.length - b.f.n.length; }).slice(0, lim || 25).map(function (x) { return x.f; });
+  }
+  function resLi(f, i) { var por = Math.round(f.k * f.g / 100); return '<li data-i="' + i + '"><span>' + esc(f.n) + (f.src === 'off' ? ' <small>(barcode)</small>' : f.src === 'custom' || f.src === 'recipe' ? ' <small>(mine)</small>' : '') + '</span><small>' + esc(f.por) + ' (' + f.g + ' g) · ' + por + ' kcal · per 100 g: ' + Math.round(f.k) + ' kcal, P ' + f.p + ' C ' + f.c + ' F ' + f.f + ' fibre ' + f.fb + '</small></li>'; }
+  var found = [], picked = null;
+  $('q').addEventListener('input', function () {
+    found = search($('q').value); picked = null; $('pick').hidden = true;
+    $('res').innerHTML = found.length ? found.map(resLi).join('') : ($('q').value.trim() ? '<li style="cursor:default"><small>Nothing found. Add it as a custom food, or try a simpler word.</small></li>' : '');
+  });
+  $('res').addEventListener('click', function (ev) { var li = ev.target.closest('[data-i]'); if (!li) return; showPick(found[+li.dataset.i]); });
+  function showPick(f) {
+    picked = f;
+    $('pick').innerHTML = '<b>' + esc(f.n) + '</b><div class="line"><input type="number" id="pkN" value="1" min="0" step="0.25" aria-label="Amount"><select id="pkU" class="inp" aria-label="Unit"><option value="por">× ' + esc(f.por) + ' (' + f.g + ' g)</option><option value="g">grams</option></select></div><div class="macro" id="pkOut"></div><div class="line"><button class="sm pri" type="button" id="pkAdd">Add to ' + $('meal').selectedOptions[0].textContent.toLowerCase() + '</button><button class="sm" type="button" id="pkX">Cancel</button></div>';
+    $('pick').hidden = false;
+    function upd() { var g = grams(); var e = scaled(f, g); $('pkOut').textContent = e.g + ' g · ' + e.k + ' kcal · P ' + e.p + ' C ' + e.c + ' F ' + e.f + ' fibre ' + e.fb; }
+    function grams() { var n = Math.max(0, +$('pkN').value || 0); return $('pkU').value === 'g' ? n : n * f.g; }
+    $('pkU').onchange = function () { $('pkN').value = $('pkU').value === 'g' ? f.g : 1; upd(); };
+    $('pkN').oninput = upd; upd();
+    $('pkAdd').onclick = function () { var g = grams(); if (!g) return; addEntry($('meal').value, scaled(f, g)); $('pick').hidden = true; $('q').value = ''; $('res').innerHTML = ''; };
+    $('pkX').onclick = function () { $('pick').hidden = true; };
+  }
+
+  // ---- barcode (Open Food Facts) ----
+  function lookup(code) {
+    code = String(code).replace(/\D/g, '');
+    if (code.length < 6) { $('bcMsg').textContent = 'That doesn\'t look like a barcode number.'; return; }
+    $('bcMsg').textContent = 'Looking up ' + code + '…';
+    fetch('https://world.openfoodfacts.org/api/v2/product/' + code + '.json?fields=product_name,brands,nutriments,serving_size,serving_quantity')
+      .then(function (r) { return r.json(); })
+      .then(function (js) {
+        var p = js && js.product, n = p && p.nutriments;
+        if (!js || js.status !== 1 || !p || !n || n['energy-kcal_100g'] == null && n['energy_100g'] == null) { $('bcMsg').textContent = 'Not found in Open Food Facts, or no nutrition data. You can add it as a custom food from the label.'; return; }
+        var kcal = n['energy-kcal_100g'] != null ? +n['energy-kcal_100g'] : +n['energy_100g'] / 4.184;
+        var sq = parseFloat(p.serving_quantity), f = { n: (p.product_name || 'Product ' + code) + (p.brands ? ' (' + String(p.brands).split(',')[0] + ')' : ''), por: p.serving_size ? '1 serving' : '100 g', g: sq > 0 ? Math.round(sq) : 100, k: Math.round(kcal), p: +(+n.proteins_100g || 0).toFixed(1), c: +(+n.carbohydrates_100g || 0).toFixed(1), f: +(+n.fat_100g || 0).toFixed(1), fb: +(+n.fiber_100g || 0).toFixed(1), src: 'off', code: code };
+        S.custom = [f].concat(S.custom.filter(function (c) { return c.code !== code; })); save(); renderFoods();
+        $('bcMsg').textContent = 'Found. Saved to My foods. Data from Open Food Facts, entered by volunteers, so check it against the label.';
+        found = [f]; showPick(f);
+      })
+      .catch(function () { $('bcMsg').textContent = 'Couldn\'t reach Open Food Facts. Check your connection, or add it as a custom food.'; });
+  }
+  $('bcGo').onclick = function () { lookup($('bc').value); };
+  $('bc').addEventListener('keydown', function (e) { if (e.key === 'Enter') lookup($('bc').value); });
+  var scanStream = null;
+  function stopScan() { if (scanStream) scanStream.getTracks().forEach(function (t) { t.stop(); }); scanStream = null; $('bcVid').hidden = true; $('bcScan').textContent = 'Scan'; }
+  $('bcScan').onclick = function () {
+    if (scanStream) { stopScan(); return; }
+    if (!('BarcodeDetector' in window)) { $('bcMsg').textContent = 'Your browser can\'t read barcodes from the camera (Safari and Firefox can\'t yet). Type the number under the bars instead.'; $('bc').focus(); return; }
+    var det; try { det = new window.BarcodeDetector({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e'] }); } catch (e) { $('bcMsg').textContent = 'Barcode reading isn\'t available here. Type the number instead.'; return; }
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }).then(function (s) {
+      scanStream = s; $('bcVid').srcObject = s; $('bcVid').hidden = false; $('bcVid').play(); $('bcScan').textContent = 'Stop'; $('bcMsg').textContent = 'Point the camera at the barcode.';
+      (function tick() { if (!scanStream) return; det.detect($('bcVid')).then(function (codes) { if (codes && codes.length) { var c = codes[0].rawValue; $('bc').value = c; stopScan(); lookup(c); } else setTimeout(tick, 250); }).catch(function () { setTimeout(tick, 400); }); })();
+    }).catch(function () { $('bcMsg').textContent = 'Camera not available. Type the barcode number instead.'; });
+  };
+
+  // ---- my foods and recipes ----
+  function renderFoods() {
+    $('myFoods').innerHTML = S.custom.length ? S.custom.map(function (c, i) { return '<li><span>' + esc(c.n) + '<small>' + esc(c.por) + ' (' + c.g + ' g) · ' + (c.src === 'recipe' ? 'recipe' : c.src === 'off' ? 'barcode ' + c.code : 'custom') + '</small></span><b>' + Math.round(c.k * c.g / 100) + '</b><button class="sm x" type="button" data-cdel="' + i + '" aria-label="Delete ' + esc(c.n) + '">×</button></li>'; }).join('') : '<li><span class="msg">None yet.</span></li>';
+  }
+  $('myFoods').addEventListener('click', function (ev) { var b = ev.target.closest('[data-cdel]'); if (!b) return; S.custom.splice(+b.dataset.cdel, 1); save(); renderFoods(); });
+  $('cfSave').onclick = function () {
+    var n = $('cfN').value.trim(), g = +$('cfG').value, k = +$('cfK').value;
+    if (!n || !(g > 0) || !(k >= 0) || $('cfK').value === '') { $('cfMsg').textContent = 'Add at least a name, a portion weight and the calories.'; return; }
+    var m = 100 / g, f = { n: n, por: $('cfP').value.trim() || '1 portion', g: Math.round(g), k: +(k * m).toFixed(1), p: +((+$('cfPr').value || 0) * m).toFixed(2), c: +((+$('cfC').value || 0) * m).toFixed(2), f: +((+$('cfF').value || 0) * m).toFixed(2), fb: +((+$('cfFb').value || 0) * m).toFixed(2), src: 'custom' };
+    S.custom.unshift(f); save(); renderFoods(); $('cfMsg').textContent = 'Saved. Search for it on the Today tab.';
+    ['cfN', 'cfP', 'cfK', 'cfPr', 'cfC', 'cfF', 'cfFb'].forEach(function (k2) { $(k2).value = ''; });
+  };
+  var recipe = [], rcFound = [];
+  $('rcQ').addEventListener('input', function () { rcFound = search($('rcQ').value, 10); $('rcRes').innerHTML = rcFound.map(resLi).join(''); });
+  $('rcRes').addEventListener('click', function (ev) { var li = ev.target.closest('[data-i]'); if (!li) return; recipe.push({ f: rcFound[+li.dataset.i], g: rcFound[+li.dataset.i].g }); $('rcQ').value = ''; $('rcRes').innerHTML = ''; renderRecipe(); });
+  function renderRecipe() {
+    $('rcList').innerHTML = recipe.map(function (r, i) { return '<li><span>' + esc(r.f.n) + '</span><input class="inp" type="number" min="0" value="' + r.g + '" data-rg="' + i + '" aria-label="Grams of ' + esc(r.f.n) + '" style="width:5.5em"><button class="sm x" type="button" data-rdel="' + i + '" aria-label="Remove">×</button></li>'; }).join('');
+    var tot = sum(recipe.map(function (r) { return scaled(r.f, r.g); })), sv = Math.max(1, +$('rcS').value || 1), g = recipe.reduce(function (s, r) { return s + r.g; }, 0);
+    $('rcTot').textContent = recipe.length ? 'Total ' + Math.round(tot.k) + ' kcal, ' + Math.round(g) + ' g. Per serving: ' + Math.round(tot.k / sv) + ' kcal · P ' + (tot.p / sv).toFixed(1) + ' C ' + (tot.c / sv).toFixed(1) + ' F ' + (tot.f / sv).toFixed(1) + ' fibre ' + (tot.fb / sv).toFixed(1) : 'Add ingredients with their weight in grams.';
+  }
+  $('rcList').addEventListener('input', function (ev) { var i = ev.target.dataset.rg; if (i == null) return; recipe[+i].g = Math.max(0, +ev.target.value || 0); renderRecipe(); var el = document.querySelector('[data-rg="' + i + '"]'); if (el) { el.focus(); var v = el.value; el.value = ''; el.value = v; } });
+  $('rcList').addEventListener('click', function (ev) { var b = ev.target.closest('[data-rdel]'); if (!b) return; recipe.splice(+b.dataset.rdel, 1); renderRecipe(); });
+  $('rcS').addEventListener('input', renderRecipe);
+  $('rcSave').onclick = function () {
+    var n = $('rcN').value.trim(), sv = Math.max(1, +$('rcS').value || 1), g = recipe.reduce(function (s, r) { return s + r.g; }, 0);
+    if (!n || !recipe.length || !g) { $('rcMsg').textContent = 'Give the recipe a name and at least one ingredient.'; return; }
+    var tot = sum(recipe.map(function (r) { return scaled(r.f, r.g); })), m = 100 / g;
+    S.custom.unshift({ n: n, por: '1 serving', g: Math.round(g / sv), k: +(tot.k * m).toFixed(1), p: +(tot.p * m).toFixed(2), c: +(tot.c * m).toFixed(2), f: +(tot.f * m).toFixed(2), fb: +(tot.fb * m).toFixed(2), src: 'recipe' });
+    save(); recipe = []; renderRecipe(); renderFoods(); $('rcN').value = ''; $('rcMsg').textContent = 'Saved as a food. One serving is ' + Math.round(g / sv) + ' g.';
+  };
+
+  // ---- progress ----
+  function trend(ws) { var sorted = ws.slice().sort(function (a, b) { return a.d < b.d ? -1 : 1; }), t = null; return sorted.map(function (w) { t = t == null ? w.kg : t + 0.1 * (w.kg - t); return { d: w.d, kg: w.kg, t: t }; }); }
+  function renderProgress() {
+    var T = targets(S.profile), days = [];
+    for (var i = 6; i >= 0; i--) { var ds = shift(iso(new Date()), -i); days.push({ ds: ds, t: dayTotal(ds) }); }
+    var logged = days.filter(function (d) { return d.t.k > 0; });
+    $('pAvg').textContent = logged.length ? Math.round(logged.reduce(function (s, d) { return s + d.t.k; }, 0) / logged.length) : '–';
+    var W = 360, H = 170, max = Math.max(T.kcal * 1.3, Math.max.apply(null, days.map(function (d) { return d.t.k; }))), bw = (W - 30) / 7, s = '';
+    var ty = H - 22 - (T.kcal / max) * (H - 40);
+    days.forEach(function (d, i) { var h = (d.t.k / max) * (H - 40), x = 26 + i * bw; s += '<rect x="' + (x + 4) + '" y="' + (H - 22 - h) + '" width="' + (bw - 8) + '" height="' + h + '" rx="4" fill="' + (d.t.k > T.kcal * 1.05 ? '#ff8a4c' : '#4fd3bd') + '"/><text x="' + (x + bw / 2) + '" y="' + (H - 6) + '" fill="#8b93ad" font-size="10" text-anchor="middle" font-family="JetBrains Mono, monospace">' + new Date(d.ds + 'T12:00').toLocaleDateString('en-GB', { weekday: 'short' }) + '</text>' + (d.t.k ? '<text x="' + (x + bw / 2) + '" y="' + (H - 26 - h) + '" fill="#cfd6ea" font-size="9" text-anchor="middle" font-family="JetBrains Mono, monospace">' + Math.round(d.t.k) + '</text>' : ''); });
+    s += '<line x1="22" x2="' + W + '" y1="' + ty + '" y2="' + ty + '" stroke="#ffc857" stroke-dasharray="4 3"/><text x="0" y="' + (ty + 3) + '" fill="#ffc857" font-size="9" font-family="JetBrains Mono, monospace">' + T.kcal + '</text>';
+    $('c7').innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Calories for the last 7 days">' + s + '</svg>';
+    var m = sum(logged.map(function (d) { return d.t; })), n = logged.length || 1;
+    $('m7').textContent = logged.length ? 'Daily average on ' + logged.length + ' logged day' + (logged.length > 1 ? 's' : '') + ': protein ' + Math.round(m.p / n) + ' g (target ' + T.p + '), carbs ' + Math.round(m.c / n) + ' g, fat ' + Math.round(m.f / n) + ' g, fibre ' + Math.round(m.fb / n) + ' g.' : 'Log some food to see your week.';
+    // weight
+    var tr = trend(S.weights);
+    if (tr.length) {
+      var last = tr[tr.length - 1]; $('pTrend').textContent = last.t.toFixed(1) + ' kg';
+      var wk = tr.filter(function (x) { return x.d >= shift(last.d, -14); });
+      if (wk.length >= 2) { var a = wk[0], b = wk[wk.length - 1], dd = (new Date(b.d) - new Date(a.d)) / 864e5; $('pRate').textContent = dd >= 6 ? ((b.t - a.t) / dd * 7 >= 0 ? '+' : '') + ((b.t - a.t) / dd * 7).toFixed(2) + ' kg' : '–'; } else $('pRate').textContent = '–';
+      var pts = tr.slice(-60), lo = Math.min.apply(null, pts.map(function (x) { return Math.min(x.kg, x.t); })) - 0.5, hi = Math.max.apply(null, pts.map(function (x) { return Math.max(x.kg, x.t); })) + 0.5;
+      var d0 = new Date(pts[0].d), span = Math.max(1, (new Date(pts[pts.length - 1].d) - d0) / 864e5);
+      function X(x) { return 30 + ((new Date(x.d) - d0) / 864e5) / span * (W - 40); } function Y(v) { return 10 + (hi - v) / (hi - lo) * (H - 30); }
+      var g = '<text x="0" y="14" fill="#8b93ad" font-size="9" font-family="JetBrains Mono, monospace">' + hi.toFixed(1) + '</text><text x="0" y="' + (H - 18) + '" fill="#8b93ad" font-size="9" font-family="JetBrains Mono, monospace">' + lo.toFixed(1) + '</text>';
+      pts.forEach(function (x) { g += '<circle cx="' + X(x) + '" cy="' + Y(x.kg) + '" r="2.5" fill="#8b93ad"/>'; });
+      g += '<polyline fill="none" stroke="#ffc857" stroke-width="2" points="' + pts.map(function (x) { return X(x).toFixed(1) + ',' + Y(x.t).toFixed(1); }).join(' ') + '"/>';
+      $('cw').innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Weight trend">' + g + '</svg>';
+    } else { $('pTrend').textContent = '–'; $('pRate').textContent = '–'; $('cw').innerHTML = '<p class="msg">No weights logged yet.</p>'; }
+    $('wList').innerHTML = S.weights.slice().sort(function (a, b) { return a.d < b.d ? 1 : -1; }).slice(0, 30).map(function (w) { return '<li><span>' + w.d + '</span><span>' + w.kg.toFixed(1) + ' kg <button class="sm x" type="button" data-wdel="' + w.d + '" aria-label="Delete">×</button></span></li>'; }).join('');
+  }
+  $('wD').value = iso(new Date());
+  $('wAdd').onclick = function () {
+    var d = $('wD').value, kg = +$('wKg').value; if (!d || !(kg > 25 && kg < 300)) return;
+    S.weights = S.weights.filter(function (w) { return w.d !== d; }); S.weights.push({ d: d, kg: kg });
+    if (d >= iso(new Date(Date.now() - 3 * 864e5))) { S.profile.w = kg; fillProfile(); }
+    save(); $('wKg').value = ''; renderProgress();
+  };
+  $('wList').addEventListener('click', function (ev) { var b = ev.target.closest('[data-wdel]'); if (!b) return; S.weights = S.weights.filter(function (w) { return w.d !== b.dataset.wdel; }); save(); renderProgress(); });
+
+  // ---- profile ----
+  var PF = { pSex: 'sex', pAge: 'age', pH: 'h', pW: 'w', pAct: 'act', pGoal: 'goal', pRateSel: 'rate' };
+  function fillProfile() { Object.keys(PF).forEach(function (id) { $(id).value = S.profile[PF[id]]; }); renderTargets(); }
+  function renderTargets() {
+    var T = targets(S.profile);
+    $('tBmr').textContent = Math.round(T.bmr); $('tTdee').textContent = Math.round(T.tdee); $('tKcal').textContent = T.kcal;
+    $('tMac').textContent = 'Protein ' + T.p + ' g (' + T.protPerKg + ' g per kg) · carbs ' + T.c + ' g · fat ' + T.f + ' g · fibre ' + T.fb + ' g · water about ' + (T.water * 0.25).toFixed(1) + ' L';
+    $('tNote').textContent = T.note; $('pRateSel').disabled = S.profile.goal === 'keep';
+  }
+  Object.keys(PF).forEach(function (id) { $(id).addEventListener('change', function () { var v = $(id).value; S.profile[PF[id]] = (id === 'pSex' || id === 'pGoal') ? v : (+v || S.profile[PF[id]]); save(); renderTargets(); }); });
+  $('exp').onclick = function () {
+    var blob = new Blob([JSON.stringify({ app: 'calorie-counter', version: 1, exported: new Date().toISOString(), data: S }, null, 1)], { type: 'application/json' });
+    var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'calories-' + iso(new Date()) + '.json'; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    $('dMsg').textContent = 'Exported.';
+  };
+  $('imp').onchange = function () {
+    var f = $('imp').files[0]; if (!f) return;
+    var r = new FileReader();
+    r.onload = function () {
+      try { var js = JSON.parse(r.result), d = js && js.data ? js.data : js; if (!d || typeof d !== 'object' || !d.days || !d.profile) throw 0; S = d; load2(); save(); fillProfile(); renderAll(); $('dMsg').textContent = 'Imported ' + Object.keys(S.days).length + ' days.'; }
+      catch (e) { $('dMsg').textContent = 'That file isn\'t a calorie counter export.'; }
+      $('imp').value = '';
+    };
+    r.readAsText(f);
+  };
+  function load2() { var b = blank(); Object.keys(b).forEach(function (k) { if (S[k] == null) S[k] = b[k]; }); }
+  $('wipe').onclick = function () { if (!confirm('Delete your whole log, foods and weights from this browser?')) return; S = blank(); save(); fillProfile(); renderAll(); $('dMsg').textContent = 'Deleted.'; };
+
+  // ---- tabs ----
+  function renderAll() { renderToday(); renderFoods(); renderRecipe(); renderProgress(); }
+  $('tabs').addEventListener('click', function (ev) {
+    var b = ev.target.closest('[data-tab]'); if (!b) return;
+    [].forEach.call($('tabs').children, function (x) { x.setAttribute('aria-pressed', x === b); });
+    ['today', 'foods', 'progress', 'profile'].forEach(function (t) { $('pg-' + t).hidden = t !== b.dataset.tab; });
+    if (b.dataset.tab === 'progress') renderProgress(); if (b.dataset.tab === 'today') renderToday();
+    try { localStorage.setItem('calorieCounter.tab', b.dataset.tab); } catch (e) {}
+  });
+  load(); fillProfile(); renderAll();
+  try { var tb = localStorage.getItem('calorieCounter.tab'); if (tb && tb !== 'today') { var bt = document.querySelector('[data-tab="' + tb + '"]'); if (bt) bt.click(); } } catch (e) {}
+  window.Calories = { bmr: bmr, targets: targets, count: DB.length, trend: trend };
+})();
+</script>
+</body>
+</html>

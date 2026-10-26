@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rental View Checker · Mariam's Lab</title>
+<meta name="description" content="Before you sign a lease, check what a flat on a given floor can actually see: which directions are blocked by other towers, where the sea or water shows, and whether you'll get sunsets.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/rental-view/">
+<meta property="og:title" content="Rental View Checker · Mariam's Lab"><meta property="og:description" content="Sea view or wall view? Check what a flat on any floor can see before you sign."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="stylesheet" href="../assets/vendor/leaflet/leaflet.css">
+<style>
+.leaflet-container { font-family: 'Instrument Sans', sans-serif; background: #0b1020; }
+#map { height: min(60vh, 540px); min-height: 340px; border-radius: var(--radius); border: 1px solid var(--line); }
+#map .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(.85) contrast(.9) saturate(.4); }
+.ctl { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: 0.9rem; }
+.row input, .row select { font: inherit; color: var(--ink); background: rgba(7,10,24,.6); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; }
+.row input[type=number] { width: 5.5em; font-family: var(--font-mono); }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 8px 0 0; }
+.polar { display: grid; place-items: center; }
+.polar svg { width: 100%; max-width: 420px; height: auto; }
+.legend { display: flex; gap: 10px; flex-wrap: wrap; font-size: 0.75rem; color: var(--muted); }
+.legend span::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-inline-end: 4px; vertical-align: -1px; background: var(--c); }
+.dirs { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.dirs li { padding: 8px 12px; border: 1px solid var(--line); border-left: 4px solid var(--c); border-radius: 10px; font-size: 0.88rem; display: grid; grid-template-columns: 3.4em minmax(0, 1fr); gap: 8px; }
+.dirs b { font-family: var(--font-mono); font-size: 0.82rem; font-weight: 500; }
+.dirs small { color: var(--muted); }
+.warn { padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(255,200,87,.4); background: rgba(255,200,87,.08); font-size: 0.86rem; }
+.stats span { font-size: 0.76rem; color: var(--muted); }
+.search { display: flex; gap: 6px; }
+.search input { flex: 1; min-width: 0; font: inherit; color: var(--ink); background: rgba(7,10,24,.7); border: 1px solid var(--line); border-radius: 999px; padding: 7px 14px; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Home · Maps · UAE</span>
+    <h1 style="font-size:var(--step-3)">Rental view checker.</h1>
+    <p>The listing says "sea view". Before you sign, tap the building on the map and pick the floor. This looks out in every direction from that height, using the footprints and heights of the buildings around it. It shows which way you'll face a wall, where you'll see the sea or water, and whether the sunset is in view.</p>
+  </div>
+  <p class="warn"><b>Rough guide only.</b> OpenStreetMap height data is incomplete. Many buildings have no height or floor count, so they get a default of 4 floors, and new towers may be missing entirely. Visit at the time of day you care about before you commit.</p>
+  <div class="game" style="margin-top:14px">
+    <div class="panel" style="gap:10px">
+      <div class="ctl"><button class="sm" type="button" data-go="25.0805,55.1403">Dubai Marina</button><button class="sm" type="button" data-go="25.1972,55.2744">Downtown</button><button class="sm" type="button" data-go="24.4950,54.6090">Yas</button><button class="sm" type="button" data-go="24.4990,54.4040">Al Reem</button><button class="sm" type="button" data-go="25.3290,55.3780">Al Majaz</button></div>
+      <div id="map" role="application" aria-label="Map. Tap a building."></div>
+      <p class="msg" id="msg" role="status">Tap the building you're thinking of renting in.</p>
+    </div>
+    <div class="panel" style="gap:10px">
+      <label class="row"><span>Floor (0 is ground)</span><input type="number" id="floor" min="0" max="160" value="10"></label>
+      <label class="row"><span>Height per floor (m)</span><input type="number" id="fh" min="2.5" max="6" step="0.1" value="3.2"></label>
+      <label class="row"><span>The flat's windows face</span><select id="face"><option value="">All sides</option><option value="0">North</option><option value="45">Northeast</option><option value="90">East</option><option value="135">Southeast</option><option value="180">South</option><option value="225">Southwest</option><option value="270">West</option><option value="315">Northwest</option></select></label>
+      <div class="stats">
+        <div><b id="sOpen">–</b><span>of the view open</span></div>
+        <div><b id="sSea">–</b><span>sea or water</span></div>
+        <div><b id="sSun">–</b><span>sunset arc open</span></div>
+      </div>
+      <div class="polar"><svg id="polar" viewBox="-30 0 380 320" role="img" aria-label="Polar view diagram"></svg></div>
+      <p class="msg" style="margin:0;text-align:center">You are at the centre. A red wedge's length is the distance to the first taller building; the outer ring is 700 m.</p>
+      <div class="legend"><span style="--c:#ff4f6d">Blocked</span><span style="--c:#4fd3bd">Open (no taller building within 700 m)</span><span style="--c:#4f9dff">Sea</span><span style="--c:#8fd0ff">Lake, creek or marina</span><span style="--c:#ff8a4c">Sunset range over the year</span></div>
+    </div>
+  </div>
+  <div class="game" style="margin-top:18px">
+    <div class="panel" style="gap:10px">
+      <span class="label">What you'd see, direction by direction</span>
+      <ul class="dirs" id="dirs"><li style="--c:var(--line)"><span></span><span class="msg" style="margin:0">Pick a building first.</span></li></ul>
+    </div>
+    <div class="panel" style="gap:10px">
+      <span class="label">Sunset from this flat</span>
+      <p id="sunTxt" style="margin:0">–</p>
+      <p class="fact" style="margin:0">From the chosen height, a line is traced every 2° around the compass, 180 lines in all. Each line checks every building edge it crosses. A building blocks the view if its roof is above your eye level. Sea counts as visible if the line reaches the coastline before anything taller than you. In the UAE the sun sets in the west-southwest in December (around 243°) and the west-northwest in June (around 297°).</p>
+      <p class="fact" style="margin:0">Building data comes from OpenStreetMap through the Overpass API. Heights use the height tag, then floor count times your floor height, then a 4-floor guess. Only buildings within 700 m are checked. Beyond that, a "sea" result means the coast is in that direction and nothing nearby blocks it, not that it's guaranteed.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script src="../assets/vendor/leaflet/leaflet.js"></script>
+<script src="../assets/sky.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var R = Math.PI / 180, RANGE = 700, STEP = 2, DEFAULT_LEVELS = 4;
+  var ENDPOINTS = ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter', 'https://overpass.private.coffee/api/interpreter'];
+  var map = L.map('map', { preferCanvas: true }).setView([25.0805, 55.1403], 16);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap contributors' }).addTo(map);
+  var bLayer = L.layerGroup().addTo(map), rLayer = L.layerGroup().addTo(map), here = null, data = null, rays = null, cache = {}, loading = false;
+
+  // ---- local flat projection (metres east/north of the chosen point) ----
+  var O = [0, 0], KX = 1, KY = 110540;
+  function setOrigin(lat, lon) { O = [lat, lon]; KX = 111320 * Math.cos(lat * R); }
+  function P(lat, lon) { return [(lon - O[1]) * KX, (lat - O[0]) * KY]; }
+  function U(x, y) { return [y / KY + O[0], x / KX + O[1]]; }
+
+  // ---- Overpass ----
+  function query(lat, lon) {
+    return '[out:json][timeout:25];(way["building"](around:' + RANGE + ',' + lat + ',' + lon + ');relation["building"](around:' + RANGE + ',' + lat + ',' + lon + ');' +
+      'way["natural"="coastline"](around:5000,' + lat + ',' + lon + ');way["natural"="water"](around:3000,' + lat + ',' + lon + ');relation["natural"="water"](around:3000,' + lat + ',' + lon + ');way["waterway"="riverbank"](around:3000,' + lat + ',' + lon + '););out geom;';
+  }
+  function fetchOne(url, q) {
+    var ctl = window.AbortController ? new AbortController() : null, t = setTimeout(function () { if (ctl) ctl.abort(); }, 20000);
+    return fetch(url, { method: 'POST', body: 'data=' + encodeURIComponent(q), headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, signal: ctl ? ctl.signal : undefined })
+      .then(function (r) { clearTimeout(t); if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }, function (e) { clearTimeout(t); throw e; });
+  }
+  function fetchAny(q) {
+    var i = 0;
+    function next(err) { if (i >= ENDPOINTS.length) return Promise.reject(err || new Error('no endpoint')); var u = ENDPOINTS[i++]; $('msg').textContent = 'Fetching buildings from ' + u.split('/')[2] + '…'; return fetchOne(u, q).catch(next); }
+    return next();
+  }
+
+  // ---- parse ----
+  function num(v) { var n = parseFloat(String(v || '').replace(',', '.')); return isFinite(n) && n > 0 ? n : null; }
+  function heightOf(tags, fh) {
+    var h = num(tags.height) || num(tags['building:height']);
+    if (h) return { h: h, src: 'height tag' };
+    var lv = num(tags['building:levels']);
+    if (lv) return { h: lv * fh + (num(tags['roof:levels']) || 0) * fh, src: lv + ' floors tagged' };
+    return { h: DEFAULT_LEVELS * fh, src: 'no height in OSM, guessed ' + DEFAULT_LEVELS + ' floors', guess: true };
+  }
+  function ringsOf(el) {
+    if (el.type === 'way' && el.geometry) return [el.geometry];
+    if (el.type === 'relation' && el.members) return el.members.filter(function (m) { return m.role !== 'inner' && m.geometry; }).map(function (m) { return m.geometry; });
+    return [];
+  }
+  function parse(js) {
+    var b = [], coast = [], water = [];
+    (js.elements || []).forEach(function (el) {
+      var t = el.tags || {};
+      ringsOf(el).forEach(function (g) {
+        var pts = g.map(function (p) { return P(p.lat, p.lon); });
+        if (pts.length < 2) return;
+        if (t.natural === 'coastline') coast.push(pts);
+        else if (t.natural === 'water' || t.waterway === 'riverbank') water.push({ pts: pts, name: t.name || (t.water === 'lagoon' || t.water === 'canal' ? t.water : 'water') });
+        else if (t.building && pts.length > 2) b.push({ pts: pts, tags: t, id: el.id });
+      });
+    });
+    return { b: b, coast: coast, water: water };
+  }
+
+  // ---- geometry ----
+  function inPoly(x, y, pts) { var c = false; for (var i = 0, j = pts.length - 1; i < pts.length; j = i++) { var xi = pts[i][0], yi = pts[i][1], xj = pts[j][0], yj = pts[j][1]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c; } return c; }
+  // ray from origin along (dx,dy) against segment a-b: returns distance or -1
+  function hitSeg(dx, dy, a, b) {
+    var ex = b[0] - a[0], ey = b[1] - a[1], den = dx * ey - dy * ex;
+    if (Math.abs(den) < 1e-12) return -1;
+    var t = (a[0] * ey - a[1] * ex) / den, u = (a[0] * dy - a[1] * dx) / den;
+    return t > 0.5 && u >= 0 && u <= 1 ? t : -1;
+  }
+  function cast() {
+    if (!data) return;
+    var fh = Math.max(2.5, Math.min(6, +$('fh').value || 3.2)), fl = Math.max(0, +$('floor').value || 0), eye = fl * fh + 1.5;
+    var own = data.b.filter(function (b) { return inPoly(0, 0, b.pts); })[0] || null;
+    data.b.forEach(function (b) { var hh = heightOf(b.tags, fh); b.h = hh.h; b.src = hh.src; b.guess = !!hh.guess; });
+    var out = [];
+    for (var a = 0; a < 360; a += STEP) {
+      var dx = Math.sin(a * R), dy = Math.cos(a * R), hits = [];
+      data.b.forEach(function (b) {
+        if (b === own) return;
+        var best = -1, p = b.pts;
+        for (var i = 0; i < p.length - 1; i++) { var t = hitSeg(dx, dy, p[i], p[i + 1]); if (t > 0 && (best < 0 || t < best)) best = t; }
+        if (best > 0 && best <= RANGE) hits.push({ t: best, b: b });
+      });
+      hits.sort(function (x, y) { return x.t - y.t; });
+      var block = null, maxAng = -90;
+      for (var k = 0; k < hits.length; k++) { var ang = Math.atan2(hits[k].b.h - eye, hits[k].t) / R; if (hits[k].b.h > eye) { block = { t: hits[k].t, b: hits[k].b, ang: ang }; break; } if (ang > maxAng) maxAng = ang; }
+      // sea: first coastline crossing going from land to sea (OSM coastlines keep land on the left)
+      var sea = null;
+      data.coast.forEach(function (c) { for (var i = 0; i < c.length - 1; i++) { var t = hitSeg(dx, dy, c[i], c[i + 1]); if (t > 0) { var ex = c[i + 1][0] - c[i][0], ey = c[i + 1][1] - c[i][1]; if (dx * ey - dy * ex > 0 && (!sea || t < sea)) sea = t; } } });
+      var wat = null, watName = '';
+      data.water.forEach(function (w) { if (inPoly(0, 0, w.pts)) return; for (var i = 0; i < w.pts.length - 1; i++) { var t = hitSeg(dx, dy, w.pts[i], w.pts[i + 1]); if (t > 0 && (!wat || t < wat)) { wat = t; watName = w.name; } } });
+      var limit = block ? block.t : Infinity;
+      function surfaceSeen(t) { if (t >= limit) return false; var a2 = Math.atan2(-eye, t) / R; for (var k = 0; k < hits.length && hits[k].t < t; k++) { if (Math.atan2(hits[k].b.h - eye, hits[k].t) / R > a2) return false; } return true; }
+      var seaVis = sea != null && (sea < limit) && (sea <= RANGE ? surfaceSeen(sea) : true);
+      var watVis = wat != null && wat < limit && surfaceSeen(wat);
+      out.push({ az: a, block: block, sea: seaVis ? sea : null, seaFar: seaVis && sea > RANGE, water: watVis ? wat : null, waterName: watName });
+    }
+    rays = { list: out, eye: eye, own: own, fh: fh };
+    show();
+  }
+
+  // ---- sunset azimuths through the year (same sun maths as Sun Path) ----
+  function sunAt(ms, lat, lon) { var d = Sky.dayNum(ms), s = Sky.sun(d), e = Sky.eclToEq(s, d); return Sky.toHoriz(e.ra, e.dec, Sky.lst(ms, lon), lat); }
+  function sunsetAz(y, m, d, lat, lon) {
+    var t0 = Date.UTC(y, m, d, 12) - lon / 15 * 3600e3, prev = sunAt(t0, lat, lon);
+    for (var k = 1; k <= 480; k += 2) { var t = t0 + k * 60000, s = sunAt(t, lat, lon); if (s.alt < -0.833 && prev.alt >= -0.833) return s.az; prev = s; }
+    return null;
+  }
+  var sunset = null;
+  function sunsets() {
+    var y = new Date().getUTCFullYear(), list = [];
+    for (var m = 0; m < 12; m++) list.push({ m: m, az: sunsetAz(y, m, 15, O[0], O[1]) });
+    var all = [];
+    for (var d = 0; d < 365; d += 5) { var dt = new Date(Date.UTC(y, 0, 1 + d)); var az = sunsetAz(y, dt.getUTCMonth(), dt.getUTCDate(), O[0], O[1]); if (az) all.push(az); }
+    sunset = { months: list, min: Math.min.apply(null, all), max: Math.max.apply(null, all) };
+  }
+
+  // ---- show ----
+  var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  function angDiff(a, b) { return Math.abs(((a - b + 540) % 360) - 180); }
+  function inFace(az) { var f = $('face').value; return f === '' || angDiff(az, +f) <= 60; }
+  function kind(r) { return r.sea != null ? 'sea' : r.water != null ? 'water' : r.block ? 'block' : 'open'; }
+  var KC = { sea: '#4f9dff', water: '#8fd0ff', block: '#ff4f6d', open: '#4fd3bd' };
+  function compass16(a) { return ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'][Math.round(a / 22.5) % 16]; }
+  function bname(b) { var t = b.tags; return t.name || t['addr:housename'] || (t.building !== 'yes' ? t.building.replace(/_/g, ' ') : 'a building'); }
+  function show() {
+    rLayer.clearLayers();
+    var L0 = rays.list, vis = L0.filter(function (r) { return inFace(r.az); });
+    var open = vis.filter(function (r) { return kind(r) !== 'block'; }).length, seaN = vis.filter(function (r) { return r.sea != null || r.water != null; }).length;
+    $('sOpen').textContent = Math.round(open / vis.length * 100) + '%';
+    $('sSea').textContent = seaN ? (seaN * STEP) + '°' : 'None';
+    // rays on the map
+    L0.forEach(function (r) {
+      var k = kind(r), d = k === 'block' ? r.block.t : k === 'sea' ? Math.min(r.sea + 150, 1500) : k === 'water' ? r.water + 60 : RANGE;
+      var end = U(Math.sin(r.az * R) * d, Math.cos(r.az * R) * d);
+      L.polyline([here, end], { color: KC[k], weight: 1.5, opacity: inFace(r.az) ? 0.75 : 0.15, interactive: false }).addTo(rLayer);
+    });
+    // sunset
+    var sunOpen = 0, sunN = 0, monthsOpen = [];
+    L0.forEach(function (r) { if (r.az >= sunset.min - 1 && r.az <= sunset.max + 1) { sunN++; if (kind(r) !== 'block' && inFace(r.az)) sunOpen++; } });
+    sunset.months.forEach(function (m) { if (m.az == null) return; var r = L0[Math.round(m.az / STEP) % L0.length]; if (kind(r) !== 'block' && inFace(r.az)) monthsOpen.push(MON[m.m]); });
+    $('sSun').textContent = sunN ? Math.round(sunOpen / sunN * 100) + '%' : '–';
+    $('sunTxt').innerHTML = 'Here the sun sets between <b>' + sunset.min.toFixed(0) + '°</b> (December) and <b>' + sunset.max.toFixed(0) + '°</b> (June). ' +
+      (monthsOpen.length === 12 ? 'From this floor the sunset is in view all year.' : monthsOpen.length ? 'From this floor you\'d likely see it set in <b>' + monthsOpen.join(', ') + '</b>.' : 'From this floor, buildings or the way the windows face hide the sunset all year.') +
+      ' A building lower than you can still hide the last few minutes near the horizon.';
+    drawPolar();
+    // direction summary: merge consecutive rays of the same kind
+    var groups = [], cur = null;
+    L0.forEach(function (r) { var k = inFace(r.az) ? kind(r) : 'off', key = k + (k === 'block' ? r.block.b.id : ''); if (cur && cur.key === key) { cur.n++; cur.rays.push(r); } else { cur = { key: key, k: k, a: r.az, n: 1, rays: [r] }; groups.push(cur); } });
+    if (groups.length > 1 && groups[0].key === groups[groups.length - 1].key) { var g = groups.pop(); g.n += groups[0].n; g.rays = g.rays.concat(groups[0].rays); groups[0] = g; }
+    groups = groups.filter(function (g) { return g.k !== 'off' && g.n * STEP >= 6; });
+    $('dirs').innerHTML = groups.length ? groups.map(function (g) {
+      var mid = (g.a + (g.n - 1) * STEP / 2) % 360, r = g.rays[0], txt;
+      if (g.k === 'block') txt = 'Blocked by ' + bname(r.block.b) + ', ' + Math.round(r.block.t) + ' m away, about ' + Math.round(r.block.b.h) + ' m tall <small>(' + r.block.b.src + ')</small>';
+      else if (g.k === 'sea') { var dmin = Math.min.apply(null, g.rays.map(function (x) { return x.sea; })); txt = 'Sea, coast about ' + (dmin > 1000 ? (dmin / 1000).toFixed(1) + ' km' : Math.round(dmin) + ' m') + ' away' + (g.rays.some(function (x) { return x.seaFar; }) ? ' <small>(beyond the buildings checked, so less certain)</small>' : ''); }
+      else if (g.k === 'water') txt = 'Water (' + (r.waterName || 'water') + '), ' + Math.round(r.water) + ' m away';
+      else txt = 'Open, nothing taller than you within ' + RANGE + ' m <small>(you look over lower roofs)</small>';
+      return '<li style="--c:' + KC[g.k] + '"><b>' + compass16(mid) + '</b><span>' + txt + ' <small>· ' + (g.n * STEP) + '° wide, ' + g.a + '° to ' + ((g.a + (g.n - 1) * STEP) % 360) + '°</small></span></li>';
+    }).join('') : '<li style="--c:var(--line)"><span></span><span>No clear directions to report.</span></li>';
+    var guessed = data.b.filter(function (b) { return b.guess; }).length;
+    $('msg').textContent = data.b.length + ' buildings checked, ' + guessed + ' with no height in OSM (guessed). Your eye is about ' + rays.eye.toFixed(0) + ' m up' + (rays.own ? ' in ' + bname(rays.own) + (rays.own.tags['building:levels'] ? ', which has ' + rays.own.tags['building:levels'] + ' floors tagged' : '') : '') + '.';
+  }
+  function drawPolar() {
+    var cx = 160, cy = 160, RR = 120, s = '';
+    function pt(az, r) { return [cx + r * Math.sin(az * R), cy - r * Math.cos(az * R)]; }
+    function wedge(a0, a1, r0, r1) { var p1 = pt(a0, r0), p2 = pt(a0, r1), p3 = pt(a1, r1), p4 = pt(a1, r0); return 'M' + p1 + 'L' + p2 + 'A' + r1 + ' ' + r1 + ' 0 0 1 ' + p3 + 'L' + p4 + (r0 ? 'A' + r0 + ' ' + r0 + ' 0 0 0 ' + p1 : '') + 'Z'; }
+    s += '<circle cx="160" cy="160" r="' + RR + '" fill="rgba(255,255,255,.03)" stroke="rgba(255,255,255,.12)"/>';
+    [0.25, 0.5, 0.75].forEach(function (f) { s += '<circle cx="160" cy="160" r="' + (RR * Math.sqrt(f)) + '" fill="none" stroke="rgba(255,255,255,.07)"/>'; });
+    rays.list.forEach(function (r) {
+      var k = kind(r), d = k === 'block' ? r.block.t : RANGE, rr = RR * Math.sqrt(Math.min(d, RANGE) / RANGE);
+      s += '<path d="' + wedge(r.az - STEP / 2, r.az + STEP / 2, 0, Math.max(6, rr)) + '" fill="' + KC[k] + '" opacity="' + (inFace(r.az) ? 0.85 : 0.18) + '"/>';
+    });
+    // sunset arc
+    s += '<path d="' + wedge(sunset.min, sunset.max, RR + 6, RR + 14) + '" fill="#ff8a4c"/>';
+    var sp = pt((sunset.min + sunset.max) / 2, RR + 34); s += '<text x="' + sp[0] + '" y="' + (sp[1] + 4) + '" fill="#ff8a4c" font-size="11" text-anchor="middle" font-family="JetBrains Mono, monospace">sunset</text>';
+    [['N', 0], ['E', 90], ['S', 180], ['W', 270]].forEach(function (c) { var p = pt(c[1], RR + 24); if (c[0] !== 'W' || Math.abs(270 - (sunset.min + sunset.max) / 2) > 15) s += '<text x="' + p[0] + '" y="' + (p[1] + 4) + '" fill="#cfd6ea" font-size="12" text-anchor="middle" font-family="JetBrains Mono, monospace">' + c[0] + '</text>'; });
+    s += '<circle cx="160" cy="160" r="4" fill="#ffc857"/>';
+    $('polar').innerHTML = s;
+  }
+  function drawBuildings() {
+    bLayer.clearLayers();
+    data.b.forEach(function (b) {
+      var hh = heightOf(b.tags, +$('fh').value || 3.2);
+      L.polygon(b.pts.map(function (p) { return U(p[0], p[1]); }), { color: hh.guess ? '#8b93ad' : '#ffc857', weight: 0.6, fillOpacity: Math.min(0.55, 0.08 + hh.h / 300), interactive: false }).addTo(bLayer);
+    });
+  }
+
+  // ---- flow ----
+  function pick(lat, lon) {
+    if (loading) return;
+    here = [lat, lon]; setOrigin(lat, lon); sunsets();
+    var key = lat.toFixed(4) + ',' + lon.toFixed(4);
+    rLayer.clearLayers(); bLayer.clearLayers(); L.circleMarker(here, { radius: 6, color: '#ffc857', fillOpacity: 1 }).addTo(rLayer);
+    function go(js) { data = parse(js); cache[key] = js; drawBuildings(); cast(); }
+    if (cache[key]) return go(cache[key]);
+    loading = true;
+    fetchAny(query(lat.toFixed(5), lon.toFixed(5))).then(function (js) { loading = false; go(js); }).catch(function () { loading = false; $('msg').textContent = 'Couldn\'t reach any OpenStreetMap server just now (they are free and sometimes busy). Try again in a minute.'; });
+  }
+  map.on('click', function (e) { pick(e.latlng.lat, e.latlng.lng); });
+  [].forEach.call(document.querySelectorAll('[data-go]'), function (b) { b.onclick = function () { var p = b.dataset.go.split(','); map.setView([+p[0], +p[1]], 16); $('msg').textContent = 'Now tap a building.'; }; });
+  ['floor', 'fh'].forEach(function (k) { $(k).addEventListener('change', function () { if (data) { drawBuildings(); cast(); } save(); }); });
+  $('face').addEventListener('change', function () { if (rays) show(); save(); });
+  function save() { try { localStorage.setItem('rentalView', JSON.stringify({ floor: $('floor').value, fh: $('fh').value, face: $('face').value })); } catch (e) {} }
+  try { var st = JSON.parse(localStorage.getItem('rentalView') || 'null'); if (st) { $('floor').value = st.floor; $('fh').value = st.fh; $('face').value = st.face; } } catch (e) {}
+  window.RentalView = { pick: pick, sunsetAz: sunsetAz, rays: function () { return rays; } };
+})();
+</script>
+</body>
+</html>

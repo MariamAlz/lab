@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ramadan Sleep Planner · Mariam's Lab</title>
+<meta name="description" content="Plan your sleep in Ramadan around suhoor, Fajr, work, iftar and Taraweeh, using 90-minute sleep cycles split into a core block and naps.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/ramadan-sleep/">
+<meta property="og:title" content="Ramadan Sleep Planner · Mariam's Lab"><meta property="og:description" content="Fit full sleep cycles around suhoor, Fajr, work, iftar and Taraweeh."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.where { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: 0.9rem; }
+.row input, .row select { font: inherit; color: var(--ink); background: rgba(7,10,24,.6); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; max-width: 12em; }
+.row input[type=number] { width: 5.5em; font-family: var(--font-mono); }
+.row input[type=range] { width: 100%; accent-color: var(--accent); }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin-top: 8px; }
+.ptimes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.ptimes div { padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); display: grid; gap: 2px; }
+.ptimes span { font-size: 0.76rem; color: var(--muted); }
+.ptimes b { font-family: var(--font-mono); font-size: 1rem; font-weight: 500; }
+.ringwrap { display: grid; place-items: center; }
+.ringwrap svg { width: 100%; max-width: 420px; height: auto; }
+.plan { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.plan li { display: grid; grid-template-columns: 4.6em minmax(0, 1fr); gap: 10px; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--line); font-size: 0.9rem; align-items: baseline; }
+.plan li b { font-family: var(--font-mono); font-size: 0.82rem; font-weight: 500; }
+.plan li.sl { border-color: rgba(79,211,189,.5); background: rgba(79,211,189,.08); }
+.plan small { color: var(--muted); }
+.legend { display: flex; gap: 10px; flex-wrap: wrap; font-size: 0.75rem; color: var(--muted); }
+.legend span::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-inline-end: 4px; vertical-align: -1px; background: var(--c); }
+.tips { margin: 0; padding-inline-start: 18px; display: grid; gap: 6px; font-size: 0.9rem; }
+.ar { font-family: 'IBM Plex Sans Arabic', sans-serif; }
+.stats span { font-size: 0.76rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Ramadan · Sleep · UAE</span>
+    <h1 style="font-size:var(--step-3)">Ramadan sleep planner.</h1>
+    <p>In Ramadan, sleep gets cut in two by suhoor and Fajr, and the evening fills up with iftar and Taraweeh. Waking in the middle of a sleep cycle is what leaves you groggy. This fits whole 90-minute cycles around your prayer times, work and commute, as one core block plus naps.</p>
+  </div>
+  <div class="where" id="where"><button class="sm" type="button" id="me">📍 Use my location</button></div>
+  <p class="msg" id="rinfo" role="status"></p>
+  <div class="game" style="margin-top:12px">
+    <div class="panel" style="gap:10px">
+      <label class="row"><span>Day of Ramadan <b id="dnum" style="font-family:var(--font-mono)"></b></span><span id="dlab" class="msg" style="margin:0"></span></label>
+      <input type="range" id="day" min="1" max="30" value="1" aria-label="Day of Ramadan" style="width:100%;accent-color:var(--accent)">
+      <div class="ptimes" id="pt"></div>
+      <label class="row"><span>Calculation method</span><select id="meth"><option value="uae">UAE, 18.2°</option><option value="uq">Umm al-Qura</option></select></label>
+      <span class="label" style="margin-top:6px">Your day</span>
+      <label class="row"><span>Suhoor at</span><input type="time" id="suh"></label>
+      <label class="row"><span>Work starts</span><input type="time" id="ws" value="09:00"></label>
+      <label class="row"><span>Work ends</span><input type="time" id="we" value="14:30"></label>
+      <label class="row"><span>Commute each way (min)</span><input type="number" id="com" value="30" min="0" max="180"></label>
+      <label class="row"><span>Getting ready before leaving (min)</span><input type="number" id="prep" value="30" min="0" max="120"></label>
+      <label class="row"><span>Taraweeh at the mosque</span><select id="tar"><option value="1">Yes</option><option value="0">No</option></select></label>
+      <label class="row"><span>Sleep goal</span><select id="goal"><option value="4">4 cycles (6 h)</option><option value="5" selected>5 cycles (7.5 h)</option><option value="6">6 cycles (9 h)</option></select></label>
+    </div>
+    <div class="panel" style="gap:12px">
+      <div class="stats">
+        <div><b id="sTot">–</b><span>total sleep</span></div>
+        <div><b id="sCyc">–</b><span>full cycles</span></div>
+        <div><b id="sBed">–</b><span>main bedtime</span></div>
+      </div>
+      <div class="ringwrap"><svg id="ring" viewBox="0 0 300 300" role="img" aria-label="24-hour plan"></svg></div>
+      <div class="legend"><span style="--c:#4fd3bd">Sleep</span><span style="--c:#ffc857">Work</span><span style="--c:#8b93ad">Commute and getting ready</span><span style="--c:#ff7a8f">Meals and prayer</span></div>
+    </div>
+  </div>
+  <div class="game" style="margin-top:18px">
+    <div class="panel" style="gap:10px">
+      <span class="label">Your plan for the day</span>
+      <ul class="plan" id="plan"></ul>
+    </div>
+    <div class="panel" style="gap:10px">
+      <span class="label">Tips</span>
+      <ul class="tips" id="tips"></ul>
+      <p class="fact" style="margin:0">Sleep runs in cycles of roughly 90 minutes, from light sleep to deep sleep to dreaming and back. Waking at the end of a cycle feels far easier than waking from deep sleep. Cycle length varies from about 80 to 110 minutes between people, so treat 90 as a starting point and adjust by 10 minutes if you wake groggy.</p>
+      <p class="fact" style="margin:0">Prayer times use the UAE method by default (Fajr and Isha when the sun is 18.2° below the horizon, Maghrib at sunset). Umm al-Qura uses 18.5° for Fajr and puts Isha 90 minutes after Maghrib, or 2 hours in Ramadan. They are calculated, not taken from an official timetable, and can differ by a few minutes from your mosque or the official UAE app. Ramadan dates use the Umm al-Qura calendar in your browser; in the UAE the start is confirmed by moon sighting. This is a planning aid, not medical advice. If you have diabetes or another condition, check fasting and sleep plans with your doctor.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var R = Math.PI / 180, DAY = 864e5;
+  var PLACES = [['Abu Dhabi', 24.4539, 54.3773], ['Dubai', 25.2048, 55.2708], ['Sharjah', 25.3463, 55.4209], ['Al Ain', 24.2075, 55.7447], ['Ajman', 25.4052, 55.5136], ['Umm Al Quwain', 25.5647, 55.5552], ['Ras Al Khaimah', 25.7895, 55.9432], ['Fujairah', 25.1288, 56.3265]];
+  var loc = { name: 'Dubai', lat: 25.2048, lon: 55.2708, tz: 4 };
+
+  // ---- prayer times (standard method: sun declination and equation of time per day) ----
+  function sunPos(jd) {
+    var D = jd - 2451545.0, g = (357.529 + 0.98560028 * D) % 360, q = (280.459 + 0.98564736 * D) % 360;
+    var L = (q + 1.915 * Math.sin(g * R) + 0.020 * Math.sin(2 * g * R)) % 360, e = 23.439 - 0.00000036 * D;
+    var RA = Math.atan2(Math.cos(e * R) * Math.sin(L * R), Math.cos(L * R)) / R / 15;
+    var eqt = q / 15 - ((RA % 24) + 24) % 24; eqt = ((eqt + 12) % 24 + 24) % 24 - 12;
+    return { dec: Math.asin(Math.sin(e * R) * Math.sin(L * R)) / R, eqt: eqt };
+  }
+  function julian(y, m, d) { if (m <= 2) { y--; m += 12; } var A = Math.floor(y / 100), B = 2 - A + Math.floor(A / 4); return Math.floor(365.25 * (y + 4716)) + Math.floor(30.6001 * (m + 1)) + d + B - 1524.5; }
+  // hours of local time; returns minutes since local midnight
+  function prayerTimes(y, m, d, lat, lon, tz, method) {
+    var jd = julian(y, m, d) - lon / (15 * 24);
+    function noon(t) { return 12 - sunPos(jd + t / 24).eqt; }
+    function ang(a, t, ccw) { var s = sunPos(jd + t / 24), n = noon(t), v = (-Math.sin(a * R) - Math.sin(s.dec * R) * Math.sin(lat * R)) / (Math.cos(s.dec * R) * Math.cos(lat * R)); var h = Math.acos(Math.max(-1, Math.min(1, v))) / R / 15; return n + (ccw ? -h : h); }
+    function asr(t) { var s = sunPos(jd + t / 24), a = -Math.atan(1 / (1 + Math.tan(Math.abs(lat - s.dec) * R))) / R; return ang(a, t); }
+    var fa = method === 'uq' ? 18.5 : 18.2;
+    var t = { fajr: ang(fa, 5, true), sunrise: ang(0.833, 6, true), dhuhr: noon(12), asr: asr(13), maghrib: ang(0.833, 18), isha: 0 };
+    // second pass using first estimates for better accuracy
+    t = { fajr: ang(fa, t.fajr, true), sunrise: ang(0.833, t.sunrise, true), dhuhr: noon(t.dhuhr), asr: asr(t.asr), maghrib: ang(0.833, t.maghrib) };
+    t.isha = method === 'uq' ? t.maghrib + 2 : ang(18.2, t.maghrib + 1.4);
+    var adj = tz - lon / 15, out = {};
+    Object.keys(t).forEach(function (k) { out[k] = Math.round((t[k] + adj) * 60); });
+    out.dhuhr += 1; // small safety margin after the sun crosses the meridian, as most timetables add
+    return out;
+  }
+
+  // ---- Ramadan dates from the Umm al-Qura calendar in the browser ----
+  var hfmt = null; try { hfmt = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura-nu-latn', { day: 'numeric', month: 'numeric', year: 'numeric', timeZone: 'UTC' }); } catch (e) {}
+  function H(d) { var p = {}; hfmt.formatToParts(d).forEach(function (x) { p[x.type] = parseInt(x.value, 10); }); return { d: p.day, m: p.month, y: p.year }; }
+  function ramadan() {
+    var n = new Date(), t = Date.UTC(n.getFullYear(), n.getMonth(), n.getDate());
+    if (!hfmt) return null;
+    for (var k = -31; k < 400; k++) {
+      var d = new Date(t + k * DAY), h = H(d);
+      if (h.m === 9 && h.d === 1) {
+        var len = 0; while (H(new Date(+d + len * DAY)).m === 9) len++;
+        if (+d + len * DAY > t) return { start: +d, len: len, y: h.y, inNow: t >= +d };
+      }
+    }
+    return null;
+  }
+
+  // ---- plan ----
+  function hm(v, dflt) { if (!v) return dflt; var p = v.split(':'); return (+p[0]) * 60 + (+p[1] || 0); }
+  function fmt(m) { m = ((Math.round(m) % 1440) + 1440) % 1440; var h = Math.floor(m / 60), mm = m % 60; return (h % 12 || 12) + ':' + String(mm).padStart(2, '0') + (h < 12 ? ' am' : ' pm'); }
+  function dur(m) { var h = Math.floor(m / 60), mm = Math.round(m % 60); return h + 'h' + (mm ? ' ' + String(mm).padStart(2, '0') : ''); }
+  function plan(pt, o) {
+    var busy = [];
+    function add(a, b, kind, label) { if (b > a) busy.push({ a: a, b: b, kind: kind, label: label }); }
+    var suh = Math.min(o.suhoor, pt.fajr - 10);
+    add(suh - 10, pt.fajr + 20, 'meal', 'Suhoor, then Fajr prayer');
+    add(o.ws - o.com - o.prep, o.ws - o.com, 'move', 'Get ready');
+    add(o.ws - o.com, o.ws, 'move', 'Commute');
+    add(o.ws, o.we, 'work', 'Work');
+    add(o.we, o.we + o.com, 'move', 'Commute home');
+    add(pt.dhuhr, pt.dhuhr + 15, 'meal', 'Dhuhr prayer');
+    add(pt.asr, pt.asr + 15, 'meal', 'Asr prayer');
+    add(pt.maghrib - 15, pt.maghrib + 60, 'meal', 'Iftar and Maghrib');
+    if (o.tar) add(pt.isha - 15, pt.isha + 90, 'meal', 'Isha and Taraweeh');
+    else add(pt.isha, pt.isha + 15, 'meal', 'Isha prayer');
+    // put everything on a timeline that starts at the iftar block, which is always busy
+    var org = pt.maghrib - 15;
+    function rel(m) { return ((m - org) % 1440 + 1440) % 1440; }
+    var segs = busy.map(function (b) { var a = rel(b.a); return { a: a, b: a + (b.b - b.a), kind: b.kind, label: b.label }; }).sort(function (x, y) { return x.a - y.a; });
+    var merged = [];
+    segs.forEach(function (s) { var l = merged[merged.length - 1]; if (l && s.a <= l.b) l.b = Math.max(l.b, s.b); else merged.push({ a: s.a, b: s.b }); });
+    var free = [], cur = 0;
+    merged.forEach(function (m) { if (m.a > cur) free.push({ a: cur, b: m.a }); cur = Math.max(cur, m.b); });
+    if (cur < 1440) free.push({ a: cur, b: 1440 });
+    var LAT = 15, ALARM = 10, CYC = 90;
+    free.forEach(function (f) {
+      f.len = f.b - f.a; f.n = Math.max(0, Math.floor((f.len - LAT - ALARM) / CYC));
+      var mid = (f.a + f.b) / 2 + org, clock = ((mid % 1440) + 1440) % 1440;
+      f.night = clock >= 20 * 60 || clock <= 9 * 60;
+    });
+    var need = o.goal, blocks = [];
+    var cands = free.filter(function (f) { return f.n > 0; }).sort(function (x, y) { return (y.n + (y.night ? 0.5 : 0)) - (x.n + (x.night ? 0.5 : 0)); });
+    cands.forEach(function (f) {
+      if (need <= 0) return; var n = Math.min(f.n, need); need -= n;
+      var wake = f.b - ALARM, sleep = wake - n * CYC; blocks.push({ bed: sleep - LAT, a: sleep, b: wake, n: n, nap: false });
+    });
+    // a 20-minute power nap in a daytime gap if we're short
+    if (need > 0) {
+      var day = free.filter(function (f) { return !f.night && f.len >= 45 && !blocks.some(function (b) { return b.a >= f.a && b.b <= f.b; }); }).sort(function (x, y) { return y.len - x.len; })[0];
+      if (day) { var a = day.a + Math.min(30, (day.len - 30) / 2); blocks.push({ bed: a - 5, a: a, b: a + 20, n: 0, nap: true }); }
+    }
+    blocks.sort(function (x, y) { return y.n - x.n; });
+    var total = blocks.reduce(function (s, b) { return s + (b.b - b.a); }, 0), cycles = blocks.reduce(function (s, b) { return s + b.n; }, 0);
+    function abs(m) { return ((m + org) % 1440 + 1440) % 1440; }
+    return {
+      busy: segs.map(function (s) { return { a: abs(s.a), len: s.b - s.a, kind: s.kind, label: s.label }; }),
+      sleep: blocks.map(function (b, i) { return { bed: abs(b.bed), a: abs(b.a), b: abs(b.b), len: b.b - b.a, n: b.n, nap: b.nap, core: i === 0 && !b.nap }; }),
+      total: total, cycles: cycles, goal: o.goal
+    };
+  }
+
+  // ---- drawing ----
+  var COL = { sleep: '#4fd3bd', work: '#ffc857', move: '#8b93ad', meal: '#ff7a8f' };
+  function arc(cx, cy, r, a0, a1) {
+    var s = (a0 / 1440) * 2 * Math.PI - Math.PI / 2, e = (a1 / 1440) * 2 * Math.PI - Math.PI / 2;
+    return 'M' + (cx + r * Math.cos(s)).toFixed(2) + ' ' + (cy + r * Math.sin(s)).toFixed(2) + ' A' + r + ' ' + r + ' 0 ' + ((a1 - a0) > 720 ? 1 : 0) + ' 1 ' + (cx + r * Math.cos(e)).toFixed(2) + ' ' + (cy + r * Math.sin(e)).toFixed(2);
+  }
+  function ring(p, pt) {
+    var s = '<circle cx="150" cy="150" r="112" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="26"/>';
+    // night shading between Maghrib and sunrise
+    s += '<path d="' + arc(150, 150, 134, pt.maghrib, pt.maghrib + ((pt.sunrise - pt.maghrib + 1440) % 1440)) + '" fill="none" stroke="rgba(127,180,255,.25)" stroke-width="4"/>';
+    p.busy.forEach(function (b) { s += '<path d="' + arc(150, 150, 112, b.a, b.a + b.len) + '" fill="none" stroke="' + COL[b.kind] + '" stroke-width="26"/>'; });
+    p.sleep.forEach(function (b) { s += '<path d="' + arc(150, 150, 112, b.a, b.a + b.len) + '" fill="none" stroke="' + COL.sleep + '" stroke-width="26"/>'; for (var k = 1; k < b.n; k++) { var m = b.a + k * 90, an = m / 1440 * 2 * Math.PI - Math.PI / 2; s += '<line x1="' + (150 + 99 * Math.cos(an)) + '" y1="' + (150 + 99 * Math.sin(an)) + '" x2="' + (150 + 125 * Math.cos(an)) + '" y2="' + (150 + 125 * Math.sin(an)) + '" stroke="#0b1020" stroke-width="1.5"/>'; } });
+    for (var h = 0; h < 24; h += 3) { var an = h / 24 * 2 * Math.PI - Math.PI / 2; s += '<text x="' + (150 + 82 * Math.cos(an)) + '" y="' + (150 + 82 * Math.sin(an) + 4) + '" fill="#8b93ad" font-size="11" font-family="JetBrains Mono, monospace" text-anchor="middle">' + (h === 0 ? '12a' : h === 12 ? '12p' : (h % 12) + (h < 12 ? 'a' : 'p')) + '</text>'; }
+    [['F', pt.fajr], ['M', pt.maghrib]].forEach(function (q) { var an = q[1] / 1440 * 2 * Math.PI - Math.PI / 2; s += '<circle cx="' + (150 + 134 * Math.cos(an)) + '" cy="' + (150 + 134 * Math.sin(an)) + '" r="9" fill="#0b1020" stroke="#ffc857"/><text x="' + (150 + 134 * Math.cos(an)) + '" y="' + (150 + 134 * Math.sin(an) + 4) + '" fill="#ffc857" font-size="10" text-anchor="middle" font-family="JetBrains Mono, monospace">' + q[0] + '</text>'; });
+    s += '<text x="150" y="146" fill="currentColor" font-size="26" font-weight="700" text-anchor="middle" font-family="Bricolage Grotesque, sans-serif">' + dur(p.total) + '</text><text x="150" y="166" fill="#8b93ad" font-size="11" text-anchor="middle">of sleep</text>';
+    $('ring').innerHTML = s; $('ring').style.color = 'var(--ink)';
+  }
+
+  var R0 = ramadan();
+  function render() {
+    var dayN = +$('day').value, base = R0 ? R0.start + (dayN - 1) * DAY : Date.now(), d = new Date(base);
+    var meth = $('meth').value, pt = prayerTimes(d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate(), loc.lat, loc.lon, loc.tz, meth);
+    if (meth === 'uq' && R0) pt.isha = pt.maghrib + 120;
+    $('dnum').textContent = dayN; $('dlab').textContent = d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+    $('pt').innerHTML = [['Fajr (fast begins)', pt.fajr], ['Sunrise', pt.sunrise], ['Dhuhr', pt.dhuhr], ['Asr', pt.asr], ['Maghrib (iftar)', pt.maghrib], ['Isha', pt.isha]].map(function (x) { return '<div><span>' + x[0] + '</span><b>' + fmt(x[1]) + '</b></div>'; }).join('');
+    if (!$('suh').value || $('suh').dataset.auto === '1') { $('suh').value = String(Math.floor((pt.fajr - 45) / 60)).padStart(2, '0') + ':' + String((pt.fajr - 45) % 60).padStart(2, '0'); $('suh').dataset.auto = '1'; }
+    var o = { suhoor: hm($('suh').value, pt.fajr - 45), ws: hm($('ws').value, 540), we: hm($('we').value, 870), com: Math.max(0, +$('com').value || 0), prep: Math.max(0, +$('prep').value || 0), tar: $('tar').value === '1', goal: +$('goal').value };
+    if (o.we <= o.ws) o.we += 1440;
+    var p = plan(pt, o);
+    ring(p, pt);
+    var core = p.sleep.filter(function (s) { return s.core; })[0];
+    $('sTot').textContent = dur(p.total); $('sCyc').textContent = p.cycles + ' of ' + p.goal; $('sBed').textContent = core ? fmt(core.bed) : '–';
+    var items = p.busy.map(function (b) { return { t: b.a, h: '<li><b>' + fmt(b.a) + '</b><span>' + b.label + ' <small>until ' + fmt(b.a + b.len) + '</small></span></li>' }; });
+    p.sleep.forEach(function (s) {
+      var what = s.nap ? 'Power nap, 20 minutes' : (s.core ? 'Core sleep' : 'Second sleep block') + ', ' + s.n + ' cycle' + (s.n > 1 ? 's' : '');
+      items.push({ t: s.bed, h: '<li class="sl"><b>' + fmt(s.bed) + '</b><span>In bed. ' + what + ' <small>asleep about ' + fmt(s.a) + ', alarm ' + fmt(s.b) + '</small></span></li>' });
+    });
+    var org = pt.maghrib - 15; items.sort(function (x, y) { return ((x.t - org + 1440) % 1440) - ((y.t - org + 1440) % 1440); });
+    $('plan').innerHTML = items.map(function (x) { return x.h; }).join('');
+    var tips = [];
+    if (p.cycles < p.goal) tips.push('Your day only fits ' + p.cycles + ' full cycle' + (p.cycles === 1 ? '' : 's') + '. A shorter commute, eating suhoor closer to bedtime, or praying Taraweeh at home some nights would free up another one.');
+    if (p.sleep.length > 1 && !p.sleep[1].nap) tips.push('Keep both sleep blocks at the same times every day. Your body adapts to a split pattern within a week or so if it\'s regular.');
+    if (p.sleep.some(function (s) { return !s.nap && s.b > pt.sunrise && s.b < pt.dhuhr; })) tips.push('For sleep after Fajr, use blackout curtains or an eye mask. Morning light is the strongest signal that tells your body it\'s daytime.');
+    tips.push('Spread water between iftar and suhoor, about 2 to 3 litres in small amounts, rather than a lot at once before bed.');
+    tips.push('Have your last coffee or karak before Taraweeh. Caffeine lasts 5 to 6 hours in the body.');
+    tips.push('Eat a lighter suhoor with slow carbs, protein and some salt, and avoid lying down straight after a heavy iftar.');
+    if (p.total < 360) tips.push('Under 6 hours a day makes driving riskier, especially on the way home before iftar. Pull over if you feel drowsy.');
+    $('tips').innerHTML = tips.map(function (t) { return '<li>' + t + '</li>'; }).join('');
+    save();
+  }
+  function rinfo() {
+    if (!R0) { $('rinfo').textContent = 'Your browser can\'t show the Hijri calendar, so times are for today.'; return; }
+    var s = new Date(R0.start), e = new Date(R0.start + (R0.len - 1) * DAY), f = { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' };
+    $('rinfo').innerHTML = 'Ramadan ' + R0.y + ' AH <span class="ar" dir="rtl">رمضان</span> runs about ' + s.toLocaleDateString('en-GB', f) + ' to ' + e.toLocaleDateString('en-GB', f) + ' (Umm al-Qura calendar). Times for ' + loc.name + '.';
+    $('day').max = R0.len;
+    if (R0.inNow) { var n = new Date(), t = Date.UTC(n.getFullYear(), n.getMonth(), n.getDate()); $('day').value = Math.min(R0.len, Math.floor((t - R0.start) / DAY) + 1); }
+  }
+  function save() { try { localStorage.setItem('ramSleep', JSON.stringify({ loc: loc, suh: $('suh').dataset.auto === '1' ? '' : $('suh').value, ws: $('ws').value, we: $('we').value, com: $('com').value, prep: $('prep').value, tar: $('tar').value, goal: $('goal').value, meth: $('meth').value })); } catch (e) {} }
+  try { var st = JSON.parse(localStorage.getItem('ramSleep') || 'null'); if (st) { if (st.loc) loc = st.loc; ['ws', 'we', 'com', 'prep', 'tar', 'goal', 'meth'].forEach(function (k) { if (st[k] != null) $(k).value = st[k]; }); if (st.suh) { $('suh').value = st.suh; $('suh').dataset.auto = '0'; } } } catch (e) {}
+
+  PLACES.forEach(function (p) { var b = document.createElement('button'); b.className = 'sm'; b.type = 'button'; b.textContent = p[0]; b.setAttribute('aria-pressed', p[0] === loc.name); b.onclick = function () { loc = { name: p[0], lat: p[1], lon: p[2], tz: 4 }; mark(); rinfo(); render(); }; $('where').appendChild(b); });
+  function mark() { [].forEach.call($('where').querySelectorAll('.sm'), function (b) { b.setAttribute('aria-pressed', b.textContent === loc.name); }); }
+  $('me').onclick = function () {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(function (p) { loc = { name: 'your location', lat: p.coords.latitude, lon: p.coords.longitude, tz: -new Date().getTimezoneOffset() / 60 }; mark(); rinfo(); render(); }, function () { $('rinfo').textContent = 'Location not available. Pick an emirate instead.'; }, { timeout: 10000, maximumAge: 6e5 });
+  };
+  $('suh').addEventListener('change', function () { $('suh').dataset.auto = '0'; render(); });
+  ['day', 'ws', 'we', 'com', 'prep', 'tar', 'goal', 'meth'].forEach(function (k) { $(k).addEventListener(k === 'day' ? 'input' : 'change', render); });
+  window.RamadanSleep = { prayerTimes: prayerTimes, plan: plan, ramadan: ramadan };
+  rinfo(); render();
+})();
+</script>
+</body>
+</html>

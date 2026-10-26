@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sun Glare on Your Drive · Mariam's Lab</title>
+<meta name="description" content="Find the days and times over the next year when the low sun sits right in front of you on your commute, for the drive there and the drive back.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/sun-glare/">
+<meta property="og:title" content="Sun Glare on Your Drive · Mariam's Lab"><meta property="og:description" content="When will the low sun blind you on your commute? A month by hour map for the drive there and back."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="stylesheet" href="../assets/vendor/leaflet/leaflet.css">
+<style>
+.leaflet-container { font-family: 'Instrument Sans', sans-serif; background: #0b1020; }
+#map { height: min(52vh, 460px); min-height: 300px; border-radius: var(--radius); border: 1px solid var(--line); }
+#map .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(.85) contrast(.9) saturate(.4); }
+.ctl { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm:hover { border-color: var(--muted); }
+.sm.pri { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: 0.9rem; }
+.row input, .row select, .pick { font: inherit; color: var(--ink); background: rgba(7,10,24,.6); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; }
+.pick { width: 100%; max-width: 100%; }
+.row input[type=number] { width: 5.5em; font-family: var(--font-mono); }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 8px 0 0; }
+.hm { width: 100%; display: block; border-radius: 10px; background: rgba(7,10,24,.5); }
+.legend { display: flex; gap: 10px; flex-wrap: wrap; font-size: 0.75rem; color: var(--muted); }
+.legend span::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-inline-end: 4px; vertical-align: -1px; background: var(--c); }
+.bad { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.bad li { padding: 9px 12px; border: 1px solid var(--line); border-radius: 10px; font-size: 0.88rem; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; background: var(--surface); }
+.bad small { display: block; color: var(--muted); font-size: 0.78rem; }
+.bad b { font-family: var(--font-mono); font-size: 0.82rem; text-align: end; }
+.tabs2 { display: flex; gap: 6px; }
+.tabs2 .sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.stats span { font-size: 0.76rem; color: var(--muted); }
+.legs { font-family: var(--font-mono); font-size: 0.76rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Driving · Sun · UAE</span>
+    <h1 style="font-size:var(--step-3)">Sun glare on your drive.</h1>
+    <p>Some weeks of the year the sun sits low and dead ahead on your commute, and the visor can't help. Pick your route and your usual departure times. You'll see which months and times are worst, the next bad days, and the same for the drive home.</p>
+  </div>
+  <div class="ctl">
+    <select class="pick" id="preset" aria-label="Preset route" style="max-width:26em"></select>
+  </div>
+  <div class="ctl" style="margin-top:8px">
+    <button class="sm" type="button" id="undo">Undo point</button>
+    <button class="sm" type="button" id="clear">Clear</button>
+    <span class="msg" id="hint" style="margin:0">Or tap the map to place your start, any turns, then your destination.</span>
+  </div>
+  <div id="map" style="margin-top:10px" role="application" aria-label="Route map"></div>
+  <p class="legs" id="legs"></p>
+  <div class="stats" style="margin-top:12px">
+    <div><b id="sOut">–</b><span>bad days there</span></div>
+    <div><b id="sBack">–</b><span>bad days back</span></div>
+    <div><b id="sWorst">–</b><span>worst month</span></div>
+  </div>
+  <div class="game" style="margin-top:18px">
+    <div class="panel" style="gap:10px">
+      <div class="row"><span class="label">Glare by month and time of day</span><div class="tabs2"><button class="sm" type="button" id="tOut" aria-pressed="true">There</button><button class="sm" type="button" id="tBack" aria-pressed="false">Back</button></div></div>
+      <canvas class="hm" id="hm" height="320" aria-label="Heatmap of glare by month and time"></canvas>
+      <div class="legend"><span style="--c:#1c2440">No glare</span><span style="--c:#7a5a2a">Some of the route</span><span style="--c:#ffc857">Much of the route</span><span style="--c:#ff4f6d">Most of the route</span></div>
+      <p class="msg" id="msg" role="status"></p>
+    </div>
+    <div class="panel" style="gap:10px">
+      <span class="label">Your usual trips</span>
+      <label class="row"><span>Leave for the drive there at</span><input type="time" id="dep" value="07:30"></label>
+      <label class="row"><span>Leave for the drive back at</span><input type="time" id="ret" value="17:30"></label>
+      <label class="row"><span>Average speed (km/h)</span><input type="number" id="spd" value="80" min="20" max="140"></label>
+      <label class="row"><span>Weekdays only (Mon to Fri)</span><input type="checkbox" id="wk" checked></label>
+      <span class="label" style="margin-top:6px">Next bad days · drive there</span>
+      <ul class="bad" id="listOut"></ul>
+      <span class="label" style="margin-top:6px">Next bad days · drive back</span>
+      <ul class="bad" id="listBack"></ul>
+    </div>
+  </div>
+  <div class="game" style="margin-top:18px">
+    <div class="panel">
+      <p class="fact" style="margin:0">Glare here means the sun is less than 25° above the horizon and within 25° of the way you're facing. A car visor usually covers the sky above about 15 to 20°, so the worst glare is the lowest sun. In the UAE, roads running east and west get it in spring and autumn. Roads running southwest, like the E11 to Abu Dhabi, get it on winter afternoons.</p>
+    </div>
+    <div class="panel">
+      <p class="fact" style="margin:0">This is approximate. Each leg is a straight line between the points you set, so curves, flyovers and buildings or trees that shade the road are ignored. Trip timing assumes a steady speed. Times are Gulf Standard Time. On a bad day, leaving 15 minutes earlier or later often fixes it, and sunglasses and a clean windscreen help a lot.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script src="../assets/vendor/leaflet/leaflet.js"></script>
+<script src="../assets/sky.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var R = Math.PI / 180, DAY = 864e5, GST = 4 * 3600e3;
+  var MAXALT = 25, MAXOFF = 25;
+  var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  var PRESETS = [
+    ['E11 Dubai → Abu Dhabi (heading southwest)', [[25.2048, 55.2708], [25.0657, 55.1302], [24.96, 55.03], [24.855, 54.88], [24.70, 54.74], [24.52, 54.55], [24.454, 54.3775]]],
+    ['E11 Abu Dhabi → Dubai (heading northeast)', null, 0],
+    ['E311 Dubai → Sharjah (heading northeast)', [[25.04, 55.20], [25.13, 55.33], [25.23, 55.42], [25.30, 55.48]]],
+    ['E66 Dubai → Al Ain (heading southeast)', [[25.18, 55.34], [24.95, 55.55], [24.60, 55.70], [24.21, 55.74]]],
+    ['E22 Abu Dhabi → Al Ain (heading east)', [[24.44, 54.44], [24.38, 54.75], [24.30, 55.10], [24.22, 55.70]]],
+    ['E44 Dubai → Hatta (heading east)', [[25.20, 55.30], [25.15, 55.45], [25.05, 55.85], [24.80, 56.10]]],
+    ['E88 Sharjah → Fujairah (heading east)', [[25.30, 55.50], [25.30, 55.80], [25.30, 56.10], [25.15, 56.33]]],
+    ['E11 Sharjah → Ras Al Khaimah (heading northeast)', [[25.35, 55.42], [25.45, 55.55], [25.60, 55.80], [25.78, 55.95]]],
+    ['Sheikh Zayed Rd, Downtown → Marina (heading southwest)', [[25.2048, 55.2708], [25.1400, 55.2100], [25.0800, 55.1450]]]
+  ];
+  PRESETS[1][1] = PRESETS[0][1].slice().reverse();
+
+  var map = L.map('map', { preferCanvas: true }).setView([24.85, 54.9], 8);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© OpenStreetMap contributors' }).addTo(map);
+  var lay = L.layerGroup().addTo(map), pts = [], view = 'out', cache = null;
+
+  // ---- geometry ----
+  function bearing(a, b) { var f1 = a[0] * R, f2 = b[0] * R, dl = (b[1] - a[1]) * R; return (Math.atan2(Math.sin(dl) * Math.cos(f2), Math.cos(f1) * Math.sin(f2) - Math.sin(f1) * Math.cos(f2) * Math.cos(dl)) / R + 360) % 360; }
+  function dist(a, b) { var f1 = a[0] * R, f2 = b[0] * R, df = f2 - f1, dl = (b[1] - a[1]) * R, h = Math.sin(df / 2) * Math.sin(df / 2) + Math.cos(f1) * Math.cos(f2) * Math.sin(dl / 2) * Math.sin(dl / 2); return 6371 * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h)); }
+  function compass(a) { return ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'][Math.round(a / 45) % 8]; }
+  function angDiff(a, b) { return Math.abs(((a - b + 540) % 360) - 180); }
+  function legsOf(p) { var out = [], km = 0; for (var i = 0; i < p.length - 1; i++) { var d = dist(p[i], p[i + 1]); out.push({ brg: bearing(p[i], p[i + 1]), km: d, from: km }); km += d; } return out; }
+
+  // ---- sun (same Schlyter maths as Sun Path, via assets/sky.js) ----
+  function sunAt(ms, lat, lon) { var d = Sky.dayNum(ms), s = Sky.sun(d), e = Sky.eclToEq(s, d); return Sky.toHoriz(e.ra, e.dec, Sky.lst(ms, lon), lat); }
+  function glare(sun, brg) { return sun.alt > -0.5 && sun.alt < MAXALT && angDiff(sun.az, brg) < MAXOFF; }
+
+  // ---- time helpers (Gulf Standard Time, UTC+4, no daylight saving) ----
+  function gstMidnight(ms) { return Math.floor((ms + GST) / DAY) * DAY - GST; }
+  function hm(v) { var p = v.split(':'); return (+p[0]) * 60 + (+p[1] || 0); }
+  function fmtMin(m) { m = ((Math.round(m) % 1440) + 1440) % 1440; var h = Math.floor(m / 60), mm = m % 60; return (h % 12 || 12) + ':' + String(mm).padStart(2, '0') + (h < 12 ? 'am' : 'pm'); }
+  function dayLabel(ms) { return new Date(ms + GST).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }); }
+  function dow(ms) { return new Date(ms + GST).getUTCDay(); }
+
+  // ---- analysis ----
+  function analyse() {
+    if (pts.length < 2) { cache = null; render(); return; }
+    var out = legsOf(pts), back = legsOf(pts.slice().reverse()), total = out.reduce(function (s, l) { return s + l.km; }, 0);
+    var mid = [pts.reduce(function (s, p) { return s + p[0]; }, 0) / pts.length, pts.reduce(function (s, p) { return s + p[1]; }, 0) / pts.length];
+    var day0 = gstMidnight(Date.now()), m0 = new Date(day0 + GST).getUTCMonth(), y0 = new Date(day0 + GST).getUTCFullYear();
+    // heatmap: 12 months from this month, 15-minute slots 04:30 to 20:00, every other day
+    var S0 = 270, SN = 62, grid = { out: [], back: [] };
+    for (var mi = 0; mi < 12; mi++) {
+      var mm = (m0 + mi) % 12, yy = y0 + Math.floor((m0 + mi) / 12), go = new Array(SN).fill(0), gb = new Array(SN).fill(0), n = 0;
+      var dim = new Date(Date.UTC(yy, mm + 1, 0)).getUTCDate();
+      for (var dd = 1; dd <= dim; dd += 2) {
+        n++; var base = Date.UTC(yy, mm, dd) - GST;
+        for (var s = 0; s < SN; s++) {
+          var sun = sunAt(base + (S0 + s * 15) * 60000, mid[0], mid[1]);
+          if (sun.alt < -0.5 || sun.alt > MAXALT) continue;
+          for (var k = 0; k < out.length; k++) {
+            if (glare(sun, out[k].brg)) go[s] += out[k].km / total;
+            if (glare(sun, back[k].brg)) gb[s] += back[k].km / total;
+          }
+        }
+      }
+      grid.out.push({ label: MON[mm], v: go.map(function (x) { return x / n; }) });
+      grid.back.push({ label: MON[mm], v: gb.map(function (x) { return x / n; }) });
+    }
+    cache = { out: out, back: back, total: total, mid: mid, grid: grid, S0: S0, SN: SN, day0: day0 };
+    trips();
+  }
+  // simulate the actual trip each day: minute by minute along the legs
+  function simulate(legs, depMin, mid, day0, wkOnly, spd) {
+    var res = [];
+    for (var d = 0; d < 366; d++) {
+      var base = day0 + d * DAY, w = dow(base);
+      if (wkOnly && (w === 0 || w === 6)) continue;
+      var t = depMin, mins = 0, first = null, last = null, worst = null;
+      for (var k = 0; k < legs.length; k++) {
+        var dur = legs[k].km / spd * 60;
+        for (var x = 0; x < dur; x += 1) {
+          var sun = sunAt(base + (t + x) * 60000, mid[0], mid[1]);
+          if (glare(sun, legs[k].brg)) { mins++; if (first == null) first = t + x; last = t + x; if (!worst || sun.alt < worst.alt) worst = { alt: sun.alt, km: legs[k].from + x / 60 * spd }; }
+        }
+        t += dur;
+      }
+      if (base + depMin * 60000 < Date.now() && d === 0) continue;
+      if (mins >= 3) res.push({ ms: base, mins: Math.round(mins), first: first, last: last, worst: worst });
+    }
+    return res;
+  }
+  function trips() {
+    if (!cache) return;
+    var spd = Math.max(20, Math.min(140, +$('spd').value || 80)), wk = $('wk').checked;
+    cache.badOut = simulate(cache.out, hm($('dep').value || '07:30'), cache.mid, cache.day0, wk, spd);
+    cache.badBack = simulate(cache.back, hm($('ret').value || '17:30'), cache.mid, cache.day0, wk, spd);
+    render();
+  }
+
+  // ---- drawing ----
+  function colour(v) {
+    if (v <= 0.001) return '#1c2440';
+    if (v < 0.25) return mix('#3b3420', '#7a5a2a', v / 0.25);
+    if (v < 0.6) return mix('#7a5a2a', '#ffc857', (v - 0.25) / 0.35);
+    return mix('#ffc857', '#ff4f6d', Math.min(1, (v - 0.6) / 0.4));
+  }
+  function mix(a, b, k) { var pa = [1, 3, 5].map(function (i) { return parseInt(a.substr(i, 2), 16); }), pb = [1, 3, 5].map(function (i) { return parseInt(b.substr(i, 2), 16); }); return 'rgb(' + pa.map(function (x, i) { return Math.round(x + (pb[i] - x) * k); }).join(',') + ')'; }
+  function drawHeat() {
+    var cv = $('hm'), W = cv.clientWidth || 600, dpr = Math.min(2, window.devicePixelRatio || 1), H = 320;
+    cv.width = W * dpr; cv.height = H * dpr; cv.style.height = H + 'px';
+    var c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, W, H);
+    c.font = '11px JetBrains Mono, monospace'; c.fillStyle = '#8b93ad';
+    var L0 = 34, T0 = 8, B = 26, cw = (W - L0 - 6), ch = (H - T0 - B) / 12;
+    if (!cache) { c.fillText('Pick a route to see the map of glare.', L0, H / 2); return; }
+    var g = cache.grid[view], sw = cw / cache.SN;
+    g.forEach(function (row, i) {
+      c.fillStyle = '#8b93ad'; c.fillText(row.label, 2, T0 + i * ch + ch / 2 + 4);
+      row.v.forEach(function (v, s) { c.fillStyle = colour(v); c.fillRect(L0 + s * sw, T0 + i * ch + 1, Math.ceil(sw), ch - 2); });
+    });
+    c.fillStyle = '#8b93ad';
+    for (var h = 5; h <= 20; h++) {
+      var s = (h * 60 - cache.S0) / 15; if (s < 0 || s > cache.SN) continue;
+      if (W < 500 && h % 3 !== 0) continue;
+      var x = L0 + s * sw; c.fillRect(x, H - B + 2, 1, 4);
+      c.fillText((h % 12 || 12) + (h < 12 ? 'a' : 'p'), x - 8, H - 8);
+    }
+    // mark the user's departure time
+    var dm = hm((view === 'out' ? $('dep') : $('ret')).value || '07:30'), xs = L0 + (dm - cache.S0) / 15 * sw;
+    if (xs > L0 && xs < W) { c.strokeStyle = '#4fd3bd'; c.setLineDash([3, 3]); c.beginPath(); c.moveTo(xs, T0); c.lineTo(xs, H - B); c.stroke(); c.setLineDash([]); }
+  }
+  function worstSlot(g) { var best = null; g.forEach(function (row) { row.v.forEach(function (v, s) { if (v > 0.2 && (!best || v > best.v)) best = { v: v, m: row.label, s: s }; }); }); return best; }
+  function list(el, bad, key) {
+    if (!bad.length) { var w = worstSlot(cache.grid[key]); el.innerHTML = '<li><span>No bad days at this time in the next 12 months.<small>' + (w ? 'For this direction the worst glare is around ' + fmtMin(cache.S0 + w.s * 15) + ' in ' + w.m + '.' : 'This direction rarely faces a low sun.') + '</small></span></li>'; return; }
+    el.innerHTML = bad.slice(0, 6).map(function (b) {
+      return '<li><span>' + dayLabel(b.ms) + '<small>Sun ahead from ' + fmtMin(b.first) + ' to ' + fmtMin(b.last + 1) + ', lowest ' + Math.max(0, b.worst.alt).toFixed(0) + '° around km ' + b.worst.km.toFixed(0) + '</small></span><b>' + b.mins + ' min</b></li>';
+    }).join('');
+  }
+  function render() {
+    lay.clearLayers();
+    pts.forEach(function (p, i) { L.circleMarker(p, { radius: i === 0 || i === pts.length - 1 ? 7 : 4, color: i === 0 ? '#4fd3bd' : i === pts.length - 1 ? '#ff4f6d' : '#ffc857', weight: 2, fillOpacity: 0.9 }).addTo(lay); });
+    if (pts.length > 1) L.polyline(pts, { color: '#ffc857', weight: 4, opacity: 0.85 }).addTo(lay);
+    if (!cache) {
+      $('legs').textContent = pts.length === 1 ? 'Start set. Tap where you\'re going.' : '';
+      ['sOut', 'sBack', 'sWorst'].forEach(function (k) { $(k).textContent = '–'; });
+      $('listOut').innerHTML = $('listBack').innerHTML = ''; drawHeat(); return;
+    }
+    $('legs').textContent = cache.total.toFixed(0) + ' km in ' + cache.out.length + ' leg' + (cache.out.length > 1 ? 's' : '') + ': ' + cache.out.map(function (l) { return compass(l.brg) + ' ' + l.brg.toFixed(0) + '° · ' + l.km.toFixed(0) + ' km'; }).join(', ');
+    $('sOut').textContent = cache.badOut.length; $('sBack').textContent = cache.badBack.length;
+    var mon = {}; cache.badOut.concat(cache.badBack).forEach(function (b) { var m = MON[new Date(b.ms + GST).getUTCMonth()]; mon[m] = (mon[m] || 0) + 1; });
+    var best = Object.keys(mon).sort(function (a, b) { return mon[b] - mon[a]; })[0]; $('sWorst').textContent = best || 'None';
+    list($('listOut'), cache.badOut, 'out'); list($('listBack'), cache.badBack, 'back');
+    $('msg').textContent = 'Each row is a month, starting with this one. Each column is 15 minutes. The dashed line is your usual departure time for the drive ' + (view === 'out' ? 'there' : 'back') + '.';
+    drawHeat();
+  }
+
+  // ---- controls ----
+  $('preset').innerHTML = '<option value="">Choose a UAE route…</option>' + PRESETS.map(function (p, i) { return '<option value="' + i + '">' + p[0] + '</option>'; }).join('');
+  $('preset').onchange = function () { var i = $('preset').value; if (i === '') return; pts = PRESETS[+i][1].map(function (p) { return p.slice(); }); map.fitBounds(L.latLngBounds(pts), { padding: [20, 20] }); save(); analyse(); };
+  map.on('click', function (e) { if (pts.length >= 12) return; pts.push([+e.latlng.lat.toFixed(5), +e.latlng.lng.toFixed(5)]); $('preset').value = ''; save(); analyse(); });
+  $('undo').onclick = function () { pts.pop(); save(); analyse(); };
+  $('clear').onclick = function () { pts = []; $('preset').value = ''; save(); analyse(); };
+  $('tOut').onclick = function () { view = 'out'; $('tOut').setAttribute('aria-pressed', 'true'); $('tBack').setAttribute('aria-pressed', 'false'); render(); };
+  $('tBack').onclick = function () { view = 'back'; $('tBack').setAttribute('aria-pressed', 'true'); $('tOut').setAttribute('aria-pressed', 'false'); render(); };
+  ['dep', 'ret', 'spd', 'wk'].forEach(function (k) { $(k).addEventListener('change', function () { save(); trips(); }); });
+  function save() { try { localStorage.setItem('sunGlare', JSON.stringify({ pts: pts, dep: $('dep').value, ret: $('ret').value, spd: $('spd').value, wk: $('wk').checked })); } catch (e) {} }
+  try { var st = JSON.parse(localStorage.getItem('sunGlare') || 'null'); if (st) { pts = st.pts || []; $('dep').value = st.dep || '07:30'; $('ret').value = st.ret || '17:30'; $('spd').value = st.spd || 80; $('wk').checked = st.wk !== false; } } catch (e) {}
+  if (!pts.length) { $('preset').value = '0'; pts = PRESETS[0][1].map(function (p) { return p.slice(); }); }
+  if (pts.length > 1) map.fitBounds(L.latLngBounds(pts), { padding: [20, 20] });
+  window.addEventListener('resize', drawHeat);
+  window.SunGlare = { sunAt: sunAt, bearing: bearing };
+  analyse();
+})();
+</script>
+</body>
+</html>

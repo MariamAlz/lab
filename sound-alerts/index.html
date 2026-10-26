@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Home Sound Alerts · Mariam's Lab</title>
+<meta name="description" content="Teach your phone or laptop the sound of your doorbell, smoke alarm, kettle or baby, and it flashes the screen and vibrates when it hears it. Runs in your browser, nothing is uploaded.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/sound-alerts/">
+<meta property="og:title" content="Home Sound Alerts · Mariam's Lab"><meta property="og:description" content="Teach a screen your doorbell or smoke alarm, and it flashes when it hears it."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.big { font: inherit; font-weight: 600; padding: 12px 26px; border-radius: 999px; border: 0; background: var(--accent); color: var(--bg); cursor: pointer; }
+.big.stop { background: var(--sat-c); color: #fff; }
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm:disabled { opacity: .45; cursor: default; }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.ctl { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: 0.9rem; }
+.row input[type=range] { width: 100%; accent-color: var(--accent); }
+.row select, .row input[type=text] { font: inherit; color: var(--ink); background: rgba(7,10,24,.6); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; max-width: 12em; }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 0; }
+.lvl { height: 10px; border-radius: 99px; background: var(--line); overflow: hidden; }
+.lvl i { display: block; height: 100%; width: 0; background: var(--sat-b); }
+.snds { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.snds li { padding: 12px 14px; border: 1px solid var(--line); border-left: 6px solid var(--c); border-radius: 12px; background: var(--surface); display: grid; gap: 8px; }
+.snds .top { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.snds b { font-size: 1rem; }
+.snds small { color: var(--muted); font-size: 0.8rem; }
+.bar { position: relative; height: 8px; border-radius: 99px; background: var(--line); overflow: hidden; }
+.bar i { display: block; height: 100%; width: 0; background: var(--c); }
+.bar u { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--ink); text-decoration: none; }
+.logl { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 0.86rem; max-height: 260px; overflow: auto; }
+.logl li { display: flex; justify-content: space-between; gap: 8px; padding: 6px 10px; border-radius: 8px; background: rgba(255,255,255,.04); }
+.logl span:last-child { font-family: var(--font-mono); font-size: 0.78rem; color: var(--muted); }
+.alarm { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; align-content: center; gap: 12px; text-align: center; padding: 24px; background: var(--c); color: #0b1020; cursor: pointer; }
+.alarm b { font-family: var(--font-display); font-size: clamp(2.6rem, 12vw, 6rem); line-height: 1; font-weight: 800; }
+.alarm span { font-size: 1rem; font-weight: 600; }
+.alarm.blink { animation: blink .5s steps(2) infinite; }
+@keyframes blink { 50% { background: #0b1020; color: var(--c); } }
+@media (prefers-reduced-motion: reduce) { .alarm.blink { animation: none; } }
+.toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 90; padding: 10px 16px; border-radius: 12px; background: var(--c, #4fd3bd); color: #0b1020; font-weight: 600; max-width: calc(100vw - 32px); }
+.stats span { font-size: 0.76rem; color: var(--muted); }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Sound · Accessibility</span>
+    <h1 style="font-size:var(--step-3)">Home sound alerts.</h1>
+    <p>If you're deaf or hard of hearing, wear headphones a lot, or work in a far room, it's easy to miss the doorbell, the smoke alarm or the baby. Teach this page a sound with a few recordings. While it listens, it flashes the screen in that sound's colour, vibrates and logs the time when it hears it again.</p>
+  </div>
+  <div class="ctl">
+    <button class="big" type="button" id="listen">Start listening</button>
+    <button class="sm" type="button" id="test" aria-pressed="false">Test mode</button>
+    <span class="msg" id="wl"></span>
+  </div>
+  <div class="lvl" style="margin-top:10px" aria-hidden="true"><i id="lvl"></i></div>
+  <p class="msg" id="msg" role="status" style="margin-top:6px"></p>
+  <div class="stats" style="margin-top:10px">
+    <div><b id="sN">0</b><span>sounds taught</span></div>
+    <div><b id="sHeard">0</b><span>heard today</span></div>
+    <div><b id="sLast">–</b><span>last alert</span></div>
+  </div>
+  <div class="game" style="margin-top:18px">
+    <div class="panel" style="gap:10px">
+      <span class="label">Your sounds</span>
+      <ul class="snds" id="snds"></ul>
+      <span class="label" style="margin-top:6px">Teach a new sound</span>
+      <label class="row"><span>Type</span><select id="type"><option value="Doorbell">Doorbell</option><option value="Smoke alarm">Smoke alarm</option><option value="Baby crying">Baby crying</option><option value="Kettle">Kettle</option><option value="Washing machine">Washing machine</option><option value="custom">Custom…</option></select></label>
+      <label class="row" id="custRow" hidden><span>Name</span><input type="text" id="cust" maxlength="24" placeholder="Intercom"></label>
+      <div class="ctl"><button class="sm" type="button" id="add">Add this sound</button></div>
+      <p class="msg">Then press Record on it and make the sound 2 to 5 times, one recording each. Each recording lasts 3 seconds.</p>
+    </div>
+    <div class="panel" style="gap:10px">
+      <label class="row"><span>Sensitivity</span><output id="sensO" class="msg" style="margin:0"></output></label>
+      <input type="range" id="sens" min="0" max="100" value="50" aria-label="Sensitivity" style="width:100%;accent-color:var(--accent)">
+      <p class="msg">Higher catches quieter or more distant sounds but gives more false alarms. In test mode, the bars show the live match and nothing flashes, so you can tune this.</p>
+      <span class="label" style="margin-top:6px">Log</span>
+      <ul class="logl" id="log"><li><span>Nothing heard yet.</span></li></ul>
+      <div class="ctl"><button class="sm" type="button" id="clearLog">Clear log</button></div>
+      <p class="fact" style="margin:0">Each recording becomes a fingerprint: how loud the sound is in 40 pitch bands spaced like human hearing, averaged over the sound, plus the shape of its loudness over time. While listening, the page compares the last moment of audio with every fingerprint using cosine similarity, a score from 0 to 1 for how alike two patterns are.</p>
+      <p class="fact" style="margin:0">Be honest with yourself about the limits. This tab must stay open and the screen on; it asks your device to keep the screen awake, but phones may still stop the microphone when you switch apps or lock the screen. It can miss sounds or alert on similar ones. It is not a certified alarm and doesn't replace a working smoke alarm or a visual doorbell. Audio never leaves your device; only the fingerprints are saved in this browser.</p>
+    </div>
+  </div>
+</div></main>
+<div class="alarm blink" id="alarm" hidden role="alert"><b id="aName"></b><span id="aTime"></span><span style="font-weight:400">Tap anywhere to dismiss</span></div>
+<div class="toast" id="toast" hidden></div>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var COLS = { 'Doorbell': '#ffc857', 'Smoke alarm': '#ff4f6d', 'Baby crying': '#ff9ad5', 'Kettle': '#4fd3bd', 'Washing machine': '#7fb4ff' }, EXTRA = ['#b48cff', '#c9e264', '#ff8a4c', '#5fe0ff'];
+  var NB = 40, FMIN = 100, FMAX = 8000, ENVB = 16, REC_S = 3;
+  var profiles = [], log = [], ac = null, an = null, proc = null, src = null, stream = null, fbuf = null, bands = null;
+  var frames = [], MAXF = 600, floorHist = [], noise = -70, listening = false, testMode = false, rec = null, wake = null, lastHit = {}, streak = {}, tick = 0, live = {};
+  var replayPCM = {};
+
+  // ---- storage ----
+  function load() { try { profiles = JSON.parse(localStorage.getItem('sndAlertProfiles') || '[]'); log = JSON.parse(localStorage.getItem('sndAlertLog') || '[]'); var s = localStorage.getItem('sndAlertSens'); if (s != null) $('sens').value = s; } catch (e) { profiles = []; log = []; } }
+  function save() { try { localStorage.setItem('sndAlertProfiles', JSON.stringify(profiles)); localStorage.setItem('sndAlertLog', JSON.stringify(log.slice(0, 100))); localStorage.setItem('sndAlertSens', $('sens').value); } catch (e) {} }
+
+  // ---- audio ----
+  function mel(f) { return 2595 * Math.log10(1 + f / 700); }
+  function imel(m) { return 700 * (Math.pow(10, m / 2595) - 1); }
+  function makeBands(sr, bins) {
+    var out = [], m0 = mel(FMIN), m1 = mel(FMAX), edges = [];
+    for (var i = 0; i < NB + 2; i++) edges.push(imel(m0 + (m1 - m0) * i / (NB + 1)) / (sr / 2) * bins);
+    for (var b = 0; b < NB; b++) {
+      var lo = edges[b], c = edges[b + 1], hi = edges[b + 2], w = [];
+      for (var k = Math.floor(lo); k <= Math.ceil(hi) && k < bins; k++) { var v = k < c ? (k - lo) / (c - lo || 1) : (hi - k) / (hi - c || 1); if (v > 0) w.push([k, v]); }
+      if (!w.length) w.push([Math.min(bins - 1, Math.round(c)), 1]);
+      out.push(w);
+    }
+    return out;
+  }
+  function frameFeature() {
+    an.getFloatFrequencyData(fbuf);
+    var lm = new Float32Array(NB), tot = 0;
+    for (var b = 0; b < NB; b++) { var s = 0, ws = 0; bands[b].forEach(function (kw) { var p = Math.pow(10, (isFinite(fbuf[kw[0]]) ? fbuf[kw[0]] : -140) / 10); s += p * kw[1]; ws += kw[1]; }); var e = s / ws; tot += e; lm[b] = 10 * Math.log10(e + 1e-14); }
+    return { m: lm, e: 10 * Math.log10(tot / NB + 1e-14) };
+  }
+  async function ensureAudio() {
+    if (ac) { if (ac.state === 'suspended') await ac.resume(); return; }
+    stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+    ac = new (window.AudioContext || window.webkitAudioContext)();
+    src = ac.createMediaStreamSource(stream);
+    an = ac.createAnalyser(); an.fftSize = 2048; an.smoothingTimeConstant = 0;
+    fbuf = new Float32Array(an.frequencyBinCount); bands = makeBands(ac.sampleRate, an.frequencyBinCount);
+    proc = ac.createScriptProcessor(1024, 1, 1);
+    var mute = ac.createGain(); mute.gain.value = 0;
+    src.connect(an); src.connect(proc); proc.connect(mute); mute.connect(ac.destination);
+    proc.onaudioprocess = onFrame;
+  }
+  function onFrame(ev) {
+    var f = frameFeature();
+    frames.push(f); if (frames.length > MAXF) frames.shift();
+    if (rec) { rec.frames.push(f); var pcm = ev.inputBuffer.getChannelData(0); rec.pcm.push(new Float32Array(pcm)); if (rec.frames.length >= rec.need) finishRec(); }
+    // slowly tracking noise floor: 20th percentile of the last ~10 s
+    floorHist.push(f.e); if (floorHist.length > 470) floorHist.shift();
+    if (floorHist.length % 24 === 0) { var s = floorHist.slice().sort(function (a, b) { return a - b; }); noise = s[Math.floor(s.length * 0.2)]; }
+    $('lvl').style.width = Math.max(0, Math.min(100, (f.e + 90) * 1.2)) + '%';
+    if (++tick % 4 === 0 && (listening || testMode)) detect();
+  }
+
+  // ---- fingerprints ----
+  function centre(v) { var m = 0, i; for (i = 0; i < v.length; i++) m += v[i]; m /= v.length; var o = new Array(v.length); for (i = 0; i < v.length; i++) o[i] = v[i] - m; return o; }
+  function cos(a, b) { var d = 0, na = 0, nb = 0; for (var i = 0; i < a.length; i++) { d += a[i] * b[i]; na += a[i] * a[i]; nb += b[i] * b[i]; } return na && nb ? d / Math.sqrt(na * nb) : 0; }
+  function fingerprint(fr, floor) {
+    var thr = floor + 8, act = fr.filter(function (f) { return f.e > thr; });
+    if (act.length < 4) return null;
+    var spec = new Array(NB).fill(0);
+    act.forEach(function (f) { for (var b = 0; b < NB; b++) spec[b] += f.m[b]; });
+    spec = centre(spec.map(function (x) { return x / act.length; }));
+    var env = [];
+    for (var k = 0; k < ENVB; k++) { var a = Math.floor(k * fr.length / ENVB), z = Math.max(a + 1, Math.floor((k + 1) * fr.length / ENVB)), s = 0; for (var i = a; i < z; i++) s += Math.max(0, fr[i].e - floor); env.push(s / (z - a)); }
+    return { spec: spec.map(function (x) { return +x.toFixed(2); }), env: centre(env).map(function (x) { return +x.toFixed(2); }), len: fr.length, act: act.length / fr.length, lvl: act.reduce(function (s, f) { return s + f.e; }, 0) / act.length - floor };
+  }
+  function trim(fr, floor) {
+    var thr = floor + 8, a = -1, z = -1;
+    fr.forEach(function (f, i) { if (f.e > thr) { if (a < 0) a = i; z = i; } });
+    if (a < 0) return null;
+    a = Math.max(0, a - 2); z = Math.min(fr.length - 1, z + 2);
+    return fr.slice(a, Math.min(z + 1, a + 100));
+  }
+  function threshold() { return 0.93 - (+$('sens').value) * 0.0026; }
+  function detect() {
+    var thr = threshold(), now = Date.now();
+    profiles.forEach(function (p) {
+      if (!p.samples.length) { live[p.id] = 0; return; }
+      var best = 0;
+      p.samples.forEach(function (s) {
+        if (frames.length < s.len) return;
+        var win = frames.slice(frames.length - s.len), fp = fingerprint(win, noise);
+        if (!fp || fp.lvl < 5 || fp.act < Math.min(0.9, s.act * 0.5)) return;
+        var sc = 0.75 * cos(fp.spec, s.spec) + 0.25 * Math.max(0, cos(fp.env, s.env));
+        if (sc > best) best = sc;
+      });
+      live[p.id] = best;
+      if (best >= thr) streak[p.id] = (streak[p.id] || 0) + 1; else streak[p.id] = 0;
+      if (streak[p.id] >= 2 && now - (lastHit[p.id] || 0) > (testMode ? 2500 : 6000)) { lastHit[p.id] = now; streak[p.id] = 0; hit(p, best); }
+    });
+    bars();
+  }
+  function hit(p, sc) {
+    if (testMode) { toast('Would alert: ' + p.name + ' (match ' + sc.toFixed(2) + ')', p.colour); return; }
+    log.unshift({ t: Date.now(), name: p.name, colour: p.colour, sc: +sc.toFixed(2) }); save(); renderLog();
+    $('alarm').style.setProperty('--c', p.colour); $('aName').textContent = p.name; $('aTime').textContent = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }); $('alarm').hidden = false;
+    try { navigator.vibrate && navigator.vibrate([400, 150, 400, 150, 800]); } catch (e) {}
+    try { document.title = '🔔 ' + p.name + ' · Home Sound Alerts'; } catch (e) {}
+  }
+  function toast(t, c) { var el = $('toast'); el.textContent = t; el.style.setProperty('--c', c); el.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(function () { el.hidden = true; }, 2500); }
+
+  // ---- recording ----
+  function startRec(p) {
+    ensureAudio().then(function () {
+      if (rec) return;
+      rec = { p: p, frames: [], pcm: [], need: Math.round(REC_S * ac.sampleRate / 1024), floor: noise };
+      $('msg').textContent = 'Recording ' + p.name + ' for 3 seconds. Make the sound now.';
+      render();
+    }).catch(micErr);
+  }
+  function finishRec() {
+    var r = rec; rec = null;
+    // noise floor for the sample: the quieter part of the recording itself, or the room level if we know it
+    var es = r.frames.map(function (f) { return f.e; }).sort(function (a, b) { return a - b; });
+    var floor = Math.min(es[Math.floor(es.length * 0.15)], floorHist.length > 100 ? noise : 999);
+    var seg = trim(r.frames, floor), fp = seg && fingerprint(seg, floor);
+    if (!fp || fp.lvl < 6) { $('msg').textContent = 'That was too quiet to learn. Move closer to the sound and try again.'; render(); return; }
+    r.p.samples.push(fp); if (r.p.samples.length > 5) r.p.samples.shift();
+    var n = 0; r.pcm.forEach(function (c) { n += c.length; }); var all = new Float32Array(n), o = 0; r.pcm.forEach(function (c) { all.set(c, o); o += c.length; });
+    replayPCM[r.p.id] = all;
+    save(); $('msg').textContent = 'Got it. ' + r.p.name + ' has ' + r.p.samples.length + ' recording' + (r.p.samples.length > 1 ? 's' : '') + (r.p.samples.length < 2 ? '. Add at least one more for reliability.' : '.'); render();
+  }
+  function replay(p) {
+    var pcm = replayPCM[p.id]; if (!pcm || !ac) return;
+    var b = ac.createBuffer(1, pcm.length, ac.sampleRate); b.copyToChannel(pcm, 0);
+    var s = ac.createBufferSource(); s.buffer = b; s.connect(an); s.connect(proc); s.start();
+    if (!testMode) setTest(true);
+    $('msg').textContent = 'Replaying your last ' + p.name + ' recording into the detector (silently). Watch its bar.';
+  }
+  function micErr(e) { $('msg').textContent = e && e.name === 'NotAllowedError' ? 'Microphone permission was refused. Allow it in your browser settings.' : 'Couldn\'t open the microphone: ' + (e && e.message ? e.message : e); }
+
+  // ---- wake lock ----
+  async function lockOn() { try { if ('wakeLock' in navigator) { wake = await navigator.wakeLock.request('screen'); $('wl').textContent = 'Screen kept awake.'; wake.addEventListener('release', function () { $('wl').textContent = listening ? 'Screen may sleep. Tap the page to keep it awake.' : ''; }); } else $('wl').textContent = 'Your browser can\'t keep the screen awake. Turn off auto-lock while listening.'; } catch (e) { $('wl').textContent = 'Couldn\'t keep the screen awake.'; } }
+  document.addEventListener('visibilitychange', function () { if (!document.hidden && listening && (!wake || wake.released)) lockOn(); });
+
+  // ---- UI ----
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function render() {
+    $('sN').textContent = profiles.length;
+    if (!profiles.length) { $('snds').innerHTML = '<li style="--c:var(--line)"><span class="msg">No sounds yet. Add one below.</span></li>'; return; }
+    $('snds').innerHTML = profiles.map(function (p) {
+      var recNow = rec && rec.p.id === p.id;
+      return '<li style="--c:' + p.colour + '" data-id="' + p.id + '"><div class="top"><b>' + esc(p.name) + '</b><small>' + p.samples.length + ' of 5 recordings</small></div>' +
+        '<div class="bar" title="Live match"><i data-bar="' + p.id + '"></i><u style="left:' + (threshold() * 100) + '%"></u></div>' +
+        '<div class="ctl"><button class="sm" type="button" data-act="rec"' + (rec || p.samples.length >= 5 ? ' disabled' : '') + '>' + (recNow ? 'Recording…' : 'Record') + '</button>' +
+        '<button class="sm" type="button" data-act="replay"' + (replayPCM[p.id] ? '' : ' disabled') + '>Replay last</button>' +
+        '<button class="sm" type="button" data-act="del">Delete</button></div></li>';
+    }).join('');
+  }
+  function bars() { profiles.forEach(function (p) { var el = document.querySelector('[data-bar="' + p.id + '"]'); if (el) el.style.width = Math.max(0, (live[p.id] || 0)) * 100 + '%'; }); }
+  function renderLog() {
+    var day = new Date().toDateString();
+    $('sHeard').textContent = log.filter(function (l) { return new Date(l.t).toDateString() === day; }).length;
+    $('sLast').textContent = log.length ? new Date(log[0].t).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '–';
+    $('log').innerHTML = log.length ? log.slice(0, 50).map(function (l) { var d = new Date(l.t); return '<li><span style="color:' + l.colour + '">● ' + esc(l.name) + '</span><span>' + d.toLocaleDateString([], { day: 'numeric', month: 'short' }) + ' ' + d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) + '</span></li>'; }).join('') : '<li><span>Nothing heard yet.</span></li>';
+  }
+  $('snds').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    var id = b.closest('li').dataset.id, p = profiles.filter(function (x) { return x.id === id; })[0]; if (!p) return;
+    if (b.dataset.act === 'rec') startRec(p);
+    if (b.dataset.act === 'replay') replay(p);
+    if (b.dataset.act === 'del' && confirm('Delete ' + p.name + '?')) { profiles = profiles.filter(function (x) { return x !== p; }); save(); render(); }
+  });
+  $('type').onchange = function () { $('custRow').hidden = $('type').value !== 'custom'; };
+  $('add').onclick = function () {
+    var name = $('type').value === 'custom' ? ($('cust').value.trim() || 'Custom sound') : $('type').value;
+    if (profiles.length >= 8) { $('msg').textContent = 'That\'s the maximum of 8 sounds.'; return; }
+    var used = profiles.map(function (p) { return p.colour; }), colour = COLS[name] && used.indexOf(COLS[name]) < 0 ? COLS[name] : EXTRA.filter(function (c) { return used.indexOf(c) < 0; })[0] || '#ffffff';
+    profiles.push({ id: 's' + Date.now().toString(36), name: name, colour: colour, samples: [] }); save(); render();
+    $('msg').textContent = 'Added ' + name + '. Now press Record and make the sound.';
+  };
+  function setTest(on) { testMode = on; $('test').setAttribute('aria-pressed', on); if (on) ensureAudio().catch(micErr); }
+  $('test').onclick = function () { setTest(!testMode); };
+  $('listen').onclick = function () {
+    if (listening) { listening = false; $('listen').textContent = 'Start listening'; $('listen').classList.remove('stop'); if (wake) { try { wake.release(); } catch (e) {} } $('wl').textContent = ''; $('msg').textContent = 'Stopped.'; return; }
+    if (!profiles.some(function (p) { return p.samples.length; })) { $('msg').textContent = 'Teach at least one sound first.'; return; }
+    ensureAudio().then(function () { listening = true; setTest(false); $('listen').textContent = 'Stop listening'; $('listen').classList.add('stop'); $('msg').textContent = 'Listening. Keep this tab open and the screen on.'; lockOn(); }).catch(micErr);
+  };
+  $('alarm').onclick = function () { $('alarm').hidden = true; document.title = 'Home Sound Alerts · Mariam\'s Lab'; };
+  $('sens').oninput = function () { $('sensO').textContent = $('sens').value + ' (match above ' + threshold().toFixed(2) + ')'; save(); render(); };
+  $('clearLog').onclick = function () { log = []; save(); renderLog(); };
+  load(); $('sens').oninput(); render(); renderLog();
+  window.SoundAlerts = { profiles: function () { return profiles; }, live: live, noise: function () { return noise; } };
+})();
+</script>
+</body>
+</html>
