@@ -269,3 +269,10 @@ LabAr.add({
  "The best three fishing windows in the next 48 hours from tide, moon, dawn and dusk, pressure and wind.": "أفضل ثلاث فترات للصيد في الـ48 ساعة القادمة حسب المد والجزر والقمر والفجر والغروب والضغط والرياح.",
  "Find a window →": "اعثر على فترة ←"
 });
+/* index cards for newer tools */
+LabAr.add({
+ "Tool · Security": "أداة · أمان",
+ "Domain dossier": "ملف النطاق",
+ "Registration age, DNS, email spoofing grade, certificates, subdomains, hosting and look-alike domains, as one exportable report.": "عمر التسجيل وسجلات DNS ودرجة الحماية من انتحال البريد والشهادات والنطاقات الفرعية والاستضافة والنطاقات المشابهة، في تقرير واحد قابل للتصدير.",
+ "Build a dossier →": "أنشئ الملف ←"
+});

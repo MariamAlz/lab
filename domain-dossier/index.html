@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Domain Dossier · Mariam's Lab</title>
+<meta name="description" content="Everything public about a domain on one page: registration age and registrar, DNS records, email security grade, certificates and subdomains, hosting network, and look-alike domains that could be used against it.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/domain-dossier/">
+<meta property="og:title" content="Domain Dossier · Mariam's Lab"><meta property="og:description" content="Registration, DNS, email security, certificates, subdomains and look-alikes for any domain."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.inrow { display: flex; gap: 8px; flex-wrap: wrap; }
+.inrow input { flex: 1 1 260px; min-width: 0; font: inherit; font-family: var(--font-mono); color: var(--ink); background: rgba(7,10,24,.7); border: 1px solid var(--line); border-radius: 999px; padding: 11px 16px; }
+.go2 { font: inherit; font-weight: 600; color: var(--bg); background: var(--accent); border: 0; border-radius: 999px; padding: 11px 22px; cursor: pointer; }
+.sm { font: inherit; font-size: 0.8rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 4px 11px; cursor: pointer; text-decoration: none; display: inline-block; }
+.sm:disabled { opacity: .5; cursor: default; }
+.tries { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; align-items: center; }
+.lbl { font-size: 0.78rem; color: var(--muted); }
+.res { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 18px; }
+.sec { padding: 16px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); display: grid; gap: 10px; align-content: start; min-width: 0; }
+.sec h2 { font-size: 1.05rem; font-weight: 700; display: flex; justify-content: space-between; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.sec h2 small { font-family: var(--font-mono); font-size: 0.72rem; color: var(--muted); font-weight: 400; }
+.sec.full { grid-column: 1 / -1; }
+.kv { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 5px 12px; font-size: 0.86rem; margin: 0; }
+.kv dt { color: var(--muted); } .kv dd { margin: 0; font-family: var(--font-mono); font-size: 0.8rem; word-break: break-all; }
+.flags { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.flags li { display: grid; grid-template-columns: 1.3em minmax(0, 1fr); gap: 6px; font-size: 0.88rem; }
+.flags small { display: block; color: var(--muted); font-size: 0.8rem; word-break: break-word; }
+.grade { font-family: var(--font-display); font-size: 3rem; font-weight: 800; line-height: 1; }
+.pills { display: flex; flex-wrap: wrap; gap: 5px; max-height: 280px; overflow: auto; }
+.pills span, .pills a { font-family: var(--font-mono); font-size: 0.74rem; padding: 2px 8px; border-radius: 99px; border: 1px solid var(--line); word-break: break-all; text-decoration: none; color: var(--ink); }
+.pills .hit { border-color: var(--sat-c); color: var(--sat-c); }
+.pills .nx { opacity: .55; }
+.pills .ex { border-color: var(--accent); color: var(--accent); }
+.rec { display: grid; gap: 8px; }
+.rec div { display: grid; grid-template-columns: 54px minmax(0, 1fr); gap: 8px; font-size: 0.8rem; }
+.rec b { font-family: var(--font-mono); color: var(--accent); font-weight: 500; }
+.rec code { font-family: var(--font-mono); word-break: break-all; display: grid; gap: 2px; }
+.ok { color: var(--sat-b); } .bad { color: var(--sat-c); } .meh { color: var(--accent); } .na { color: var(--muted); }
+.wait { color: var(--muted); font-size: 0.86rem; }
+.stats span { font-size: 0.78rem; color: var(--muted); }
+.stats b.ok { color: var(--sat-b); } .stats b.bad { color: var(--sat-c); } .stats b.meh { color: var(--accent); }
+.groups { display: grid; gap: 10px; }
+.groups h3 { font-size: 0.85rem; font-weight: 600; color: var(--muted); margin-bottom: 4px; font-family: var(--font-body); }
+[hidden] { display: none !important; }
+html.ar .kv dd[data-noar], html.ar .rec code { direction: ltr; text-align: right; }
+@media (max-width: 760px) { .res { grid-template-columns: minmax(0, 1fr); } }
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Security · OSINT</span>
+    <h1 style="font-size:var(--step-3)">Domain dossier.</h1>
+    <p>One page with everything public about a domain: when it was registered and by which registrar, its DNS records, how well it protects its email from spoofing, every certificate and subdomain in public logs, who hosts it, and which look-alike names exist. Use it to check a suspicious sender, or to audit your own domain the way an attacker would.</p>
+  </div>
+  <form class="inrow" id="f"><input id="q" placeholder="Domain or link, e.g. example.com" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Domain or link"><button class="go2" type="submit">Build dossier</button></form>
+  <div class="tries"><span class="lbl">Try</span><button class="sm" type="button" data-q="mariamalzaabi.ae">mariamalzaabi.ae</button><button class="sm" type="button" data-q="github.com">github.com</button><button class="sm" type="button" data-q="example.com">example.com</button></div>
+  <div id="out" hidden>
+    <p class="wait" id="target" style="margin-top:16px"></p>
+    <div class="stats" style="margin-top:10px"><div><b id="stAge">…</b><span>domain age</span></div><div><b id="stMail">…</b><span>email security grade</span></div><div><b id="stSubs">…</b><span>names in certificate logs</span></div></div>
+    <div class="res">
+      <div class="sec"><h2>Registration <small>RDAP registry</small></h2><div id="rdap" class="wait">Asking the registry…</div></div>
+      <div class="sec"><h2>Email security <small>SPF · DMARC · DKIM</small></h2><div id="mail" class="wait">Reading DNS…</div></div>
+      <div class="sec"><h2>DNS records <small>DNS over HTTPS</small></h2><div id="dns" class="wait">Reading DNS…</div></div>
+      <div class="sec"><h2>Hosting <small>IP address owner</small></h2><div id="host" class="wait">Waiting for DNS…</div></div>
+      <div class="sec full"><h2>Certificates and subdomains <small>certspotter · crt.sh</small></h2><div id="ct" class="wait">Searching public certificate logs (can take 20 s)…</div></div>
+      <div class="sec full"><h2>Look-alike domains <small>generated on your device</small></h2><div id="look"></div></div>
+    </div>
+    <div class="tries" style="margin-top:16px"><button class="sm" type="button" id="md">Copy report as Markdown</button><button class="sm" type="button" id="dl">Download .md</button><span class="lbl" id="mdmsg" role="status"></span></div>
+  </div>
+  <div class="game" style="margin-top:26px">
+    <p class="fact"><b>Why age matters.</b> Most phishing domains are registered days before an attack and abandoned within weeks. A domain under 30 days old that asks you to log in or pay is a strong warning sign. Old domains can still be hijacked or resold, so age is a clue, not proof.</p>
+    <p class="fact"><b>What gets sent where.</b> Only the domain name leaves your device: to rdap.org (which forwards to the right registry), to Cloudflare or Google for DNS lookups, to certspotter and crt.sh for certificate logs, and the domain's IP address to ipwho.is for the network owner. Look-alikes are generated here; checking them sends up to 40 more DNS lookups. Nothing is stored.</p>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  var SECOND = /^(co|com|net|org|gov|ac|edu|sch|mil|nhs|ltd|plc)$/;
+  function registrable(host) { var p = host.split('.'); if (p.length <= 2) return host; return (SECOND.test(p[p.length - 2]) ? p.slice(-3) : p.slice(-2)).join('.'); }
+  function parse(q) {
+    q = q.trim(); var url;
+    try { url = new URL(/^[a-z]+:\/\//i.test(q) ? q : 'https://' + q); } catch (e) { return null; }
+    var host = url.hostname.replace(/\.$/, '').toLowerCase();
+    if (!/\./.test(host) || /^\d+\.\d+\.\d+\.\d+$/.test(host)) return null;
+    return { host: host, reg: registrable(host) };
+  }
+  function timed(p, ms) { var c = new AbortController(), t = setTimeout(function () { c.abort(); }, ms); return p(c.signal).finally(function () { clearTimeout(t); }); }
+  function fmtD(s) { var d = new Date(s); return isNaN(d) ? s : d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }); }
+  function ageText(days) { return days < 60 ? days + ' days' : days < 730 ? Math.round(days / 30) + ' months' : (days / 365).toFixed(1) + ' years'; }
+
+  // ---------- DNS over HTTPS ----------
+  var TYPES = { A: 1, NS: 2, CNAME: 5, MX: 15, TXT: 16, AAAA: 28, CAA: 257 };
+  function doh(name, type) {
+    var n = encodeURIComponent(name);
+    return timed(function (s) { return fetch('https://cloudflare-dns.com/dns-query?name=' + n + '&type=' + type, { headers: { accept: 'application/dns-json' }, signal: s }); }, 7000)
+      .then(function (r) { if (!r.ok) throw new Error('cf'); return r.json(); })
+      .catch(function () { return timed(function (s) { return fetch('https://dns.google/resolve?name=' + n + '&type=' + type, { signal: s }); }, 7000).then(function (r) { if (!r.ok) throw new Error('google'); return r.json(); }); });
+  }
+  function ans(j, type) { return ((j && j.Answer) || []).filter(function (a) { return a.type === TYPES[type]; }).map(function (a) { return a.data; }); }
+  function txt(d) { return d.replace(/^"|"$/g, '').replace(/"\s+"/g, '').replace(/\\"/g, '"'); }
+  function caa(d) {
+    // Cloudflare returns CAA in RFC 3597 generic form: \# len hex…
+    var m = /^\\#\s+\d+\s+([0-9a-f\s]+)$/i.exec(d); if (!m) return d;
+    var b = m[1].replace(/\s+/g, '').match(/../g).map(function (h) { return parseInt(h, 16); }), tl = b[1], tag = String.fromCharCode.apply(null, b.slice(2, 2 + tl)), val = String.fromCharCode.apply(null, b.slice(2 + tl));
+    return b[0] + ' ' + tag + ' "' + val + '"';
+  }
+  function pool(items, n, fn) {
+    var i = 0, out = [];
+    function next() { if (i >= items.length) return Promise.resolve(); var k = i++; return fn(items[k], k).then(function (r) { out[k] = r; }, function () { out[k] = null; }).then(next); }
+    var ws = []; for (var w = 0; w < Math.min(n, items.length); w++) ws.push(next());
+    return Promise.all(ws).then(function () { return out; });
+  }
+
+  var S = {};
+  function stat(id, text, cls) { $(id).textContent = text; $(id).className = cls || ''; }
+
+  // ---------- RDAP ----------
+  function rdap(reg) {
+    return timed(function (s) { return fetch('https://rdap.org/domain/' + reg, { signal: s }); }, 15000).then(function (r) { if (r.status === 404) throw new Error('nf'); if (!r.ok) throw new Error('x'); return r.json(); }).then(function (j) {
+      var ev = {}; (j.events || []).forEach(function (e) { ev[e.eventAction] = e.eventDate; });
+      var rr = ((j.entities || []).filter(function (e) { return (e.roles || []).indexOf('registrar') >= 0; })[0] || {}), regName = '';
+      try { regName = rr.vcardArray[1].filter(function (v) { return v[0] === 'fn'; })[0][3]; } catch (e) {}
+      var created = ev.registration, days = created ? Math.floor((Date.now() - new Date(created)) / 864e5) : null, expDays = ev.expiration ? Math.floor((new Date(ev.expiration) - Date.now()) / 864e5) : null;
+      var ns = (j.nameservers || []).map(function (n) { return (n.ldhName || '').toLowerCase(); }).filter(Boolean);
+      S.rdap = { created: created, days: days, expires: ev.expiration, changed: ev['last changed'], registrar: regName, status: j.status || [], ns: ns, dnssec: j.secureDNS ? !!j.secureDNS.delegationSigned : null };
+      stat('stAge', days == null ? 'unknown' : ageText(days), days == null ? '' : days < 30 ? 'bad' : days < 365 ? 'meh' : 'ok');
+      var rows = [['Registered', created ? fmtD(created) : 'not shown'], ['Age', days != null ? ageText(days) : ''], ['Expires', ev.expiration ? fmtD(ev.expiration) : 'not shown'], ['Last changed', ev['last changed'] ? fmtD(ev['last changed']) : ''], ['Registrar', regName, 1], ['Status', (j.status || []).join(', '), 1], ['Name servers', ns.join(', '), 1], ['DNSSEC', S.rdap.dnssec == null ? '' : S.rdap.dnssec ? 'signed' : 'not signed']];
+      var flags = [];
+      if (days != null && days < 30) flags.push(['bad', 'Registered less than 30 days ago', 'Brand-new domains are the classic phishing setup. Be very careful with any link or email from it.']);
+      else if (days != null && days < 365) flags.push(['meh', 'Less than a year old', 'Not alarming on its own, but worth knowing.']);
+      if (expDays != null && expDays < 30 && expDays >= 0) flags.push(['meh', 'Expires within 30 days', 'If the owner forgets to renew, someone else can register it and receive its email.']);
+      if ((j.status || []).some(function (s) { return /hold|pending delete|redemption/i.test(s); })) flags.push(['bad', 'Suspended or being deleted', 'The registry status shows a hold or deletion. Registries do this to abusive domains.']);
+      $('rdap').className = ''; $('rdap').innerHTML = '<dl class="kv">' + rows.filter(function (r) { return r[1]; }).map(function (r) { return '<dt>' + r[0] + '</dt><dd' + (r[2] ? ' data-noar' : '') + '>' + esc(r[1]) + '</dd>'; }).join('') + '</dl>' + (flags.length ? '<ul class="flags">' + flagsHTML(flags) + '</ul>' : '');
+    }).catch(function (e) {
+      S.rdap = null; stat('stAge', 'unknown');
+      $('rdap').textContent = e.message === 'nf' ? 'No registration record found. The domain may not exist, or its registry (some country endings, including .ae) doesn\'t publish RDAP data.' : 'The registry didn\'t answer. Try again later.';
+    });
+  }
+  function flagsHTML(f) { var ic = { ok: '✓', bad: '✕', meh: '!', na: '·' }; return f.map(function (x) { return '<li><span class="' + x[0] + '">' + ic[x[0]] + '</span><span>' + esc(x[1]) + '<small>' + esc(x[2]) + '</small></span></li>'; }).join(''); }
+
+  // ---------- DNS + email ----------
+  var DKIM = ['google', 'selector1', 'selector2', 'k1', 'default', 's1', 's2', 'dkim', 'mail', 'zoho', 'smtp', 'mandrill'];
+  function dns(reg) {
+    var types = ['A', 'AAAA', 'MX', 'NS', 'TXT', 'CAA'];
+    return pool(types, 4, function (t) { return doh(reg, t); }).then(function (res) {
+      if (res.every(function (r) { return !r; })) throw new Error('dns');
+      var rec = {}; types.forEach(function (t, i) { rec[t] = ans(res[i], t); });
+      rec.TXT = rec.TXT.map(txt); rec.CAA = rec.CAA.map(caa);
+      var nx = res[0] && res[0].Status === 3;
+      S.dns = rec; S.nx = nx;
+      $('dns').className = '';
+      $('dns').innerHTML = nx ? '<p class="bad">This domain does not exist in DNS (NXDOMAIN).</p>' : '<div class="rec">' + types.map(function (t) { return '<div><b data-noar>' + t + '</b>' + (rec[t].length ? '<code>' + rec[t].map(function (v) { return '<span>' + esc(v) + '</span>'; }).join('') + '</code>' : '<span class="na">none</span>') + '</div>'; }).join('') + '</div>' +
+        (rec.CAA.length ? '' : '<p class="wait">No CAA record, so any certificate authority may issue certificates for this domain.</p>');
+      host(rec.A);
+      return pool(['_dmarc.' + reg].concat(DKIM.map(function (s) { return s + '._domainkey.' + reg; })), 4, function (n) { return doh(n, 'TXT'); }).then(function (r2) {
+        var dm = ans(r2[0], 'TXT').map(txt).filter(function (t) { return /^v=DMARC1/i.test(t); })[0] || null;
+        var dk = []; DKIM.forEach(function (s, i) { var t = ans(r2[i + 1], 'TXT').map(txt).join(''); if (/v=DKIM1|k=rsa|p=/i.test(t)) dk.push(s); });
+        mail(rec, dm, dk);
+      });
+    }).catch(function () { S.dns = null; $('dns').textContent = 'DNS lookups failed. Your network may block DNS over HTTPS.'; $('mail').textContent = 'Needs DNS.'; $('host').textContent = 'Needs DNS.'; stat('stMail', '?'); });
+  }
+  function mail(rec, dm, dk) {
+    var spfs = rec.TXT.filter(function (t) { return /^v=spf1/i.test(t); }), spf = spfs[0] || null, f = [], score = 0;
+    var nullMx = rec.MX.length === 1 && /^0 \.$/.test(rec.MX[0].trim());
+    if (!spf) f.push(['bad', 'No SPF record', 'Nothing tells receiving servers which machines may send email as this domain.']);
+    else {
+      var q = (/([~?+-]?)all\b/i.exec(spf) || [])[1], look = (spf.match(/(^|\s)[+~?-]?(include:|a(?=[\s:/]|$)|mx(?=[\s:/]|$)|ptr|exists:|redirect=)/gi) || []).length;
+      if (q === '-') { score += 2; f.push(['ok', 'SPF ends in -all (strict)', 'Mail from other servers should be rejected.']); }
+      else if (q === '~') { score += 1.5; f.push(['meh', 'SPF ends in ~all (soft fail)', 'Mail from other servers is only marked as suspicious. Fine when DMARC is strict.']); }
+      else if (q === '?' || q == null) { score += 0.5; f.push(['bad', 'SPF is neutral', 'It ends in ?all or has no all at all, so it does not block spoofing.']); }
+      else f.push(['bad', 'SPF allows everyone (+all)', 'Any server in the world may send as this domain. This is almost always a mistake.']);
+      if (spfs.length > 1) f.push(['bad', 'More than one SPF record', 'Receivers treat this as an error and SPF fails.']);
+      if (look > 10) f.push(['bad', 'Too many DNS lookups in SPF (' + look + ')', 'More than 10 makes SPF fail.']);
+    }
+    var D = null;
+    if (!dm) f.push(['bad', 'No DMARC record', 'Without DMARC, receivers decide on their own what to do with spoofed mail, and the owner gets no reports.']);
+    else {
+      D = {}; dm.split(';').forEach(function (kv) { var p = kv.trim().split('='); if (p.length === 2) D[p[0].trim().toLowerCase()] = p[1].trim(); });
+      var p = (D.p || 'none').toLowerCase(), pct = D.pct ? +D.pct : 100;
+      if (p === 'reject') { score += 3; f.push(['ok', 'DMARC policy: reject', 'Spoofed mail is refused outright. The strongest setting.']); }
+      else if (p === 'quarantine') { score += pct < 100 ? 2 : 2.5; f.push(['ok', 'DMARC policy: quarantine', 'Spoofed mail goes to spam' + (pct < 100 ? ', but only for ' + pct + '% of it.' : '.')]); }
+      else { score += 1; f.push(['meh', 'DMARC policy: none (monitor only)', 'The owner gets reports but spoofed mail is still delivered.']); }
+      if (!D.rua) f.push(['meh', 'No DMARC reports requested', 'Add rua= to receive reports about who sends as this domain.']);
+    }
+    if (dk.length) { score += 0.5; f.push(['ok', 'DKIM keys found', 'Selectors: ' + dk.join(', ') + '. Messages are signed, so tampering can be detected.']); }
+    else f.push(['na', 'No DKIM key at common selectors', 'DKIM selectors can\'t be listed, only guessed, so it may still be set up under another name.']);
+    if (nullMx) f.unshift(['ok', 'Does not receive email (null MX)', 'The domain declares it handles no mail. With strict SPF and DMARC, that is the ideal setup for a domain that never sends email.']);
+    var g = score >= 5 ? 'A' : score >= 4 ? 'B' : score >= 3 ? 'C' : score >= 1.5 ? 'D' : 'F', cls = /[AB]/.test(g) ? 'ok' : g === 'C' ? 'meh' : 'bad';
+    S.mail = { grade: g, spf: spf, dmarc: dm, dkim: dk, flags: f };
+    stat('stMail', g, cls);
+    $('mail').className = ''; $('mail').innerHTML = '<div style="display:flex;gap:16px;align-items:center"><span class="grade ' + cls + '">' + g + '</span><span class="wait">How hard it is to send fake email that looks like it came from this domain. A is hardest.</span></div><ul class="flags">' + flagsHTML(f) + '</ul>' +
+      '<dl class="kv"><dt>SPF</dt><dd' + (spf ? ' data-noar' : '') + '>' + esc(spf || 'none') + '</dd><dt>DMARC</dt><dd' + (dm ? ' data-noar' : '') + '>' + esc(dm || 'none') + '</dd></dl>';
+  }
+
+  // ---------- hosting ----------
+  function host(ips) {
+    ips = (ips || []).filter(function (i) { return /^\d+\.\d+\.\d+\.\d+$/.test(i); }).filter(function (v, i, a) { return a.indexOf(v) === i; }).slice(0, 3);
+    if (!ips.length) { $('host').textContent = 'No IPv4 address, so there is no website at the bare domain.'; S.host = []; return; }
+    pool(ips, 3, function (ip) { return timed(function (s) { return fetch('https://ipwho.is/' + ip, { signal: s }); }, 8000).then(function (r) { return r.json(); }); }).then(function (r) {
+      S.host = ips.map(function (ip, i) { var x = r[i] || {}, c = x.connection || {}; return { ip: ip, asn: c.asn, org: c.org || c.isp, country: x.country, city: x.city }; });
+      $('host').className = '';
+      $('host').innerHTML = '<dl class="kv">' + S.host.map(function (h) { return '<dt>' + esc(h.ip) + '</dt><dd' + (h.asn ? ' data-noar' : '') + '>' + (h.asn ? 'AS' + esc(h.asn) + ' ' + esc(h.org || '') + (h.country ? ' · ' + esc(h.city ? h.city + ', ' : '') + esc(h.country) : '') : '<span class="na">owner unknown</span>') + '</dd>'; }).join('') + '</dl>' +
+        '<p class="wait">A CDN or cloud network (Cloudflare, Amazon, Google, Microsoft) hides the real server. A small, unknown host for a big brand\'s login page is a red flag.</p>';
+    });
+  }
+
+  // ---------- certificates ----------
+  function ct(reg) {
+    var names = {}, srcs = { cs: null, crt: null }, first = null, issuers = {}, count = 0;
+    function add(list, nb, iss) { list.forEach(function (n) { n = n.toLowerCase().trim(); if (n === reg || n.slice(-reg.length - 1) === '.' + reg) names[n] = 1; }); var d = new Date(nb); if (!isNaN(d) && (!first || d < first)) first = d; if (iss) issuers[iss] = (issuers[iss] || 0) + 1; count++; }
+    var a = timed(function (s) { return fetch('https://api.certspotter.com/v1/issuances?domain=' + encodeURIComponent(reg) + '&include_subdomains=true&expand=dns_names&expand=issuer', { signal: s }); }, 15000).then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(function (j) {
+      j.forEach(function (c) { add(c.dns_names || [], c.not_before, c.issuer && (c.issuer.friendly_name || (c.issuer.name || '').replace(/^.*O=([^,]+).*$/, '$1'))); }); srcs.cs = j.length; render();
+    }).catch(function () { srcs.cs = -1; render(); });
+    var b = timed(function (s) { return fetch('https://crt.sh/?q=' + encodeURIComponent('%.' + reg) + '&output=json', { signal: s }); }, 20000).then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(function (j) {
+      j.forEach(function (c) { add((c.name_value || '').split('\n'), c.not_before, (c.issuer_name || '').replace(/^.*O=("?)([^,"]+)\1.*$/, '$2')); }); srcs.crt = j.length; render();
+    }).catch(function () { srcs.crt = -1; render(); });
+    function render() {
+      var list = Object.keys(names).sort(function (x, y) { return x.split('.').length - y.split('.').length || x.localeCompare(y); });
+      S.ct = { names: list, first: first, issuers: issuers, count: count, srcs: srcs };
+      var pending = srcs.cs === null || srcs.crt === null, crtUrl = 'https://crt.sh/?q=' + encodeURIComponent('%.' + reg);
+      stat('stSubs', pending && !list.length ? '…' : String(list.length));
+      var srcLine = '<p class="wait">certspotter: ' + (srcs.cs === null ? 'searching…' : srcs.cs < 0 ? 'no answer' : srcs.cs + ' certificates') + ' · crt.sh: ' + (srcs.crt === null ? 'searching…' : srcs.crt < 0 ? 'no answer' : srcs.crt + ' certificates') + '</p>' +
+        (srcs.crt === -1 ? '<p class="wait">crt.sh is often slow or blocks browser requests. <a href="' + crtUrl + '" target="_blank" rel="noopener">Open the crt.sh search ↗</a></p>' : '');
+      var iss = Object.keys(issuers).sort(function (x, y) { return issuers[y] - issuers[x]; }).slice(0, 4);
+      $('ct').className = '';
+      $('ct').innerHTML = (first ? '<dl class="kv"><dt>First certificate</dt><dd>' + fmtD(first) + '</dd>' + (iss.length ? '<dt>Issuers</dt><dd data-noar>' + esc(iss.join(', ')) + '</dd>' : '') + '</dl>' : (pending ? '' : '<p class="wait">No certificates found.</p>')) +
+        (list.length ? '<div class="pills" data-noar>' + list.slice(0, 400).map(function (n) { return '<span>' + esc(n) + '</span>'; }).join('') + '</div>' + (list.length > 400 ? '<p class="wait">…and ' + (list.length - 400) + ' more.</p>' : '') : '') + srcLine +
+        (list.length ? '<p class="wait">Every certificate is published in public logs. Names like dev, staging, vpn or test show forgotten systems that anyone can find.</p>' : '');
+    }
+  }
+
+  // ---------- look-alikes ----------
+  var KB = { q: 'wa', w: 'qeas', e: 'wrds', r: 'etdf', t: 'ryfg', y: 'tugh', u: 'yihj', i: 'uojk', o: 'ipkl', p: 'ol', a: 'qwsz', s: 'awedxz', d: 'serfcx', f: 'drtgvc', g: 'ftyhbv', h: 'gyujnb', j: 'huikmn', k: 'jiolm', l: 'kop', z: 'asx', x: 'zsdc', c: 'xdfv', v: 'cfgb', b: 'vghn', n: 'bhjm', m: 'njk' };
+  var GLYPH = [['o', '0'], ['0', 'o'], ['l', '1'], ['1', 'l'], ['i', '1'], ['i', 'l'], ['l', 'i'], ['rn', 'm'], ['m', 'rn'], ['w', 'vv'], ['vv', 'w'], ['d', 'cl'], ['cl', 'd'], ['g', 'q'], ['q', 'g'], ['e', '3'], ['s', '5']];
+  var CYR = { a: 'а', e: 'е', o: 'о', p: 'р', c: 'с', x: 'х', y: 'у', i: 'і' };
+  var TLDS = ['com', 'net', 'org', 'co', 'io', 'ae', 'info', 'xyz', 'online', 'site', 'app', 'shop', 'top', 'me', 'biz'];
+  var KINDS = [['tld', 'Other endings'], ['glyph', 'Look-alike letters'], ['idn', 'Foreign-alphabet letters (punycode)'], ['typo', 'Typos: missing, doubled or swapped letters'], ['key', 'Neighbouring keys'], ['hyph', 'Hyphens'], ['combo', 'Added words']];
+  function variants(reg) {
+    var i = reg.indexOf('.'), name = reg.slice(0, i), tld = reg.slice(i + 1), out = {}, seen = {};
+    function add(kind, label, t, show) { var d = label + '.' + (t || tld); if (d === reg || seen[d] || !/^[a-z0-9-]+$/.test(label.replace(/^xn--/, '')) || /^-|-$/.test(label)) return; seen[d] = 1; (out[kind] = out[kind] || []).push({ d: d, show: show || d }); }
+    TLDS.forEach(function (t) { if (t !== tld) add('tld', name, t); });
+    if (/\./.test(tld)) add('tld', name, tld.split('.').pop());
+    GLYPH.forEach(function (g) { var k = name.indexOf(g[0]); while (k >= 0) { add('glyph', name.slice(0, k) + g[1] + name.slice(k + g[0].length)); k = name.indexOf(g[0], k + 1); } });
+    for (var k = 0; k < name.length; k++) {
+      var ch = name[k];
+      if (CYR[ch]) { var u = name.slice(0, k) + CYR[ch] + name.slice(k + 1); try { var pn = new URL('https://' + u + '.' + tld).hostname; add('idn', pn.split('.')[0], tld, u + '.' + tld + ' → ' + pn); } catch (e) {} }
+      if (name.length > 3) add('typo', name.slice(0, k) + name.slice(k + 1));
+      add('typo', name.slice(0, k) + ch + name.slice(k));
+      if (k < name.length - 1 && name[k] !== name[k + 1]) add('typo', name.slice(0, k) + name[k + 1] + name[k] + name.slice(k + 2));
+      (KB[ch] || '').split('').forEach(function (c) { add('key', name.slice(0, k) + c + name.slice(k + 1)); });
+      if (k > 0 && name[k - 1] !== '-' && ch !== '-') add('hyph', name.slice(0, k) + '-' + name.slice(k));
+    }
+    ['login', 'secure', 'support', 'uae', 'pay', 'online'].forEach(function (w) { add('combo', name + '-' + w); add('combo', w + '-' + name); });
+    add('combo', 'my' + name); add('combo', name + 'app');
+    return out;
+  }
+  function look(reg) {
+    var v = variants(reg), total = 0; KINDS.forEach(function (k) { total += (v[k[0]] || []).length; });
+    S.look = { v: v, checked: {} };
+    $('look').innerHTML = '<p class="wait">' + total + ' variations someone could register to imitate ' + esc(reg) + '. Check which already exist: up to 40 are looked up in DNS, 4 at a time.</p><div class="tries" style="margin-top:0"><button class="sm" type="button" id="chk">Check which resolve</button><span class="lbl" id="chkmsg" role="status"></span></div><div class="groups">' +
+      KINDS.filter(function (k) { return v[k[0]]; }).map(function (k) { return '<div><h3>' + k[1] + ' · ' + v[k[0]].length + '</h3><div class="pills" data-noar>' + v[k[0]].map(function (x) { return '<span data-d="' + esc(x.d) + '">' + esc(x.show) + '</span>'; }).join('') + '</div></div>'; }).join('') + '</div>' +
+      '<p class="wait">A red name resolves to an address, so someone owns it and points it somewhere. It may be the real owner protecting their brand, or an impostor. Open it in the <a href="../inspect/">link inspector</a> before trusting it.</p>';
+    $('chk').onclick = function () { checkLook(reg); };
+  }
+  function checkLook(reg) {
+    var v = S.look.v, lists = KINDS.map(function (k) { return (v[k[0]] || []).slice(); }), pick = [];
+    while (pick.length < 40 && lists.some(function (l) { return l.length; })) lists.forEach(function (l) { if (l.length && pick.length < 40) pick.push(l.shift().d); });
+    $('chk').disabled = true; var done = 0, hits = 0;
+    $('chkmsg').textContent = 'Checking 0 of ' + pick.length + '…';
+    pool(pick, 4, function (d) {
+      return doh(d, 'A').then(function (j) {
+        var st = j.Status === 3 ? 'nx' : ans(j, 'A').length ? 'hit' : 'ex'; S.look.checked[d] = st; if (st === 'hit') hits++;
+        var el = $('look').querySelector('[data-d="' + d + '"]');
+        if (el) { el.className = st; if (st === 'hit') { var a = document.createElement('a'); a.className = 'hit'; a.href = '../inspect/?q=' + encodeURIComponent(d); a.target = '_blank'; a.rel = 'noopener'; a.textContent = el.textContent; a.dataset.d = d; el.replaceWith(a); } }
+      }).finally(function () { done++; $('chkmsg').textContent = 'Checking ' + done + ' of ' + pick.length + '…'; });
+    }).then(function () { $('chk').disabled = false; $('chkmsg').textContent = hits + ' of ' + pick.length + ' resolve.'; });
+  }
+
+  // ---------- report ----------
+  function markdown() {
+    var r = S, L = ['# Domain dossier: ' + r.reg, '', '_Generated ' + new Date().toISOString().slice(0, 16).replace('T', ' ') + ' UTC with lab.mariamalzaabi.ae/domain-dossier_', ''];
+    L.push('## Registration');
+    if (r.rdap) { L.push('- Registered: ' + (r.rdap.created ? fmtD(r.rdap.created) + ' (' + ageText(r.rdap.days) + ')' : 'not shown'), '- Expires: ' + (r.rdap.expires ? fmtD(r.rdap.expires) : 'not shown'), '- Registrar: ' + (r.rdap.registrar || 'not shown'), '- Status: ' + (r.rdap.status.join(', ') || 'none'), '- Name servers: ' + (r.rdap.ns.join(', ') || 'none'), '- DNSSEC: ' + (r.rdap.dnssec == null ? 'unknown' : r.rdap.dnssec ? 'signed' : 'not signed')); if (r.rdap.days != null && r.rdap.days < 30) L.push('- **Warning: registered less than 30 days ago (phishing risk)**'); }
+    else L.push('- No RDAP data');
+    L.push('', '## DNS');
+    if (r.dns) ['A', 'AAAA', 'MX', 'NS', 'TXT', 'CAA'].forEach(function (t) { L.push('- **' + t + '**: ' + (r.dns[t].length ? r.dns[t].map(function (x) { return '`' + x + '`'; }).join(', ') : 'none')); }); else L.push('- DNS lookup failed');
+    if (r.mail) { L.push('', '## Email security: grade ' + r.mail.grade); r.mail.flags.forEach(function (f) { L.push('- ' + ({ ok: '✓', bad: '✕', meh: '!', na: '·' }[f[0]]) + ' ' + f[1] + ': ' + f[2]); }); L.push('- SPF: `' + (r.mail.spf || 'none') + '`', '- DMARC: `' + (r.mail.dmarc || 'none') + '`'); }
+    if (r.host && r.host.length) { L.push('', '## Hosting'); r.host.forEach(function (h) { L.push('- ' + h.ip + ': ' + (h.asn ? 'AS' + h.asn + ' ' + (h.org || '') + (h.country ? ', ' + h.country : '') : 'unknown')); }); }
+    if (r.ct) { L.push('', '## Certificates (' + r.ct.count + ') and names (' + r.ct.names.length + ')'); if (r.ct.first) L.push('- First certificate: ' + fmtD(r.ct.first)); r.ct.names.slice(0, 300).forEach(function (n) { L.push('- ' + n); }); }
+    if (r.look) { var c = r.look.checked, hit = Object.keys(c).filter(function (d) { return c[d] === 'hit'; }); L.push('', '## Look-alike domains'); L.push(Object.keys(c).length ? '- Checked ' + Object.keys(c).length + ', resolving: ' + (hit.join(', ') || 'none') : '- Not checked'); }
+    return L.join('\n') + '\n';
+  }
+  $('md').onclick = function () { var t = markdown(); (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { $('mdmsg').textContent = 'Copied.'; }, function () { $('mdmsg').textContent = 'Couldn\'t copy. Use Download instead.'; }); };
+  $('dl').onclick = function () { var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([markdown()], { type: 'text/markdown' })); a.download = 'dossier-' + S.reg + '.md'; a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000); };
+
+  function run(q) {
+    var p = parse(q);
+    if (!p) { alert('That doesn\'t look like a domain.'); return; }
+    S = { reg: p.reg };
+    $('out').hidden = false;
+    $('target').textContent = p.host !== p.reg ? 'Looking at the registered domain ' + p.reg + ' (you entered ' + p.host + ').' : 'Looking at ' + p.reg + '.';
+    ['stAge', 'stMail', 'stSubs'].forEach(function (id) { stat(id, '…'); });
+    ['rdap', 'mail', 'dns', 'host', 'ct'].forEach(function (k) { $(k).className = 'wait'; });
+    $('rdap').textContent = 'Asking the registry…'; $('mail').textContent = 'Reading DNS…'; $('dns').textContent = 'Reading DNS…'; $('host').textContent = 'Waiting for DNS…'; $('ct').textContent = 'Searching public certificate logs (can take 20 s)…'; $('mdmsg').textContent = '';
+    rdap(p.reg); dns(p.reg); ct(p.reg); look(p.reg);
+    try { history.replaceState(null, '', '?d=' + encodeURIComponent(p.reg) + (/lang=|i18ndebug/.test(location.search) ? '&' + location.search.slice(1).split('&').filter(function (x) { return /^(lang|i18ndebug)/.test(x); }).join('&') : '')); } catch (e) {}
+  }
+  $('f').onsubmit = function (e) { e.preventDefault(); run($('q').value); };
+  [].forEach.call(document.querySelectorAll('[data-q]'), function (b) { b.onclick = function () { $('q').value = b.dataset.q; run(b.dataset.q); }; });
+  var d0 = new URLSearchParams(location.search).get('d'); if (d0) { $('q').value = d0; run(d0); }
+})();
+</script>
+</body>
+</html>
