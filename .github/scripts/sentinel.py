@@ -26,6 +26,8 @@ def read(item, key):
     asset = item.assets[key]
     rb = (asset.extra_fields.get("raster:bands") or [{}])[0]
     scale, offset = rb.get("scale", 0.0001), rb.get("offset", 0.0)
+    if item.properties.get("earthsearch:boa_offset_applied"):
+        offset = 0.0  # Earth Search already removed the -0.1 offset from these files
     with rasterio.open(asset.href) as src:
         b = transform_bounds("EPSG:4326", src.crs, *BBOX)
         win = from_bounds(*b, transform=src.transform)
@@ -41,7 +43,8 @@ def main():
                        sortby=[{"field": "properties.datetime", "direction": "desc"}], max_items=12).item_collection()
     for item in items:
         red, cover = read(item, "red")
-        print(item.id, item.properties.get("eo:cloud_cover"), round(cover, 3))
+        print(item.id, item.properties.get("eo:cloud_cover"), round(cover, 3), "boa_offset_applied:",
+              item.properties.get("earthsearch:boa_offset_applied"), "red p5/50/95:", np.nanpercentile(red, [5, 50, 95]).round(3))
         if cover < 0.995:
             continue
         os.makedirs(OUT, exist_ok=True)

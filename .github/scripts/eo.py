@@ -44,7 +44,10 @@ def read_band(href, bbox, w, h, scale, offset):
 def s2_band(item, key, bbox, w, h):
     a = item.assets[key]
     rb = (a.extra_fields.get("raster:bands") or [{}])[0]
-    return read_band(a.href, bbox, w, h, rb.get("scale", 0.0001), rb.get("offset", 0.0))
+    offset = rb.get("offset", 0.0)
+    if item.properties.get("earthsearch:boa_offset_applied"):
+        offset = 0.0  # Earth Search already removed the -0.1 offset from these files
+    return read_band(a.href, bbox, w, h, rb.get("scale", 0.0001), offset)
 
 
 def ls_band(item, key, bbox, w, h):
@@ -148,8 +151,11 @@ def mangrove():
             print("no scene for", y)
             continue
         it, r, g, b, nir = found
-        ndvi = (nir - r) / np.maximum(nir + r, 1e-6)
-        ndvi = np.nan_to_num(ndvi, nan=-1)
+        print("  boa_offset_applied:", it.properties.get("earthsearch:boa_offset_applied"),
+              "red p5/50/95:", np.nanpercentile(r, [5, 50, 95]).round(3), "nir:", np.nanpercentile(nir, [5, 50, 95]).round(3))
+        ok = (nir + r > 0.02) & (nir > 0) & (r > 0)
+        ndvi = np.where(ok, (nir - r) / np.maximum(nir + r, 1e-6), -1)
+        ndvi = np.clip(np.nan_to_num(ndvi, nan=-1), -1, 1)
         save_rgb(np.dstack([r, g, b]), f"{d}/{y}-rgb.jpg")
         # NDVI stored as 0-255 for -1..1 so the page can colour and threshold it
         Image.fromarray(np.clip((ndvi + 1) / 2 * 255, 0, 255).round().astype(np.uint8), "L").save(f"{d}/{y}-ndvi.png", optimize=True)
