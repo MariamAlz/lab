@@ -244,3 +244,10 @@ LabAr.add({
  "Step-by-step lock-down for your router, cameras, speakers, TV, robot vacuum and more, with a score you can track and print.": "خطوات واضحة لتأمين الراوتر والكاميرات والسماعات والتلفزيون والمكنسة الروبوتية وغيرها، مع نتيجة تتابعها وتطبعها.",
  "Harden my home →": "حصّن منزلي ←"
 });
+/* index cards for newer tools */
+LabAr.add({
+ "Tool · Security": "أداة · أمان",
+ "Lock down your phone": "أمّن هاتفك",
+ "A step-by-step security checklist for iPhone, Pixel and Samsung, with the exact settings path for every step, from everyday protection to maximum.": "قائمة خطوات لحماية iPhone وPixel وSamsung، مع المسار الدقيق في الإعدادات لكل خطوة، من الحماية اليومية إلى أقصى حماية.",
+ "Start securing →": "ابدأ التأمين ←"
+});

@@ -1,0 +1,847 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lock down your phone · Mariam's Lab</title>
+<meta name="description" content="A step-by-step phone security checklist for iPhone, Pixel and Samsung. Pick your risk level and get the exact settings paths, why each one matters and how long it takes.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/phone-opsec/">
+<meta property="og:title" content="Lock down your phone · Mariam's Lab"><meta property="og:description" content="Exact settings paths to secure an iPhone, Pixel or Samsung, from everyday to maximum protection."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.82rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.sm:hover { border-color: var(--accent); }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 0; }
+.po-pick { display: grid; gap: 8px; }
+.po-seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.po-seg button { font: inherit; text-align: start; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; cursor: pointer; display: grid; gap: 2px; min-width: 0; }
+.po-seg button b { font-family: var(--font-display); font-weight: 600; font-size: 1rem; }
+.po-seg button span { font-size: 0.76rem; color: var(--muted); }
+.po-seg button[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); background: var(--accent-soft); }
+.po-lvldesc { margin: 0; font-size: 0.9rem; color: var(--muted); }
+.po-over { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 16px; align-items: center; }
+.po-ring { display: block; }
+.po-ring circle { fill: none; stroke-width: 4; }
+.po-ring .bg { stroke: var(--line); }
+.po-ring .fg { stroke: var(--sat-b); stroke-linecap: round; transition: stroke-dashoffset .3s ease; }
+.po-ring text { fill: var(--ink); font: 600 9px var(--font-mono); }
+.po-big text { font-size: 8px; }
+.po-acts { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.po-acts label { display: inline-flex; gap: 6px; align-items: center; font-size: 0.86rem; cursor: pointer; }
+.po-ess { margin-top: 22px; padding: 18px; border-radius: var(--radius); border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent); background: var(--accent-soft); display: grid; gap: 10px; }
+.po-ess h2 { font-size: var(--step-1); font-weight: 600; }
+.po-ess ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); }
+.po-ess li label { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px; align-items: start; font-size: 0.92rem; cursor: pointer; padding: 8px 10px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); }
+.po-ess li small { color: var(--muted); font-family: var(--font-mono); font-size: 0.72rem; white-space: nowrap; }
+.po-ess li a { color: inherit; }
+.po-secs { margin-top: 26px; display: grid; gap: 14px; }
+.po-sec { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); min-width: 0; }
+.po-sec > summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 14px 16px; }
+.po-sec > summary::-webkit-details-marker { display: none; }
+.po-sec h2 { font-size: 1.15rem; font-weight: 600; line-height: 1.25; }
+.po-ar { font-family: 'IBM Plex Sans Arabic', sans-serif; font-size: 0.8rem; color: var(--accent); display: block; margin-top: 2px; }
+html.ar .po-ar { display: none; }
+.po-cnt { font-family: var(--font-mono); font-size: 0.78rem; color: var(--muted); white-space: nowrap; }
+.po-cnt::after { content: " ▾"; }
+.po-sec:not([open]) .po-cnt::after { content: " ▸"; }
+html.ar .po-sec:not([open]) .po-cnt::after { content: " ◂"; }
+.po-sdesc { margin: 0 16px 6px; color: var(--muted); font-size: 0.9rem; }
+.po-list { list-style: none; margin: 0; padding: 4px 16px 14px; display: grid; gap: 10px; }
+.po-step { border-top: 1px solid var(--line); padding-top: 12px; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 12px; }
+.po-step > input { grid-row: span 6; width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--sat-b); cursor: pointer; }
+.po-step h3 { font-family: var(--font-body); font-size: 1rem; font-weight: 600; line-height: 1.35; cursor: pointer; }
+.po-step.is-done h3 { color: var(--muted); text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--muted) 60%, transparent); }
+.po-meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 0.72rem; }
+.po-lv { padding: 1px 8px; border-radius: 999px; border: 1px solid currentColor; font-weight: 500; }
+.po-lv.l1 { color: var(--sat-b); } .po-lv.l2 { color: var(--accent); } .po-lv.l3 { color: var(--sat-c); }
+.po-min { font-family: var(--font-mono); color: var(--muted); }
+.po-path { display: grid; gap: 4px; margin: 2px 0; }
+.po-crumbs { list-style: none; margin: 0; padding: 6px 10px; display: flex; flex-wrap: wrap; align-items: center; gap: 2px 0; font-size: 0.82rem; border-radius: 8px; background: color-mix(in srgb, var(--bg) 70%, transparent); border: 1px solid var(--line); }
+.po-crumbs li { display: inline-flex; align-items: center; }
+.po-crumbs li + li::before { content: "›"; color: var(--accent); padding-inline: 6px; font-weight: 600; }
+html.ar .po-crumbs li + li::before { content: "‹"; }
+.po-crumbs .k { font-family: var(--font-mono); font-size: 0.7rem; color: var(--muted); margin-inline-end: 8px; text-transform: uppercase; letter-spacing: .05em; }
+.po-crumbs li.k + li::before { content: none; }
+.po-do { margin: 0; padding: 6px 10px; font-size: 0.85rem; border-radius: 8px; border: 1px dashed var(--line); }
+.po-why { margin: 0; color: var(--muted); font-size: 0.9rem; }
+.po-why ul { margin: 6px 0 0; padding-inline-start: 18px; display: grid; gap: 3px; }
+.po-why a, .po-aside a { color: var(--ink); }
+.po-warn { margin: 0; font-size: 0.86rem; padding: 8px 10px; border-radius: 8px; border-inline-start: 3px solid var(--sat-c); background: color-mix(in srgb, var(--sat-c) 10%, transparent); }
+.po-vary { margin: 0; font-size: 0.76rem; color: var(--muted); font-style: italic; }
+.po-aside { margin: 0 16px 14px; padding: 10px 12px; font-size: 0.86rem; color: var(--muted); border-radius: 10px; border: 1px solid var(--line); }
+.po-aside b { color: var(--ink); }
+.po-alldone { display: none; margin: 0 16px 14px; color: var(--sat-b); font-size: 0.9rem; }
+.po-rem .po-step.is-done { display: none; }
+.po-rem .po-sec.full .po-alldone { display: block; }
+.po-rem .po-ess li.is-done { display: none; }
+.po-out { width: 100%; min-height: 160px; font: 0.78rem var(--font-mono); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 10px; }
+.po-facts { margin-top: 26px; }
+@media (max-width: 520px) {
+  .po-over { grid-template-columns: 1fr; justify-items: center; }
+  .po-over .stats { width: 100%; }
+  .po-seg button { padding: 8px; }
+  .po-seg button span { display: none; }
+  .po-sec > summary { padding: 12px; gap: 10px; }
+  .po-list { padding-inline: 12px; }
+  .po-sdesc, .po-aside, .po-alldone { margin-inline: 12px; }
+}
+@media print {
+  @page { margin: 14mm; }
+  .labbar, .labfoot, .noprint, .po-ess { display: none !important; }
+  html, body { background: #fff !important; }
+  body::before { display: none !important; }
+  * { color: #000 !important; text-shadow: none !important; box-shadow: none !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+  .labmain { padding: 0; }
+  .sec-head { margin-bottom: 10px; }
+  .sec-head p { display: none; }
+  .po-printhead { display: block !important; font-size: 10pt; margin-bottom: 8px; }
+  .po-sec { border: 0; background: none; break-inside: auto; }
+  .po-sec > summary { padding: 8px 0 2px; border-bottom: 1.5px solid #000; }
+  .po-cnt::after { content: none !important; }
+  .po-list { padding: 4px 0; gap: 4px; }
+  .po-step { break-inside: avoid; padding-top: 6px; border-top: 1px solid #bbb; }
+  .po-step > input { appearance: none; -webkit-appearance: none; width: 12px; height: 12px; border: 1.2px solid #000; border-radius: 2px; }
+  .po-step > input:checked { background: #000; }
+  .po-crumbs, .po-do { background: none; border: 1px solid #999; padding: 2px 6px; font-size: 8.5pt; }
+  .po-why, .po-warn { font-size: 8.5pt; }
+  .po-warn { background: none; border: 1px solid #999; }
+  .po-ring .fg { stroke: #000 !important; } .po-ring .bg { stroke: #ccc !important; } .po-ring text { fill: #000 !important; }
+  .po-sdesc, .po-vary { display: none; }
+  .po-aside { margin: 4px 0; font-size: 8.5pt; }
+  .po-step.is-done h3 { text-decoration: line-through; }
+}
+.po-printhead { display: none; }
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Security · Privacy</span>
+    <h1 style="font-size:var(--step-3)">Lock down your phone.</h1>
+    <p>Your phone holds your bank, your email, your photos and the codes that unlock everything else. This is a checklist of the settings that actually protect it, with the exact path to each one on iPhone, Pixel and Samsung. Pick how much protection you need, tick things off as you go, and your progress stays in this browser.</p>
+  </div>
+  <p class="po-printhead" id="printhead"></p>
+
+  <div class="game noprint">
+    <div class="panel">
+      <div class="po-pick">
+        <span class="label">1 · Your phone</span>
+        <div class="po-seg" id="plats" role="group" aria-label="Platform">
+          <button type="button" data-p="ios"><b>iPhone</b><span>iOS 26 and iOS 18</span></button>
+          <button type="button" data-p="pixel"><b>Pixel</b><span>Stock Android 15 and 16</span></button>
+          <button type="button" data-p="samsung"><b>Samsung</b><span>Galaxy, One UI 7 and 8</span></button>
+        </div>
+      </div>
+      <div class="po-pick">
+        <span class="label">2 · How much protection</span>
+        <div class="po-seg" id="lvls" role="group" aria-label="Protection level">
+          <button type="button" data-l="1"><b>Everyday</b><span>For most people</span></button>
+          <button type="button" data-l="2"><b>Higher risk</b><span>Public or sensitive</span></button>
+          <button type="button" data-l="3"><b>Maximum</b><span>Targeted threat</span></button>
+        </div>
+        <p class="po-lvldesc" id="lvldesc"></p>
+      </div>
+    </div>
+    <div class="panel">
+      <span class="label">3 · Your progress</span>
+      <div class="po-over">
+        <svg class="po-ring po-big" id="ringAll" width="92" height="92" viewBox="0 0 40 40" aria-hidden="true"></svg>
+        <div class="stats">
+          <div><b id="stDone">0</b><span>steps done</span></div>
+          <div><b id="stMin">0</b><span>minutes left</span></div>
+          <div><b id="stSec">0</b><span>sections done</span></div>
+        </div>
+      </div>
+      <div class="po-acts">
+        <label><input type="checkbox" id="onlyRem"> Show only remaining</label>
+      </div>
+      <div class="po-acts">
+        <button class="sm" type="button" id="bPrint">Print or save as PDF</button>
+        <button class="sm" type="button" id="bCopy">Copy my checklist</button>
+        <button class="sm" type="button" id="bExpand">Collapse all</button>
+        <button class="sm" type="button" id="bReset">Reset ticks</button>
+      </div>
+      <p class="msg" id="msg" role="status"></p>
+      <textarea class="po-out" id="out" hidden readonly aria-label="Checklist text"></textarea>
+    </div>
+  </div>
+
+  <section class="po-ess" id="ess" aria-labelledby="essH">
+    <h2 id="essH">Quick 10-minute essentials</h2>
+    <p class="msg" id="essMsg"></p>
+    <ul id="essList"></ul>
+  </section>
+
+  <div class="po-secs" id="secs"></div>
+
+  <div class="po-facts panel">
+    <p class="fact" style="margin:0"><b>Why restarting matters.</b> Right after a restart, before you type your passcode for the first time, your phone is in its strongest state. The keys that decrypt most of your data are not in memory yet, so a thief or a forensic tool has very little to work with. Once you unlock it, those keys stay loaded until the next restart. That is why iPhones (since iOS 18.1) and Android phones (through Google Play services and Advanced Protection) now restart themselves after about three days locked and unused, and why turning your phone fully off before handing it over is a good habit.</p>
+    <p class="fact" style="margin:0">Most phone takeovers are not clever hacks. They are a passcode seen over a shoulder, a code read off the lock screen, a SIM moved to another phone, or a link in a message. The Everyday level closes those gaps. Settings menus move between versions, so if a name differs on your phone, search for it in the Settings search bar. This is general guidance, not a guarantee. If you think you are being targeted, speak to a security professional.</p>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var T = function (s) { return window.LabAr && LabAr.on ? LabAr.t(s) : s; };
+  var KEY = 'phone-opsec-v1';
+  var PN = { ios: 'iPhone', pixel: 'Pixel', samsung: 'Samsung' };
+  var LN = ['', 'Everyday', 'Higher risk', 'Maximum'];
+  var LD = ['',
+    'For most people. These close the common gaps: theft, scams, account takeover and nosy apps.',
+    'Adds to Everyday. For people with a public profile, journalists, frequent travellers and anyone in a sensitive job.',
+    'Adds to Higher risk. For a targeted threat: someone with time and money who wants into your phone specifically.'];
+
+  var SECS = [
+    ['lock', 'Lock screen and unlock', 'قفل الشاشة وفتحها', 'What someone can do with your phone in their hand, before they know your passcode.'],
+    ['theft', 'Theft protection', 'الحماية من السرقة', 'Snatch thefts usually happen while the phone is unlocked. These settings limit the damage.'],
+    ['acct', 'Accounts', 'الحسابات', 'Your Apple or Google account can restore your whole phone onto another device. Protect it first.'],
+    ['upd', 'Updates', 'التحديثات', 'Most real attacks use bugs that already have a fix. Updates are the cheapest protection there is.'],
+    ['apps', 'Apps and permissions', 'التطبيقات والأذونات', 'Every app is a door. Fewer apps, with fewer permissions, means fewer ways in.'],
+    ['loc', 'Location and tracking', 'الموقع والتتبع', 'Where you live, work and sleep can be worked out from location history and photo data.'],
+    ['net', 'Network', 'الشبكات', 'Wi-Fi, Bluetooth, mobile and nearby-sharing settings that leak or invite trouble.'],
+    ['msg', 'Messaging and calls', 'الرسائل والمكالمات', 'Account hijacks through WhatsApp codes are one of the most common scams. Lock your chats down.'],
+    ['data', 'Photos and data', 'الصور والبيانات', 'What is stored on the phone, and what leaks when you share it.'],
+    ['phys', 'Physical and travel', 'الأمان المادي والسفر', 'Cables, chargers, borders and your mobile number.'],
+    ['comp', 'Check for compromise', 'فحص الاختراق', 'How to look for spyware, stalkerware and shared access, and what to do if you find it.']
+  ];
+
+  var VPN = '<b>VPNs in the UAE.</b> Using a VPN for legitimate purposes, such as reaching your work network or protecting yourself on public Wi-Fi, is legal. Using one to commit a crime or to hide one is an offence under the UAE cybercrime law, with heavy fines. Rules can change, so check the current guidance from the Telecommunications and Digital Government Regulatory Authority (TDRA). This is general information, not legal advice.';
+  var VOIP = '<b>Calling apps in the UAE.</b> Internet voice and video calls are allowed through apps licensed in the UAE and offered with the licensed telecom operators. Some apps work for messages but not for calls. The licensed list changes, so check TDRA or your operator for the current one.';
+  var ASIDE = { net: VPN, msg: VOIP };
+
+  // [id, section, level, minutes, title, paths {i, p, s, a = both Android}, why, extras]
+  // a path string starting with "~" is a plain instruction; "Label::path" adds a small label before the crumbs
+  var ST = [
+    // 1 lock
+    ['pass6', 'lock', 1, 3, 'Use a passcode of 6 digits or more', {
+      i: 'Settings > Face ID & Passcode > Change Passcode > Passcode Options',
+      p: 'Settings > Security & privacy > Device unlock > Screen lock',
+      s: 'Settings > Lock screen and AOD > Screen lock type' },
+      'Face and fingerprint unlock always fall back to the passcode, so it is the real key to the phone. A 4-digit PIN has only 10,000 combinations and is easy to read over your shoulder. Avoid birthdays, 123456 and repeated digits. On Android, avoid patterns: they are easy to see and leave smudges.', { e: 1 }],
+    ['passA', 'lock', 2, 3, 'Switch to an alphanumeric passcode', {
+      i: 'Settings > Face ID & Passcode > Change Passcode > Passcode Options > Custom Alphanumeric Code',
+      p: 'Settings > Security & privacy > Device unlock > Screen lock > Password',
+      s: 'Settings > Lock screen and AOD > Screen lock type > Password' },
+      'A passphrase of three or four random words is far harder to guess or brute-force than any PIN, and still quick to type. Use it with biometrics so you only type it now and then.'],
+    ['bio', 'lock', 1, 2, 'Review face and fingerprint unlock', {
+      i: 'Settings > Face ID & Passcode',
+      p: 'Settings > Security & privacy > Device unlock > Face & Fingerprint Unlock',
+      s: 'Settings > Security and privacy > Biometrics' },
+      'Biometrics stop people learning your passcode by watching you type it in public, which is how most stolen phones get taken over. The trade-off: someone can hold the phone up to your face or finger while you sleep or under pressure. Remove any face, appearance or fingerprint you did not add yourself.', { v: 1 }],
+    ['ldg', 'lock', 1, 1, 'Learn the quick gesture that turns biometrics off', {
+      i: '~Press and hold the side button and either volume button until the sliders appear, then tap Cancel. Face ID stays off until you type your passcode.',
+      p: '~Press the power and volume up buttons together, then tap Lockdown. Biometrics, Smart Lock and lock screen notifications stay off until you type your PIN or password.',
+      s: ['Settings > Lock screen and AOD > Secure lock settings > Show Lockdown option', '~Then press the side key and volume down together and tap Lockdown.'] },
+      'Use it when you might be forced to unlock, for example before a checkpoint, an arrest or a mugging. After that, only the passcode opens the phone.',
+      { v: 1, w: { i: 'Do not keep holding the buttons. With "Call with Hold and Release" on, the countdown ends with a call to emergency services.' } }],
+    ['autolock', 'lock', 1, 1, 'Lock automatically after 30 seconds to 1 minute', {
+      i: 'Settings > Display & Brightness > Auto-Lock',
+      p: ['Settings > Display & touch > Screen timeout', 'Settings > Security & privacy > Device unlock > Screen lock (gear icon) > Lock after screen timeout > Immediately'],
+      s: ['Settings > Display > Screen timeout', 'Settings > Lock screen and AOD > Secure lock settings > Auto lock when screen turns off > Immediately'] },
+      'A phone left on a table or snatched from your hand should lock itself within a minute. On Android, also make sure it locks as soon as the screen goes off, not several minutes later.', { e: 1, v: 1 }],
+    ['notif', 'lock', 1, 1, 'Hide message content on the lock screen', {
+      i: 'Settings > Notifications > Show Previews > When Unlocked',
+      p: 'Settings > Notifications > Notifications on lock screen > turn off sensitive content',
+      s: 'Settings > Notifications > Lock screen notifications > Hide content' },
+      'One-time codes, bank alerts and message previews show on a locked phone. Anyone holding it can read a code and use it to reset your accounts, without ever unlocking the phone.', { e: 1, v: 1 }],
+    ['lsacc', 'lock', 1, 3, 'Limit what works from the lock screen', {
+      i: ['Settings > Face ID & Passcode > Allow Access When Locked', '~Turn off Control Centre, Reply with Message, Wallet, Home Control and USB Accessories (iOS 18). Keep Return Missed Calls if you like.'],
+      p: ['Settings > Display & touch > Lock screen > turn off Show wallet and Use device controls', 'Gemini app > Settings > Gemini on lock screen > off'],
+      s: ['Settings > Lock screen and AOD > Secure lock settings > Lock network and security > on', 'Gemini app > Settings > Gemini on lock screen > off'] },
+      { i: 'With Control Centre on the lock screen, a thief can switch on Airplane Mode so you cannot track or erase the phone. Turning off Siri, replies and Wallet stops people sending messages or reading your cards from a locked phone.',
+        a: 'Thieves switch on airplane mode so you cannot track or erase the phone. Blocking network toggles and the assistant on the lock screen stops that, and stops people sending messages from a locked phone. If your version has no option to block quick settings, Offline Device Lock in the next section covers it.' },
+      { v: 1 }],
+    ['siri', 'lock', 1, 1, 'Turn off Siri when locked', {
+      i: 'Settings > Apple Intelligence & Siri > Allow Siri When Locked > off' },
+      'Siri on a locked phone can read and send messages, make calls and show contact details to whoever is holding it.', { v: 1 }],
+    ['erase', 'lock', 2, 1, 'Erase the phone after too many wrong passcodes', {
+      i: 'Settings > Face ID & Passcode > Erase Data > on',
+      s: 'Settings > Lock screen and AOD > Secure lock settings > Auto factory reset > on' },
+      'After repeated wrong guesses the phone wipes itself. It is only safe if your data is backed up.',
+      { v: 1, w: 'Not a good idea if small children play with your phone. Make sure your backup is current first.' }],
+    ['nobio', 'lock', 3, 1, 'Use the passcode only, without biometrics, when you are at risk', {
+      i: 'Settings > Face ID & Passcode > Use Face ID For > iPhone Unlock > off',
+      p: 'Settings > Security & privacy > Device unlock > Face & Fingerprint Unlock > remove fingerprints and face',
+      s: 'Settings > Security and privacy > Biometrics > remove face and fingerprints' },
+      'If you could be detained, searched or forced to unlock, a passcode is harder to take from you than a face or a finger. Many people do this only for a trip, then switch biometrics back on.', { v: 1 }],
+
+    // 2 theft
+    ['sdp', 'theft', 1, 1, 'Turn on Stolen Device Protection', {
+      i: ['Settings > Face ID & Passcode > Stolen Device Protection > on', 'Settings > Face ID & Passcode > Require Security Delay > Always'] },
+      'Away from familiar places, changing your Apple Account password, passcode or Face ID needs your face plus a one-hour delay. A thief who watched you type your passcode still cannot lock you out of your account. Choosing "Always" applies the delay everywhere.', { e: 1, v: 1 }],
+    ['find', 'theft', 1, 2, 'Turn on Find My or Find Hub, and test it', {
+      i: ['Settings > [your name] > Find My > Find My iPhone > on', '~Also turn on Find My network and Send Last Location. Then test it at icloud.com/find from another device.'],
+      p: ['Settings > Security & privacy > Device finders > Find Hub > on', '~Test it from another device at google.com/android/find.'],
+      s: ['Settings > Security and privacy > Lost device protection > Allow this phone to be found > on', 'Settings > Google > All services > Find Hub > on'] },
+      'If the phone is lost or stolen you can see where it is, lock it with a message, or erase it. Do the test now, while you still have the phone, so you know your login works.', { e: 1, v: 1 }],
+    ['tdl', 'theft', 1, 1, 'Turn on Theft Detection Lock', {
+      p: 'Settings > Security & privacy > Device unlock > Theft protection > Theft Detection Lock',
+      s: 'Settings > Security and privacy > Lost device protection > Theft protection > Theft detection lock' },
+      'The phone uses its motion sensors to recognise a snatch, such as someone grabbing it and running or riding off, and locks the screen at once. The same menu is also under Settings > Google > All services > Theft protection.', { e: 1, v: 1 }],
+    ['odl', 'theft', 1, 1, 'Turn on Offline Device Lock', {
+      p: 'Settings > Security & privacy > Device unlock > Theft protection > Offline Device Lock',
+      s: 'Settings > Security and privacy > Lost device protection > Theft protection > Offline device lock' },
+      'If the phone goes offline for too long, for example because a thief switched on airplane mode, the screen locks automatically. On Samsung, Identity Check has to be on first.', { v: 1 }],
+    ['idc', 'theft', 1, 1, 'Turn on Identity Check', {
+      p: 'Settings > Security & privacy > Device unlock > Theft protection > Identity Check',
+      s: 'Settings > Security and privacy > Lost device protection > Theft protection > Identity check' },
+      'Outside places you trust, changing your PIN, turning off theft protection or reaching your Google account settings needs your face or fingerprint, not just the PIN. A stolen PIN alone is no longer enough.', { v: 1 }],
+    ['rlock', 'theft', 1, 2, 'Set up Remote Lock', {
+      p: 'Settings > Security & privacy > Device unlock > Theft protection > Remote Lock',
+      s: 'Settings > Security and privacy > Lost device protection > Theft protection > Remote lock > Use remote lock' },
+      'Lets you lock the phone from any browser at android.com/lock using just your phone number, even if you cannot remember your Google password in the moment. You can add a security question.', { v: 1 }],
+    ['simpin', 'theft', 2, 5, 'Lock your SIM with a PIN', {
+      i: 'Settings > Mobile Service > SIM PIN',
+      p: 'Settings > Security & privacy > More security & privacy > SIM lock',
+      s: 'Settings > Security and privacy > More security settings > Set up SIM card lock' },
+      'Without a SIM PIN, a thief can put your SIM in another phone and receive your calls and SMS codes, including bank codes. With a PIN, the SIM is useless after a restart without it. The menu may say Cellular or Mobile Data instead of Mobile Service.',
+      { v: 1, w: 'Before you turn this on, get your PUK code from your operator (their app, your account or the SIM card holder) and save it somewhere safe. You need the current SIM PIN to start, which is set by your operator. Three wrong PINs lock the SIM. Ten wrong PUK entries block it for good and you will need a new SIM.' }],
+    ['inact', 'theft', 1, 1, 'Make sure inactivity restart is working', {
+      i: '~Nothing to switch on. Since iOS 18.1, a locked iPhone that has not been unlocked for about 3 days restarts itself. Check you are on iOS 18.1 or later under Settings > General > About.',
+      p: '~Rolling out through Google Play services: a phone left locked for 3 days restarts itself. Advanced Protection guarantees it. Keep Google Play services updated.',
+      s: ['~A phone left locked for 3 days restarts itself through Google Play services as it rolls out. You can also schedule restarts:', 'Settings > Device care > Auto optimisation > Auto restart'] },
+      'After a restart your data is at its most protected, because the decryption keys are not loaded until you type your passcode. A phone that sits in a drawer, a police locker or a thief\'s bag drops back into that state on its own.', { v: 1 }],
+
+    // 3 accounts
+    ['2fa', 'acct', 1, 3, 'Check two-factor authentication on your main account', {
+      i: 'Settings > [your name] > Sign-In & Security > Two-Factor Authentication',
+      p: 'Settings > Google > Manage your Google Account > Security > 2-Step Verification',
+      s: ['Settings > Google > Manage your Google Account > Security > 2-Step Verification', 'Settings > [your Samsung account] > Security and privacy > Two-step verification'] },
+      'Your Apple or Google account can find, lock or erase your phone and restore all its data somewhere else. Make sure two-step sign-in is on and the trusted phone numbers listed are ones you still have.', { e: 1, v: 1 }],
+    ['passkey', 'acct', 1, 5, 'Use passkeys wherever they are offered', {
+      i: ['~When an app or site offers "Create a passkey", accept it. Passkeys are kept in the Passwords app and synced with iCloud Keychain.', 'Passwords app > Security'],
+      a: ['myaccount.google.com > Security > Passkeys and security keys > Create a passkey', '~Accept passkeys for other apps and sites when they offer them. They are saved in Google Password Manager.'] },
+      'A passkey cannot be phished. There is no password to type into a fake page and no code to read out to a scammer. The Passwords or Password Manager security view also lists reused and leaked passwords to fix.', { v: 1 }],
+    ['seckey', 'acct', 2, 15, 'Add two hardware security keys', {
+      i: 'Settings > [your name] > Sign-In & Security > Security Keys',
+      a: 'myaccount.google.com > Security > Passkeys and security keys > Add security key' },
+      'A physical key (USB-C or NFC) becomes the second factor. Nobody can sign in to your account without holding it, even with your password. Buy two and keep the spare somewhere safe at home.',
+      { w: 'Apple requires at least two keys. If you lose all of them and every trusted device, you can be locked out of your account.' }],
+    ['recov', 'acct', 1, 3, 'Set up account recovery you control', {
+      i: ['Settings > [your name] > Sign-In & Security > Account Recovery > Add Recovery Contact', 'Settings > [your name] > Sign-In & Security > Legacy Contact'],
+      a: 'myaccount.google.com > Security > How you sign in to Google > Recovery phone and Recovery email' },
+      'If you lose your phone, recovery is how you get back in. Remove old numbers and emails you no longer use, because whoever holds them could recover your account instead of you.', { v: 1 }],
+    ['olddev', 'acct', 1, 2, 'Remove old devices from your account', {
+      i: '~Settings > [your name], scroll to the list of devices, tap any you no longer use, then Remove from Account.',
+      p: 'myaccount.google.com > Security > Your devices > Manage all devices',
+      s: ['myaccount.google.com > Security > Your devices > Manage all devices', 'Settings > [your Samsung account] > Devices'] },
+      'Old phones, tablets and laptops that are still signed in can receive codes, see synced data and approve sign-ins. Sold or lost ones are the biggest risk.', { e: 1, v: 1 }],
+    ['sess', 'acct', 1, 3, 'Check signed-in sessions and connected apps', {
+      i: ['Settings > [your name] > Sign-In & Security > Sign in with Apple', '~Also check your email and social accounts for "where you are signed in" and log out anything you do not recognise.'],
+      a: ['myaccount.google.com > Security > Your connections to third-party apps and services', 'myaccount.google.com/security-checkup'] },
+      'Apps you once signed into with your account can keep access for years. Remove the ones you no longer use. A session you do not recognise is a sign someone else has your password.', { v: 1 }],
+    ['adp', 'acct', 2, 10, 'Turn on end-to-end encrypted backups', {
+      i: 'Settings > [your name] > iCloud > Advanced Data Protection',
+      p: ['Settings > System > Backup', '~Google One backups of Android are end-to-end encrypted with your screen lock. Check backup is on and recent.'],
+      s: ['Settings > Accounts and backup > Back up data', 'Samsung Cloud > More > Settings > Enhanced data protection'] },
+      { i: 'With Advanced Data Protection, almost all of iCloud (backups, photos, notes, messages) is encrypted with keys only your devices hold. Apple cannot read it, and neither can anyone who gets into Apple\'s servers.',
+        p: 'An encrypted backup means a breach of the cloud, or someone who gets your password, still cannot read your phone\'s data.',
+        s: 'Samsung\'s Enhanced data protection end-to-end encrypts several Samsung Cloud backups. It is not available on every model or region. Your Google backup is encrypted with your screen lock.' },
+      { v: 1, w: { i: 'You need a recovery contact or a recovery key first. If you lose access to all your devices and the key, Apple cannot help you recover the data.', s: 'You get a recovery code once. Store it safely: it cannot be shown again.' } }],
+    ['gapp', 'acct', 3, 15, 'Join Google\'s Advanced Protection Program', {
+      i: '~If you use a Google account (Gmail, YouTube), enrol at g.co/advancedprotection with two passkeys or security keys.',
+      a: '~Enrol at g.co/advancedprotection with two passkeys or security keys.' },
+      'Google\'s strongest account protection, made for people likely to be targeted. It requires a passkey or security key to sign in, limits which apps can reach your data, and adds extra checks to account recovery.',
+      { w: 'Recovery is slower on purpose. Keep a spare security key.' }],
+    ['pwchk', 'acct', 1, 5, 'Fix reused and leaked passwords', {
+      i: 'Passwords app > Security',
+      a: 'Settings > Google > Autofill > Google Password Manager > Checkup' },
+      'If one site leaks your password and you used it elsewhere, every one of those accounts is open. Start with email, then banking and social media.', { v: 1 }],
+
+    // 4 updates
+    ['autoup', 'upd', 1, 1, 'Turn on automatic updates', {
+      i: 'Settings > General > Software Update > Automatic Updates > iOS Updates > Download and Install',
+      p: '~Settings > System > Software updates. Pixels download updates automatically. Restart when asked.',
+      s: 'Settings > Software update > Auto download over Wi-Fi' },
+      'Spyware and unlocking tools rely on bugs that are already fixed in the latest version. Install updates within days, not months.', { e: 1, v: 1 }],
+    ['rsr', 'upd', 1, 1, 'Allow background security fixes', {
+      i: ['Settings > Privacy & Security > Background Security Improvements', 'On iOS 18::Settings > General > Software Update > Automatic Updates > Security Responses & System Files'] },
+      'Apple can ship urgent security fixes between full updates, often within days of an attack being found. On iOS 26 these are called Background Security Improvements. On iOS 18 they are Rapid Security Responses.', { v: 1 }],
+    ['gpsu', 'upd', 1, 2, 'Install Google Play system updates', {
+      p: 'Settings > Security & privacy > System & updates > Google Play system update',
+      s: 'Settings > Security and privacy > Updates > Google Play system update' },
+      'Parts of Android, such as media handling and network components, are updated through Google Play every month, separately from the main system update. Check the security update date in the same menu too: it should be within the last two or three months.', { v: 1 }],
+    ['appup', 'upd', 1, 1, 'Update apps automatically', {
+      i: 'Settings > Apps > App Store > App Updates > on',
+      a: 'Play Store > profile picture > Settings > Network preferences > Auto-update apps' },
+      'Browsers, messaging apps and PDF readers are common ways in. They need updates as much as the system does. On Samsung, also update apps from Galaxy Store.', { v: 1 }],
+    ['eol', 'upd', 1, 3, 'Check that your model still gets updates', {
+      i: '~Settings > General > About shows your model. iOS 26 runs on iPhone 11 and later. If your iPhone cannot install the current iOS, it will stop getting most security fixes.',
+      p: '~Settings > About phone shows your model. Pixel 8 and later get 7 years of updates from launch. Check Google\'s Pixel update schedule for older models.',
+      s: '~Settings > About phone shows your model. Recent Galaxy S and foldable models get 7 years of updates. Check the Samsung Mobile Security website for your model\'s schedule.' },
+      'A phone past its support end-date never gets fixes for new bugs. If yours is out of support, plan to replace it, and do not keep sensitive work on it in the meantime.'],
+    ['graph', 'upd', 3, 60, 'Consider GrapheneOS on a Pixel', {
+      p: '~GrapheneOS is a free, open-source, hardened version of Android for Pixel phones. Install it only with the official web installer from grapheneos.org.' },
+      'It adds stronger app sandboxing, hardened memory handling, USB-C port control, an automatic reboot timer and fast security updates. Many people who face serious targeted threats use it. Installing it wipes the phone, and some banking apps may not work.',
+      { w: 'Back up everything before you start. Only install it on a Pixel model listed as supported.' }],
+
+    // 5 apps
+    ['ldm', 'apps', 3, 5, 'Turn on Lockdown Mode or Advanced Protection', {
+      i: 'Settings > Privacy & Security > Lockdown Mode > Turn On Lockdown Mode',
+      p: 'Settings > Security & privacy > Other settings > Advanced Protection > Device protection',
+      s: 'Settings > Google > All services > Advanced Protection > Device protection' },
+      { i: 'Lockdown Mode blocks most message attachments, link previews, some web technologies, FaceTime calls from people you have not called, wired connections to computers and new configuration profiles. It is built for people targeted by mercenary spyware. Some websites and apps will behave differently.',
+        a: 'Advanced Protection (Android 16, and One UI 8 on Samsung) turns on a set of protections at once and stops them being switched off: it blocks apps from unknown sources and 2G networks, turns on theft protection, inactivity restart and USB protection, and adds memory tagging on supported apps and safer browsing in Chrome.' },
+      { v: 1 }],
+    ['autob', 'apps', 1, 1, 'Turn on Auto Blocker', {
+      s: 'Settings > Security and privacy > Auto Blocker > on' },
+      'Blocks apps from unauthorised sources, checks apps for malware, blocks commands and software updates sent over a USB cable, and filters malicious images in messaging apps.', { e: 1, v: 1 }],
+    ['maxr', 'apps', 2, 2, 'Turn on Auto Blocker Maximum restrictions', {
+      s: 'Settings > Security and privacy > Auto Blocker > Maximum restrictions' },
+      'Adds: blocks device admin apps and work profiles from being set up, stops 2G connections, stops auto-reconnecting to unsecured Wi-Fi, hides links and previews in messages, blocks shared albums and removes location from shared photos.',
+      { v: 1, w: 'With 2G blocked, calls and data may not work in areas covered only by 2G.' }],
+    ['plocc', 'apps', 1, 5, 'Audit location permissions', {
+      i: '~Settings > Privacy & Security > Location Services. Set each app to Never or While Using, and turn off Precise Location where an app only needs your area.',
+      p: '~Settings > Location > App location permissions. Choose Allow only while using the app, and turn off Use precise location where it is not needed.',
+      s: '~Settings > Location > App permissions. Choose Allow only while using the app, and turn off Use precise location where it is not needed.' },
+      'Few apps need your location all the time. Approximate location is enough for weather, news and most shopping apps.', { e: 1, v: 1 }],
+    ['pcam', 'apps', 1, 5, 'Audit camera, microphone and photo access', {
+      i: '~Settings > Privacy & Security > Photos, then Camera and Microphone. Give Limited Access to photos where you can.',
+      p: 'Settings > Security & privacy > Privacy controls > Permission manager',
+      s: 'Settings > Security and privacy > Permission manager' },
+      'Choose "Limited access" or "Select photos" so an app only sees the pictures you pick. Remove camera and microphone access from apps that do not obviously need it. A green or orange dot at the top of the screen shows when they are in use.', { v: 1 }],
+    ['pcont', 'apps', 1, 3, 'Audit contacts, Bluetooth and local network access', {
+      i: '~Settings > Privacy & Security > Contacts, then Bluetooth and Local Network.',
+      p: '~Settings > Security & privacy > Privacy controls > Permission manager > Contacts, then Nearby devices.',
+      s: '~Settings > Security and privacy > Permission manager > Contacts, then Nearby devices.' },
+      'Contact access uploads your whole address book, not just you. Bluetooth, nearby devices and local network access can be used to work out where you are and which devices are around you.', { v: 1 }],
+    ['track', 'apps', 1, 1, 'Stop apps asking to track you', {
+      i: 'Settings > Privacy & Security > Tracking > Allow Apps to Request to Track > off' },
+      'Every app is then told no automatically, and cannot use your advertising identifier to follow you across other apps and websites.', { e: 1 }],
+    ['report', 'apps', 2, 2, 'Turn on the privacy report and look at it after a week', {
+      i: 'Settings > Privacy & Security > App Privacy Report > Turn On App Privacy Report',
+      p: 'Settings > Security & privacy > Privacy controls > Privacy dashboard',
+      s: 'Settings > Security and privacy > Permissions used in last 24 hours' },
+      'Shows which apps used your location, camera, microphone and contacts, and when. An app reading your location at 3 a.m., or contacting many unknown domains, is worth removing.', { v: 1 }],
+    ['unused', 'apps', 1, 5, 'Delete apps you no longer use', {
+      i: '~Settings > General > iPhone Storage lists apps with the date they were last used. Delete the ones you have forgotten about.',
+      a: ['Play Store > profile picture > Manage apps & device > Manage', '~Sort by Least used and uninstall the ones you have forgotten about.'] },
+      'Old apps keep their permissions, stop getting updates and are sometimes sold to new owners who change what they do.', { v: 1 }],
+    ['pprot', 'apps', 1, 1, 'Keep Play Protect on', {
+      a: 'Play Store > profile picture > Play Protect > Settings (gear icon) > Scan apps with Play Protect > on' },
+      'Play Protect scans installed apps, including ones from outside the Play Store, and warns you about or removes known harmful apps.', { v: 1 }],
+    ['unk', 'apps', 1, 2, 'Block installs from unknown sources', {
+      p: 'Settings > Apps > Special app access > Install unknown apps',
+      s: 'Settings > Apps > (three dots) > Special access > Install unknown apps' },
+      'Every app on this list can install other apps. Browsers, messaging apps and file managers should all be "Not allowed". Most Android malware arrives as an APK file sent in a message or download link.', { e: 1, v: 1 }],
+    ['admin', 'apps', 1, 2, 'Check device admin apps and special access', {
+      p: ['Settings > Security & privacy > More security & privacy > Device admin apps', 'Settings > Apps > Special app access > Display over other apps'],
+      s: ['Settings > Security and privacy > More security settings > Device admin apps', 'Settings > Apps > (three dots) > Special access > Appear on top'] },
+      'Device admin apps can lock or wipe the phone and are hard to uninstall. Normally only Find Hub or a work app should be here. Apps that draw over other apps can fake login screens.', { v: 1 }],
+    ['mdm', 'apps', 1, 2, 'Check for profiles and device management', {
+      i: 'Settings > General > VPN & Device Management' },
+      'Configuration profiles and device management can route your traffic, install certificates that let someone read encrypted connections, and control settings. If you see a profile you did not install and it is not from your employer or school, remove it.'],
+
+    // 6 location
+    ['sigloc', 'loc', 2, 2, 'Turn off Significant Locations and clear the history', {
+      i: ['Settings > Privacy & Security > Location Services > System Services > Significant Locations > Clear History', '~Then turn it off, along with Location-Based Alerts and Location-Based Suggestions if you do not use them.'] },
+      'Your iPhone keeps a list of places you visit often, such as home, work and the gym, with dates. It is encrypted, but anyone with your unlocked phone can read it.', { v: 1 }],
+    ['tline', 'loc', 2, 3, 'Turn off or auto-delete Google Timeline', {
+      i: '~If you use Google Maps: Google Maps > profile picture > Your Timeline > Settings > turn off or set auto-delete.',
+      a: ['Settings > Location > Location services > Timeline', '~Turn it off, or set auto-delete to 3 months, and delete old history.'] },
+      'Timeline is a day-by-day map of everywhere you have been. It is now stored on the phone, so whoever unlocks the phone sees it.', { v: 1 }],
+    ['webact', 'loc', 2, 3, 'Auto-delete your Google activity', {
+      i: 'myactivity.google.com > Web & App Activity > Auto-delete',
+      a: 'Settings > Google > Manage your Google Account > Data & privacy > Web & App Activity > Auto-delete' },
+      'Searches, Maps lookups and app use are saved to your account and can reveal places and plans. Set them to delete automatically after 3 months.', { v: 1 }],
+    ['geotag', 'loc', 2, 1, 'Stop the camera saving your location', {
+      i: 'Settings > Privacy & Security > Location Services > Camera > Never',
+      p: 'Pixel Camera > Settings > Save location > off',
+      s: 'Camera > Settings > Location tags > off' },
+      'Every photo can carry the exact GPS spot where it was taken. Sent as a file or posted to some sites, a photo taken at home gives away your address.', { v: 1 }],
+    ['adid', 'loc', 1, 1, 'Delete your advertising ID', {
+      a: 'Settings > Google > All services > Ads > Delete advertising ID' },
+      'The advertising ID is a number that lets ad companies link what you do across apps into one profile. Deleting it gives apps a string of zeros instead.', { e: 1, v: 1 }],
+    ['pads', 'loc', 1, 2, 'Turn off personalised ads', {
+      i: 'Settings > Privacy & Security > Apple Advertising > Personalised Ads > off',
+      p: 'myadcenter.google.com > Personalised ads > off',
+      s: ['myadcenter.google.com > Personalised ads > off', 'Settings > Security and privacy > More privacy settings > Customisation Service > off'] },
+      'Ad profiles are built from your activity and can reveal interests, health, religion or money worries. You still see ads, but they are not based on your profile.', { v: 1 }],
+    ['analy', 'loc', 1, 2, 'Turn off analytics sharing', {
+      i: 'Settings > Privacy & Security > Analytics & Improvements > Share iPhone Analytics > off',
+      p: 'Settings > Google > All services > Usage & diagnostics > off',
+      s: ['Settings > Google > All services > Usage & diagnostics > off', 'Settings > Security and privacy > More privacy settings > Send diagnostic data > off'] },
+      'Diagnostics are mostly harmless, but they still send device data off the phone. Fewer data flows mean fewer surprises.', { v: 1 }],
+    ['scan', 'loc', 1, 1, 'Turn off Wi-Fi scanning and Bluetooth scanning', {
+      a: ['Settings > Location > Location services > Wi-Fi scanning > off', 'Settings > Location > Location services > Bluetooth scanning > off'] },
+      'With these on, the phone keeps scanning for Wi-Fi and Bluetooth even when you have turned them off, to improve location. Turning them off means off really means off.', { v: 1 }],
+    ['locsh', 'loc', 1, 3, 'Check who can see your location', {
+      i: ['Find My app > People', 'Settings > [your name] > Find My > Share My Location'],
+      a: 'Google Maps > profile picture > Location sharing' },
+      'Location sharing set up years ago, by you or someone else, keeps working quietly. Stop sharing with anyone who no longer needs it. Also check any family or tracking apps.', { e: 1, v: 1 }],
+
+    // 7 network
+    ['autoj', 'net', 1, 2, 'Stop auto-joining public Wi-Fi', {
+      i: ['Settings > Wi-Fi > (i) next to a public network > Auto-Join > off', 'Settings > Wi-Fi > Ask to Join Networks > Notify'],
+      p: ['Settings > Network & internet > Internet > Network preferences > Turn on Wi-Fi automatically > off', 'Settings > Network & internet > Internet > (gear icon next to a public network) > Auto-connect > off'],
+      s: 'Settings > Connections > Wi-Fi > (gear icon next to a public network) > Auto reconnect > off' },
+      'A fake hotspot named like a café, mall or airport network can make your phone join automatically. Join public networks on purpose, not by default.', { v: 1 }],
+    ['forget', 'net', 1, 3, 'Forget networks you no longer use', {
+      i: 'Settings > Wi-Fi > Edit',
+      p: 'Settings > Network & internet > Internet > Saved networks',
+      s: 'Settings > Connections > Wi-Fi > (three dots) > Manage networks' },
+      'Every saved network is one your phone will trust again. Keep home, work and a few you actually use. Delete old hotel, airport and event networks.', { v: 1 }],
+    ['mac', 'net', 1, 1, 'Use a private Wi-Fi address', {
+      i: 'Settings > Wi-Fi > (i) next to the network > Private Wi-Fi Address > Rotating',
+      p: 'Settings > Network & internet > Internet > (gear icon next to the network) > Privacy > Use randomised MAC',
+      s: 'Settings > Connections > Wi-Fi > (gear icon next to the network) > View more > MAC address type > Randomised MAC' },
+      'Your phone\'s hardware address can be used to recognise you each time you walk past a shop or hotspot. A random or rotating address stops that. Use the fixed option only on networks that need it.', { v: 1 }],
+    ['pdns', 'net', 2, 3, 'Use encrypted DNS', {
+      i: '~Install a DNS profile or app from a reputable encrypted DNS provider. It then appears under Settings > General > VPN & Device Management.',
+      p: 'Settings > Network & internet > Private DNS > Private DNS provider hostname',
+      s: 'Settings > Connections > More connection settings > Private DNS > Private DNS provider hostname' },
+      'DNS is the look-up your phone does for every website and app. Encrypted DNS hides those look-ups from the local network, and some providers block known malware and phishing domains too.', { v: 1 }],
+    ['vpn', 'net', 2, 5, 'Choose a VPN carefully, if you use one', {
+      i: '~Pick a reputable, paid provider with an independent audit and a clear no-logs policy, and install it from the official app store.',
+      a: '~Pick a reputable, paid provider with an independent audit and a clear no-logs policy, and install it from the official app store.' },
+      'A VPN moves your trust from the local network to the VPN company, which can see your traffic. Free VPN apps often make money from your data. Avoid ones that ask for unusual permissions.'],
+    ['2g', 'net', 2, 1, 'Block 2G connections', {
+      p: 'Settings > Network & internet > SIMs > (your SIM) > Allow 2G > off',
+      s: 'Settings > Security and privacy > Auto Blocker > Maximum restrictions > 2G networks > on' },
+      '2G has weak encryption, and fake cell towers force phones down to it to intercept calls and texts. On Android 16 the switch is called 2G network protection, and you turn it on.',
+      { v: 1, w: 'Calls and data may not work in places covered only by 2G.' }],
+    ['bt', 'net', 2, 2, 'Turn Bluetooth off when you are not using it, and remove old pairings', {
+      i: '~Settings > Bluetooth. The Control Centre button only disconnects until tomorrow; the switch in Settings turns it off. Tap (i) next to old devices and choose Forget This Device.',
+      p: 'Settings > Connected devices > See all',
+      s: 'Settings > Connections > Bluetooth' },
+      'Bluetooth bugs come up every year, and Bluetooth signals can be used to track a device. Turning it off when you do not need it removes both risks.', { v: 1 }],
+    ['airdrop', 'net', 1, 1, 'Set AirDrop to Contacts Only', {
+      i: 'Settings > General > AirDrop > Contacts Only' },
+      'Strangers cannot send you images in public. If you choose Everyone, it switches back after 10 minutes. Turn AirDrop to Receiving Off when travelling.', { e: 1 }],
+    ['qshare', 'net', 1, 1, 'Set Quick Share to contacts or your devices', {
+      p: 'Settings > Connected devices > Connection preferences > Quick Share > Who can share with you > Contacts',
+      s: 'Settings > Connected devices > Quick Share > Who can share > Contacts only' },
+      'Stops strangers sending you files in public. "Everyone" is only for a quick share and switches back after 10 minutes.', { e: 1, v: 1 }],
+    ['nfc', 'net', 2, 1, 'Require unlock for NFC, or turn it off', {
+      i: 'Settings > Wallet & Apple Pay > Express Mode',
+      p: 'Settings > Connected devices > Connection preferences > NFC > Require device unlock for NFC > on',
+      s: 'Settings > Connections > NFC and contactless payments > off when not needed' },
+      { i: 'Express Mode lets selected transit or access cards work without Face ID. Keep it only for cards you need to tap quickly.',
+        a: 'NFC handles payments and tag reading. Requiring unlock means nothing happens when someone taps your locked phone.' }, { v: 1 }],
+    ['hotsp', 'net', 2, 1, 'Set a strong hotspot password', {
+      i: 'Settings > Personal Hotspot > Wi-Fi Password',
+      p: 'Settings > Network & internet > Hotspot & tethering > Wi-Fi hotspot > Hotspot password',
+      s: 'Settings > Connections > Mobile Hotspot and Tethering > Mobile Hotspot > Password' },
+      'A short or default hotspot password lets people nearby use your data and reach your devices.', { v: 1 }],
+
+    // 8 messaging
+    ['wa2sv', 'msg', 1, 2, 'WhatsApp: turn on two-step verification', {
+      i: 'WhatsApp > Settings > Account > Two-step verification > Turn on',
+      a: 'WhatsApp > Settings > Account > Two-step verification > Turn on' },
+      'Scammers ask you to "forward the code we sent by mistake". That code moves your WhatsApp to their phone. A 6-digit PIN stops that. Add an email so you can reset the PIN. You can also add a passkey under Settings > Account > Passkeys.', { e: 1, v: 1 }],
+    ['wapriv', 'msg', 1, 3, 'WhatsApp: limit who sees your details', {
+      i: 'WhatsApp > Settings > Privacy > Last seen and online, Profile photo, About, Groups',
+      a: 'WhatsApp > Settings > Privacy > Last seen and online, Profile photo, About, Groups' },
+      'Set them to My contacts. Setting Groups to My contacts stops strangers adding you to scam and spam groups.', { v: 1 }],
+    ['waunk', 'msg', 1, 1, 'WhatsApp: silence unknown callers', {
+      i: 'WhatsApp > Settings > Privacy > Calls > Silence unknown callers',
+      a: 'WhatsApp > Settings > Privacy > Calls > Silence unknown callers' },
+      'Calls from numbers not in your contacts still show in the call list, but do not ring. That cuts most scam calls.', { v: 1 }],
+    ['waip', 'msg', 2, 1, 'WhatsApp: protect your IP address in calls', {
+      i: 'WhatsApp > Settings > Privacy > Advanced > Protect IP address in calls',
+      a: 'WhatsApp > Settings > Privacy > Advanced > Protect IP address in calls' },
+      'Calls are relayed through WhatsApp\'s servers so the other person cannot see your IP address, which can reveal your rough location. Call quality may drop slightly.', { v: 1 }],
+    ['wadis', 'msg', 2, 1, 'WhatsApp: use disappearing messages', {
+      i: 'WhatsApp > Settings > Privacy > Default message timer',
+      a: 'WhatsApp > Settings > Privacy > Default message timer' },
+      'New chats delete messages automatically after 24 hours, 7 days or 90 days. If your phone is ever taken, there is less history to read. You can set it per chat too.', { v: 1 }],
+    ['wabak', 'msg', 1, 2, 'WhatsApp: encrypt your chat backup', {
+      i: 'WhatsApp > Settings > Chats > Chat backup > End-to-end encrypted backup',
+      a: 'WhatsApp > Settings > Chats > Chat backup > End-to-end encrypted backup' },
+      'Messages are encrypted in transit, but a normal backup in iCloud or Google Drive is not protected by WhatsApp\'s encryption. Use a passkey or password you will remember, or a 64-digit key you store safely.', { v: 1 }],
+    ['walink', 'msg', 1, 1, 'WhatsApp: check linked devices', {
+      i: 'WhatsApp > Settings > Linked devices',
+      a: 'WhatsApp > Settings > Linked devices' },
+      'Anyone who scans a QR code on your phone for a few seconds can read your chats on their computer from then on. Log out of anything you do not recognise.', { e: 1 }],
+    ['sigrl', 'msg', 2, 3, 'Signal: turn on registration lock', {
+      i: 'Signal > Settings > Account > Registration Lock',
+      a: 'Signal > Settings > Account > Registration Lock' },
+      'Signal is a good choice for sensitive conversations. Registration lock means your number cannot be registered on another phone without your Signal PIN.', { v: 1 }],
+    ['sigss', 'msg', 2, 2, 'Signal: hide the screen and your number', {
+      i: ['Signal > Settings > Privacy > Hide Screen in App Switcher', 'Signal > Settings > Privacy > Phone Number > Who can see my number > Nobody'],
+      a: ['Signal > Settings > Privacy > Screen security', 'Signal > Settings > Privacy > Phone number > Who can see my number > Nobody'] },
+      'Screen security blocks screenshots and hides chats in the app switcher. With your number hidden, people you talk to through a username do not get your phone number.', { v: 1 }],
+    ['ckv', 'msg', 3, 5, 'iMessage: turn on Contact Key Verification', {
+      i: 'Settings > [your name] > Contact Key Verification > Verification in iMessage' },
+      'Warns you if someone manages to add a device to an iMessage conversation without your knowledge. Compare verification codes in person, or through a call, with the people you message about sensitive things.', { v: 1 }],
+    ['imunk', 'msg', 1, 1, 'Filter messages from unknown senders', {
+      i: 'Settings > Apps > Messages > Unknown Senders',
+      a: 'Google Messages > profile picture > Messages settings > Protection & Safety > Spam protection' },
+      'Messages from numbers that are not in your contacts go to a separate list, and links in them do not open as previews. Most scam links arrive this way.', { v: 1 }],
+    ['rcs', 'msg', 1, 2, 'Check RCS chat settings', {
+      i: 'Settings > Apps > Messages > RCS Messaging',
+      a: 'Google Messages > profile picture > Messages settings > RCS chats' },
+      'RCS replaces SMS with typing indicators and better media. In Google Messages, chats with a lock icon are end-to-end encrypted. Not every RCS chat is, especially between iPhone and Android, so use WhatsApp or Signal for anything sensitive.', { v: 1 }],
+    ['calls', 'msg', 1, 1, 'Screen unknown calls', {
+      i: 'Settings > Apps > Phone > Silence Unknown Callers (or Screen Unknown Callers)',
+      p: 'Phone app > Settings > Spam and Call Screen > See caller and spam ID',
+      s: 'Phone app > Settings > Caller ID and spam protection' },
+      'Cuts down scam calls, including people pretending to be your bank, the police or a delivery company.', { v: 1 }],
+    ['sms', 'msg', 1, 5, 'Move important accounts off SMS codes', {
+      i: '~For email, social media and cloud accounts, switch from SMS codes to passkeys or an authenticator app wherever the service offers it.',
+      a: '~For email, social media and cloud accounts, switch from SMS codes to passkeys or an authenticator app wherever the service offers it.' },
+      'SMS codes can be stolen through SIM swaps, fake cell towers and phishing pages. Some services, like many banks, only offer SMS. For those, the SIM PIN and SIM swap protection steps protect you instead.'],
+
+    // 9 data
+    ['hidden', 'data', 1, 1, 'Lock the Hidden and Recently Deleted albums', {
+      i: 'Settings > Apps > Photos > Use Face ID > on' },
+      'Hidden and Recently Deleted photo albums then need Face ID or your passcode to open, even when the phone is unlocked. Recently deleted photos stay on the phone for 30 days.', { v: 1 }],
+    ['applock', 'data', 2, 2, 'Lock sensitive apps', {
+      i: '~Touch and hold an app icon > Require Face ID. "Hide and Require Face ID" also moves it to a hidden folder.' },
+      'Banking, notes, photo and messaging apps then need your face or passcode even when someone is holding your unlocked phone.'],
+    ['pspace', 'data', 2, 10, 'Set up Private Space', {
+      p: 'Settings > Security & privacy > Private space' },
+      'A separate, locked area with its own apps and files, hidden from the app drawer and recent apps. When locked, its apps are paused and their notifications are hidden. You can use a separate Google account inside it.', { v: 1 }],
+    ['sfold', 'data', 2, 10, 'Set up Secure Folder', {
+      s: 'Settings > Security and privacy > More security settings > Secure Folder' },
+      'An encrypted space, protected by Samsung Knox, with its own apps, photos and files and its own lock. You can hide its icon.', { v: 1 }],
+    ['shot', 'data', 1, 2, 'Strip location and private details before you share', {
+      i: ['~In the share sheet, tap Options at the top and turn off Location before sending a photo.', '~Crop out notifications, names and the status bar from screenshots. Cover details with solid boxes, not a highlighter.'],
+      p: ['Google Photos > profile picture > Photos settings > Privacy > Remove geo location', '~Crop out notifications, names and the status bar from screenshots. Cover details with solid boxes, not a highlighter.'],
+      s: ['~When sharing from Gallery, turn on Remove location data in the share sheet.', '~Crop out notifications, names and the status bar from screenshots. Cover details with solid boxes, not a highlighter.'] },
+      'Photos can carry location, date and device details. Screenshots often show more than you meant: other chats, a phone number or your carrier. A see-through highlighter can sometimes be reversed.', { v: 1 }],
+    ['clip', 'data', 1, 1, 'Watch for apps reading your clipboard', {
+      i: '~Settings > Apps > (app name) > Paste from Other Apps > Ask. iOS also shows a banner when an app pastes.',
+      p: 'Settings > Security & privacy > Privacy controls > Show clipboard access > on',
+      s: 'Settings > Security and privacy > More privacy settings > Show clipboard access > on' },
+      'Passwords, codes and account numbers you copy sit on the clipboard where any open app can read them. Clear it after copying a password, and remove apps that read it for no reason.', { v: 1 }],
+    ['kbd', 'data', 2, 2, 'Check what your keyboard learns and sends', {
+      i: ['Settings > General > Keyboard > Keyboards', '~Remove third-party keyboards you do not need, or turn off Allow Full Access. To clear learned words: Settings > General > Transfer or Reset iPhone > Reset > Reset Keyboard Dictionary.'],
+      p: 'Settings > System > Keyboard > On-screen keyboard > Gboard > Privacy',
+      s: 'Settings > General management > Samsung Keyboard settings > Reset to default settings > Erase personalised predictions' },
+      'Keyboards learn names, addresses and phrases you type. Third-party keyboards with full access can send what you type to their servers.', { v: 1 }],
+    ['voice', 'data', 2, 3, 'Delete voice assistant history', {
+      i: 'Settings > Apple Intelligence & Siri > Siri & Dictation History > Delete Siri & Dictation History',
+      p: 'myactivity.google.com > Gemini Apps Activity > Turn off or Auto-delete',
+      s: ['myactivity.google.com > Gemini Apps Activity > Turn off or Auto-delete', 'Bixby > Settings > Privacy'] },
+      'Voice requests can include names, places and health questions. Delete what is stored and set it to auto-delete.', { v: 1 }],
+    ['docs', 'data', 1, 5, 'Remove photos of ID documents and cards', {
+      i: '~Search the Photos app for "passport", "card" or "ID", and delete or move screenshots of documents into a locked place.',
+      a: '~Search your gallery or Google Photos for "passport", "card" or "ID", and delete or move screenshots of documents into a locked place.' },
+      'Photos of your Emirates ID, passport, cards or contracts are exactly what a thief or scammer looks for. Keep only what you need, somewhere locked.'],
+
+    // 10 physical and travel
+    ['usb', 'phys', 1, 1, 'Block USB data while the phone is locked', {
+      i: ['Settings > Privacy & Security > Wired Accessories > Ask for New Accessories (or Always Ask)', 'On iOS 18::Settings > Face ID & Passcode > Accessories > off'],
+      p: ['~Pixels charge only over USB by default, and you must unlock to allow data. Keep it that way.', 'Settings > Connected devices > USB'],
+      s: 'Settings > Security and privacy > Auto Blocker > on' },
+      { i: 'Stops an unknown cable or computer talking to your phone without your permission. Forensic and unlocking tools usually need a data connection.',
+        p: 'Advanced Protection adds USB protection that blocks new USB data connections while the phone is locked.',
+        s: 'Auto Blocker blocks commands and software updates sent over a USB cable.' }, { v: 1 }],
+    ['block', 'phys', 2, 2, 'Use your own charger, or a USB data blocker', {
+      i: '~At airports, malls and hotels, plug your own charger into a wall socket, or use a small USB data blocker between the cable and the port.',
+      a: '~At airports, malls and hotels, plug your own charger into a wall socket, or use a small USB data blocker between the cable and the port.' },
+      'A data blocker passes power but cuts the data lines, so a tampered charging port cannot reach your phone. Attacks this way are rare, but the fix is cheap.'],
+    ['pscreen', 'phys', 2, 5, 'Fit a privacy screen protector', {
+      i: '~Buy a privacy screen protector for your model.',
+      a: '~Buy a privacy screen protector for your model.' },
+      'People beside you on the metro, in a queue or on a plane only see a dark screen. It also makes your passcode harder to watch.'],
+    ['travel', 'phys', 2, 15, 'Before you travel, run a travel checklist', {
+      i: '~Work through the list below a day before you leave.',
+      a: '~Work through the list below a day before you leave.' },
+      'Before a trip:<ul><li>Update the phone and apps, and make a fresh backup.</li><li>Log out of apps you will not need, and remove sensitive photos and files.</li><li>Write your account recovery details and your operator\'s number on paper, kept apart from the phone.</li><li>Turn AirDrop or Quick Share to receive from contacts only, and stop auto-joining Wi-Fi.</li><li>Turn the phone fully off before security checks and when you leave it in a hotel room.</li><li>Use the <a href="../opsec-audit/">OPSEC audit</a> to check what else you carry, and the <a href="../sell-device/">device wipe guide</a> to reset a phone properly before or after the trip.</li></ul>'],
+    ['tdev', 'phys', 3, 30, 'Use a separate travel phone', {
+      i: '~Set up a separate, cheap phone with a new account, only the apps you need for the trip, and no old messages or photos.',
+      a: '~Set up a separate, cheap phone with a new account, only the apps you need for the trip, and no old messages or photos.' },
+      'If it is taken, searched or tampered with, there is little to find, and your everyday phone stays clean. After the trip, wipe it before you sign in to anything important on it.'],
+    ['swap', 'phys', 1, 10, 'Protect your number from SIM swaps', {
+      i: '~Ask your mobile operator what protects your number from a SIM replacement or eSIM transfer, such as a PIN, a password or an ID check, and turn it on if they offer it. Keep a strong password on your operator\'s app.',
+      a: '~Ask your mobile operator what protects your number from a SIM replacement or eSIM transfer, such as a PIN, a password or an ID check, and turn it on if they offer it. Keep a strong password on your operator\'s app.' },
+      'With your number, someone receives your SMS codes and can reset bank, email and WhatsApp accounts. If your phone suddenly shows "No service" in a place where it normally works, call your operator from another phone straight away.'],
+    ['medid', 'phys', 1, 3, 'Add emergency information you are happy to show', {
+      i: 'Health app > profile picture > Medical ID > Edit > Show When Locked',
+      p: 'Settings > Safety & emergency > Medical information',
+      s: 'Settings > Safety and emergency > Medical info' },
+      'If you are hurt, responders can see allergies and an emergency contact without unlocking the phone. This also helps an honest finder return a lost phone. Keep it to what you are comfortable with anyone seeing.', { v: 1 }],
+
+    // 11 compromise
+    ['signs', 'comp', 1, 3, 'Know the signs of a compromised phone', {
+      i: '~Read the list below and note anything that matches.',
+      a: '~Read the list below and note anything that matches.' },
+      'Possible signs, none of them proof on its own:<ul><li>Battery draining or the phone getting warm while idle.</li><li>Data use you cannot explain.</li><li>Apps, profiles or settings you did not add or change.</li><li>Sign-in alerts or password resets you did not ask for.</li><li>Contacts receiving messages you did not send.</li><li>A threat notification from Apple, or a government-backed attack warning from Google.</li></ul>'],
+    ['batt', 'comp', 1, 3, 'Look for battery and data anomalies', {
+      i: ['Settings > Battery', 'Settings > Mobile Service > scroll to the app list'],
+      p: ['Settings > Battery > Battery usage', 'Settings > Network & internet > SIMs > App data usage'],
+      s: ['Settings > Battery > View details', 'Settings > Connections > Data usage > Mobile data usage'] },
+      'Look for apps you do not recognise, or apps using lots of battery or data in the background when you have not used them. Spyware has to send what it collects somewhere.', { v: 1 }],
+    ['a11y', 'comp', 1, 3, 'Check for unknown accessibility services', {
+      p: 'Settings > Accessibility > Downloaded apps',
+      s: 'Settings > Accessibility > Installed apps' },
+      'Accessibility access lets an app read your screen and tap for you. Banking malware and stalkerware ask for it. Anything here you do not recognise should be turned off and uninstalled.', { v: 1 }],
+    ['work', 'comp', 1, 2, 'Check for a work profile or account you did not set up', {
+      p: 'Settings > Passwords, passkeys & accounts',
+      s: 'Settings > Accounts and backup > Manage accounts' },
+      'A work profile or device management app installed by someone else can see and control a lot. A "Work" tab you did not create, or an account you do not recognise, is a warning sign.', { v: 1 }],
+    ['mdm2', 'comp', 1, 2, 'Check profiles, paired computers and trusted devices again', {
+      i: ['Settings > General > VPN & Device Management', '~To forget computers you trusted in the past: Settings > General > Transfer or Reset iPhone > Reset > Reset Location & Privacy.'] },
+      'A computer you once tapped "Trust" on can still pair and back up your phone. Resetting location and privacy clears those trusts, and you will be asked again for each app.', { v: 1 }],
+    ['safety', 'comp', 1, 5, 'Run Safety Check', {
+      i: 'Settings > Privacy & Security > Safety Check > Manage Sharing & Access' },
+      'Shows who you share location, photos, notes and other data with, which apps have access to what, and which devices are signed in to your account, and lets you stop each one. Emergency Reset stops all sharing at once if you are in danger.', { v: 1 }],
+    ['share', 'comp', 1, 5, 'Check who has access to your phone and accounts', {
+      a: ['myaccount.google.com > Security > Your devices', 'Google Maps > profile picture > Location sharing', 'Settings > Safety & emergency > Unknown tracker alerts'] },
+      'Android has no single Safety Check screen, so check each place: signed-in devices, location sharing, and alerts for unknown Bluetooth trackers travelling with you. The Personal Safety app on Pixel is for emergencies and safety check-ins, not for finding stalkerware.', { v: 1 }],
+    ['scanr', 'comp', 2, 10, 'Run a trusted security check', {
+      i: '~Use a reputable security app from a well-known security company that checks for known spyware signs and risky settings. Experts can also run the open-source Mobile Verification Toolkit on a backup.',
+      a: ['Play Store > profile picture > Play Protect > Scan', '~For a deeper check, use a reputable security app from a well-known security company, or ask an expert to run the open-source Mobile Verification Toolkit.'] },
+      'Phone security apps cannot see everything, especially on iPhone, but they can spot known spyware traces, risky profiles and outdated software. A clean result is reassuring, not a guarantee.'],
+    ['act', 'comp', 1, 5, 'Know what to do if you think you are compromised', {
+      i: '~Follow the steps below, in order.',
+      a: '~Follow the steps below, in order.' },
+      'If something is wrong:<ul><li>From a different, trusted device, change your Apple or Google password and sign out of all other sessions.</li><li>Turn on Lockdown Mode or Advanced Protection, and update the phone.</li><li>If you could be in danger, think before removing stalkerware: the person may notice. Get help first.</li><li>Contact a professional. Civil society groups run free digital security helplines for journalists and activists. In the UAE, report crimes to the police, who run online cybercrime reporting services.</li><li>As a last step, factory reset the phone. Reinstall apps by hand instead of restoring a backup made after the problem started.</li></ul>']
+  ];
+
+  // ---------- state ----------
+  var S = { plat: 'ios', lvl: 1, rem: false, done: {} };
+  try { var sv = JSON.parse(localStorage.getItem(KEY) || 'null'); if (sv && typeof sv === 'object') { if (PN[sv.plat]) S.plat = sv.plat; if (sv.lvl >= 1 && sv.lvl <= 3) S.lvl = sv.lvl; S.rem = !!sv.rem; if (sv.done && typeof sv.done === 'object') S.done = sv.done; } } catch (e) {}
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+
+  function pathsFor(st, p) { var o = st[5]; var v = o[p.charAt(0)] || (p !== 'ios' ? o.a : null); if (!v) return null; return [].concat(v); }
+  function pick(v, p) { if (v == null || typeof v === 'string') return v; return v[p.charAt(0)] || (p !== 'ios' ? v.a : null) || null; }
+  function visible() { return ST.filter(function (st) { return st[2] <= S.lvl && pathsFor(st, S.plat); }); }
+  function key(id) { return S.plat + '.' + id; }
+  function isDone(id) { return !!S.done[key(id)]; }
+
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function crumbs(str) {
+    var lab = '', m = str.split('::');
+    if (m.length > 1) { lab = m[0]; str = m[1]; }
+    var parts = str.split(' > ');
+    return '<ol class="po-crumbs">' + (lab ? '<li class="k">' + esc(lab) + '</li>' : '') + parts.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ol>';
+  }
+  function ring(svg, frac, label) {
+    var C = 2 * Math.PI * 16, off = C * (1 - frac);
+    svg.innerHTML = '<circle class="bg" cx="20" cy="20" r="16"/><circle class="fg" cx="20" cy="20" r="16" stroke-dasharray="' + C.toFixed(2) + '" stroke-dashoffset="' + off.toFixed(2) + '" transform="rotate(-90 20 20)"/><text x="20" y="23" text-anchor="middle">' + label + '</text>';
+  }
+
+  function stepHTML(st) {
+    var id = st[0], p = S.plat, ps = pathsFor(st, p), why = pick(st[6], p), ex = st[7] || {}, w = pick(ex.w, p);
+    var h = '<li class="po-step' + (isDone(id) ? ' is-done' : '') + '" data-id="' + id + '" id="s-' + id + '">' +
+      '<input type="checkbox" id="c-' + id + '" data-id="' + id + '"' + (isDone(id) ? ' checked' : '') + '>' +
+      '<h3><label for="c-' + id + '">' + esc(st[4]) + '</label></h3>' +
+      '<div class="po-meta"><span class="po-lv l' + st[2] + '">' + LN[st[2]] + '</span><span class="po-min">' + st[3] + ' min</span></div>' +
+      '<div class="po-path">' + ps.map(function (x) { return x.charAt(0) === '~' ? '<p class="po-do">' + esc(x.slice(1)) + '</p>' : crumbs(x); }).join('') + '</div>' +
+      (why ? '<div class="po-why">' + (/</.test(why) ? why : esc(why)) + '</div>' : '') +
+      (w ? '<p class="po-warn">' + esc(w) + '</p>' : '') +
+      (ex.v ? '<p class="po-vary">May be named slightly differently on your version.</p>' : '') +
+      '</li>';
+    return h;
+  }
+
+  function render() {
+    [].forEach.call($('plats').children, function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-p') === S.plat ? 'true' : 'false'); });
+    [].forEach.call($('lvls').children, function (b) { b.setAttribute('aria-pressed', +b.getAttribute('data-l') === S.lvl ? 'true' : 'false'); });
+    $('lvldesc').textContent = LD[S.lvl];
+    $('onlyRem').checked = S.rem;
+    document.body.classList.toggle('po-rem', S.rem);
+    var vis = visible(), html = '';
+    SECS.forEach(function (sec, n) {
+      var list = vis.filter(function (st) { return st[1] === sec[0]; });
+      if (!list.length) return;
+      html += '<details class="po-sec" open id="sec-' + sec[0] + '" data-sec="' + sec[0] + '"><summary>' +
+        '<svg class="po-ring" width="44" height="44" viewBox="0 0 40 40" aria-hidden="true"></svg>' +
+        '<div><h2><span class="po-n">' + (n + 1) + '.</span> <span>' + esc(sec[1]) + '</span></h2><span class="po-ar" lang="ar" dir="rtl">' + sec[2] + '</span></div>' +
+        '<span class="po-cnt"></span></summary>' +
+        '<p class="po-sdesc">' + esc(sec[3]) + '</p>' +
+        (ASIDE[sec[0]] ? '<p class="po-aside">' + ASIDE[sec[0]] + '</p>' : '') +
+        '<p class="po-alldone">All done in this section.</p>' +
+        '<ol class="po-list">' + list.map(stepHTML).join('') + '</ol></details>';
+    });
+    $('secs').innerHTML = html;
+    // essentials
+    var ess = vis.filter(function (st) { return st[7] && st[7].e && st[2] === 1; }), tot = 0, picked = [];
+    ess.forEach(function (st) { if (tot + st[3] <= 10) { picked.push(st); tot += st[3]; } });
+    $('essMsg').textContent = 'About ' + tot + ' minutes for the ' + picked.length + ' steps that matter most on ' + PN[S.plat] + '.';
+    $('essList').innerHTML = picked.map(function (st) {
+      return '<li data-id="' + st[0] + '"' + (isDone(st[0]) ? ' class="is-done"' : '') + '><label><input type="checkbox" data-id="' + st[0] + '"' + (isDone(st[0]) ? ' checked' : '') + '><span>' + esc(st[4]) + '</span><small>' + st[3] + ' min</small></label></li>';
+    }).join('');
+    $('printhead').textContent = PN[S.plat] + ' · ' + LN[S.lvl] + ' · ' + new Date().toISOString().slice(0, 10);
+    $('bExpand').textContent = 'Collapse all';
+    update();
+  }
+
+  function update() {
+    var vis = visible(), d = 0, minLeft = 0, secDone = 0, secN = 0;
+    vis.forEach(function (st) { if (isDone(st[0])) d++; else minLeft += st[3]; });
+    [].forEach.call(document.querySelectorAll('.po-sec'), function (el) {
+      var sid = el.getAttribute('data-sec'), list = vis.filter(function (st) { return st[1] === sid; }), k = list.filter(function (st) { return isDone(st[0]); }).length;
+      secN++; if (k === list.length) secDone++;
+      el.classList.toggle('full', k === list.length);
+      ring(el.querySelector('.po-ring'), list.length ? k / list.length : 0, k + '/' + list.length);
+      el.querySelector('.po-cnt').textContent = k + ' of ' + list.length;
+    });
+    ring($('ringAll'), vis.length ? d / vis.length : 0, Math.round(vis.length ? 100 * d / vis.length : 0) + '%');
+    $('stDone').textContent = d + '/' + vis.length;
+    $('stMin').textContent = minLeft;
+    $('stSec').textContent = secDone + '/' + secN;
+  }
+
+  function setDone(id, on) {
+    if (on) S.done[key(id)] = 1; else delete S.done[key(id)];
+    save();
+    [].forEach.call(document.querySelectorAll('input[data-id="' + id + '"]'), function (c) { c.checked = on; });
+    [].forEach.call(document.querySelectorAll('[data-id="' + id + '"].po-step, li[data-id="' + id + '"]'), function (li) { li.classList.toggle('is-done', on); });
+    update();
+  }
+
+  document.addEventListener('change', function (e) {
+    var t = e.target;
+    if (t.matches && t.matches('input[type=checkbox][data-id]')) setDone(t.getAttribute('data-id'), t.checked);
+  });
+  $('plats').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; S.plat = b.getAttribute('data-p'); save(); render(); });
+  $('lvls').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; S.lvl = +b.getAttribute('data-l'); save(); render(); });
+  $('onlyRem').addEventListener('change', function () { S.rem = this.checked; save(); document.body.classList.toggle('po-rem', S.rem); });
+
+  var wasOpen = null;
+  function openAll() { wasOpen = [].map.call(document.querySelectorAll('.po-sec'), function (d) { var o = d.open; d.open = true; return o; }); }
+  function restore() { if (!wasOpen) return; [].forEach.call(document.querySelectorAll('.po-sec'), function (d, i) { d.open = wasOpen[i]; }); wasOpen = null; }
+  window.addEventListener('beforeprint', openAll);
+  window.addEventListener('afterprint', restore);
+  $('bPrint').addEventListener('click', function () { openAll(); window.print(); });
+  $('bExpand').addEventListener('click', function () {
+    var secs = document.querySelectorAll('.po-sec'), anyOpen = [].some.call(secs, function (d) { return d.open; });
+    [].forEach.call(secs, function (d) { d.open = !anyOpen; });
+    this.textContent = anyOpen ? 'Expand all' : 'Collapse all';
+  });
+  $('bReset').addEventListener('click', function () {
+    if (!confirm('Clear all ticks for this phone?')) return;
+    Object.keys(S.done).forEach(function (k) { if (k.indexOf(S.plat + '.') === 0) delete S.done[k]; });
+    save(); render(); $('msg').textContent = 'Ticks cleared for this phone.';
+  });
+
+  function buildText() {
+    var lines = [T('Lock down your phone') + ' · ' + PN[S.plat] + ' · ' + T(LN[S.lvl]) + ' · ' + new Date().toISOString().slice(0, 10), ''];
+    [].forEach.call(document.querySelectorAll('.po-sec'), function (sec) {
+      lines.push(sec.querySelector('h2').textContent.trim());
+      [].forEach.call(sec.querySelectorAll('.po-step'), function (li) {
+        var on = li.querySelector('input').checked;
+        lines.push((on ? '[x] ' : '[ ] ') + li.querySelector('h3').textContent.trim() + ' (' + li.querySelector('.po-min').textContent + ')');
+        [].forEach.call(li.querySelectorAll('.po-crumbs'), function (c) {
+          lines.push('    ' + [].map.call(c.querySelectorAll('li'), function (x) { return x.textContent.trim(); }).join(' > '));
+        });
+      });
+      lines.push('');
+    });
+    return lines.join('\n');
+  }
+  $('bCopy').addEventListener('click', function () {
+    var txt = buildText(), out = $('out');
+    function shown() { out.hidden = false; out.value = txt; out.focus(); out.select(); }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(txt).then(function () { $('msg').textContent = 'Checklist copied. Paste it into your notes.'; out.hidden = true; }, function () { shown(); $('msg').textContent = 'Copy blocked by the browser. Select the text below and copy it.'; });
+    } else { shown(); $('msg').textContent = 'Copy blocked by the browser. Select the text below and copy it.'; }
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
