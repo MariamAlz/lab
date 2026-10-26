@@ -44,6 +44,7 @@ audio { width: 100%; }
 .sw { display: flex; gap: 8px; align-items: center; font-size: 0.88rem; cursor: pointer; }
 .sw input { accent-color: var(--accent); width: 18px; height: 18px; }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -141,9 +142,16 @@ audio { width: 100%; }
     if (!cur || !('speechSynthesis' in window)) return;
     try {
       speechSynthesis.cancel();
+      // Arabic mode: read the Arabic question with an Arabic voice when the device has one
+      var av = window.LabAr && LabAr.on ? speechSynthesis.getVoices().filter(function (x) { return /^ar([-_]|$)/i.test(x.lang); }) : [];
+      if (av.length) {
+        var pv = av.filter(function (x) { return /AE|SA/i.test(x.lang); })[0] || av[0];
+        var u = new SpeechSynthesisUtterance(LabAr.t(cur.q)); u.rate = 0.95; u.lang = pv.lang; u.voice = pv;
+      } else {
       var u = new SpeechSynthesisUtterance(cur.q); u.rate = 0.95; u.lang = 'en-GB';
       var v = speechSynthesis.getVoices().filter(function (x) { return /^en[-_](GB|US|AU|IE)/i.test(x.lang); });
       if (v.length) u.voice = v[0];
+      }
       speechSynthesis.speak(u);
     } catch (e) {}
   }

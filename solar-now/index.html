@@ -40,6 +40,7 @@
 .months i { display: block; width: 100%; background: var(--accent); border-radius: 4px 4px 0 0; }
 [hidden] { display: none !important; }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -198,7 +199,8 @@
       return n('kwp') * gh * DAYS[m] * gain * heat * (1 - n('loss') / 100) * (1 - n('soil') / 100);
     });
     var yr = out.reduce(function (a, b) { return a + b; }, 0), mx = Math.max.apply(null, out) || 1;
-    $('months').innerHTML = out.map(function (v, i) { return '<div title="' + MON[i] + ': ' + fmt(v) + ' kWh"><span>' + fmt(v) + '</span><i style="height:' + Math.max(2, v / mx * 85) + 'px"></i>' + MON[i] + '</div>'; }).join('');
+    var ML = window.LabAr && LabAr.on ? ['ينا', 'فبر', 'مار', 'أبر', 'مايو', 'يون', 'يول', 'أغس', 'سبت', 'أكت', 'نوف', 'ديس'] : MON;
+    $('months').innerHTML = out.map(function (v, i) { return '<div title="' + ML[i] + ': ' + fmt(v) + ' kWh"><span>' + fmt(v) + '</span><i style="height:' + Math.max(2, v / mx * 85) + 'px"></i>' + ML[i] + '</div>'; }).join('');
     $('monT').textContent = 'A typical year: ' + fmt(yr) + ' kWh, about ' + fmt(yr * n('fils') / 100) + ' AED saved';
     $('monSrc').textContent = 'Uses typical UAE monthly sunshine (about 2,000 kWh per m² a year on flat ground, a rough long-term average) and daytime temperatures, tilted to your panels for ' + (loc ? loc.name : 'a central UAE location') + '. That is about ' + fmt(n('kwp') ? yr / n('kwp') : 0) + ' kWh per kWp a year; UAE rooftop systems typically make 1,500 to 1,800.';
   }

@@ -1,0 +1,68 @@
+(function () {
+  // the example plan's guests and groups, so the sample reads naturally in Arabic
+  var NM = { 'Hamad': 'حمد', 'Mariam': 'مريم', 'Saeed': 'سعيد', 'Noura': 'نورة', 'Khalid': 'خالد', 'Ali': 'علي', 'Aisha': 'عائشة', 'Rashid': 'راشد', 'Latifa': 'لطيفة', 'Shamma': 'شمّة', 'Hessa': 'حصة', 'Maitha': 'ميثاء', 'Alya': 'علياء', 'Reem': 'ريم', 'Sara': 'سارة', 'Obaid': 'عبيد', 'Humaid': 'حميد', 'Majid': 'ماجد', 'Sultan': 'سلطان', 'Faisal': 'فيصل', 'Ahmed': 'أحمد', 'Fatima': 'فاطمة', 'Yousef': 'يوسف', 'Priya': 'بريا', 'Daniel': 'دانيال', 'Lina': 'لينا', 'Tariq': 'طارق',
+    'Al Mansoori family': 'عائلة المنصوري', 'Al Ketbi family': 'عائلة الكتبي', "Bride's friends": 'صديقات العروس', "Groom's friends": 'أصدقاء العريس', 'Neighbours': 'الجيران', 'Work': 'زملاء العمل' };
+  function nm(x) { var m; if (NM[x]) return NM[x]; if ((m = x.match(/^Table (\d+)$/))) return 'طاولة ' + m[1]; if ((m = x.match(/^Section ([A-Z])$/))) return 'القسم ' + m[1]; return x; }
+  var dict = {
+    "Seating Planner": "مخطط توزيع المقاعد",
+    "Tool · Planning · Events": "أداة · التخطيط · المناسبات",
+    "Seating planner.": "مخطط توزيع المقاعد.",
+    "Seating a wedding, a majlis or a big family dinner is a puzzle: families want to sit together, some people are best kept apart, and every table has a limit. Add your guests, tables and rules, press Arrange, then drag people around until it feels right. Separate halls or sections are supported too.": "توزيع المقاعد في حفل زفاف أو مجلس أو عشاء عائلي كبير أشبه بالأحجية: العائلات تريد الجلوس معًا، وبعض الناس من الأفضل إبعادهم عن بعض، ولكل طاولة حد. أضف ضيوفك وطاولاتك وقواعدك، واضغط «رتّب»، ثم اسحب الأشخاص حتى يصبح التوزيع مناسبًا. ويمكن أيضًا تقسيم المكان إلى قاعات أو أقسام منفصلة.",
+    "✦ Arrange": "✦ رتّب", "Clear seats": "أفرغ المقاعد", "Load an example": "حمّل مثالًا",
+    "guests seated": "ضيف في مقعده", "seats in total": "مقعدًا إجمالًا", "rules not met": "قاعدة لم تتحقق",
+    "Not seated yet": "بلا مقعد بعد",
+    "Drag a name onto a table, or tap a name and then tap a table. A name you place by hand gets a pin 📌 so Arrange leaves it there. Tap the pin to free it.": "اسحب الاسم إلى طاولة، أو اضغط الاسم ثم اضغط الطاولة. الاسم الذي تضعه بيدك يحصل على دبوس 📌 فلا يحركه «رتّب». اضغط الدبوس لتحريره.",
+    "Rules check": "فحص القواعد",
+    "Guests": "الضيوف",
+    "One per line: Name, Group, Section Fatima Al Hashmi, Al Hashmi family Omar, Work friends Group and section are optional.": "ضيف في كل سطر: الاسم، المجموعة، القسم\nفاطمة الهاشمي، عائلة الهاشمي\nعمر، أصدقاء العمل\nالمجموعة والقسم اختياريان.",
+    "Guests to add": "الضيوف المراد إضافتهم",
+    "Add guests": "أضف الضيوف", "Import CSV": "استيراد CSV",
+    "CSV: a name column, plus optional group and section columns. A header row with \"name\" is detected.": "ملف CSV: عمود للاسم، مع عمودين اختياريين للمجموعة والقسم. يُكتشف صف العناوين الذي يحتوي على «name» أو «الاسم».",
+    "Tables": "الطاولات", "Number of tables": "عدد الطاولات", "tables of": "طاولات، في كل منها", "Seats per table": "المقاعد في كل طاولة", "seats": "مقاعد", "Section for new tables": "قسم الطاولات الجديدة",
+    "Sections": "الأقسام",
+    "Split into separate sections (for example separate halls, or a family area and a guest area)": "قسّم المكان إلى أقسام منفصلة (مثل قاعات منفصلة، أو قسم للعائلة وآخر للضيوف)",
+    "Section name, e.g. Hall A": "اسم القسم، مثل: القاعة أ", "New section name": "اسم القسم الجديد", "Add section": "أضف قسمًا",
+    "Guests are only seated at tables in their own section. A guest with no section can sit anywhere.": "لا يجلس الضيف إلا على طاولات قسمه. والضيف بلا قسم يمكنه الجلوس في أي مكان.",
+    "Rules": "القواعد", "First guest": "الضيف الأول", "Rule": "القاعدة", "Second guest": "الضيف الثاني",
+    "must sit with": "يجب أن يجلس مع", "keep apart from": "أبعده عن", "would like to sit with": "يرغب في الجلوس مع",
+    "Add rule": "أضف القاعدة", "Try to keep each group at one table": "حاول إبقاء كل مجموعة على طاولة واحدة",
+    "<b>How Arrange works.</b> It first seats whole families and must-sit pairs, biggest first, at the table with the most room. Then it runs simulated annealing: thousands of small random moves and swaps, keeping any change that lowers a penalty score and sometimes accepting a worse one early on, so it doesn't get stuck. Must-sit and keep-apart rules cost a lot, wishes and split groups cost a little.": "<b>كيف يعمل «رتّب».</b> يُجلس أولًا العائلات كاملة والأزواج الذين يجب أن يجلسوا معًا، الأكبر فالأصغر، على الطاولة الأكثر اتساعًا. ثم يطبّق خوارزمية «التلدين المحاكى»: آلاف النقلات والتبديلات العشوائية الصغيرة، يحتفظ بأي تغيير يخفّض درجة العقوبة، ويقبل أحيانًا تغييرًا أسوأ في البداية كي لا يعلق. وقواعد «يجب الجلوس معًا» و«الإبعاد» مكلفة جدًا، أما الرغبات وتفرق المجموعات فتكلفتها قليلة.",
+    "Your plan is saved on this device.": "يُحفظ مخططك على هذا الجهاز.",
+    "Start a new plan": "ابدأ مخططًا جديدًا",
+    "Any section": "أي قسم", "Any": "أي قسم",
+    "No tables yet. Add some on the right, or load the example.": "لا طاولات بعد. أضف بعضها من اللوحة الأخرى، أو حمّل المثال.",
+    "Everyone has a seat.": "لكل ضيف مقعد.",
+    "All rules are met.": "تحققت كل القواعد.", "Nothing to check yet.": "لا شيء للفحص بعد.",
+    "One seat fewer": "مقعد أقل", "One seat more": "مقعد إضافي", "Remove section": "احذف القسم", "Remove rule": "احذف القاعدة", "Unpin": "أزل التثبيت",
+    "Add some tables first.": "أضف بعض الطاولات أولًا.", "Add some guests first.": "أضف بعض الضيوف أولًا.",
+    "Arranging…": "جارٍ الترتيب…", "Arranged. All firm rules are met.": "تم الترتيب. تحققت كل القواعد الملزمة.",
+    "Arranged. All firm rules are met. A few wishes could not all fit.": "تم الترتيب. تحققت كل القواعد الملزمة، لكن تعذّر تلبية بعض الرغبات.",
+    "Type one name per line.": "اكتب اسمًا واحدًا في كل سطر.", "Pick two different guests.": "اختر ضيفين مختلفين.",
+    "Everyone is back in the unseated list.": "عاد الجميع إلى قائمة من لا مقاعد لهم.",
+    "Delete this plan and start a new one?": "هل تريد حذف هذا المخطط والبدء بمخطط جديد؟",
+    "New plan started.": "بدأ مخطط جديد.",
+    "Replace your current plan with the example?": "هل تريد استبدال مخططك الحالي بالمثال؟",
+    "Example loaded: 27 guests, 4 tables of 7, and a few rules. Press Arrange.": "تم تحميل المثال: 27 ضيفًا، و4 طاولات في كل منها 7 مقاعد، وبعض القواعد. اضغط «رتّب».",
+    "Start by loading the example, or add your own guests and tables.": "ابدأ بتحميل المثال، أو أضف ضيوفك وطاولاتك.",
+    "Seating plan": "مخطط المقاعد", "Find your table": "اعثر على طاولتك"
+  };
+  for (var k in NM) dict[k] = NM[k];
+  LabAr.add(dict, [
+    [/^(Table \d+|Section [A-Z])$/, function (m) { return nm(m); }],
+    [/^(\d+) seats(?: · (.+))?$/, function (m, n, s) { return n + ' مقاعد' + (s ? ' · ' + nm(s) : ''); }],
+    [/^[^·]+(?: · [^·]+)+$/, function (m) { var p = m.split(' · '), o = p.map(nm); return o.join(' · ') !== m ? o.join(' · ') : m; }],
+    [/^(.+) is in a table outside their section\.$/, function (m, a) { return nm(a) + ' على طاولة خارج قسمه.'; }],
+    [/^(.+) has (\d+) too many\.$/, function (m, t, n) { return nm(t) + ' عليها ' + n + ' زيادة عن سعتها.'; }],
+    [/^(.+) and (.+) must sit together but are apart\.$/, function (m, a, b) { return 'يجب أن يجلس ' + nm(a) + ' و' + nm(b) + ' معًا لكنهما متفرقان.'; }],
+    [/^(.+) and (.+) should be kept apart but share a table\.$/, function (m, a, b) { return 'يجب إبعاد ' + nm(a) + ' و' + nm(b) + ' لكنهما على الطاولة نفسها.'; }],
+    [/^(.+) would like to sit with (.+)\.$/, function (m, a, b) { return 'يرغب ' + nm(a) + ' في الجلوس مع ' + nm(b) + '.'; }],
+    [/^The (.+?) group(?: \((.+)\))? is spread over (\d+) tables\.$/, function (m, g, s, n) { return 'مجموعة «' + nm(g) + '»' + (s ? ' (' + nm(s) + ')' : '') + ' موزعة على ' + n + ' طاولات.'; }],
+    [/^There are (\d+) guests but only (\d+) seats\.$/, 'لديك $1 ضيفًا لكن المقاعد $2 فقط.'],
+    [/^Arranged, but (\d+) firm rules? could not be met\. See the rules check below\.$/, 'تم الترتيب، لكن تعذّر تحقيق $1 من القواعد الملزمة. راجع فحص القواعد أدناه.'],
+    [/^Added (\d+) guests?\.$/, 'أُضيف $1 ضيف.'],
+    [/^Imported (\d+) guests? from (.+)\.$/, 'استُورد $1 ضيف من $2.'],
+    [/^Now tap a table \(or the unseated area\) for (.+)\.$/, function (m, a) { return 'الآن اضغط طاولة (أو منطقة من بلا مقاعد) لـ' + nm(a) + '.'; }],
+    [/^Section for (.+)$/, function (m, a) { return 'قسم ' + nm(a); }],
+    [/^Remove (.+)$/, function (m, a) { return 'احذف ' + nm(a); }]
+  ]);
+})();

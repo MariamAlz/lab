@@ -1,0 +1,41 @@
+LabAr.add({
+  "Colour-Blind View": "عرض عمى الألوان",
+  "Tool · Accessibility": "أداة · إمكانية الوصول",
+  "Colour-blind view.": "كيف يرى مصابو عمى الألوان.",
+  "About 1 in 12 men and 1 in 200 women see colour differently, most often mixing up reds and greens. Drop in a photo, chart, map or design and drag the line to compare. Then check your colour palette and try an automatic fix.": "يرى نحو رجل من كل 12 وامرأة من كل 200 الألوانَ بشكل مختلف، وأكثر ما يخلطون بينه الأحمر والأخضر. أضف صورة أو رسمًا بيانيًا أو خريطة أو تصميمًا، واسحب الخط للمقارنة. ثم افحص لوحة ألوانك وجرّب التصحيح التلقائي.",
+  "original": "الأصل",
+  "deuteranopia": "عمى الأخضر",
+  "protanopia": "عمى الأحمر",
+  "tritanopia": "عمى الأزرق والأصفر",
+  "no colour": "بلا ألوان",
+  "Type": "النوع",
+  "Green-weak (deuteranopia)": "ضعف الأخضر (Deuteranopia)",
+  "Red-weak (protanopia)": "ضعف الأحمر (Protanopia)",
+  "Blue-yellow (tritanopia)": "الأزرق والأصفر (Tritanopia)",
+  "No colour": "بلا ألوان",
+  "Strength": "الشدة",
+  "full": "كاملة",
+  "Show the fix": "اعرض التصحيح",
+  "All four": "الأنواع الأربعة",
+  "Drop an image, tap to choose one, or paste a screenshot": "أفلت صورة هنا، أو اضغط لاختيار واحدة، أو الصق لقطة شاشة",
+  "Use my camera": "استخدم الكاميرا",
+  "Stop camera": "أوقف الكاميرا",
+  "Camera not available": "الكاميرا غير متاحة",
+  "Sample chart": "رسم بياني تجريبي",
+  "Download this view": "نزّل هذا العرض",
+  "Check a palette": "افحص لوحة ألوان",
+  "Colours, one per line or comma-separated": "الألوان، لون في كل سطر أو مفصولة بفواصل",
+  "Normal": "رؤية طبيعية",
+  "and": "و",
+  "Fixes that work for everyone: don't rely on colour alone (add labels, patterns or icons), pair red with blue rather than green, and vary lightness as well as hue. The simulation uses the Machado (2009) model; nothing you load leaves your device.": "حلول تناسب الجميع: لا تعتمد على اللون وحده (أضف تسميات أو أنماطًا أو أيقونات)، واجمع الأحمر مع الأزرق بدل الأخضر، ونوّع درجة السطوع إلى جانب اللون. تعتمد المحاكاة على نموذج Machado (2009)، ولا يغادر جهازك أي شيء تحمّله.",
+  "Sales by region": "المبيعات حسب المنطقة",
+  "North": "الشمال", "South": "الجنوب", "East": "الشرق", "West": "الغرب",
+  "Late": "متأخر", "Failed": "فشل",
+  "Error: card declined": "خطأ: رُفضت البطاقة"
+}, [
+  [/^(deuteranopia|protanopia|tritanopia|no colour) \+ fix$/, function (m, n) { return ({ deuteranopia: 'عمى الأخضر', protanopia: 'عمى الأحمر', tritanopia: 'عمى الأزرق والأصفر', 'no colour': 'بلا ألوان' })[n] + ' + تصحيح'; }],
+  [/^look (almost the same|very similar) with (deuteranopia|protanopia|tritanopia|no colour)$/, function (m, a, n) { return (a === 'almost the same' ? 'يبدوان متطابقين تقريبًا' : 'يبدوان متشابهين جدًا') + ' في حالة ' + ({ deuteranopia: 'عمى الأخضر', protanopia: 'عمى الأحمر', tritanopia: 'عمى الأزرق والأصفر', 'no colour': 'انعدام الألوان' })[n]; }],
+  [/^✓ Every pair stays distinguishable with (deuteranopia|protanopia|tritanopia|no colour)\.$/, function (m, n) { return '✓ يمكن التمييز بين كل زوج من الألوان في حالة ' + ({ deuteranopia: 'عمى الأخضر', protanopia: 'عمى الأحمر', tritanopia: 'عمى الأزرق والأصفر', 'no colour': 'انعدام الألوان' })[n] + '.'; }]
+]);
+// the sample chart is drawn on canvas before this dictionary loads: draw it again in Arabic
+(function () { var b = document.getElementById('samp'); if (b) b.click(); })();

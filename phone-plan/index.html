@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Phone Plan Size · Mariam's Lab</title>
+<meta name="description" content="Which mobile plan size fits how you actually use your phone? Estimate your data from daily habits, add the plans you're comparing, and see which covers you cheapest.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/phone-plan/">
+<meta property="og:title" content="Phone Plan Size · Mariam's Lab"><meta property="og:description" content="Estimate your data use and find the cheapest plan that covers it."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;600&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.sm { font: inherit; font-size: 0.85rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 13px; cursor: pointer; }
+.sm:hover { border-color: var(--muted); }
+.sm[aria-pressed="true"], .sm.pri { background: var(--accent); color: #1a1205; border-color: var(--accent); }
+.pills { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.box { padding: 16px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); display: grid; gap: 12px; min-width: 0; }
+.txt { font: inherit; color: var(--ink); background: rgba(7,10,24,.6); border: 1px solid var(--line); border-radius: 8px; padding: 7px 9px; min-width: 0; box-sizing: border-box; }
+.txt.num { font-family: var(--font-mono); width: 6.5em; text-align: end; }
+.fr { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; font-size: 0.9rem; }
+.fr small { display: block; color: var(--muted); font-size: 0.76rem; }
+.fr .in2 { display: flex; gap: 6px; align-items: center; justify-content: flex-end; }
+.sl { display: grid; gap: 3px; font-size: 0.9rem; }
+.sl div { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.sl b { font-family: var(--font-mono); font-weight: 500; white-space: nowrap; font-size: 0.85rem; }
+.sl small { color: var(--muted); font-size: 0.74rem; }
+.sl input { width: 100%; accent-color: var(--accent); }
+.msg { font-size: 0.86rem; color: var(--muted); min-height: 1.2em; margin: 0; }
+.est { font-size: 0.86rem; color: var(--muted); margin: 0; }
+.est b { color: var(--ink); font-family: var(--font-mono); }
+.plans { display: grid; gap: 10px; }
+.pl { border: 1px solid var(--line); border-radius: 12px; padding: 10px; display: grid; gap: 8px; }
+.pl .top { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 6px; align-items: center; }
+.pl .top .txt { width: 100%; }
+.pl .flds { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.pl .flds label { display: grid; gap: 3px; font-size: 0.72rem; color: var(--muted); min-width: 0; }
+.pl .flds .txt { width: 100%; font-family: var(--font-mono); font-size: 0.85rem; padding: 6px 7px; }
+.pl .flds .txt:disabled { opacity: .45; }
+.ck { display: inline-flex; gap: 4px; align-items: center; font-size: 0.72rem; color: var(--muted); cursor: pointer; }
+.ck input { accent-color: var(--accent); margin: 0; }
+.x { background: none; border: 0; color: var(--muted); font-size: 1.3rem; cursor: pointer; padding: 0 4px; line-height: 1; }
+.vrd { padding: 16px 18px; border-radius: var(--radius); border: 1px solid var(--line); border-inline-start: 4px solid var(--muted); background: rgba(7,10,24,.82); display: grid; gap: 4px; }
+.vrd b { font-family: var(--font-display); font-size: clamp(1.3rem, 4vw, 1.9rem); font-weight: 800; line-height: 1.15; }
+.vrd p { margin: 0; color: var(--muted); font-size: 0.92rem; }
+.stats b { font-size: clamp(1.05rem, 4.6vw, 1.5rem); white-space: nowrap; }
+.res { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.res li { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; display: grid; gap: 6px; }
+.res li.best { border-color: var(--sat-b); }
+.res .h { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: baseline; }
+.res .h b { font-size: 1rem; overflow-wrap: anywhere; }
+.res .h span { font-family: var(--font-display); font-weight: 800; font-size: 1.2rem; white-space: nowrap; }
+.res .meta { display: flex; gap: 6px 12px; flex-wrap: wrap; font-size: 0.78rem; color: var(--muted); }
+.tag { font-size: 0.7rem; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--c, var(--line)); color: #0b0f1d; }
+.meter { height: 8px; border-radius: 99px; background: rgba(128,128,128,.22); overflow: hidden; position: relative; }
+.meter i { position: absolute; inset-block: 0; inset-inline-start: 0; border-radius: 99px; background: var(--c, var(--sat-b)); }
+[hidden] { display: none !important; }
+@media (max-width: 520px) { .pl .flds { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+html.ar .res .h span, html.ar .stats b { unicode-bidi: plaintext; }
+html.ar .pl .top .txt.nm { unicode-bidi: plaintext; }
+</style>
+<script src="../assets/i18n.js"></script>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Money · Phone</span>
+    <h1 style="font-size:var(--step-3)">Which phone plan size fits?</h1>
+    <p>Most people pay for a bigger plan than they use, or a smaller one that keeps running out. Tell this how you use your phone, or estimate it from your daily habits. Then type in the plans you're comparing, and it shows which one covers you for the least money.</p>
+  </div>
+
+  <div class="game">
+    <div class="panel">
+      <div class="box">
+        <span class="label">1 · Your mobile data</span>
+        <div class="pills" id="mode">
+          <button class="sm" type="button" data-m="know" aria-pressed="true">I know my numbers</button>
+          <button class="sm" type="button" data-m="est" aria-pressed="false">Estimate from my habits</button>
+        </div>
+        <div id="knowBox">
+          <div class="fr"><span>Data a month<small>Your phone's settings show last month's mobile data</small></span><span class="in2"><input class="txt num" type="number" id="gb" min="0" step="0.5" value="10"> <span>GB</span></span></div>
+        </div>
+        <div id="estBox" hidden style="display:grid;gap:10px">
+          <div class="fr"><span>Video quality</span><select class="txt" id="vq"><option value="0.3">Data saver</option><option value="0.7" selected>Standard (480p)</option><option value="2">HD (1080p)</option></select></div>
+          <div id="habits" style="display:grid;gap:10px"></div>
+          <div class="sl"><div><span>Share of this on Wi-Fi<small style="display:block">Home, office, mall</small></span><b id="wifiV">60%</b></div><input type="range" id="wifi" min="0" max="100" step="5" value="60" aria-label="Share on Wi-Fi"></div>
+          <p class="est" id="estOut"></p>
+        </div>
+      </div>
+
+      <div class="box">
+        <span class="label">2 · Calls and travel</span>
+        <div class="fr"><span>Local minutes a month<small>Normal calls, not WhatsApp or FaceTime</small></span><span class="in2"><input class="txt num" type="number" id="lm" min="0" step="10" value="100"></span></div>
+        <div class="fr"><span>International minutes a month</span><span class="in2"><input class="txt num" type="number" id="im" min="0" step="10" value="0"></span></div>
+        <div class="fr"><span>Days abroad a year<small>Days you'd want roaming</small></span><span class="in2"><input class="txt num" type="number" id="rd" min="0" step="1" value="0"></span></div>
+        <div class="sl"><div><span>Safety margin</span><b id="marV">20%</b></div><input type="range" id="mar" min="0" max="50" step="5" value="20" aria-label="Safety margin"><small>Extra room for a heavy month. Plans with less room than this are marked tight.</small></div>
+      </div>
+
+      <div class="box">
+        <span class="label">3 · Prices if you go over · optional</span>
+        <p class="msg" style="min-height:0">Copy these from the plan details. Leave blank if you don't know.</p>
+        <div class="fr"><span>Extra data, per GB</span><span class="in2"><input class="txt num" type="number" id="xGb" min="0" step="1" placeholder="AED"></span></div>
+        <div class="fr"><span>Extra local minute</span><span class="in2"><input class="txt num" type="number" id="xLm" min="0" step="0.05" placeholder="AED"></span></div>
+        <div class="fr"><span>International minute</span><span class="in2"><input class="txt num" type="number" id="xIm" min="0" step="0.05" placeholder="AED"></span></div>
+        <div class="fr"><span>Roaming pass, per day</span><span class="in2"><input class="txt num" type="number" id="xRd" min="0" step="1" placeholder="AED"></span></div>
+        <label class="ck" style="font-size:0.86rem"><input type="checkbox" id="vat"> Add 5% VAT (some prices are shown before VAT)</label>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="box">
+        <span class="label">4 · The plans you're comparing</span>
+        <div class="plans" id="plans"></div>
+        <div class="pills"><button class="sm pri" type="button" id="addP">+ Add a plan</button><button class="sm" type="button" id="exP">Try example plans</button><button class="sm" type="button" id="clrP">Remove all</button></div>
+        <p class="msg" id="pMsg">Type the offers you see on your operator's site or app, for example from e&amp; or du. Nothing here is a real price.</p>
+      </div>
+      <div class="vrd" id="vrd"><b>Add a plan to compare</b><p>Your use is shown below as soon as you change the numbers.</p></div>
+      <div class="stats">
+        <div><b id="sGb">—</b><span>mobile data a month</span></div>
+        <div><b id="sNeed">—</b><span>with safety margin</span></div>
+        <div><b id="sMin">—</b><span>local minutes</span></div>
+      </div>
+      <ul class="res" id="res"></ul>
+      <p class="fact" style="margin:0"><b>Where the data goes.</b> Video is almost all of it. An hour of standard video is about 0.7 GB, and HD can use 2 GB or more. An hour of maps or music uses a tiny fraction of that. So the two settings that matter most are video quality on mobile data and how much of your watching happens on Wi-Fi.</p>
+      <p class="fact" style="margin:0">The habit estimates assume, per hour on mobile data: video 0.3 / 0.7 / 2 GB (data saver / standard / HD), short-video social apps 0.7 GB, video calls 0.5 GB, browsing and chat 0.15 GB, music 0.07 GB, app voice calls 0.04 GB, maps 0.02 GB. Real use varies by app and screen. Check your phone's data counter after a month. Offers change often, so this is a guide, not financial advice.</p>
+    </div>
+  </div>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var KEY = 'phonePlan', DAYS = 30.4;
+  // habit rows: id, label, GB per hour (null = from video quality), max hours a day
+  var HAB = [['hv', 'Video streaming', null, 6, 1], ['hs', 'Social apps with short videos', 0.7, 6, 1], ['hc', 'Video calls', 0.5, 4, 0], ['hb', 'Browsing, email and chat', 0.15, 8, 1], ['hm', 'Music and podcasts', 0.07, 8, 1], ['hp', 'Voice calls over apps', 0.04, 6, 0.5], ['hn', 'Maps and navigation', 0.02, 4, 0.5]];
+  var FIELDS = ['gb', 'vq', 'wifi', 'lm', 'im', 'rd', 'mar', 'xGb', 'xLm', 'xIm', 'xRd'];
+  var S = { mode: 'know', plans: [], vat: false };
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function num(v) { v = parseFloat(v); return isFinite(v) && v >= 0 ? v : 0; }
+  function blank(id) { return $(id).value.trim() === ''; }
+  function aed(v) { return 'AED ' + (v < 100 ? (Math.round(v * 100) / 100).toFixed(v % 1 ? 2 : 0) : Math.round(v).toLocaleString('en-US')); }
+  function gbs(v) { return (v < 10 ? Math.round(v * 10) / 10 : Math.round(v)) + ' GB'; }
+  function save() { try { FIELDS.forEach(function (f) { S[f] = $(f).value; }); HAB.forEach(function (h) { S[h[0]] = $(h[0]).value; }); S.vat = $('vat').checked; localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+  function pressed(val) { [].forEach.call($('mode').querySelectorAll('button'), function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-m') === val); }); }
+
+  // habit sliders
+  $('habits').innerHTML = HAB.map(function (h) {
+    return '<div class="sl"><div><span>' + h[1] + '</span><b id="' + h[0] + 'V"></b></div><input type="range" id="' + h[0] + '" min="0" max="' + h[3] + '" step="0.25" value="' + h[4] + '" aria-label="' + h[1] + '"></div>';
+  }).join('');
+  function hrs(v) { v = +v; return v === 0 ? 'none' : (v < 1 ? Math.round(v * 60) + ' min a day' : (v % 1 ? v.toFixed(2).replace(/0$/, '') : v) + ' h a day'); }
+
+  function usage() {
+    var est = 0, parts = [];
+    HAB.forEach(function (h) {
+      var v = num($(h[0]).value), per = h[2] == null ? num($('vq').value) : h[2], gbm = v * per * DAYS;
+      $(h[0] + 'V').textContent = hrs(v); est += gbm; if (gbm) parts.push([h[1], gbm]);
+    });
+    var wifi = num($('wifi').value) / 100, mobile = est * (1 - wifi);
+    $('wifiV').textContent = $('wifi').value + '%';
+    parts.sort(function (a, b) { return b[1] - a[1]; });
+    $('estOut').innerHTML = 'About <b>' + gbs(est) + '</b> a month in total, so <b>' + gbs(mobile) + '</b> on mobile data.' + (parts.length && est ? ' Video and social: <b>' + Math.round(100 * parts.filter(function (p) { return /Video|Social/.test(p[0]); }).reduce(function (s, p) { return s + p[1]; }, 0) / est) + '%</b>.' : '');
+    return { gb: S.mode === 'est' ? mobile : num($('gb').value), lm: num($('lm').value), im: num($('im').value), rd: num($('rd').value) / 12 };
+  }
+
+  function planRow(p, i) {
+    return '<div class="pl" data-i="' + i + '"><div class="top"><input class="txt nm" data-f="n" value="' + esc(p.n) + '" placeholder="Plan name" aria-label="Plan name" maxlength="40">' +
+      '<input class="txt num" data-f="p" type="number" min="0" step="1" value="' + esc(p.p) + '" placeholder="AED" aria-label="Price a month" style="width:6em"><button class="x" type="button" data-del aria-label="Remove plan">×</button></div>' +
+      '<div class="flds">' +
+      '<label>Data (GB)<input class="txt" data-f="d" type="number" min="0" step="1" value="' + esc(p.d) + '"' + (p.du ? ' disabled' : '') + '><span class="ck"><input type="checkbox" data-f="du"' + (p.du ? ' checked' : '') + '>Unlimited</span></label>' +
+      '<label>Local min<input class="txt" data-f="l" type="number" min="0" step="10" value="' + esc(p.l) + '"' + (p.lu ? ' disabled' : '') + '><span class="ck"><input type="checkbox" data-f="lu"' + (p.lu ? ' checked' : '') + '>Unlimited</span></label>' +
+      '<label>Intl min<input class="txt" data-f="m" type="number" min="0" step="10" value="' + esc(p.m) + '"></label>' +
+      '<label>Roaming<span class="ck" style="padding-block:7px"><input type="checkbox" data-f="r"' + (p.r ? ' checked' : '') + '>Included</span></label>' +
+      '</div></div>';
+  }
+  function drawPlans() { $('plans').innerHTML = S.plans.map(planRow).join(''); }
+
+  function cost(p, u, mar) {
+    var vat = $('vat').checked ? 1.05 : 1, price = num(p.p);
+    var dCap = p.du ? Infinity : num(p.d), lCap = p.lu ? Infinity : num(p.l), mCap = num(p.m);
+    var over = { d: Math.max(0, u.gb - dCap), l: Math.max(0, u.lm - lCap), m: Math.max(0, u.im - mCap) };
+    var unknown = [], extra = 0;
+    if (over.d) { if (blank('xGb')) unknown.push('data'); else extra += Math.ceil(over.d) * num($('xGb').value); }
+    if (over.l) { if (blank('xLm')) unknown.push('local minutes'); else extra += over.l * num($('xLm').value); }
+    if (over.m) { if (blank('xIm')) unknown.push('international minutes'); else extra += over.m * num($('xIm').value); }
+    if (u.rd && !p.r) { if (blank('xRd')) unknown.push('roaming'); else extra += u.rd * num($('xRd').value); }
+    var use = dCap === Infinity ? 0 : dCap ? u.gb / dCap : (u.gb ? Infinity : 0);
+    var luse = lCap === Infinity ? 0 : lCap ? u.lm / lCap : (u.lm ? Infinity : 0);
+    var worst = Math.max(use, luse, mCap ? u.im / mCap : (u.im ? Infinity : 0));
+    var risk = worst > 1 ? 2 : worst > 1 / (1 + mar) ? 1 : 0;
+    return { total: (price + extra) * vat, price: price * vat, extra: extra * vat, unknown: unknown, risk: risk, use: use, dCap: dCap, perGb: dCap === Infinity ? (u.gb ? price * vat / u.gb : null) : dCap ? price * vat / dCap : null, over: over };
+  }
+
+  function render() {
+    var u = usage(), mar = num($('mar').value) / 100;
+    $('marV').textContent = $('mar').value + '%';
+    $('sGb').textContent = gbs(u.gb); $('sNeed').textContent = gbs(u.gb * (1 + mar)); $('sMin').textContent = Math.round(u.lm);
+    var list = S.plans.map(function (p, i) { return { p: p, i: i, c: cost(p, u, mar) }; }).filter(function (x) { return num(x.p.p) > 0; });
+    var COL = ['var(--sat-b)', 'var(--accent)', 'var(--sat-c)'], RISK = ['Comfortable', 'Tight', 'Goes over'];
+    list.sort(function (a, b) { return (a.c.unknown.length ? 1 : 0) - (b.c.unknown.length ? 1 : 0) || a.c.total - b.c.total; });
+    var fits = list.filter(function (x) { return x.c.risk < 2 && !x.c.unknown.length; }), comfy = fits.filter(function (x) { return x.c.risk === 0; });
+    var best = comfy[0] || fits[0] || (list[0] && !list[0].c.unknown.length ? list[0] : null);
+    var v = $('vrd'), b, t;
+    if (!list.length) { b = 'Add a plan to compare'; t = 'Your use is shown below as soon as you change the numbers.'; v.style.borderInlineStartColor = 'var(--muted)'; }
+    else if (!best) { b = 'None of these covers you'; t = 'Every plan runs out, and the price for going over is blank. Add the extra-use prices, or a bigger plan.'; v.style.borderInlineStartColor = 'var(--sat-c)'; }
+    else {
+      var nm = best.p.n || 'Unnamed plan';
+      b = nm + ' · ' + aed(best.c.total) + ' a month';
+      t = best.c.risk === 0 ? 'The cheapest plan that covers your use with room to spare.' : best.c.risk === 1 ? 'The cheapest plan that covers you, but with little room. A heavy month may go over.' : 'Cheapest even after paying for extra use. A bigger plan may be simpler.';
+      if (comfy[0] && fits[0] && fits[0] !== comfy[0] && fits[0].c.total < comfy[0].c.total) t += ' ' + (fits[0].p.n || 'Unnamed plan') + ' is ' + aed(comfy[0].c.total - fits[0].c.total) + ' cheaper but tight.';
+      v.style.borderInlineStartColor = COL[best.c.risk];
+    }
+    v.querySelector('b').textContent = b; v.querySelector('p').textContent = t;
+    $('res').innerHTML = list.map(function (x) {
+      var c = x.c, w = c.dCap === Infinity ? 0.25 : Math.min(1, c.use);
+      var meta = [];
+      meta.push(c.dCap === Infinity ? 'Unlimited data' : !c.dCap ? 'No data included' : 'Uses ' + Math.round(c.use * 100) + '% of the data');
+      if (c.perGb != null) meta.push(aed(c.perGb) + ' per GB' + (c.dCap === Infinity ? ' of your use' : ''));
+      if (c.extra) meta.push('includes ' + aed(c.extra) + ' extra use');
+      if (c.unknown.length) meta.push('Goes over on ' + c.unknown.join(', ') + ' (price unknown)');
+      return '<li' + (best && x === best ? ' class="best"' : '') + '><div class="h"><b data-noar>' + esc(x.p.n || 'Unnamed plan') + '</b><span>' + aed(c.total) + '</span></div>' +
+        '<div class="meter" title="Data used"><i style="width:' + Math.round(w * 100) + '%;--c:' + COL[c.risk] + '"></i></div>' +
+        '<div class="meta"><span class="tag" style="--c:' + COL[c.risk] + '">' + RISK[c.risk] + '</span>' + meta.map(function (m) { return '<span>' + m + '</span>'; }).join('') + '</div></li>';
+    }).join('');
+  }
+
+  // events
+  [].forEach.call($('mode').querySelectorAll('button'), function (b) { b.onclick = function () { S.mode = b.getAttribute('data-m'); pressed(S.mode); $('knowBox').hidden = S.mode !== 'know'; $('estBox').hidden = S.mode !== 'est'; save(); render(); }; });
+  document.querySelector('.game').addEventListener('input', function (e) {
+    var row = e.target.closest('.pl');
+    if (row) { var p = S.plans[+row.getAttribute('data-i')], f = e.target.getAttribute('data-f'); p[f] = e.target.type === 'checkbox' ? e.target.checked : e.target.value; if (f === 'du' || f === 'lu') row.querySelector('[data-f=' + f[0] + ']').disabled = e.target.checked; }
+    save(); render();
+  });
+  document.querySelector('.game').addEventListener('change', function (e) { if (e.target.type === 'checkbox' || e.target.tagName === 'SELECT') { save(); render(); } });
+  $('plans').addEventListener('click', function (e) { if (e.target.hasAttribute('data-del')) { S.plans.splice(+e.target.closest('.pl').getAttribute('data-i'), 1); drawPlans(); save(); render(); } });
+  $('addP').onclick = function () { S.plans.push({ n: '', p: '', d: '', l: '', m: '', du: false, lu: false, r: false }); drawPlans(); save(); render(); var all = $('plans').querySelectorAll('.nm'); all[all.length - 1].focus(); };
+  $('exP').onclick = function () {
+    var T = function (s) { return window.LabAr && LabAr.on ? LabAr.t(s) : s; };
+    S.plans = [{ n: T('Example A'), p: 100, d: 10, l: 200, m: 0 }, { n: T('Example B'), p: 150, d: 25, l: 500, m: 30 }, { n: T('Example C'), p: 250, d: 0, du: true, l: 0, lu: true, m: 100, r: true }];
+    drawPlans(); save(); render();
+  };
+  $('clrP').onclick = function () { if (S.plans.length && confirm('Remove all plans?')) { S.plans = []; drawPlans(); save(); render(); } };
+
+  try { var o = JSON.parse(localStorage.getItem(KEY) || 'null'); if (o) S = o; S.plans = S.plans || []; } catch (e) {}
+  FIELDS.forEach(function (f) { if (S[f] != null) $(f).value = S[f]; });
+  HAB.forEach(function (h) { if (S[h[0]] != null) $(h[0]).value = S[h[0]]; });
+  $('vat').checked = !!S.vat;
+  pressed(S.mode || 'know'); $('knowBox').hidden = S.mode === 'est'; $('estBox').hidden = S.mode !== 'est';
+  drawPlans(); render();
+  window.__pp = { usage: usage, S: function () { return S; } };
+})();
+</script>
+</body>
+</html>

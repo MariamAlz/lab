@@ -44,6 +44,7 @@ section.blk { margin-top: 26px; }
 .arena:fullscreen { height: 100vh; border-radius: 0; }
 [hidden] { display: none !important; }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -208,7 +209,7 @@ section.blk { margin-top: 26px; }
   function tox() {
     var q = $('q').value.toLowerCase().trim(), c = CODE[pet];
     if (pet === 'fish') { $('tox').innerHTML = '<li><b>For fish, the danger is in the water</b><span class="lvl l3">Watch out</span><small>Tap water chlorine (always use a water conditioner), soap or hand cream on your hands, aerosol sprays and bakhoor smoke near an open tank, and overheating when the AC is off. Plants and foods in your home won\'t reach them.</small></li>'; return; }
-    var rows = TOX.filter(function (t) { return (tf === 'all' || t[1] === tf) && (!q || (t[0] + ' ' + t[4]).toLowerCase().indexOf(q) >= 0); }).map(function (t) { var lv = t[2].indexOf(c) >= 0 ? t[3] : t[3] === 0 ? 0 : -1; return [t, lv]; });
+    var rows = TOX.filter(function (t) { return (tf === 'all' || t[1] === tf) && (!q || (t[0] + ' ' + t[4] + (window.LabAr && LabAr.on ? ' ' + LabAr.t(t[0]) + ' ' + LabAr.t(t[4]) : '')).toLowerCase().indexOf(q) >= 0); }).map(function (t) { var lv = t[2].indexOf(c) >= 0 ? t[3] : t[3] === 0 ? 0 : -1; return [t, lv]; });
     rows.sort(function (a, b) { return b[1] - a[1]; });
     $('tox').innerHTML = rows.length ? rows.map(function (r) { var t = r[0], lv = r[1]; return '<li><b>' + esc(t[0]) + '</b><span class="lvl l' + Math.max(0, lv) + '">' + (lv < 0 ? 'Not known to harm a ' + pet : WORD[lv]) + '</span><small>' + esc(t[4]) + '</small></li>'; }).join('') : '<li>Not in this list. If in doubt, ask your vet before letting your pet near it.</li>';
   }

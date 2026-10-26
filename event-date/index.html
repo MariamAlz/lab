@@ -53,6 +53,7 @@
 .detail .pos { color: var(--sat-b); } .detail .neg { color: var(--sat-c); }
 [hidden] { display: none !important; }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -195,7 +196,7 @@
     Object.keys(months).forEach(function (k) {
       var arr = months[k], first = (arr[0].d.getUTCDay() + 6) % 7, avg = 0, cnt = 0;
       arr.forEach(function (x) { if (S.days[(x.d.getUTCDay() + 6) % 7]) { avg += x.s; cnt++; } });
-      h += '<div class="mon"><h3>' + arr[0].d.toLocaleDateString('en-GB', { month: 'long', year: 'numeric', timeZone: 'UTC' }) + '<small>' + (cnt ? 'avg ' + Math.round(avg / cnt) : '') + '</small></h3><div class="grid7">' + DOW.map(function (d) { return '<i>' + d[0] + '</i>'; }).join('');
+      h += '<div class="mon"><h3>' + arr[0].d.toLocaleDateString('en-GB', { month: 'long', year: 'numeric', timeZone: 'UTC' }) + '<small>' + (cnt ? 'avg ' + Math.round(avg / cnt) : '') + '</small></h3><div class="grid7">' + DOW.map(function (d, i) { return '<i>' + (window.LabAr && LabAr.on ? 'نثرخجسح'[i] : d[0]) + '</i>'; }).join('');
       for (var i = 0; i < first; i++) h += '<span></span>';
       arr.forEach(function (x) { h += '<button type="button" data-iso="' + x.iso + '" class="' + (x.past ? 'past ' : '') + (x.fm ? 'fm ' : '') + (sel === x.iso ? 'sel ' : '') + (S.stars.indexOf(x.iso) >= 0 ? 'st' : '') + '" style="background:' + color(x.s) + '" title="' + niceDate(x.d) + ': ' + x.s + '"' + (x.past ? ' disabled' : '') + '>' + x.d.getUTCDate() + '</button>'; });
       h += '</div></div>';

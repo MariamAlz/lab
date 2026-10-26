@@ -71,6 +71,7 @@ details.box[open] summary { margin-bottom: 10px; }
   #printout .az div { break-inside: avoid; }
 }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -339,7 +340,7 @@ details.box[open] summary { margin-bottom: 10px; }
     renderSide();
   }
   function opts(sel0) { return S.guests.slice().sort(function (a, b) { return a.name.localeCompare(b.name); }).map(function (g) { return '<option value="' + g.id + '"' + (g.id === sel0 ? ' selected' : '') + '>' + esc(g.name) + '</option>'; }).join(''); }
-  function secOpts(v, any) { return (any ? '<option value="">' + any + '</option>' : '') + S.sections.map(function (s) { return '<option' + (s === v ? ' selected' : '') + '>' + esc(s) + '</option>'; }).join(''); }
+  function secOpts(v, any) { return (any ? '<option value="">' + any + '</option>' : '') + S.sections.map(function (s) { return '<option value="' + esc(s) + '"' + (s === v ? ' selected' : '') + '>' + esc(s) + '</option>'; }).join(''); }
   function renderSide() {
     $('gCount').textContent = S.guests.length ? '· ' + S.guests.length : '';
     $('gList').innerHTML = S.guests.map(function (g) {

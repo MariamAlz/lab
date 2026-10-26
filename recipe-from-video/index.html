@@ -40,8 +40,11 @@ textarea { min-height: 110px; resize: vertical; }
 .saved li { display: flex; justify-content: space-between; gap: 8px; align-items: center; padding: 8px 12px; border: 1px solid var(--line); border-radius: 10px; font-size: 0.88rem; }
 .saved button { font: inherit; font-size: 0.8rem; background: none; border: 0; color: var(--muted); cursor: pointer; }
 [hidden] { display: none !important; }
+html.ar .rcp li:not([data-noar]), html.ar .rcp .label { unicode-bidi: plaintext; text-align: start; }
+html.ar .rcp[dir=ltr] li:not([data-noar]), html.ar .rcp[dir=ltr] .label { text-align: right; }
 @media print { .labbar, .labfoot, .sec-head, .noprint { display: none !important; } .rcp { border: 0; background: #fff; color: #000; } .ings .q, .steps mark { color: #000; } }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -163,9 +166,9 @@ const PL = { cup: 'cups', clove: 'cloves', can: 'cans', slice: 'slices', piece: 
 function unitTxt(u, q) { return u && q > 1 && PL[u] ? PL[u] : u; }
 function render() {
   const r = cur, k = r.serves / r.base;
-  const ing = r.ings.length ? r.ings.map((x, i) => '<li><label><input type="checkbox"><span><span class="q">' + esc([fmtQ(x.q != null ? x.q * k : null) + (x.q2 != null ? '–' + fmtQ(x.q2 * k) : ''), unitTxt(x.u, (x.q2 || x.q || 0) * k)].filter(Boolean).join(' ')) + '</span> ' + esc(x.name) + '</span></label></li>').join('') : '<li style="color:var(--muted)">No ingredients recognised. Add them in the edit box below.</li>';
-  const st = r.steps.length ? r.steps.map((s) => '<li>' + esc(s).replace(TIME, '<mark>$&</mark>') + '</li>').join('') : '<li style="color:var(--muted)">No steps recognised.</li>';
-  $('out').innerHTML = '<div class="rcp" dir="' + (r.ar ? 'rtl' : 'ltr') + '"><h2 contenteditable="true" id="ttl" spellcheck="false">' + esc(r.title) + '</h2>' +
+  const ing = r.ings.length ? r.ings.map((x, i) => '<li><label><input type="checkbox"><span data-noar><span class="q">' + esc([fmtQ(x.q != null ? x.q * k : null) + (x.q2 != null ? '–' + fmtQ(x.q2 * k) : ''), unitTxt(x.u, (x.q2 || x.q || 0) * k)].filter(Boolean).join(' ')) + '</span> ' + esc(x.name) + '</span></label></li>').join('') : '<li style="color:var(--muted)">No ingredients recognised. Add them in the edit box below.</li>';
+  const st = r.steps.length ? r.steps.map((s) => '<li data-noar>' + esc(s).replace(TIME, '<mark>$&</mark>') + '</li>').join('') : '<li style="color:var(--muted)">No steps recognised.</li>';
+  $('out').innerHTML = '<div class="rcp" dir="' + (r.ar ? 'rtl' : 'ltr') + '"><h2 contenteditable="true" id="ttl" spellcheck="false" data-noar>' + esc(r.title) + '</h2>' +
     '<div class="serv noprint" dir="ltr"><span>Serves</span><button type="button" id="sm">−</button><b id="sv">' + r.serves + '</b><button type="button" id="sp">+</button><span style="color:var(--muted);font-size:.8rem">amounts scale automatically</span></div>' +
     '<div class="game" style="gap:20px"><div><span class="label">' + (r.ar ? 'المكونات' : 'Ingredients') + '</span><ul class="ings" style="margin-top:8px">' + ing + '</ul></div><div><span class="label">' + (r.ar ? 'الطريقة' : 'Method') + '</span><ol class="steps" style="margin-top:8px">' + st + '</ol></div></div>' +
     '<div class="btns noprint" dir="ltr"><button class="sm pri" type="button" id="save">Save recipe</button><button class="sm" type="button" id="copy">Copy as text</button><button class="sm" type="button" onclick="print()">Print</button><button class="sm" type="button" id="edit">Edit</button></div>' +
@@ -188,7 +191,7 @@ function load() { try { return JSON.parse(localStorage.getItem('videoRecipes') |
 function store(a) { try { localStorage.setItem('videoRecipes', JSON.stringify(a.slice(0, 60))); } catch (e) {} }
 function list() {
   const a = load();
-  $('saved').innerHTML = a.length ? a.map((r, i) => '<li><a href="#" data-i="' + i + '">' + esc(r.title) + '</a><button type="button" data-del="' + i + '" aria-label="Delete">✕</button></li>').join('') : '<li style="color:var(--muted)">None yet.</li>';
+  $('saved').innerHTML = a.length ? a.map((r, i) => '<li><a href="#" data-noar data-i="' + i + '">' + esc(r.title) + '</a><button type="button" data-del="' + i + '" aria-label="Delete">✕</button></li>').join('') : '<li style="color:var(--muted)">None yet.</li>';
 }
 $('saved').addEventListener('click', (e) => {
   const a = load(), o = e.target.closest('[data-i]'), d = e.target.closest('[data-del]');

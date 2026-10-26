@@ -448,3 +448,10 @@ LabAr.add({
  "A checklist sized to your trip length, the weather where you're going and your plans, with passport, adapter and power bank reminders for UAE travellers.": "قائمة تجهيز تناسب مدة رحلتك وطقس وجهتك وخططك، مع تذكيرات للمسافرين من الإمارات بشأن جواز السفر والمحوّل والشاحن المتنقل.",
  "Start packing →": "ابدأ التجهيز ←"
 });
+/* index cards for newer tools */
+LabAr.add({
+ "Tool · Money": "أداة · المال",
+ "Which phone plan size fits?": "أي حجم باقة يناسبك؟",
+ "Estimate your data from daily habits, type in the plans you're comparing, and see which covers you for the least.": "قدّر استهلاكك للبيانات من عاداتك اليومية، وأدخل الباقات التي تقارن بينها، لترى أيها يغطيك بأقل تكلفة.",
+ "Compare →": "قارن ←"
+});

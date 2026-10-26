@@ -39,11 +39,13 @@
 .rule .t { position: relative; height: 14px; background: var(--line); border-radius: 7px; }
 .rule .t i { position: absolute; inset: 0 auto 0 0; border-radius: 7px; max-width: 100%; }
 .rule .t u { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--ink); text-decoration: none; }
+html.ar .rule .t { transform: scaleX(-1); }
 .warn { padding: 10px 12px; border-radius: 10px; border: 1px solid color-mix(in srgb, var(--sat-c) 60%, var(--line)); font-size: 0.88rem; }
 .stats span { font-size: 0.78rem; color: var(--muted); }
 @media (max-width: 520px) { .stats b { font-size: 1.1rem; } .stats div { padding: 10px; } }
 [hidden] { display: none !important; }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -192,7 +194,7 @@
       return '<div class="r"><div><span>' + r[0] + '</span><span style="font-family:var(--font-mono);color:' + (ok ? 'var(--sat-b)' : 'var(--sat-c)') + '">' + Math.round(p) + '% <small style="color:var(--muted)">/ ' + r[2] + '%</small></span></div><div class="t"><i style="width:' + Math.min(100, p) + '%;background:' + r[3] + '"></i><u style="left:' + r[2] + '%"></u></div></div>';
     }).join('');
     // emergency fund = essentials (needs, incl. remittances if counted as need) x months
-    var ess = B.need, efT = ess * +$('efMonths').value, gap = Math.max(0, efT - n('efHave')), canSave = Math.max(0, left) + (goals.length && /emergency/i.test(goals[0].name) ? goals[0].m : 0);
+    var ess = B.need, efT = ess * +$('efMonths').value, gap = Math.max(0, efT - n('efHave')), canSave = Math.max(0, left) + (goals.length && /emergency|طوارئ/i.test(goals[0].name) ? goals[0].m : 0);
     var mt = gap === 0 ? 0 : canSave > 0 ? Math.ceil(gap / canSave) : Infinity;
     $('stats').innerHTML = '<div><b>' + aed(efT) + '</b><span>AED emergency fund target</span></div><div><b>' + aed(gap) + '</b><span>AED still to save</span></div><div><b>' + (mt === 0 ? 'Done' : mt === Infinity ? '—' : mt + ' mo') + '</b><span>' + (mt === Infinity ? 'nothing left to save' : 'at your current pace') + '</span></div>';
     $('efFact').innerHTML = 'Your essentials come to about <b>' + aed(ess) + ' AED a month</b>. For most expats a residence visa depends on the job, and after a job ends there is usually a short grace period to find the next one, so many planners suggest at least 6 months of essentials put aside. Your end-of-service gratuity helps, but it can take weeks to be paid. See the <a href="../gratuity/">gratuity calculator</a> to estimate yours.';

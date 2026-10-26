@@ -26,7 +26,9 @@
 .letter[dir="rtl"] { font-family: 'IBM Plex Sans Arabic', sans-serif; }
 .acts { display: flex; flex-wrap: wrap; gap: 10px; }
 @media (max-width: 520px) { .two { grid-template-columns: 1fr; } .letter { padding: 18px; } }
+html.ar .f input[type=email] { direction: ltr; text-align: right; }
 </style>
+<script src="../assets/i18n.js"></script>
 </head>
 <body>
 <header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
@@ -62,7 +64,7 @@
       <div class="acts" role="group" aria-label="Language"><button class="sm" type="button" data-l="en" aria-pressed="true">English letter</button><button class="sm" type="button" data-l="ar" aria-pressed="false">رسالة بالعربية</button></div>
     </div>
     <div style="display:grid;gap:12px">
-      <div class="letter" id="letter"></div>
+      <div class="letter" id="letter" data-noar></div>
       <div class="acts">
         <button class="btn primary" type="button" id="copy">Copy letter</button>
         <a class="btn ghost" id="mail" href="#">Open in email</a>
@@ -115,7 +117,7 @@
         '\n\nلمساعدتكم في العثور على سجلاتي:\nالاسم: ' + name + '\nالبريد الإلكتروني: ' + email + (acct ? '\nرقم الحساب أو العميل: ' + acct : '') +
         '\n\nإذا احتجتم إلى أي معلومات إضافية للتحقق من هويتي، يرجى إعلامي دون تأخير. أتطلع إلى ردكم خلال ' + (law === 'gdpr' ? 'شهر واحد كما تنص اللائحة' : '30 يوما') + '، على عنوان البريد الإلكتروني هذا.\n\nوتفضلوا بقبول فائق الاحترام،\n' + name;
     }
-    if (!reqs.length) t = lang === 'ar' ? 'اختر طلبا واحدا على الأقل.' : 'Tick at least one request.';
+    if (!reqs.length) t = (lang === 'ar' || (window.LabAr && LabAr.on)) ? 'اختر طلبا واحدا على الأقل.' : 'Tick at least one request.';
     $('letter').textContent = t; $('letter').dir = lang === 'ar' ? 'rtl' : 'ltr';
     var subj = lang === 'ar' ? 'طلب يتعلق بالبيانات الشخصية' : 'Personal data request';
     $('mail').href = 'mailto:' + encodeURIComponent($('coMail').value.trim()) + '?subject=' + encodeURIComponent(subj) + '&body=' + encodeURIComponent(t);
