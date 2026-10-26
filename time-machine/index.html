@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Website Time Machine · Mariam's Lab</title>
+<meta name="description" content="See how any website looked through the years, side by side, from the Internet Archive's Wayback Machine.">
+<link rel="canonical" href="https://lab.mariamalzaabi.ae/time-machine/">
+<meta property="og:title" content="Website Time Machine · Mariam's Lab"><meta property="og:description" content="Any website, through the years, side by side."><meta property="og:image" content="https://mariamalzaabi.ae/assets/og-en.jpg">
+<link rel="icon" type="image/svg+xml" href="https://mariamalzaabi.ae/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.inrow { display: flex; gap: 8px; flex-wrap: wrap; }
+.inrow input { flex: 1 1 260px; min-width: 0; font: inherit; font-family: var(--font-mono); color: var(--ink); background: rgba(7,10,24,.7); border: 1px solid var(--line); border-radius: 999px; padding: 11px 16px; }
+.sm { font: inherit; font-size: 0.8rem; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 4px 11px; cursor: pointer; }
+.sm[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.tries { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; align-items: center; }
+.lbl { font-size: 0.78rem; color: var(--muted); }
+.years { display: flex; gap: 3px; align-items: flex-end; height: 70px; margin-top: 18px; overflow-x: auto; padding-bottom: 22px; position: relative; }
+.years button { position: relative; flex: 1 0 22px; min-width: 22px; border: 0; padding: 0; background: rgba(79,211,189,.45); border-radius: 4px 4px 0 0; cursor: pointer; }
+.years button.a { background: var(--accent); } .years button.b { background: var(--sat-a); }
+.years button span { position: absolute; top: calc(100% + 4px); left: 50%; transform: translateX(-50%); font-family: var(--font-mono); font-size: 0.62rem; color: var(--muted); }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+.frame { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: #fff; display: grid; grid-template-rows: auto 1fr; }
+.frame header { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 12px; background: var(--surface); color: var(--ink); font-size: 0.85rem; }
+.frame header b { font-family: var(--font-display); font-size: 1.2rem; }
+.frame header a { font-size: 0.78rem; color: var(--muted); }
+.vp { position: relative; height: 560px; overflow: hidden; }
+.vp iframe { position: absolute; top: 0; left: 0; width: 1280px; height: 1600px; border: 0; transform-origin: 0 0; }
+.msg { font-size: 0.86rem; color: var(--muted); margin-top: 10px; min-height: 1.2em; }
+[hidden] { display: none !important; }
+@media (max-width: 760px) { .pair { grid-template-columns: 1fr; } .vp { height: 420px; } }
+</style>
+</head>
+<body>
+<header class="labbar"><div class="wrap"><a class="home" href="../">Mariam's <span>Lab</span></a><nav aria-label="Lab"><a href="../">All experiments</a><a href="https://mariamalzaabi.ae/">mariamalzaabi.ae ↗</a></nav></div></header>
+<main class="labmain"><div class="wrap">
+  <div class="sec-head">
+    <span class="label">Tool · Web history</span>
+    <h1 style="font-size:var(--step-3)">Website time machine.</h1>
+    <p>The Internet Archive has been saving copies of the web since 1996. Type any site to see how often it was saved each year, then put two years side by side. Handy for nostalgia, for research, and for checking what a company's page said before it quietly changed.</p>
+  </div>
+  <form class="inrow" id="f"><input id="q" placeholder="e.g. dubai.ae or a full page address" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Website"><button class="btn primary" type="submit">Travel</button></form>
+  <div class="tries"><span class="lbl">Try</span><button class="sm" type="button" data-q="emirates.com">emirates.com</button><button class="sm" type="button" data-q="google.com">google.com</button><button class="sm" type="button" data-q="apple.com">apple.com</button><button class="sm" type="button" data-q="wikipedia.org">wikipedia.org</button></div>
+  <p class="msg" id="msg" role="status"></p>
+  <div id="out" hidden>
+    <p class="lbl" style="margin-top:14px">Saves per year. Tap a bar to set the <span style="color:var(--accent)">left</span> view; tap again with <span style="color:var(--sat-a)">Right</span> selected to set the other.</p>
+    <div class="tries" role="group" aria-label="Which side"><button class="sm" type="button" data-side="a" aria-pressed="true">Left</button><button class="sm" type="button" data-side="b" aria-pressed="false">Right</button></div>
+    <div class="years" id="years"></div>
+    <div class="pair">
+      <div class="frame"><header><b id="ya">—</b><a id="la" target="_blank" rel="noopener">Open ↗</a></header><div class="vp"><iframe id="fa" title="Older version" loading="lazy" sandbox="allow-same-origin" referrerpolicy="no-referrer"></iframe></div></div>
+      <div class="frame"><header><b id="yb">—</b><a id="lb" target="_blank" rel="noopener">Open ↗</a></header><div class="vp"><iframe id="fb" title="Newer version" loading="lazy" sandbox="allow-same-origin" referrerpolicy="no-referrer"></iframe></div></div>
+    </div>
+  </div>
+  <p class="fact" style="margin-top:22px">Copies come from web.archive.org and show inside this page with scripts switched off, so some old pages look plain or half-loaded. Use "Open" for the full archived page. Only the site name is sent to the Internet Archive.</p>
+</div></main>
+<footer class="labfoot"><div class="wrap mono"><span>© 2026 Mariam Alzaabi</span><span>Everything runs in your browser.</span><a href="https://mariamalzaabi.ae/#contact">Get in touch ↗</a></div></footer>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var site = '', years = {}, side = 'a', pick = { a: null, b: null };
+  function clean(q) { q = q.trim().replace(/^https?:\/\//i, '').replace(/\/$/, ''); return /^[\w.-]+\.[a-z]{2,}(\/.*)?$/i.test(q) ? q : ''; }
+  function scale() { [].forEach.call(document.querySelectorAll('.vp'), function (vp) { var f = vp.querySelector('iframe'); f.style.transform = 'scale(' + (vp.clientWidth / 1280) + ')'; }); }
+  function show(k) {
+    var y = pick[k], ts = years[y]; if (!ts) return;
+    var url = 'https://web.archive.org/web/' + ts + 'if_/' + site;
+    $('f' + k).src = url; $('y' + k).textContent = y; $('l' + k).href = 'https://web.archive.org/web/' + ts + '/' + site;
+    bars();
+  }
+  function bars() {
+    var ys = Object.keys(years).filter(function (k) { return !/n$/.test(k); }).sort(), max = Math.max.apply(null, ys.map(function (y) { return years[y + 'n']; }));
+    $('years').innerHTML = ys.map(function (y) { var h = 8 + 52 * Math.sqrt(years[y + 'n'] / max); return '<button type="button" data-y="' + y + '" class="' + (pick.a === y ? 'a' : pick.b === y ? 'b' : '') + '" style="height:' + h + 'px" title="' + y + ': ' + years[y + 'n'] + ' saves"><span>\'' + y.slice(2) + '</span></button>'; }).join('');
+  }
+  function run(q) {
+    site = clean(q); if (!site) { $('msg').textContent = 'Type a website like example.com.'; return; }
+    $('msg').textContent = 'Asking the Internet Archive… (this can take a few seconds)'; $('out').hidden = true;
+    fetch('https://web.archive.org/cdx/search/cdx?url=' + encodeURIComponent(site) + '&output=json&fl=timestamp&filter=statuscode:200&collapse=timestamp:6').then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(function (j) {
+      years = {};
+      j.slice(1).forEach(function (row) { var ts = row[0], y = ts.slice(0, 4); if (!years[y]) years[y] = ts; years[y + 'n'] = (years[y + 'n'] || 0) + 1; });
+      var ys = Object.keys(years).filter(function (k) { return !/n$/.test(k); }).sort();
+      if (!ys.length) { $('msg').textContent = 'The archive has no saved copies of that address.'; return; }
+      $('msg').textContent = site + ' was first saved in ' + ys[0] + ', with copies in ' + ys.length + ' different years. Bars show how many months each year have a copy.';
+      pick.a = ys[0]; pick.b = ys[ys.length - 1]; $('out').hidden = false; show('a'); show('b'); scale();
+      history.replaceState(null, '', '?site=' + encodeURIComponent(site));
+    }).catch(function () { $('msg').textContent = 'The Internet Archive didn\'t answer. It is sometimes slow or down; try again shortly.'; });
+  }
+  $('years').addEventListener('click', function (e) { var b = e.target.closest('[data-y]'); if (!b) return; pick[side] = b.dataset.y; show(side); });
+  [].forEach.call(document.querySelectorAll('[data-side]'), function (b) { b.onclick = function () { side = b.dataset.side; [].forEach.call(document.querySelectorAll('[data-side]'), function (x) { x.setAttribute('aria-pressed', x === b); }); }; });
+  $('f').onsubmit = function (e) { e.preventDefault(); run($('q').value); };
+  [].forEach.call(document.querySelectorAll('[data-q]'), function (b) { b.onclick = function () { $('q').value = b.dataset.q; run(b.dataset.q); }; });
+  window.addEventListener('resize', scale);
+  var s0 = new URLSearchParams(location.search).get('site'); if (s0) { $('q').value = s0; run(s0); }
+})();
+</script>
+</body>
+</html>
